@@ -4,7 +4,7 @@
 #include <QMimeData>
 #include <QDragEnterEvent>
 
-DragableWidget::DragableWidget(QWidget *parent): QTextEdit(parent)
+DragableWidget::DragableWidget(QWidget *parent): QwtPlot(parent)
 {
     setAcceptDrops(true);
 }

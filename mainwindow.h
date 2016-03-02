@@ -17,9 +17,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void addPlotWidget(QString name, int row, int col);
 private slots:
-    void on_pushButton_2_pressed();
-    void on_pushButton_pressed();
 
     void swapWidgets(QString src, QString dst);
 
@@ -28,18 +27,29 @@ private slots:
 
     void on_lineEdit_textChanged(const QString &arg1);
 
-
     void on_radioRegExp_toggled(bool checked);
 
     void on_checkBoxCaseSensitive_toggled(bool checked);
 
+    void on_pushAddRow_pressed();
+
+    void on_pushAddColumn_pressed();
+
+    void createActions();
+
+    void deletePlot();
+
 private:
     Ui::MainWindow *ui;
 
-    QList<DragableWidget*> editors;
+    QList<DragableWidget*> plotWidgets;
+
+    QAction *deleteOneAct;
+    QAction *deleteAllAct;
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void contextMenuEvent(QContextMenuEvent *event) Q_DECL_OVERRIDE;
 
 };
 

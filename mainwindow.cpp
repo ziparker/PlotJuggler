@@ -7,6 +7,7 @@
 #include <QStringListModel>
 #include <QRegExpValidator>
 
+#include <qwt_plot_canvas.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -14,25 +15,17 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-
-    for (int i=0; i<4; i++)
-    {
-        DragableWidget* widget = new DragableWidget( this );
-        widget->setWindowTitle( QString::number(i) );
-        widget->setReadOnly( true );
-        editors.push_back( widget );
-        widget->append( QString::number(i));
-        ui->plotsLayout->addWidget(widget,i%2,i/2,1,1);
-
-        connect( widget, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgets(QString,QString)) );
-    }
-
     QStringList  list;
 
     list << "siam" << "tre" << "piccoli" << "porcellin"
          << "mai" << "nessun" << "ci" << "dividera";
 
     ui->listWidget->addItems( list);
+
+    ui->splitter->setStretchFactor(0,0);
+    ui->splitter->setStretchFactor(1,1);
+
+    createActions();
 }
 
 MainWindow::~MainWindow()
@@ -40,15 +33,60 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_2_pressed()
+void MainWindow::addPlotWidget(QString name,int row,int col)
+{
+    DragableWidget* plot = new DragableWidget( this );
+    plot->setWindowTitle( name );
+
+    plotWidgets.push_back( plot );
+
+    plot->setTitle( QString("Plot") + QString::number(plotWidgets.size())  );
+
+    QwtPlotCanvas *canvas = new QwtPlotCanvas(plot);
+    canvas->setFrameStyle( QFrame::NoFrame );
+    canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, false );
+
+    plot->setCanvas( canvas );
+    plot->setCanvasBackground( QColor( 250, 250, 250 ) );
+
+
+    ui->plotsLayout->addWidget(plot,row,col,1,1);
+
+    connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgets(QString,QString)) );
+
+}
+
+void MainWindow::createActions()
+{
+    deleteAllAct = new QAction(tr("&Delete All"), this);
+    deleteAllAct->setStatusTip(tr("Delete the plot"));
+    connect(deleteAllAct, SIGNAL(triggered()), this, SLOT(deletePlot()));
+
+
+    deleteOneAct = new QAction(tr("&Delete One"), this);
+    deleteOneAct->setStatusTip(tr("Delete the plot"));
+    connect(deleteOneAct, SIGNAL(triggered()), this, SLOT(deletePlot()));
+}
+
+void MainWindow::deletePlot()
 {
 
 }
 
-void MainWindow::on_pushButton_pressed()
-{
 
+
+void MainWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+    QWidget * w =  this->childAt( event->pos() );
+    if( w )
+        qDebug()<< w->objectName();
+
+    QMenu menu(this);
+    menu.addAction(deleteOneAct);
+    menu.addAction(deleteAllAct);
+    menu.exec( event->globalPos() );
 }
+
 
 void MainWindow::swapWidgets(QString src, QString dst)
 {
@@ -118,7 +156,7 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
     {
         cs = Qt::CaseSensitive;
     }
-    QRegExp regexp( arg1,  cs );
+    QRegExp regexp( arg1,  cs, QRegExp::Wildcard );
     QRegExpValidator v(regexp, 0);
 
     for (int i=0; i< ui->listWidget->count(); i++)
@@ -145,7 +183,49 @@ void MainWindow::on_radioRegExp_toggled(bool )
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
-void MainWindow::on_checkBoxCaseSensitive_toggled(bool checked)
+void MainWindow::on_checkBoxCaseSensitive_toggled(bool )
 {
     on_lineEdit_textChanged( ui->lineEdit->text() );
+}
+
+void MainWindow::on_pushAddRow_pressed()
+{
+    int cols = ui->plotsLayout->columnCount();
+    int rows = ui->plotsLayout->rowCount();
+
+    qDebug() << rows << " " << cols;
+
+    if( ui->plotsLayout->count() == 0 )  {
+        addPlotWidget(QString("0 _ 0"), 0, 0);
+        return;
+    }
+
+    if( rows < 4){
+        for (int c=0; c< cols; c++)
+        {
+            QString name = QString::number( rows ) + QString(" / ") + QString::number( c );
+            addPlotWidget(name, rows, c);
+        }
+    }
+}
+
+void MainWindow::on_pushAddColumn_pressed()
+{
+    int cols = ui->plotsLayout->columnCount();
+    int rows = ui->plotsLayout->rowCount();
+
+    qDebug() << rows << " " << cols;
+
+    if( ui->plotsLayout->count() == 0)  {
+        addPlotWidget(QString("0 _ 0"), 0, 0);
+        return;
+    }
+
+    if( cols < 4){
+        for (int r=0; r< rows; r++)
+        {
+            QString name = QString::number( r ) + QString(" / ") + QString::number( cols );
+            addPlotWidget( name, r, cols );
+        }
+    }
 }
