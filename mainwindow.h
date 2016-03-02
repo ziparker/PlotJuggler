@@ -42,10 +42,14 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    QList<DragableWidget*> plotWidgets;
+    QList<PlotWidget*> plotWidgets;
 
     QAction *deleteOneAct;
     QAction *deleteAllAct;
+
+    void buildData();
+
+    PlotDataMap mapped_plot_data;
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;

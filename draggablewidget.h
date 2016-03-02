@@ -11,14 +11,16 @@
 #include <qwt_legend.h>
 #include "plotdata.h"
 
-class DragableWidget : public QwtPlot
+typedef std::map<QString, PlotData> PlotDataMap;
+
+class PlotWidget : public QwtPlot
 {
     Q_OBJECT
 
 public:
-    DragableWidget(QWidget *parent=0);
+    PlotWidget(PlotDataMap* mapped_plot_data, QWidget *parent=0);
 
-    void addCurve(const QString&  name, PlotData* data);
+    void addCurve(const QString&  name);
     void removeCurve(const QString& name);
 
 protected:
@@ -31,7 +33,8 @@ signals:
     void swapWidgets(QString s, QString to);
 
 private:
-    std::map<QString, PlotData*> curve;
+    PlotDataMap* _plot_data;
+
 
 };
 

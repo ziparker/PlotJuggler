@@ -9,23 +9,24 @@
 
 #include <qwt_plot_canvas.h>
 
+QStringList  words_list;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    QStringList  list;
-
-    list << "siam" << "tre" << "piccoli" << "porcellin"
+    words_list << "siam" << "tre" << "piccoli" << "porcellin"
          << "mai" << "nessun" << "ci" << "dividera";
 
-    ui->listWidget->addItems( list);
+    ui->listWidget->addItems( words_list );
 
     ui->splitter->setStretchFactor(0,0);
     ui->splitter->setStretchFactor(1,1);
 
     createActions();
+    buildData();
 }
 
 MainWindow::~MainWindow()
@@ -35,24 +36,24 @@ MainWindow::~MainWindow()
 
 void MainWindow::addPlotWidget(QString name,int row,int col)
 {
-    DragableWidget* plot = new DragableWidget( this );
-    plot->setWindowTitle( name );
+    PlotWidget* plot_widget = new PlotWidget( &mapped_plot_data, this );
+    plot_widget->setWindowTitle( name );
 
-    plotWidgets.push_back( plot );
+    plotWidgets.push_back( plot_widget );
 
-    plot->setTitle( QString("Plot") + QString::number(plotWidgets.size())  );
+    plot_widget->setTitle( QString("Plot") + QString::number(plotWidgets.size())  );
 
-    QwtPlotCanvas *canvas = new QwtPlotCanvas(plot);
+    QwtPlotCanvas *canvas = new QwtPlotCanvas(plot_widget);
     canvas->setFrameStyle( QFrame::NoFrame );
     canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, false );
 
-    plot->setCanvas( canvas );
-    plot->setCanvasBackground( QColor( 250, 250, 250 ) );
+    plot_widget->setCanvas( canvas );
+    plot_widget->setCanvasBackground( QColor( 250, 250, 250 ) );
 
 
-    ui->plotsLayout->addWidget(plot,row,col,1,1);
+    ui->plotsLayout->addWidget(plot_widget,row,col,1,1);
 
-    connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgets(QString,QString)) );
+    connect( plot_widget, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgets(QString,QString)) );
 
 }
 
@@ -71,6 +72,30 @@ void MainWindow::createActions()
 void MainWindow::deletePlot()
 {
 
+}
+
+void MainWindow::buildData()
+{
+    long size_plot = 100*1000;
+
+    foreach( const QString& name, words_list)
+    {
+        mapped_plot_data.insert( std::make_pair( name, PlotData(size_plot)));
+
+        PlotData& plot_data = mapped_plot_data.at(name);
+
+        float A =  qrand()/(float)RAND_MAX * 6 - 3;
+        float B =  qrand()/(float)RAND_MAX *3;
+        float C =  qrand()/(float)RAND_MAX *3;
+        float D =  qrand()/(float)RAND_MAX *2 -1;
+
+        float t = 0;
+        for (int indx=0; indx<size_plot; indx++)
+        {
+            plot_data.pushBack( QPointF( t, A*sin(B*t + C) +D ) ) ;
+            t += 0.00025;
+        }
+    }
 }
 
 
@@ -120,8 +145,6 @@ void MainWindow::swapWidgets(QString src, QString dst)
         grid->addWidget(widgetA, x2, y2, 1, 1);
         grid->addWidget(widgetB, x1, y1, 1, 1);
     }
-
-    // ui->plotsLayout->replaceWidget()
 }
 
 
