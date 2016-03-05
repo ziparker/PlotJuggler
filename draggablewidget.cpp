@@ -3,11 +3,19 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QDragEnterEvent>
+#include <qwt_plot_canvas.h>
 
 PlotWidget::PlotWidget(PlotDataMap *mapped_plot_data, QWidget *parent): QwtPlot(parent)
 {
     _plot_data = mapped_plot_data;
     setAcceptDrops(true);
+    this->setMinimumWidth( 100 );
+    this->setMinimumHeight( 100 );
+
+    this->sizePolicy().setHorizontalPolicy( QSizePolicy::Expanding);
+    this->sizePolicy().setVerticalPolicy( QSizePolicy::Expanding);
+ //   this->sizePolicy().setHorizontalStretch(1);
+ //   this->sizePolicy().setVerticalStretch(1);
 }
 
 void PlotWidget::addCurve(const QString &name)
@@ -22,10 +30,11 @@ void PlotWidget::addCurve(const QString &name)
     QColor color;
 
     int index = 0;
+
     // todo: store a map with this index
     for(PlotDataMap::iterator it = _plot_data->begin(); it != _plot_data->end(); it++)
     {
-        if( it->first.compare( name) == 0) break;
+        if( it->first.compare( name ) == 0) break;
         index++;
     }
 
@@ -45,7 +54,14 @@ void PlotWidget::addCurve(const QString &name)
     curve->setPen( color, 1.0 );
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
+    _curve_list.insert( std::make_pair(name,curve) );
+
     this->replot();
+}
+
+bool PlotWidget::isEmpty()
+{
+    return _curve_list.empty();
 }
 
 void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -61,11 +77,11 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
         {
             event->acceptProposedAction();
 
-            /* while (!stream.atEnd()) {
-                int row, col;
-                QMap<int,  QVariant> roleDataMap;
-                stream >> row >> col >> roleDataMap;
-            }*/
+            /// while (!stream.atEnd()) {
+            //    int row, col;
+            //    QMap<int,  QVariant> roleDataMap;
+            //    stream >> row >> col >> roleDataMap;
+           // }
         }
         if( format.contains( "plot_area") )
         {
@@ -78,12 +94,10 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
         }
     }
 }
-
 void PlotWidget::dragMoveEvent(QDragMoveEvent *event)
 {
 
 }
-
 
 
 void PlotWidget::dropEvent(QDropEvent *event)
@@ -104,6 +118,8 @@ void PlotWidget::dropEvent(QDropEvent *event)
                 QMap<int,  QVariant> roleDataMap;
 
                 stream >> row >> col >> roleDataMap;
+              //  qDebug() << row;
+              //  qDebug() << roleDataMap;
                 QString itemName = roleDataMap[0].toString();
                 addCurve( itemName );
             }
@@ -115,6 +131,19 @@ void PlotWidget::dropEvent(QDropEvent *event)
             emit swapWidgets( source_name, windowTitle() );
         }
     }
+}
+
+void PlotWidget::contextMenuEvent(QContextMenuEvent *event)
+{
+    for(std::map<QString, QwtPlotCurve*>::iterator it = _curve_list.begin(); it != _curve_list.end(); it++)
+    {
+         QwtPlotCurve* curve = it->second;
+         curve->detach();
+        // qDebug() << "detach " << it->first;
+         _curve_list.erase( it );
+    }
+
+    this->replot();
 }
 
 void PlotWidget::mousePressEvent(QMouseEvent *event)
@@ -134,6 +163,10 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
         drag->setMimeData(mimeData);
 
         drag->exec();
+    }
+    else if(event->button() == Qt::RightButton)
+    {
+         qDebug() << "RightButton";
     }
 }
 

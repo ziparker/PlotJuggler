@@ -22,18 +22,21 @@ public:
 
     void addCurve(const QString&  name);
     void removeCurve(const QString& name);
+    bool isEmpty();
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
     void dragMoveEvent(QDragMoveEvent *event) Q_DECL_OVERRIDE;
     void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void contextMenuEvent(QContextMenuEvent *event) Q_DECL_OVERRIDE;
 
 signals:
     void swapWidgets(QString s, QString to);
 
 private:
     PlotDataMap* _plot_data;
+    std::map<QString, QwtPlotCurve*> _curve_list;
 
 
 };

@@ -39,21 +39,33 @@ private slots:
 
     void deletePlot();
 
+    void on_pushAddPlot_pressed();
+
 private:
     Ui::MainWindow *ui;
 
-    QList<PlotWidget*> plotWidgets;
+    QList<PlotWidget*> _plotWidgets;
 
     QAction *deleteOneAct;
     QAction *deleteAllAct;
 
     void buildData();
 
-    PlotDataMap mapped_plot_data;
+    PlotDataMap _mapped_plot_data;
+    void rearrangeGridLayout();
+
+    int _num_active_columns;
+    int _num_active_rows;
+
+    void resizePlots(QSize layout_size);
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void contextMenuEvent(QContextMenuEvent *event) Q_DECL_OVERRIDE;
+
+    void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
+    void dragMoveEvent(QDragMoveEvent *event) Q_DECL_OVERRIDE;
+    void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
 
 };
 

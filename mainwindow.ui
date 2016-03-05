@@ -148,9 +148,9 @@
          <enum>QLayout::SetMaximumSize</enum>
         </property>
         <item>
-         <layout class="QGridLayout" name="plotsLayout">
+         <layout class="QGridLayout" name="plotsLayout" rowstretch="0" columnstretch="0">
           <property name="sizeConstraint">
-           <enum>QLayout::SetMinAndMaxSize</enum>
+           <enum>QLayout::SetDefaultConstraint</enum>
           </property>
          </layout>
         </item>
@@ -220,6 +220,16 @@
             </property>
             <property name="text">
              <string>Add row</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushAddPlot">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>remove empty plots</string>
             </property>
            </widget>
           </item>
