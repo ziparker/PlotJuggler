@@ -14,8 +14,13 @@ PlotWidget::PlotWidget(PlotDataMap *mapped_plot_data, QWidget *parent): QwtPlot(
 
     this->sizePolicy().setHorizontalPolicy( QSizePolicy::Expanding);
     this->sizePolicy().setVerticalPolicy( QSizePolicy::Expanding);
- //   this->sizePolicy().setHorizontalStretch(1);
- //   this->sizePolicy().setVerticalStretch(1);
+
+    QwtPlotCanvas *canvas = new QwtPlotCanvas(this);
+    canvas->setFrameStyle( QFrame::NoFrame );
+    canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, false );
+
+    this->setCanvas( canvas );
+    this->setCanvasBackground( QColor( 250, 250, 250 ) );
 }
 
 void PlotWidget::addCurve(const QString &name)

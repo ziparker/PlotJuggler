@@ -39,7 +39,7 @@ private slots:
 
     void deletePlot();
 
-    void on_pushAddPlot_pressed();
+    void on_pushremoveEmpty_pressed();
 
 private:
     Ui::MainWindow *ui;
@@ -57,7 +57,7 @@ private:
     int _num_active_columns;
     int _num_active_rows;
 
-    void resizePlots(QSize layout_size);
+
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
