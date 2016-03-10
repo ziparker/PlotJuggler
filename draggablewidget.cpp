@@ -4,6 +4,8 @@
 #include <QMimeData>
 #include <QDragEnterEvent>
 #include <qwt_plot_canvas.h>
+#include <qwt_scale_engine.h>
+#include <qwt_plot_layout.h>
 
 PlotWidget::PlotWidget(PlotDataMap *mapped_plot_data, QWidget *parent): QwtPlot(parent)
 {
@@ -21,6 +23,11 @@ PlotWidget::PlotWidget(PlotDataMap *mapped_plot_data, QWidget *parent): QwtPlot(
 
     this->setCanvas( canvas );
     this->setCanvasBackground( QColor( 250, 250, 250 ) );
+    this->setAxisAutoScale(0, true);
+
+    this->axisScaleEngine(QwtPlot::xBottom)->setAttribute(QwtScaleEngine::Floating,true);
+
+    this->plotLayout()->setAlignCanvasToScales( true );
 }
 
 void PlotWidget::addCurve(const QString &name)

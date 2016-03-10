@@ -233,6 +233,9 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QLCDNumber" name="lcdNumber"/>
+          </item>
          </layout>
         </item>
        </layout>

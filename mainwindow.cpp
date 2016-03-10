@@ -112,10 +112,13 @@ void MainWindow::buildData()
         float t = 0;
         for (int indx=0; indx<size_plot; indx++)
         {
-            plot_data.pushBack( QPointF( t, A*sin(B*t + C) +D ) ) ;
-            t += 0.00025;
+            plot_data.pushBack( QPointF( t, A*sin(B*t + C) +D*t*0.01 ) ) ;
+            t += 0.001;
         }
     }
+
+    ui->horizontalSlider->setRange(0, size_plot  );
+    on_horizontalSlider_valueChanged(0);
 }
 
 
@@ -381,5 +384,27 @@ void MainWindow::on_pushremoveEmpty_pressed()
             grid->itemAtPosition( _num_active_rows-1, c )->widget()->close();
         }
         _num_active_rows--;
+    }
+}
+
+void MainWindow::on_horizontalSlider_valueChanged(int value)
+{
+    QGridLayout* grid =  ui->plotsLayout;
+    ui->lcdNumber->display(value);
+
+    for( PlotDataMap::iterator it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
+    {
+        PlotData* plot = &(it->second);
+
+        float range = (float)ui->horizontalSlider->maximum() *0.001*0.1;
+        plot->setRangeX( (float)value*0.001 , range ) ;
+    }
+    for (int index = 0; index < grid->count(); index++)
+    {
+        PlotWidget* plot = static_cast<PlotWidget*>( grid->itemAt(index)->widget() );
+        if (plot){
+            plot->updateAxes();
+            plot->replot();
+        }
     }
 }

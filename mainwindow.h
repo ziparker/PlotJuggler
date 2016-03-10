@@ -41,6 +41,8 @@ private slots:
 
     void on_pushremoveEmpty_pressed();
 
+    void on_horizontalSlider_valueChanged(int value);
+
 private:
     Ui::MainWindow *ui;
 
