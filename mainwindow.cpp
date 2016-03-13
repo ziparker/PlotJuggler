@@ -26,11 +26,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->splitter->setStretchFactor(0,0);
     ui->splitter->setStretchFactor(1,1);
 
+    on_addTabButton_pressed();
+
     createActions();
     buildData();
 
-    _num_active_columns = 0;
-    _num_active_rows = 0;
 }
 
 MainWindow::~MainWindow()
@@ -49,54 +49,33 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
     }
 }
 
-void MainWindow::dragMoveEvent(QDragMoveEvent *event)
+void MainWindow::dragMoveEvent(QDragMoveEvent *)
 {
 
 }
 
-void MainWindow::dropEvent(QDropEvent *event)
+void MainWindow::dropEvent(QDropEvent *)
 {
 
 }
 
-
-void MainWindow::addPlotWidget(QString name,int row,int col)
-{
-    qDebug() <<" addign plot to " << row << " " << col;
-
-    PlotWidget* plot_widget = new PlotWidget( &_mapped_plot_data, this );
-    plot_widget->setWindowTitle( name );
-
-    _plotWidgets.push_back( plot_widget );
-
-    // plot_widget->setTitle( QString("Plot") + QString::number(_plotWidgets.size())  );
-
-    ui->plotsLayout->addWidget(plot_widget,row,col);
-
-    connect( plot_widget, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgets(QString,QString)) );
-
-    plot_widget->setAttribute(Qt::WA_DeleteOnClose);
-}
 
 void MainWindow::createActions()
 {
-    deleteAllAct = new QAction(tr("&Delete All"), this);
+   /* deleteAllAct = new QAction(tr("&Delete All"), this);
     deleteAllAct->setStatusTip(tr("Delete the plot"));
     connect(deleteAllAct, SIGNAL(triggered()), this, SLOT(deletePlot()));
 
     deleteOneAct = new QAction(tr("&Delete One"), this);
     deleteOneAct->setStatusTip(tr("Delete the plot"));
-    connect(deleteOneAct, SIGNAL(triggered()), this, SLOT(deletePlot()));
+    connect(deleteOneAct, SIGNAL(triggered()), this, SLOT(deletePlot()));*/
 }
 
-void MainWindow::deletePlot()
-{
-
-}
 
 void MainWindow::buildData()
 {
     long size_plot = 100*1000;
+    int index = 0;
 
     foreach( const QString& name, words_list)
     {
@@ -115,10 +94,27 @@ void MainWindow::buildData()
             plot_data.pushBack( QPointF( t, A*sin(B*t + C) +D*t*0.01 ) ) ;
             t += 0.001;
         }
+
+        QColor color;
+        switch( index%9 )
+        {
+        case 0:  color = QColor(Qt::black) ;break;
+        case 1:  color = QColor(Qt::blue);break;
+        case 2:  color =  QColor(Qt::red); break;
+        case 3:  color =  QColor(Qt::darkGreen); break;
+        case 4:  color =  QColor(Qt::magenta); break;
+        case 5:  color =  QColor(Qt::darkCyan); break;
+        case 6:  color =  QColor(Qt::gray); break;
+        case 7:  color =  QColor(Qt::darkBlue); break;
+        case 8:  color =  QColor(Qt::darkYellow); break;
+        }
+        plot_data.setColorHint(color);
+        index++;
     }
 
     ui->horizontalSlider->setRange(0, size_plot  );
     on_horizontalSlider_valueChanged(0);
+
 }
 
 
@@ -133,42 +129,6 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
     menu.addAction(deleteOneAct);
     menu.addAction(deleteAllAct);
     menu.exec( event->globalPos() );
-}
-
-
-
-void MainWindow::swapWidgets(QString src, QString dst)
-{
-    QWidget* widgetA = 0;
-    QWidget* widgetB = 0;
-
-    int x1,y1, x2,y2, span;
-
-    QGridLayout* grid = ui->plotsLayout;
-
-    for(int i=0; i< grid->count(); i++)
-    {
-        QLayoutItem * item = grid->itemAt(i);
-
-        if(dynamic_cast<QWidgetItem *>(item))   //    <-- Note! QWidgetItem, and not QWidget!
-        {
-            if( QString::compare(item->widget()->windowTitle(), src ) == 0){
-                widgetA = item->widget();
-                grid->getItemPosition(i, &x1, &y1, &span, &span);
-            }
-            else if (QString::compare(item->widget()->windowTitle(), dst ) == 0){
-                widgetB = item->widget();
-                grid->getItemPosition(i, &x2, &y2, &span, &span);
-            }
-        }
-    }
-    if( widgetA && widgetB)
-    {
-        grid->removeWidget(widgetA);
-        grid->removeWidget(widgetB);
-        grid->addWidget(widgetA, x2, y2, 1, 1);
-        grid->addWidget(widgetB, x1, y1, 1, 1);
-    }
 }
 
 
@@ -235,161 +195,44 @@ void MainWindow::on_checkBoxCaseSensitive_toggled(bool )
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
-bool isColumnEmpty(QGridLayout* grid, int col )
-{
-    for (int r=0; r< grid->rowCount(); r++)
-    {
-        QLayoutItem *item = grid->itemAtPosition(r, col);
-        if( item  ){
-            PlotWidget *widget = static_cast<PlotWidget *>( item->widget() );
-            if (widget && widget->isEmpty() == false)
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool isRowEmpty(QGridLayout* grid, int row )
-{
-    for (int c=0; c< grid->columnCount(); c++)
-    {
-        QLayoutItem *item = grid->itemAtPosition(row, c);
-        if( item  ){
-            PlotWidget *widget = static_cast<PlotWidget *>( item->widget() );
-            if (widget && widget->isEmpty() == false)
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
 
 
 void MainWindow::on_pushAddRow_pressed()
 {
-    int cols = ui->plotsLayout->columnCount();
-    int rows = ui->plotsLayout->rowCount();
-
-    qDebug() << rows << " " << cols;
-
-    if( !_num_active_columns || !_num_active_columns) {
-        addPlotWidget(QString("0 _ 0"), 0, 0);
-        _num_active_columns = 1;
-        _num_active_rows = 1;
-        return;
-    }
-
-    if( _num_active_rows < 4){
-        for (int c=0; c< _num_active_columns; c++)
-        {
-            QString name = QString::number( unique_number++  );
-            addPlotWidget(name, _num_active_rows, c);
-        }
-        _num_active_rows++;
-    }
+    currentPlotGrid()->addRow();
 }
 
 
 
 void MainWindow::on_pushAddColumn_pressed()
 {
-    //  rearrangeGridLayout();
-    int cols = ui->plotsLayout->columnCount();
-    int rows = ui->plotsLayout->rowCount();
-
-    qDebug() << rows << " " << cols;
-
-    if( !_num_active_columns || !_num_active_columns)  {
-        addPlotWidget(QString("0 _ 0"), 0, 0);
-        _num_active_columns = 1;
-        _num_active_rows = 1;
-        return;
-    }
-
-    if( _num_active_columns < 4){
-        for (int r=0; r< _num_active_rows; r++)
-        {
-            QString name = QString::number( unique_number++ ) ;
-            addPlotWidget( name, r, _num_active_columns );
-        }
-        _num_active_columns++;
-    }
+    currentPlotGrid()->addColumn();
 }
 
 
 void MainWindow::on_pushremoveEmpty_pressed()
 {
-    QGridLayout* grid =  ui->plotsLayout;
-    for(int c=0; c< _num_active_columns ; c++ )
+    PlotMatrix *grid = currentPlotGrid();
+    qDebug() << "-------------";
+
+    for( int row = 0; row< grid->numRows(); row++)
     {
-        if( isColumnEmpty(grid, c) && c < _num_active_columns )
-        {
-            // move the right column
-            for(int cc = c+1; cc< _num_active_columns; cc++)
-            {
-                if (  isColumnEmpty(grid, cc) == false)
-                {
-                    for(int r=0; r< _num_active_rows; r++)
-                    {
-                        QWidget *widgetA = grid->itemAtPosition(r, cc)->widget();
-                        QWidget *widgetB = grid->itemAtPosition(r, c )->widget();
-                        grid->removeWidget(widgetA);
-                        grid->removeWidget(widgetB);
-                        grid->addWidget(widgetA, r, c);
-                        grid->addWidget(widgetB, r, cc);
-                    }
-                }
-            }
-        }
-    }
-    //-------------------------------
-    for(int r=0; r< _num_active_rows ; r++ )
-    {
-        if( isRowEmpty(grid, r) && r < _num_active_rows )
-        {
-            // move the right column
-            for(int rr = r+1; rr< _num_active_rows; rr++)
-            {
-                if (  isRowEmpty(grid, rr) == false)
-                {
-                    for(int c=0; c<_num_active_columns; c++)
-                    {
-                        QWidget *widgetA = grid->itemAtPosition(rr, c)->widget();
-                        QWidget *widgetB = grid->itemAtPosition(r,  c )->widget();
-                        grid->removeWidget(widgetA);
-                        grid->removeWidget(widgetB);
-                        grid->addWidget(widgetA, r, c);
-                        grid->addWidget(widgetB, rr, c);
-                    }
-                }
-            }
+        while( grid->isRowEmpty( row ) && row < grid->numRows() ){
+            grid->removeRow( row );
         }
     }
 
-    //--------------------------------
-    while( isColumnEmpty(grid, _num_active_columns-1) && _num_active_columns >0 )
+    for( int col = 0; col< grid->numColumns(); col++)
     {
-        for(int r=0; r< _num_active_rows; r++) {
-            grid->itemAtPosition(r, _num_active_columns-1)->widget()->close();
+        while( grid->isColumnEmpty( col ) && col < grid->numColumns() ){
+            grid->removeColumn( col );
         }
-        _num_active_columns--;
-    }
-
-    while( isRowEmpty(grid, _num_active_rows-1) && _num_active_rows >0 )
-    {
-        for(int c=0; c< _num_active_columns; c++) {
-            grid->itemAtPosition( _num_active_rows-1, c )->widget()->close();
-        }
-        _num_active_rows--;
     }
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
-    QGridLayout* grid =  ui->plotsLayout;
+ /*   QGridLayout* grid =  ui->plotsLayout;
     ui->lcdNumber->display(value);
 
     for( PlotDataMap::iterator it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
@@ -406,5 +249,29 @@ void MainWindow::on_horizontalSlider_valueChanged(int value)
             plot->updateAxes();
             plot->replot();
         }
-    }
+    }*/
+}
+
+void MainWindow::on_plotAdded(PlotWidget *widget)
+{
+    connect(widget,SIGNAL(curveNameDropped(QString, PlotWidget*)),
+            this,  SLOT(addCurveToPlot(QString, PlotWidget*)));
+}
+
+void MainWindow::addCurveToPlot(QString curve_name, PlotWidget* destination)
+{
+    destination->addCurve( curve_name, &(_mapped_plot_data.at(curve_name)) );
+}
+
+PlotMatrix *MainWindow::currentPlotGrid()
+{
+    return static_cast<PlotMatrix*>( ui->tabWidget->currentWidget() );
+}
+
+void MainWindow::on_addTabButton_pressed()
+{
+    PlotMatrix* grid = new PlotMatrix(this);
+    ui->tabWidget->addTab( grid, QString("plot") );
+    connect( grid, SIGNAL(plotAdded(PlotWidget*)), this, SLOT(on_plotAdded(PlotWidget*)));
+
 }

@@ -61,6 +61,16 @@ QRectF PlotData::boundingRect() const
     return rect ;
 }
 
+QColor PlotData::colorHint()
+{
+    return _color;
+}
+
+void PlotData::setColorHint(QColor color)
+{
+    _color = color;
+}
+
  bool compareQPointF(const QPointF &a, const QPointF &b)
  {
      return ( a.x() < b.x() );

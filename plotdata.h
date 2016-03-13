@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <QObject>
+#include <QColor>
 #include <qwt_series_data.h>
 
 class PlotData: public QwtSeriesData<QPointF>
@@ -22,6 +23,9 @@ public:
 
     virtual QRectF boundingRect() const;
 
+    QColor colorHint();
+    void setColorHint(QColor color);
+
     void setRangeX(float t_left, float t_right);
 private:
     std::vector<QPointF> _raw_points;
@@ -32,6 +36,7 @@ private:
     int _indexA, _indexB;
 
     int _preferedColor;
+    QColor _color;
 };
 
 #endif // PLOTDATA_H

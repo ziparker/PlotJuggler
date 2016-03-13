@@ -3,7 +3,8 @@
 
 #include <QMainWindow>
 
-#include "draggablewidget.h"
+#include "plotwidget.h"
+#include "plotmatrix.h"
 
 namespace Ui {
 class MainWindow;
@@ -17,10 +18,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    void addPlotWidget(QString name, int row, int col);
 private slots:
 
-    void swapWidgets(QString src, QString dst);
+ //   void swapWidgets(QString src, QString dst);
 
     void on_splitter_splitterMoved(int, int);
     void resizeEvent(QResizeEvent *) Q_DECL_OVERRIDE;
@@ -37,29 +37,26 @@ private slots:
 
     void createActions();
 
-    void deletePlot();
-
     void on_pushremoveEmpty_pressed();
 
     void on_horizontalSlider_valueChanged(int value);
 
+    void on_plotAdded(PlotWidget* widget);
+    void addCurveToPlot(QString curve_name, PlotWidget* destination);
+    void on_addTabButton_pressed();
+
 private:
     Ui::MainWindow *ui;
 
-    QList<PlotWidget*> _plotWidgets;
-
     QAction *deleteOneAct;
     QAction *deleteAllAct;
+
+    PlotMatrix *currentPlotGrid();
 
     void buildData();
 
     PlotDataMap _mapped_plot_data;
     void rearrangeGridLayout();
-
-    int _num_active_columns;
-    int _num_active_rows;
-
-
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;

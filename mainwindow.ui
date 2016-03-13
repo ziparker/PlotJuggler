@@ -143,16 +143,22 @@
        </layout>
       </widget>
       <widget class="QWidget" name="layoutWidget">
-       <layout class="QVBoxLayout" name="centralLayout" stretch="1,0,0,0">
+       <layout class="QVBoxLayout" name="centralLayout" stretch="0,0,0,0">
         <property name="sizeConstraint">
          <enum>QLayout::SetMaximumSize</enum>
         </property>
         <item>
-         <layout class="QGridLayout" name="plotsLayout" rowstretch="0" columnstretch="0">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetDefaultConstraint</enum>
+         <widget class="QTabWidget" name="tabWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
           </property>
-         </layout>
+          <property name="currentIndex">
+           <number>-1</number>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="verticalSpacer">
@@ -220,6 +226,13 @@
             </property>
             <property name="text">
              <string>Add row</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="addTabButton">
+            <property name="text">
+             <string>add Tab</string>
             </property>
            </widget>
           </item>

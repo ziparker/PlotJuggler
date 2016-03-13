@@ -17,12 +17,14 @@ INCLUDEPATH += C:\Qwt-6.1.3-svn\include
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    draggablewidget.cpp \
-    plotdata.cpp
+    plotwidget.cpp \
+    plotdata.cpp \
+    plotmatrix.cpp
 
 HEADERS  += mainwindow.h \
-    draggablewidget.h \
-    plotdata.h
+    plotwidget.h \
+    plotdata.h \
+    plotmatrix.h
 
 FORMS    += mainwindow.ui
 
