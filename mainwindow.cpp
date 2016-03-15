@@ -6,8 +6,11 @@
 #include <QMimeData>
 #include <QStringListModel>
 #include <QRegExpValidator>
-
+#include <stdio.h>
 #include <qwt_plot_canvas.h>
+#include <QDomDocument>
+#include <QFileDialog>
+#include <QMessageBox>
 
 QStringList  words_list;
 int unique_number = 0;
@@ -27,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->splitter->setStretchFactor(1,1);
 
     on_addTabButton_pressed();
+
+    connect(ui->actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
+    connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
 
     createActions();
     buildData();
@@ -62,7 +68,7 @@ void MainWindow::dropEvent(QDropEvent *)
 
 void MainWindow::createActions()
 {
-   /* deleteAllAct = new QAction(tr("&Delete All"), this);
+    /* deleteAllAct = new QAction(tr("&Delete All"), this);
     deleteAllAct->setStatusTip(tr("Delete the plot"));
     connect(deleteAllAct, SIGNAL(triggered()), this, SLOT(deletePlot()));
 
@@ -232,7 +238,7 @@ void MainWindow::on_pushremoveEmpty_pressed()
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
- /*   QGridLayout* grid =  ui->plotsLayout;
+
     ui->lcdNumber->display(value);
 
     for( PlotDataMap::iterator it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
@@ -242,14 +248,14 @@ void MainWindow::on_horizontalSlider_valueChanged(int value)
         float range = (float)ui->horizontalSlider->maximum() *0.001*0.1;
         plot->setRangeX( (float)value*0.001 , range ) ;
     }
-    for (int index = 0; index < grid->count(); index++)
+
+    for (int index = 0; index < ui->tabWidget->count(); index++)
     {
-        PlotWidget* plot = static_cast<PlotWidget*>( grid->itemAt(index)->widget() );
-        if (plot){
-            plot->updateAxes();
-            plot->replot();
+        PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+        if (tab){
+            tab->updateLayout();
         }
-    }*/
+    }
 }
 
 void MainWindow::on_plotAdded(PlotWidget *widget)
@@ -274,4 +280,139 @@ void MainWindow::on_addTabButton_pressed()
     ui->tabWidget->addTab( grid, QString("plot") );
     connect( grid, SIGNAL(plotAdded(PlotWidget*)), this, SLOT(on_plotAdded(PlotWidget*)));
 
+    ui->tabWidget->setCurrentWidget( grid );
 }
+
+void MainWindow::onActionSaveLayout()
+{
+    QDomDocument doc;
+    QDomProcessingInstruction instr = doc.createProcessingInstruction(
+                "xml", "version='1.0' encoding='UTF-8'");
+
+    doc.appendChild(instr);
+
+    QDomElement root = doc.createElement( "root" );
+
+    qDebug() << ">> add root";
+    for(int i=0; i< ui->tabWidget->count(); i++)
+    {
+        PlotMatrix* widget = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
+        QDomElement element = widget->getDomElement(doc);
+
+        root.appendChild( element );
+    }
+
+    doc.appendChild(root);
+
+    QString filename = QFileDialog::getSaveFileName(this, "Save Layout", QDir::currentPath(), "*.xml");
+    if (filename.isEmpty())
+        return;
+
+    if(filename.endsWith(".xml",Qt::CaseInsensitive) == false)
+    {
+        filename.append(".xml");
+    }
+
+    QFile file(filename);
+    if (file.open(QIODevice::ReadWrite)) {
+        QTextStream stream(&file);
+        stream << doc.toString() << endl;
+    }
+}
+
+void MainWindow::onActionLoadLayout()
+{
+    while(ui->tabWidget->count()>0)
+    {
+        ui->tabWidget->removeTab(0);
+    }
+    QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  QDir::currentPath(), "*.xml");
+    if (fileName.isEmpty())
+        return;
+
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("Layout"),
+                             tr("Cannot read file %1:\n%2.")
+                             .arg(fileName)
+                             .arg(file.errorString()));
+        return;
+    }
+
+    QString errorStr;
+    int errorLine;
+    int errorColumn;
+
+    QDomDocument domDocument;
+
+    if (!domDocument.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
+        QMessageBox::information(window(), tr("XML Layout"),
+                                 tr("Parse error at line %1, column %2:\n%3")
+                                 .arg(errorLine)
+                                 .arg(errorColumn)
+                                 .arg(errorStr));
+        return;
+    }
+
+    QDomElement root = domDocument.namedItem("root").toElement();
+    if ( root.isNull() ) {
+        qWarning() << "No <root> element found at the top-level of the XML file!";
+        return ;
+    }
+
+    QDomElement plotmatrix;
+    for (  plotmatrix = root.firstChildElement( "plotmatrix" )  ;
+          !plotmatrix.isNull();
+           plotmatrix = plotmatrix.nextSiblingElement( "plotmatrix" ) )
+    {
+        if( !plotmatrix.hasAttribute("rows") || !plotmatrix.hasAttribute("columns") )
+        {
+            qWarning() << "No [rows] or [columns] attribute in <plotmatrix> XML file!";
+            return ;
+        }
+        int rows = plotmatrix.attribute("rows").toInt();
+        int columns = plotmatrix.attribute("columns").toInt();
+
+        // add the tab
+        this->on_addTabButton_pressed();
+        for(int c = 0; c<columns; ++c)
+        {
+            currentPlotGrid()->addColumn();
+        }
+        for(int r = 1; r<rows; ++r)
+        {
+            currentPlotGrid()->addRow();
+        }
+        //----------------
+        QDomElement plot;
+        for (  plot = plotmatrix.firstChildElement( "plot" )  ;
+              !plot.isNull();
+               plot = plot.nextSiblingElement( "plot" ) )
+        {
+            if( !plot.hasAttribute("row") || !plot.hasAttribute("col") )
+            {
+                qWarning() << "No [row] or [col] attribute in <plot> XML file!";
+                return ;
+            }
+            int row = plot.attribute("row").toInt();
+            int col = plot.attribute("col").toInt();
+
+            PlotWidget *plot_widget = currentPlotGrid()->plotAt(row,col);
+             //-----------------------------
+            QDomElement curve;
+            for (  curve = plot.firstChildElement( "curve" )  ;
+                  !curve.isNull();
+                   curve = curve.nextSiblingElement( "curve" ) )
+            {
+                if( !curve.hasAttribute("name") )
+                {
+                    qWarning() << "No [name] attribute in <plot> XML file!";
+                    return ;
+                }
+                QString curve_name = curve.attribute("name");
+                this->addCurveToPlot( curve_name, plot_widget);
+            }
+        }
+    }
+}
+

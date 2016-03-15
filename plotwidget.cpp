@@ -7,6 +7,7 @@
 #include <qwt_scale_engine.h>
 #include <qwt_plot_layout.h>
 
+
 PlotWidget::PlotWidget(QWidget *parent): QwtPlot(parent)
 {
     setAcceptDrops(true);
@@ -38,6 +39,7 @@ void PlotWidget::addCurve(const QString &name, PlotData *data)
 {
     qDebug() << "attach " << name;
     QwtPlotCurve *curve = new QwtPlotCurve(name);
+    _curve_list.insert( std::make_pair(name, curve));
 
     curve->setData( data  );
     curve->attach( this );
@@ -70,7 +72,7 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
             //    int row, col;
             //    QMap<int,  QVariant> roleDataMap;
             //    stream >> row >> col >> roleDataMap;
-           // }
+            // }
         }
         if( format.contains( "plot_area") )
         {
@@ -125,17 +127,27 @@ void PlotWidget::dropEvent(QDropEvent *event)
 void PlotWidget::detachAllCurves()
 {
     this->detachItems(QwtPlotItem::Rtti_PlotItem, false);
-  /*  //for(std::map<QString, QwtPlotCurve*>::iterator it = _curve_list.begin(); it != _curve_list.end(); it++)
-    while(_curve_list.empty() == false )
-    {
-        std::map<QString, QwtPlotCurve*>::iterator it = _curve_list.begin();
-         QwtPlotCurve* curve = it->second;
-         curve->detach();
 
-         // needed to avoid deleting the original data
-         curve->swapData( 0 );
-         _curve_list.erase( it );
-    }*/
+    _curve_list.erase(_curve_list.begin(), _curve_list.end());
+
+}
+
+QDomElement PlotWidget::getDomElement( QDomDocument &doc)
+{
+    QDomElement element = doc.createElement("plot");
+
+    qDebug() << ">> add widget";
+    std::map<QString, QwtPlotCurve*>::iterator it;
+
+    for( it=_curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        QDomElement curve = doc.createElement("curve");
+        curve.setAttribute( "name", it->first);
+        curve.setNodeValue("1");
+        element.appendChild(curve);
+        qDebug() << ">> add curve";
+    }
+    return element;
 }
 
 void PlotWidget::contextMenuEvent(QContextMenuEvent *event)
@@ -164,7 +176,7 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
     }
     else if(event->button() == Qt::RightButton)
     {
-         qDebug() << "RightButton";
+        qDebug() << "RightButton";
     }
 }
 

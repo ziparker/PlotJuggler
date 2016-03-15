@@ -9,6 +9,7 @@
 #include <qwt_plot_grid.h>
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
+#include <QDomDocument>
 #include "plotdata.h"
 
 typedef std::map<QString, PlotData> PlotDataMap;
@@ -26,6 +27,8 @@ public:
     bool isEmpty();
 
     void detachAllCurves();
+    QDomElement getDomElement(QDomDocument &doc);
+
 protected:
     void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
     void dragMoveEvent(QDragMoveEvent *event) Q_DECL_OVERRIDE;
@@ -38,7 +41,7 @@ signals:
     void curveNameDropped(QString curve_name, PlotWidget* destination);
 
 private:
-   // std::map<QString, QwtPlotCurve*> _curve_list;
+    std::map<QString, QwtPlotCurve*> _curve_list;
 
 
 };

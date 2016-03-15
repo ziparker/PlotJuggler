@@ -208,6 +208,32 @@ void PlotMatrix::setAxisScale( int axis, int row, int col,
     }
 }
 
+QDomElement PlotMatrix::getDomElement( QDomDocument &doc )
+{
+    QDomElement element = doc.createElement("plotmatrix");
+
+    element.setAttribute("rows", num_rows );
+    element.setAttribute("columns", num_cols );
+
+    qDebug() << ">> add matrix";
+
+    for(int col = 0; col< num_cols; col++)
+    {
+        for(int row=0; row< num_rows; row++)
+        {
+            PlotWidget* plot = plotAt(row,col);
+            QDomElement child = plot->getDomElement(doc);
+
+            child.setAttribute("row", row);
+            child.setAttribute("col", col);
+
+            element.appendChild( child );
+        }
+    }
+
+    return element;
+}
+
 
 void PlotMatrix::updateLayout()
 {
@@ -229,6 +255,11 @@ void PlotMatrix::updateLayout()
         alignScaleBorder( col, QwtPlot::xTop );
     }
 
+    this->replot();
+}
+
+void PlotMatrix::replot()
+{
     for ( int row = 0; row < numRows(); row++ )
     {
         for ( int col = 0; col < numColumns(); col++ )

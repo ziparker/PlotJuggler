@@ -33,9 +33,10 @@ public:
     void setAxisScale(int axisId, int row, int col,
         double min, double max, double step = 0 );
 
+    QDomElement getDomElement(QDomDocument &doc);
 
-protected:
     void updateLayout();
+    void replot();
 
 private slots:
     void swapWidgetByName(QString name_a, QString name_b);

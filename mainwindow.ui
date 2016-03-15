@@ -266,6 +266,15 @@
      <height>26</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoad_layout"/>
+    <addaction name="actionSave_layout"/>
+    <addaction name="separator"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -276,6 +285,16 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionLoad_layout">
+   <property name="text">
+    <string>Load layout</string>
+   </property>
+  </action>
+  <action name="actionSave_layout">
+   <property name="text">
+    <string>Save layout</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
