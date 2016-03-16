@@ -19,14 +19,17 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     plotwidget.cpp \
     plotdata.cpp \
-    plotmatrix.cpp
+    plotmatrix.cpp \
+    removecurvedialog.cpp
 
 HEADERS  += mainwindow.h \
     plotwidget.h \
     plotdata.h \
-    plotmatrix.h
+    plotmatrix.h \
+    removecurvedialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    removecurvedialog.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../Qwt-6.1.3-svn/lib/ -lqwt
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../Qwt-6.1.3-svn/lib/ -lqwtd

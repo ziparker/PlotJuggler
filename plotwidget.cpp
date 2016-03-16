@@ -6,7 +6,9 @@
 #include <qwt_plot_canvas.h>
 #include <qwt_scale_engine.h>
 #include <qwt_plot_layout.h>
-
+#include <QAction>
+#include <QMenu>
+#include "removecurvedialog.h"
 
 PlotWidget::PlotWidget(QWidget *parent): QwtPlot(parent)
 {
@@ -28,6 +30,10 @@ PlotWidget::PlotWidget(QWidget *parent): QwtPlot(parent)
     this->axisScaleEngine(QwtPlot::xBottom)->setAttribute(QwtScaleEngine::Floating,true);
 
     this->plotLayout()->setAlignCanvasToScales( true );
+
+    removeCurveAction = new QAction(tr("&Remove curves"), this);
+    removeCurveAction->setStatusTip(tr("Remove one or more curves from this plot"));
+    connect(removeCurveAction, SIGNAL(triggered()), this, SLOT(launchRemoveCurveDialog()));
 }
 
 PlotWidget::~PlotWidget()
@@ -50,6 +56,18 @@ void PlotWidget::addCurve(const QString &name, PlotData *data)
     this->replot();
 }
 
+void PlotWidget::removeCurve(const QString &name)
+{
+    std::map<QString, QwtPlotCurve*>::iterator it = _curve_list.find(name);
+    if( it != _curve_list.end() )
+    {
+         QwtPlotCurve* curve = it->second;
+         curve->detach();
+         this->replot();
+         _curve_list.erase( it );
+    }
+}
+
 bool PlotWidget::isEmpty()
 {
     return this->itemList().empty();
@@ -67,12 +85,6 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
         if( format.contains( "qabstractitemmodeldatalist") )
         {
             event->acceptProposedAction();
-
-            /// while (!stream.atEnd()) {
-            //    int row, col;
-            //    QMap<int,  QVariant> roleDataMap;
-            //    stream >> row >> col >> roleDataMap;
-            // }
         }
         if( format.contains( "plot_area") )
         {
@@ -152,8 +164,19 @@ QDomElement PlotWidget::getDomElement( QDomDocument &doc)
 
 void PlotWidget::contextMenuEvent(QContextMenuEvent *event)
 {
-    detachAllCurves();
-    this->replot();
+  //  detachAllCurves();
+    QMenu menu(this);
+    menu.addAction(removeCurveAction);
+
+    removeCurveAction->setEnabled( ! _curve_list.empty() );
+
+    menu.exec( event->globalPos() );
+}
+
+void PlotWidget::launchRemoveCurveDialog()
+{
+    RemoveCurveDialog* dialog = new RemoveCurveDialog(this, _curve_list);
+    dialog->exec();
 }
 
 void PlotWidget::mousePressEvent(QMouseEvent *event)

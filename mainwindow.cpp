@@ -127,14 +127,14 @@ void MainWindow::buildData()
 
 void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 {
-    QWidget * w =  this->childAt( event->pos() );
+  /*  QWidget * w =  this->childAt( event->pos() );
     if( w )
         qDebug()<< w->objectName();
 
     QMenu menu(this);
     menu.addAction(deleteOneAct);
     menu.addAction(deleteAllAct);
-    menu.exec( event->globalPos() );
+    menu.exec( event->globalPos() );*/
 }
 
 
@@ -347,9 +347,8 @@ void MainWindow::onActionLoadLayout()
 
     if (!domDocument.setContent(&file, true, &errorStr, &errorLine, &errorColumn)) {
         QMessageBox::information(window(), tr("XML Layout"),
-                                 tr("Parse error at line %1, column %2:\n%3")
+                                 tr("Parse error at line %1:\n%2")
                                  .arg(errorLine)
-                                 .arg(errorColumn)
                                  .arg(errorStr));
         return;
     }

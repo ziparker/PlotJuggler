@@ -40,8 +40,12 @@ signals:
     void swapWidgets(QString s, QString to);
     void curveNameDropped(QString curve_name, PlotWidget* destination);
 
+private slots:
+    void launchRemoveCurveDialog();
+
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
+    QAction *removeCurveAction;
 
 
 };
