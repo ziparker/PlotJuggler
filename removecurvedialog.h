@@ -14,8 +14,10 @@ class RemoveCurveDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RemoveCurveDialog(QWidget *parent, std::map<QString, QwtPlotCurve *>& curves_map);
+    explicit RemoveCurveDialog(QWidget *parent);
     ~RemoveCurveDialog();
+
+    void addCurveName(const QString& name);
 
 private slots:
     void on_listCurveWidget_itemClicked(QListWidgetItem *item);

@@ -3,22 +3,21 @@
 #include <QDebug>
 #include "plotwidget.h"
 
-RemoveCurveDialog::RemoveCurveDialog(QWidget *parent, std::map<QString, QwtPlotCurve *> &curves_map) :
+RemoveCurveDialog::RemoveCurveDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RemoveCurveDialog)
 {
     ui->setupUi(this);
-
-    std::map<QString, QwtPlotCurve*>::iterator it;
-    for(it = curves_map.begin(); it != curves_map.end(); ++it)
-    {
-        ui->listCurveWidget->addItem( new QListWidgetItem( it->first) );
-    }
 }
 
 RemoveCurveDialog::~RemoveCurveDialog()
 {
     delete ui;
+}
+
+void RemoveCurveDialog::addCurveName(const QString &name)
+{
+    ui->listCurveWidget->addItem( new QListWidgetItem( name ) );
 }
 
 void RemoveCurveDialog::on_listCurveWidget_itemClicked(QListWidgetItem *item)

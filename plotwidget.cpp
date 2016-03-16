@@ -175,7 +175,14 @@ void PlotWidget::contextMenuEvent(QContextMenuEvent *event)
 
 void PlotWidget::launchRemoveCurveDialog()
 {
-    RemoveCurveDialog* dialog = new RemoveCurveDialog(this, _curve_list);
+    RemoveCurveDialog* dialog = new RemoveCurveDialog(this);
+
+    std::map<QString, QwtPlotCurve*>::iterator it;
+    for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        dialog->addCurveName( it->first );
+    }
+
     dialog->exec();
 }
 
