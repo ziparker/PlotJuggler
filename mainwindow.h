@@ -48,6 +48,14 @@ private slots:
     void onActionSaveLayout();
     void onActionLoadLayout();
 
+    void on_pushButton_toggled(bool checked);
+
+    void on_radioFlatView_toggled(bool checked);
+
+    void on_radioTreeView_toggled(bool checked);
+
+    void on_radioContains_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
 
@@ -60,6 +68,7 @@ private:
 
     PlotDataMap _mapped_plot_data;
     void rearrangeGridLayout();
+    QVector< QWidget*> settings_widgets;
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;

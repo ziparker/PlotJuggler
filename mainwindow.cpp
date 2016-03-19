@@ -11,6 +11,7 @@
 #include <QDomDocument>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPropertyAnimation>
 
 QStringList  words_list;
 int unique_number = 0;
@@ -33,6 +34,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
     connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
+
+    for( int i=0; i< ui->gridLayoutSettings->count(); i++)
+    {
+        QLayoutItem* item = ui->gridLayoutSettings->itemAt(i);
+        if(item)
+        {
+            QWidget* widget = item->widget();
+            if(widget) {
+                widget->setMaximumHeight( 0 );
+                settings_widgets.push_back( widget);
+            }
+        }
+    }
 
     createActions();
     buildData();
@@ -127,7 +141,7 @@ void MainWindow::buildData()
 
 void MainWindow::contextMenuEvent(QContextMenuEvent *event)
 {
-  /*  QWidget * w =  this->childAt( event->pos() );
+    /*  QWidget * w =  this->childAt( event->pos() );
     if( w )
         qDebug()<< w->objectName();
 
@@ -146,7 +160,7 @@ void MainWindow::mousePressEvent(QMouseEvent *)
 void MainWindow::on_splitter_splitterMoved(int , int )
 {
     QList<int> sizes = ui->splitter->sizes();
-    int maxLeftWidth = ui->leftLayout->maximumSize().width();
+    int maxLeftWidth = ui->listWidget->maximumWidth();
     int totalWidth = sizes[0] + sizes[1];
 
     if( sizes[0] > maxLeftWidth)
@@ -191,13 +205,18 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
 
 
 
-void MainWindow::on_radioRegExp_toggled(bool )
+void MainWindow::on_radioRegExp_toggled(bool checked)
 {
-    on_lineEdit_textChanged( ui->lineEdit->text() );
+    if(checked)
+    {
+        ui->radioContains->setChecked( false);
+        on_lineEdit_textChanged( ui->lineEdit->text() );
+    }
 }
 
-void MainWindow::on_checkBoxCaseSensitive_toggled(bool )
+void MainWindow::on_checkBoxCaseSensitive_toggled(bool checked)
 {
+
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
@@ -238,9 +257,6 @@ void MainWindow::on_pushremoveEmpty_pressed()
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
-
-    ui->lcdNumber->display(value);
-
     for( PlotDataMap::iterator it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
     {
         PlotData* plot = &(it->second);
@@ -361,7 +377,7 @@ void MainWindow::onActionLoadLayout()
 
     QDomElement plotmatrix;
     for (  plotmatrix = root.firstChildElement( "plotmatrix" )  ;
-          !plotmatrix.isNull();
+           !plotmatrix.isNull();
            plotmatrix = plotmatrix.nextSiblingElement( "plotmatrix" ) )
     {
         if( !plotmatrix.hasAttribute("rows") || !plotmatrix.hasAttribute("columns") )
@@ -385,7 +401,7 @@ void MainWindow::onActionLoadLayout()
         //----------------
         QDomElement plot;
         for (  plot = plotmatrix.firstChildElement( "plot" )  ;
-              !plot.isNull();
+               !plot.isNull();
                plot = plot.nextSiblingElement( "plot" ) )
         {
             if( !plot.hasAttribute("row") || !plot.hasAttribute("col") )
@@ -397,10 +413,10 @@ void MainWindow::onActionLoadLayout()
             int col = plot.attribute("col").toInt();
 
             PlotWidget *plot_widget = currentPlotGrid()->plotAt(row,col);
-             //-----------------------------
+            //-----------------------------
             QDomElement curve;
             for (  curve = plot.firstChildElement( "curve" )  ;
-                  !curve.isNull();
+                   !curve.isNull();
                    curve = curve.nextSiblingElement( "curve" ) )
             {
                 if( !curve.hasAttribute("name") )
@@ -415,3 +431,45 @@ void MainWindow::onActionLoadLayout()
     }
 }
 
+
+void MainWindow::on_pushButton_toggled(bool checked)
+{
+    for(int i=0;  i < settings_widgets.size(); i++)
+    {
+        QPropertyAnimation* m_anim = new QPropertyAnimation(settings_widgets[i], "maximumHeight");
+        m_anim->setEasingCurve(checked ? QEasingCurve::OutQuad : QEasingCurve::OutExpo );
+
+        m_anim->setStartValue( checked ? 0:25);
+        m_anim->setEndValue( checked ? 25:0);
+        m_anim->setDuration(checked ? 500 : 300);
+        m_anim->setLoopCount(1); // forever
+        m_anim->start(QAbstractAnimation::DeleteWhenStopped);
+    }
+}
+
+void MainWindow::on_radioFlatView_toggled(bool checked)
+{
+    if(checked)
+    {
+        ui->radioTreeView->setChecked( false);
+        on_lineEdit_textChanged( ui->lineEdit->text() );
+    }
+}
+
+void MainWindow::on_radioTreeView_toggled(bool checked)
+{
+    if(checked)
+    {
+        ui->radioFlatView->setChecked( false);
+        on_lineEdit_textChanged( ui->lineEdit->text() );
+    }
+}
+
+void MainWindow::on_radioContains_toggled(bool checked)
+{
+    if(checked)
+    {
+        ui->radioRegExp->setChecked( false);
+        on_lineEdit_textChanged( ui->lineEdit->text() );
+    }
+}
