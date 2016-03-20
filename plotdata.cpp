@@ -44,7 +44,6 @@ size_t PlotData::size() const
 
 QPointF PlotData::sample(size_t i) const
 {
-    if( i <0 ) return _raw_points.front() ;
     if( i >= _raw_points.size() ) return _raw_points.back() ;
 
     //qDebug() << point.x() << " / " << point.y();

@@ -18,6 +18,7 @@ PlotMatrix::PlotMatrix(QWidget *parent ):
 
     layout = new QGridLayout( this );
 
+    _horizontal_link = true;
     updateLayout();
 }
 
@@ -32,6 +33,7 @@ PlotWidget* PlotMatrix::addPlot(int row, int col)
     qDebug() << "adding "<< row << " " << col;
 
     connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgetByName(QString,QString)) );
+    connect( plot, SIGNAL(horizontalScaleChanged(QRectF)), this, SLOT(onHorizontalAxisScaleChanged(QRectF)));
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -215,8 +217,6 @@ QDomElement PlotMatrix::getDomElement( QDomDocument &doc )
     element.setAttribute("rows", num_rows );
     element.setAttribute("columns", num_cols );
 
-    qDebug() << ">> add matrix";
-
     for(int col = 0; col< num_cols; col++)
     {
         for(int row=0; row< num_rows; row++)
@@ -271,6 +271,42 @@ void PlotMatrix::replot()
     }
 }
 
+void PlotMatrix::setHorizontalLink(bool linked)
+{
+    qDebug() << "setHorizontalLink " << linked;
+    _horizontal_link = linked;
+}
+
+void PlotMatrix::maximizeHorizontalScale()
+{
+    for ( int row = 0; row < numRows(); row++ )
+    {
+        for ( int col = 0; col < numColumns(); col++ )
+        {
+            PlotWidget *plot = static_cast<PlotWidget*>( plotAt( row, col ) );
+
+            QRectF bound = plot->maximumBoundingRect();
+            plot->setHorizontalAxisRange( bound.left(), bound.right() );
+        }
+    }
+    replot();
+}
+
+void PlotMatrix::maximizeVerticalScale()
+{
+    for ( int row = 0; row < numRows(); row++ )
+    {
+        for ( int col = 0; col < numColumns(); col++ )
+        {
+            PlotWidget *plot = static_cast<PlotWidget*>( plotAt( row, col ) );
+
+            QRectF bound = plot->maximumBoundingRect();
+            plot->setVerticalAxisRange( bound.bottom(), bound.top() );
+        }
+    }
+    replot();
+}
+
 void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
 {
     int rowA,colA,  rowB,colB, span;
@@ -293,6 +329,24 @@ void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
     swapPlots(rowA,colA,  rowB,colB);
 
     updateLayout();
+}
+
+void PlotMatrix::onHorizontalAxisScaleChanged(QRectF range)
+{
+    if( ! _horizontal_link ) return;
+
+    for(int i=0; i< layout->count(); i++)
+    {
+        QLayoutItem * item = layout->itemAt(i);
+        if( item  ){
+            PlotWidget *widget = static_cast<PlotWidget *>( item->widget() );
+            if (widget )
+            {
+                widget->setHorizontalAxisRange( range.left(), range.right() );
+            }
+        }
+    }
+    this->replot();
 }
 
 void PlotMatrix::alignAxes( int rowOrColumn, int axis )

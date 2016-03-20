@@ -56,6 +56,12 @@ private slots:
 
     void on_radioContains_toggled(bool checked);
 
+    void on_pushHorizontalResize_pressed();
+
+    void on_pushVerticalResize_pressed();
+
+    void on_pushLinkHorizontalScale_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
 
@@ -69,6 +75,8 @@ private:
     PlotDataMap _mapped_plot_data;
     void rearrangeGridLayout();
     QVector< QWidget*> settings_widgets;
+
+    bool _horizontal_link;
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;

@@ -30,7 +30,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->splitter->setStretchFactor(0,0);
     ui->splitter->setStretchFactor(1,1);
 
+    _horizontal_link = true;
+
     on_addTabButton_pressed();
+
+    ui->pushHorizontalResize->setChecked( _horizontal_link );
+    currentPlotGrid()->setHorizontalLink( _horizontal_link );
 
     connect(ui->actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
     connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
@@ -262,7 +267,7 @@ void MainWindow::on_horizontalSlider_valueChanged(int value)
         PlotData* plot = &(it->second);
 
         float range = (float)ui->horizontalSlider->maximum() *0.001*0.1;
-        plot->setRangeX( (float)value*0.001 , range ) ;
+        //  plot->setRangeX( (float)value*0.001 , range ) ;
     }
 
     for (int index = 0; index < ui->tabWidget->count(); index++)
@@ -297,6 +302,7 @@ void MainWindow::on_addTabButton_pressed()
     connect( grid, SIGNAL(plotAdded(PlotWidget*)), this, SLOT(on_plotAdded(PlotWidget*)));
 
     ui->tabWidget->setCurrentWidget( grid );
+    grid->setHorizontalLink( _horizontal_link );
 }
 
 void MainWindow::onActionSaveLayout()
@@ -471,5 +477,28 @@ void MainWindow::on_radioContains_toggled(bool checked)
     {
         ui->radioRegExp->setChecked( false);
         on_lineEdit_textChanged( ui->lineEdit->text() );
+    }
+}
+
+void MainWindow::on_pushHorizontalResize_pressed()
+{
+    currentPlotGrid()->maximizeHorizontalScale();
+}
+
+void MainWindow::on_pushVerticalResize_pressed()
+{
+    currentPlotGrid()->maximizeVerticalScale();
+}
+
+void MainWindow::on_pushLinkHorizontalScale_toggled(bool checked)
+{
+    _horizontal_link = checked;
+
+    for (int index = 0; index < ui->tabWidget->count(); index++)
+    {
+        PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+        if (tab){
+            tab->setHorizontalLink( _horizontal_link );
+        }
     }
 }

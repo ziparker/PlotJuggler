@@ -87,12 +87,12 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>resources/settings.png</normaloff>resources/settings.png</iconset>
+              <normaloff>resources/cog.png</normaloff>resources/cog.png</iconset>
             </property>
             <property name="iconSize">
              <size>
-              <width>30</width>
-              <height>30</height>
+              <width>26</width>
+              <height>26</height>
              </size>
             </property>
             <property name="checkable">
@@ -338,43 +338,78 @@
            <number>0</number>
           </property>
           <item>
+           <widget class="QPushButton" name="pushHorizontalResize">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>resources/resize_horizontal.png</normaloff>resources/resize_horizontal.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>26</width>
+              <height>26</height>
+             </size>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushVerticalResize">
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>resources/resize_vertical.png</normaloff>resources/resize_vertical.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>26</width>
+              <height>26</height>
+             </size>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushLinkHorizontalScale">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>resources/link.png</normaloff>resources/link.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>26</width>
+              <height>26</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QSlider" name="horizontalSlider">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButtonZoomIn">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>resources/zoomin.png</normaloff>resources/zoomin.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButtonZoomOut">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>resources/zoomout.png</normaloff>resources/zoomout.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
             </property>
            </widget>
           </item>

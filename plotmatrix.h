@@ -38,8 +38,15 @@ public:
     void updateLayout();
     void replot();
 
+    void setHorizontalLink(bool linked);
+
+public slots:
+    void maximizeHorizontalScale();
+    void maximizeVerticalScale();
+
 private slots:
     void swapWidgetByName(QString name_a, QString name_b);
+    void onHorizontalAxisScaleChanged(QRectF range);
 
 private:
     void alignAxes( int rowOrColumn, int axis );
@@ -51,6 +58,7 @@ private:
     int num_rows;
     int num_cols;
     int widget_uid;
+    bool _horizontal_link;
 
 signals:
     void plotAdded(PlotWidget*);

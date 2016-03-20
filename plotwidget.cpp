@@ -10,9 +10,12 @@
 #include <QMenu>
 #include "removecurvedialog.h"
 
-PlotWidget::PlotWidget(QWidget *parent): QwtPlot(parent)
+
+PlotWidget::PlotWidget(QWidget *parent):
+    QwtPlot(parent),
+    _zoomer(0)
 {
-    setAcceptDrops(true);
+    this->setAcceptDrops( true );
     this->setMinimumWidth( 100 );
     this->setMinimumHeight( 100 );
 
@@ -34,6 +37,23 @@ PlotWidget::PlotWidget(QWidget *parent): QwtPlot(parent)
     removeCurveAction = new QAction(tr("&Remove curves"), this);
     removeCurveAction->setStatusTip(tr("Remove one or more curves from this plot"));
     connect(removeCurveAction, SIGNAL(triggered()), this, SLOT(launchRemoveCurveDialog()));
+
+    _zoomer = new QwtPlotZoomer( this->canvas() );
+
+    _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
+    _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
+    _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::NoModifier );
+
+    _magnifier = new PlotMagnifier( this->canvas() );
+//    _magnifier->setMouseButton( Qt::MiddleButton );
+
+    _magnifier->setAxisEnabled(xTop, false);
+    _magnifier->setAxisEnabled(yRight, false);
+
+   // _panner = new QwtPlotPanner( this->canvas() );
+   // _panner->setMouseButton( Qt::MiddleButton );
+
+    setMode( ZOOM_MODE );
 }
 
 PlotWidget::~PlotWidget()
@@ -43,7 +63,6 @@ PlotWidget::~PlotWidget()
 
 void PlotWidget::addCurve(const QString &name, PlotData *data)
 {
-    qDebug() << "attach " << name;
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
 
@@ -52,6 +71,11 @@ void PlotWidget::addCurve(const QString &name, PlotData *data)
 
     curve->setPen( data->colorHint(), 1.0 );
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
+
+    QRectF bounding = maximumBoundingRect();
+
+    _magnifier->setAxisLimits( yLeft, bounding.bottom(), bounding.top());
+    _magnifier->setAxisLimits( xBottom, bounding.left(), bounding.right());
 
     this->replot();
 }
@@ -75,6 +99,9 @@ bool PlotWidget::isEmpty()
 
 void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
 {
+    QwtPlot::dragEnterEvent(event);
+
+
     const QMimeData *mimeData = event->mimeData();
     QStringList mimeFormats = mimeData->formats();
     foreach(QString format, mimeFormats)
@@ -86,7 +113,7 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
         {
             event->acceptProposedAction();
         }
-        if( format.contains( "plot_area") )
+        if( format.contains( "plot_area") && _mode == DRAG_N_DROP_MODE )
         {
             QString source_name;
             stream >> source_name;
@@ -105,6 +132,8 @@ void PlotWidget::dragMoveEvent(QDragMoveEvent *event)
 
 void PlotWidget::dropEvent(QDropEvent *event)
 {
+    QwtPlot::dropEvent(event);
+
     const QMimeData *mimeData = event->mimeData();
     QStringList mimeFormats = mimeData->formats();
 
@@ -127,7 +156,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
                 emit curveNameDropped( itemName , this );
             }
         }
-        if( format.contains( "plot_area") )
+        if( format.contains( "plot_area") && _mode == DRAG_N_DROP_MODE )
         {
             QString source_name;
             stream >> source_name;
@@ -162,6 +191,80 @@ QDomElement PlotWidget::getDomElement( QDomDocument &doc)
     return element;
 }
 
+void PlotWidget::setMode(PlotWidget::PlotWidgetMode mode)
+{
+    _mode = mode;
+
+
+    if( _mode == ZOOM_MODE ) {
+
+    }
+    else if( _mode == DRAG_N_DROP_MODE){
+
+    }
+}
+
+QRectF PlotWidget::currentBoundingRect()
+{
+    QRectF rect;
+    rect.setBottom( this->canvasMap( yLeft ).s1() );
+    rect.setTop( this->canvasMap( yLeft ).s2() );
+
+    rect.setLeft( this->canvasMap( xBottom ).s1() );
+    rect.setRight( this->canvasMap( xBottom ).s2() );
+    return rect;
+}
+
+void PlotWidget::setHorizontalAxisRange(float min, float max)
+{
+    float EPS = 0.001*( max-min );
+    if( fabs( min - _prev_bounding.left()) > EPS ||
+        fabs( max - _prev_bounding.right()) > EPS )
+    {
+        this->setAxisScale( xBottom, min, max);
+    }
+
+    _prev_bounding.setLeft(min);
+    _prev_bounding.setRight(max);
+}
+
+void PlotWidget::setVerticalAxisRange(float min, float max)
+{
+    float EPS = 0.001*( max-min );
+    if( fabs( min - _prev_bounding.bottom()) > EPS ||
+        fabs( max - _prev_bounding.top()) > EPS )
+    {
+        this->setAxisScale( yLeft, min, max);
+    }
+
+    _prev_bounding.setBottom(min);
+    _prev_bounding.setTop(max);
+}
+
+QRectF PlotWidget::maximumBoundingRect()
+{
+    float left   = std::numeric_limits<float>::max();
+    float right  = std::numeric_limits<float>::min();
+
+    float bottom = std::numeric_limits<float>::max();
+    float top    = std::numeric_limits<float>::min();
+
+    std::map<QString, QwtPlotCurve*>::iterator it;
+    for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        QwtPlotCurve* curve = it->second;
+        QRectF bounding_rect = curve->data()->boundingRect();
+
+        if( bottom > bounding_rect.top() )    bottom = bounding_rect.top();
+        if( top < bounding_rect.bottom() ) top = bounding_rect.bottom();
+
+        if( left > bounding_rect.left() )    left = bounding_rect.left();
+        if( right < bounding_rect.right() ) right = bounding_rect.right();
+    }
+
+    return QRectF(left, top,  right - left, bottom - top ) ;
+}
+
 void PlotWidget::contextMenuEvent(QContextMenuEvent *event)
 {
   //  detachAllCurves();
@@ -171,6 +274,29 @@ void PlotWidget::contextMenuEvent(QContextMenuEvent *event)
     removeCurveAction->setEnabled( ! _curve_list.empty() );
 
     menu.exec( event->globalPos() );
+}
+
+void PlotWidget::replot()
+{
+    QwtPlot::replot();
+
+    if( _zoomer )
+        _zoomer->setZoomBase( false );
+
+    QRectF canvas_range = currentBoundingRect();
+
+    float x_min = canvas_range.left() ;
+    float x_max = canvas_range.right() ;
+
+    float EPS = 0.001*( x_max - x_min );
+    if( fabs( x_min - _prev_bounding.left()) > EPS ||
+        fabs( x_max - _prev_bounding.right()) > EPS )
+    {
+        emit horizontalScaleChanged(canvas_range);
+    }
+    _prev_bounding = canvas_range;
+
+
 }
 
 void PlotWidget::launchRemoveCurveDialog()
@@ -188,7 +314,7 @@ void PlotWidget::launchRemoveCurveDialog()
 
 void PlotWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton)
+    if (event->button() == Qt::LeftButton && _mode == DRAG_N_DROP_MODE)
     {
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;
@@ -199,9 +325,7 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
         dataStream << this->windowTitle();
 
         mimeData->setData("plot_area", data );
-
         drag->setMimeData(mimeData);
-
         drag->exec();
     }
     else if(event->button() == Qt::RightButton)

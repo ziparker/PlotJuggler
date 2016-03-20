@@ -20,13 +20,15 @@ SOURCES += main.cpp\
     plotwidget.cpp \
     plotdata.cpp \
     plotmatrix.cpp \
-    removecurvedialog.cpp
+    removecurvedialog.cpp \
+    plotmagnifier.cpp
 
 HEADERS  += mainwindow.h \
     plotwidget.h \
     plotdata.h \
     plotmatrix.h \
-    removecurvedialog.h
+    removecurvedialog.h \
+    plotmagnifier.h
 
 FORMS    += mainwindow.ui \
     removecurvedialog.ui
