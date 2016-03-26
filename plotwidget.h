@@ -14,8 +14,9 @@
 #include <qwt_plot_panner.h>
 #include <QDomDocument>
 #include "plotdata.h"
+#include "customtracker.h"
 
-typedef std::map<QString, PlotData> PlotDataMap;
+typedef std::map<QString, PlotData*> PlotDataMap;
 
 class PlotWidget : public QwtPlot
 {
@@ -45,6 +46,8 @@ public:
     QRectF maximumBoundingRect();
     QRectF currentBoundingRect();
 
+    CurveTracker* tracker();
+
 protected:
     void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
     void dragMoveEvent(QDragMoveEvent *event) Q_DECL_OVERRIDE;
@@ -71,6 +74,7 @@ private:
     PlotMagnifier* _magnifier;
     QwtPlotPanner* _panner;
     QRectF _prev_bounding;
+    CurveTracker* _tracker;
 
 };
 

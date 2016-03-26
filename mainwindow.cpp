@@ -12,6 +12,11 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPropertyAnimation>
+#include <QStringRef>
+#include <QThread>
+#include "selectxaxisdialog.h"
+#include "busydialog.h"
+#include "busytaskdialog.h"
 
 QStringList  words_list;
 int unique_number = 0;
@@ -25,7 +30,6 @@ MainWindow::MainWindow(QWidget *parent) :
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
                << "mai" << "nessun" << "ci" << "dividera";
 
-    ui->listWidget->addItems( words_list );
 
     ui->splitter->setStretchFactor(0,0);
     ui->splitter->setStretchFactor(1,1);
@@ -39,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
     connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
+    connect(ui->actionLoadCSV,SIGNAL(triggered()), this, SLOT(onActionLoadCSV()) );
 
     for( int i=0; i< ui->gridLayoutSettings->count(); i++)
     {
@@ -97,16 +102,38 @@ void MainWindow::createActions()
 }
 
 
+QColor MainWindow::colorHint()
+{
+    static int index = 0;
+    QColor color;
+    switch( index%9 )
+    {
+    case 0:  color = QColor(Qt::black) ;break;
+    case 1:  color = QColor(Qt::blue);break;
+    case 2:  color =  QColor(Qt::red); break;
+    case 3:  color =  QColor(Qt::darkGreen); break;
+    case 4:  color =  QColor(Qt::magenta); break;
+    case 5:  color =  QColor(Qt::darkCyan); break;
+    case 6:  color =  QColor(Qt::gray); break;
+    case 7:  color =  QColor(Qt::darkBlue); break;
+    case 8:  color =  QColor(Qt::darkYellow); break;
+    }
+    index++;
+    return color;
+}
+
 void MainWindow::buildData()
 {
     long size_plot = 100*1000;
-    int index = 0;
+
+    ui->listWidget->addItems( words_list );
 
     foreach( const QString& name, words_list)
     {
-        _mapped_plot_data.insert( std::make_pair( name, PlotData(size_plot)));
+        PlotData* plot = new PlotData(size_plot);
+        _mapped_plot_data.insert( std::make_pair( name, plot));
 
-        PlotData& plot_data = _mapped_plot_data.at(name);
+        PlotData* plot_data = _mapped_plot_data.at(name);
 
         float A =  qrand()/(float)RAND_MAX * 6 - 3;
         float B =  qrand()/(float)RAND_MAX *3;
@@ -116,25 +143,10 @@ void MainWindow::buildData()
         float t = 0;
         for (int indx=0; indx<size_plot; indx++)
         {
-            plot_data.pushBack( QPointF( t, A*sin(B*t + C) +D*t*0.01 ) ) ;
+            plot_data->pushBack( QPointF( t, A*sin(B*t + C) +D*t*0.01 ) ) ;
             t += 0.001;
         }
-
-        QColor color;
-        switch( index%9 )
-        {
-        case 0:  color = QColor(Qt::black) ;break;
-        case 1:  color = QColor(Qt::blue);break;
-        case 2:  color =  QColor(Qt::red); break;
-        case 3:  color =  QColor(Qt::darkGreen); break;
-        case 4:  color =  QColor(Qt::magenta); break;
-        case 5:  color =  QColor(Qt::darkCyan); break;
-        case 6:  color =  QColor(Qt::gray); break;
-        case 7:  color =  QColor(Qt::darkBlue); break;
-        case 8:  color =  QColor(Qt::darkYellow); break;
-        }
-        plot_data.setColorHint(color);
-        index++;
+        plot->setColorHint( colorHint() );
     }
 
     ui->horizontalSlider->setRange(0, size_plot  );
@@ -181,14 +193,14 @@ void MainWindow::resizeEvent(QResizeEvent *)
     on_splitter_splitterMoved( 0, 0 );
 }
 
-void MainWindow::on_lineEdit_textChanged(const QString &arg1)
+void MainWindow::on_lineEdit_textChanged(const QString &search_string)
 {
     Qt::CaseSensitivity cs = Qt::CaseInsensitive;
     if( ui->checkBoxCaseSensitive->isChecked())
     {
         cs = Qt::CaseSensitive;
     }
-    QRegExp regexp( arg1,  cs, QRegExp::Wildcard );
+    QRegExp regexp( search_string,  cs, QRegExp::Wildcard );
     QRegExpValidator v(regexp, 0);
 
     for (int i=0; i< ui->listWidget->count(); i++)
@@ -201,7 +213,14 @@ void MainWindow::on_lineEdit_textChanged(const QString &arg1)
         if( ui->radioRegExp->isChecked())
             toHide = v.validate( name, pos ) != QValidator::Acceptable;
         else{
-            toHide =  name.contains(arg1, cs) == false;
+            QVector<QStringRef> items = search_string.splitRef(' ');
+            for (int i=0; i< items.size(); i++)
+            {
+                if( name.contains(items[i], cs) == false )
+                {
+                    toHide = true;
+                }
+            }
         }
 
         item->setHidden( toHide );
@@ -264,7 +283,7 @@ void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
     for( PlotDataMap::iterator it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
     {
-        PlotData* plot = &(it->second);
+        PlotData* plot = (it->second);
 
         float range = (float)ui->horizontalSlider->maximum() *0.001*0.1;
         //  plot->setRangeX( (float)value*0.001 , range ) ;
@@ -287,7 +306,7 @@ void MainWindow::on_plotAdded(PlotWidget *widget)
 
 void MainWindow::addCurveToPlot(QString curve_name, PlotWidget* destination)
 {
-    destination->addCurve( curve_name, &(_mapped_plot_data.at(curve_name)) );
+    destination->addCurve( curve_name, (_mapped_plot_data.at(curve_name)) );
 }
 
 PlotMatrix *MainWindow::currentPlotGrid()
@@ -340,6 +359,163 @@ void MainWindow::onActionSaveLayout()
         QTextStream stream(&file);
         stream << doc.toString() << endl;
     }
+}
+
+void MainWindow::onActionLoadCSV()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  QDir::currentPath(), "*.csv");
+    if (fileName.isEmpty())
+        return;
+
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("Layout"),
+                             tr("Cannot read file %1:\n%2.")
+                             .arg(fileName)
+                             .arg(file.errorString()));
+        return;
+    }
+
+    int linecount = 0;
+
+    {
+        QTextStream inA(&file);
+
+        BusyDialog* progressDialog = new BusyDialog(this);
+
+        QApplication::processEvents();
+
+        while (!inA.atEnd())
+        {
+            inA.readLineInto(0);
+            linecount++;
+            if(linecount%1000 == 0) {
+
+                qDebug() << linecount;
+                QApplication::processEvents();
+            }
+        }
+        file.close();
+        progressDialog->close();
+    }
+
+
+    file.open(QFile::ReadOnly);
+    QTextStream inB(&file);
+    QVector<PlotData*> index_to_plot;
+
+    bool first_line = true;
+
+    BusyTaskDialog* taskDialog = 0;
+
+    int time_index = -1;
+    int tot_lines = linecount -1;
+    linecount = 0;
+    double prev_time = -1;
+    double time_offset = 0;
+    bool use_time_bias = false;
+
+    while (!inB.atEnd())
+    {
+        QString line = inB.readLine();
+
+        QVector<QStringRef> string_items = line.splitRef(',');
+
+        if( first_line )
+        {
+            for (int i=0; i < string_items.size(); i++ )
+            {
+                QStringRef field_name = string_items[i];
+                if( field_name.startsWith( "field." ) )
+                {
+                    field_name = field_name.mid(6);
+                }
+                PlotData* plot = new PlotData(tot_lines);
+
+                plot->setColorHint( colorHint() );
+                QString name = field_name.toString();
+                plot->setName( name );
+
+                _mapped_plot_data.insert( std::make_pair( name, plot));
+                index_to_plot.insert(  i, plot );
+
+                qDebug() << field_name;
+            }
+            QDialog* dialog = new selectXAxisDialog(string_items, this);
+            dialog->exec();
+            time_index = dialog->result();
+
+            first_line = false;
+            if( index_to_plot[time_index]->name().compare("%time") == 0)
+            {
+                use_time_bias = true;
+            }
+        }
+        else{
+            if( !taskDialog )
+            {
+                taskDialog = new BusyTaskDialog("Loading file");
+                taskDialog->show();
+            }
+
+            if( use_time_bias && time_offset <= 0){
+                time_offset = string_items[ time_index ].toDouble();
+            }
+
+            double t = string_items[ time_index ].toDouble();
+
+            if( use_time_bias )
+            {
+                t -= time_offset;
+                t *= 0.000000001;
+            }
+
+            if( t <= prev_time)
+            {
+                QMessageBox::warning(this, tr("Error reading file"),
+                                     tr("Selected time in not monotonic") );
+                taskDialog->cancel();
+                break;
+            }
+            prev_time = t;
+
+            for (int i=0; i < string_items.size(); i++ )
+            {
+                QPointF point( t, string_items[i].toDouble());
+                index_to_plot[i]->pushBack(point);
+            }
+            if(linecount++ %100 == 0)
+            {
+                taskDialog->setValue( (100* linecount) / tot_lines );
+                QApplication::processEvents();
+                if( taskDialog->wasCanceled() )
+                {
+                    break;
+                }
+            }
+        }
+    }
+    file.close();
+
+    if( taskDialog->wasCanceled() == false)
+    {
+        for( int i=0; i < index_to_plot.size(); i++)
+        {
+            ui->listWidget->addItem( new QListWidgetItem( index_to_plot[i]->name() ) );
+        }
+    }
+    else{
+        while( _mapped_plot_data.size() > 0)
+        {
+            delete _mapped_plot_data.begin()->second;
+            _mapped_plot_data.erase( _mapped_plot_data.begin() );
+        }
+    }
+
+    taskDialog->close();
+
+    qDebug() << "DONE";
+
 }
 
 void MainWindow::onActionLoadLayout()
@@ -496,9 +672,20 @@ void MainWindow::on_pushLinkHorizontalScale_toggled(bool checked)
 
     for (int index = 0; index < ui->tabWidget->count(); index++)
     {
-        PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+        PlotMatrix* tab = currentPlotGrid();
         if (tab){
             tab->setHorizontalLink( _horizontal_link );
+        }
+    }
+}
+
+void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
+{
+    for (int index = 0; index < ui->tabWidget->count(); index++)
+    {
+        PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+        if (tab){
+            tab->setActiveTracker( checked );
         }
     }
 }

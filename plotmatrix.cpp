@@ -5,7 +5,7 @@
 #include <qwt_scale_widget.h>
 #include <qwt_scale_draw.h>
 #include "plotmatrix.h"
-
+#include "customtracker.h"
 
 
 
@@ -22,21 +22,43 @@ PlotMatrix::PlotMatrix(QWidget *parent ):
     updateLayout();
 }
 
-PlotWidget* PlotMatrix::addPlot(int row, int col)
+PickerTrackerMachine* sm = new PickerTrackerMachine();
+
+PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 {
     PlotWidget *plot = new PlotWidget( this );
 
     plot->setWindowTitle(QString("PlotWidget ") + QString::number(widget_uid++));
 
-    layout->addWidget( plot, row, col );
 
-    qDebug() << "adding "<< row << " " << col;
+    CurveTracker* tracker = plot->tracker();
+    tracker->setRubberBandPen( QPen( "MediumOrchid" ) );
+
 
     connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgetByName(QString,QString)) );
     connect( plot, SIGNAL(horizontalScaleChanged(QRectF)), this, SLOT(onHorizontalAxisScaleChanged(QRectF)));
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
 
+    for(int i=0; i< layout->count(); i++)
+    {
+        QLayoutItem * item = layout->itemAt(i);
+        if( item  ){
+            PlotWidget *other_plot = static_cast<PlotWidget *>( item->widget() );
+            if (other_plot )
+            {
+                connect(other_plot->tracker(),SIGNAL( moved(const QPointF&)),
+                        plot->tracker(), SLOT(mirroredMove(const QPointF&)) );
+
+                connect(plot->tracker(),SIGNAL(moved(const QPointF&)),
+                        other_plot->tracker(), SLOT(mirroredMove(const QPointF&)) );
+            }
+        }
+    }
+
+    plot->tracker()->setEnabled( false );
+
+    layout->addWidget( plot, row, col );
     emit plotAdded(plot);
     return plot;
 }
@@ -46,14 +68,14 @@ void PlotMatrix::addRow()
 
     if( num_rows==0 && num_cols==0 )
     {
-        addPlot( 0, 0 );
+        addPlotWidget( 0, 0 );
         num_rows = 1;
         num_cols = 1;
     }
     else{
         for ( int col = 0; col < numColumns(); col++ )
         {
-            addPlot( num_rows, col );
+            addPlotWidget( num_rows, col );
         }
         num_rows++;
     }
@@ -64,14 +86,14 @@ void PlotMatrix::addColumn()
 {
     if( num_rows==0 && num_cols==0 )
     {
-        addPlot( 0, 0 );
+        addPlotWidget( 0, 0 );
         num_rows = 1;
         num_cols = 1;
     }
     else {
         for ( int row = 0; row < numRows(); row++ )
         {
-            addPlot( row, num_cols );
+            addPlotWidget( row, num_cols );
         }
         num_cols++;
     }
@@ -275,6 +297,18 @@ void PlotMatrix::setHorizontalLink(bool linked)
 {
     qDebug() << "setHorizontalLink " << linked;
     _horizontal_link = linked;
+}
+
+void PlotMatrix::setActiveTracker(bool active)
+{
+    for(int i=0; i< layout->count(); i++)
+    {
+        QLayoutItem * item = layout->itemAt(i);
+        if( item  ){
+            PlotWidget *plot = static_cast<PlotWidget *>( item->widget() );
+            plot->tracker()->setEnabled( active );
+        }
+    }
 }
 
 void PlotMatrix::maximizeHorizontalScale()

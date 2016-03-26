@@ -39,6 +39,7 @@ public:
     void replot();
 
     void setHorizontalLink(bool linked);
+    void setActiveTracker(bool active);
 
 public slots:
     void maximizeHorizontalScale();
@@ -51,7 +52,7 @@ private slots:
 private:
     void alignAxes( int rowOrColumn, int axis );
     void alignScaleBorder( int rowOrColumn, int axis );
-    PlotWidget *addPlot( int row, int col);
+    PlotWidget *addPlotWidget( int row, int col);
     void swapPlots( int rowA, int colA, int rowB, int colB);
 
     QGridLayout *layout;

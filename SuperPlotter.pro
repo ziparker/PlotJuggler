@@ -21,17 +21,27 @@ SOURCES += main.cpp\
     plotdata.cpp \
     plotmatrix.cpp \
     removecurvedialog.cpp \
-    plotmagnifier.cpp
+    plotmagnifier.cpp \
+    selectxaxisdialog.cpp \
+    busydialog.cpp \
+    busytaskdialog.cpp \
+    customtracker.cpp
 
 HEADERS  += mainwindow.h \
     plotwidget.h \
     plotdata.h \
     plotmatrix.h \
     removecurvedialog.h \
-    plotmagnifier.h
+    plotmagnifier.h \
+    selectxaxisdialog.h \
+    busydialog.h \
+    busytaskdialog.h \
+    customtracker.h
 
 FORMS    += mainwindow.ui \
-    removecurvedialog.ui
+    removecurvedialog.ui \
+    selectxaxisdialog.ui \
+    busydialog.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../Qwt-6.1.3-svn/lib/ -lqwt
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../Qwt-6.1.3-svn/lib/ -lqwtd

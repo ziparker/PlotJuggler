@@ -11,6 +11,9 @@ class PlotData: public QwtSeriesData<QPointF>
 public:
     PlotData(int capacity);
 
+    void setName(QString name) { _name = name; }
+    QString name() { return _name; }
+
     void reserve(size_t capacity);
     void pushBack(QPointF point);
 
@@ -37,6 +40,7 @@ private:
 
     int _preferedColor;
     QColor _color;
+    QString _name;
 };
 
 #endif // PLOTDATA_H

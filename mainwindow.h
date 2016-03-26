@@ -25,7 +25,7 @@ private slots:
     void on_splitter_splitterMoved(int, int);
     void resizeEvent(QResizeEvent *) Q_DECL_OVERRIDE;
 
-    void on_lineEdit_textChanged(const QString &arg1);
+    void on_lineEdit_textChanged(const QString &search_string);
 
     void on_radioRegExp_toggled(bool checked);
 
@@ -47,6 +47,7 @@ private slots:
 
     void onActionSaveLayout();
     void onActionLoadLayout();
+    void onActionLoadCSV();
 
     void on_pushButton_toggled(bool checked);
 
@@ -61,6 +62,8 @@ private slots:
     void on_pushVerticalResize_pressed();
 
     void on_pushLinkHorizontalScale_toggled(bool checked);
+
+    void on_pushButtonActivateTracker_toggled(bool checked);
 
 private:
     Ui::MainWindow *ui;
@@ -77,6 +80,8 @@ private:
     QVector< QWidget*> settings_widgets;
 
     bool _horizontal_link;
+
+    QColor colorHint();
 
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;

@@ -53,6 +53,8 @@ PlotWidget::PlotWidget(QWidget *parent):
    // _panner = new QwtPlotPanner( this->canvas() );
    // _panner->setMouseButton( Qt::MiddleButton );
 
+    _tracker = new CurveTracker( this->canvas() );
+
     setMode( ZOOM_MODE );
 }
 
@@ -63,6 +65,11 @@ PlotWidget::~PlotWidget()
 
 void PlotWidget::addCurve(const QString &name, PlotData *data)
 {
+    if( _curve_list.find(name) != _curve_list.end())
+    {
+        return;
+    }
+
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
 
@@ -76,6 +83,9 @@ void PlotWidget::addCurve(const QString &name, PlotData *data)
 
     _magnifier->setAxisLimits( yLeft, bounding.bottom(), bounding.top());
     _magnifier->setAxisLimits( xBottom, bounding.left(), bounding.right());
+
+    QRectF bound = this->maximumBoundingRect();
+    this->setVerticalAxisRange( bound.bottom(), bound.top() );
 
     this->replot();
 }
@@ -215,6 +225,12 @@ QRectF PlotWidget::currentBoundingRect()
     return rect;
 }
 
+CurveTracker *PlotWidget::tracker()
+{
+    return _tracker;
+}
+
+
 void PlotWidget::setHorizontalAxisRange(float min, float max)
 {
     float EPS = 0.001*( max-min );
@@ -262,7 +278,14 @@ QRectF PlotWidget::maximumBoundingRect()
         if( right < bounding_rect.right() ) right = bounding_rect.right();
     }
 
-    return QRectF(left, top,  right - left, bottom - top ) ;
+    if( fabs(top-bottom) < 1e-10  )
+    {
+        qDebug() << QRectF(left, top+0.01,  right - left, -0.02 ) ;
+         return QRectF(left, top+0.01,  right - left, -0.02 ) ;
+    }
+    else{
+        return QRectF(left, top,  right - left, bottom - top ) ;
+    }
 }
 
 void PlotWidget::contextMenuEvent(QContextMenuEvent *event)

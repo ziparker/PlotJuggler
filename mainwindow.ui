@@ -348,8 +348,8 @@
             </property>
             <property name="iconSize">
              <size>
-              <width>26</width>
-              <height>26</height>
+              <width>30</width>
+              <height>30</height>
              </size>
             </property>
             <property name="flat">
@@ -371,8 +371,8 @@
             </property>
             <property name="iconSize">
              <size>
-              <width>26</width>
-              <height>26</height>
+              <width>30</width>
+              <height>30</height>
              </size>
             </property>
             <property name="flat">
@@ -391,14 +391,37 @@
             </property>
             <property name="iconSize">
              <size>
-              <width>26</width>
-              <height>26</height>
+              <width>30</width>
+              <height>30</height>
              </size>
             </property>
             <property name="checkable">
              <bool>true</bool>
             </property>
             <property name="checked">
+             <bool>true</bool>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonActivateTracker">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>resources/Line_tracker.png</normaloff>resources/Line_tracker.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>30</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="checkable">
              <bool>true</bool>
             </property>
             <property name="flat">
@@ -502,9 +525,10 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionLoadCSV"/>
+    <addaction name="separator"/>
     <addaction name="actionLoad_layout"/>
     <addaction name="actionSave_layout"/>
-    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -525,6 +549,11 @@
   <action name="actionSave_layout">
    <property name="text">
     <string>Save layout</string>
+   </property>
+  </action>
+  <action name="actionLoadCSV">
+   <property name="text">
+    <string>Load .csv</string>
    </property>
   </action>
  </widget>
