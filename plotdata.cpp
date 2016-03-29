@@ -2,33 +2,48 @@
 #include <limits>
 
 
-PlotData::PlotData(int capacity)
+PlotData::PlotData()
 {
     _subsample = 1;
-    reserve(capacity);
-
-    y_min = std::numeric_limits<float>::max();
-    y_max = std::numeric_limits<float>::min();
+    _index_first = 0;
+    _index_last  = 0;
 }
 
-void PlotData::reserve(size_t capacity)
+PlotData::PlotData(SharedVector x, SharedVector y)
 {
-    _raw_points.reserve(capacity);
+    _subsample = 1;
+    _index_first = 0;
+    _index_last  = 0;
+    addData(x,y);
 }
 
-void PlotData::pushBack(QPointF point)
+void PlotData::addData(SharedVector x, SharedVector y)
 {
-    _raw_points.push_back( point );
+    _x_points = x;
+    _y_points = y;
 
-    if( y_min > point.y()) y_min = point.y();
-    if( y_max < point.y()) y_max = point.y();
+    if( x->size() != y->size() )
+    {
+        throw std::runtime_error("size of x and y vectors must match");
+    }
 
-    _indexA = 0;
-    _indexB = _raw_points.size() -1;
+    y_min = std::numeric_limits<double>::max();
+    y_max = std::numeric_limits<double>::min();
 
-    x_min  = _raw_points[0].x();
-    x_max  = (_raw_points.back().x()) ;
+    x_min = _x_points->front();
+    x_max = _x_points->back();
+
+    for (int i=0; i< x->size(); i++)
+    {
+        double Y = _y_points->at(i);
+        if( Y < y_min ) y_min = Y;
+        if( Y > y_max ) y_max = Y;
+    }
+    _index_first = 0;
+    _index_last  = _x_points->size() -1;
 }
+
+
 
 void PlotData::setSubsampleFactor(int factor)
 {
@@ -39,24 +54,19 @@ void PlotData::setSubsampleFactor(int factor)
 size_t PlotData::size() const
 {
     // return _raw_points.size() ;
-   return _indexB - _indexA;
+   return _index_last - _index_first + 1;
 }
 
 QPointF PlotData::sample(size_t i) const
 {
-    if( i >= _raw_points.size() ) return _raw_points.back() ;
-
-    //qDebug() << point.x() << " / " << point.y();
-   // return _raw_points.at(i );;
-    return _raw_points.at(i + _indexA );
+    int index = i +_index_first;
+    QPointF point( (*_x_points)[index], (*_y_points)[index] ) ;
+    return point ;
 }
 
 QRectF PlotData::boundingRect() const
 {
-    //float left  = _raw_points[0].x();
-   // float right = _raw_points[ _raw_points.size() -1].x();
     QRectF rect(  x_min, y_min, (x_max - x_min),  y_max - y_min );
-   // qDebug() << rect;
     return rect ;
 }
 
@@ -70,27 +80,30 @@ void PlotData::setColorHint(QColor color)
     _color = color;
 }
 
- bool compareQPointF(const QPointF &a, const QPointF &b)
- {
-     return ( a.x() < b.x() );
- }
-
-void PlotData::setRangeX(float t_center, float t_range)
+bool compareQPointF(const QPointF &a, const QPointF &b)
 {
-    float t_min = t_center - t_range/2;
-    float t_max = t_center + t_range/2;
+     return ( a.x() < b.x() );
+}
 
-    std::vector<QPointF>::const_iterator lower = std::lower_bound(_raw_points.begin(), _raw_points.end(), QPointF(t_min,t_min), compareQPointF);
-    std::vector<QPointF>::const_iterator upper = std::upper_bound(_raw_points.begin(), _raw_points.end(), QPointF(t_max,t_max), compareQPointF);
+void PlotData::setRangeX(double t_center, double t_range)
+{
+    double t_min = t_center - t_range/2;
+    double t_max = t_center + t_range/2;
 
- //   QPointF point_left  = *lower;
- //   QPointF point_right = *upper;
-  _indexA = ( lower - _raw_points.begin());
-  _indexB = ( upper - _raw_points.begin()-1);
+    std::vector<double>::const_iterator lower, upper;
+
+    lower = std::lower_bound(_x_points->begin(), _x_points->end(), t_min );
+    upper = std::upper_bound(_x_points->begin(), _x_points->end(), t_max );
+
+    _index_first = ( lower - _x_points->begin());
+    _index_last  = ( upper - _x_points->begin());
 
     x_min = t_min;
     x_max = t_max;
+}
 
-    //qDebug() <<  t_min << " " << t_max << " / " <<_indexA << " " << _indexB;
+int PlotData::getIndexAtPositionX(double x) const
+{
+
 }
 

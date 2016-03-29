@@ -106,7 +106,6 @@ QwtText CurveTracker::trackerTextF( const QPointF &pos ) const
     }
 
     trackerText.setText( info );
-    qDebug() << info;
     return trackerText;
 }
 
@@ -215,6 +214,5 @@ QRect CurveTracker::trackerRect( const QFont &font ) const
     int top = qMax( textRect.top(), pickRect.top() + margin );
     textRect.moveTopLeft( QPoint( left, top ) );
 
-    qDebug() << "trackerRect " <<textRect;
     return textRect;
 }

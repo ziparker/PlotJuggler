@@ -75,7 +75,9 @@ private:
 
     void buildData();
 
-    PlotDataMap _mapped_plot_data;
+    std::map<QString, SharedVector> _mapped_raw_data;
+    std::map<QString, PlotData*>    _mapped_plot_data;
+
     void rearrangeGridLayout();
     QVector< QWidget*> settings_widgets;
 

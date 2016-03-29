@@ -16,7 +16,7 @@
 #include "plotdata.h"
 #include "customtracker.h"
 
-typedef std::map<QString, PlotData*> PlotDataMap;
+
 
 class PlotWidget : public QwtPlot
 {
@@ -68,6 +68,7 @@ private slots:
 
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
+
     QAction *removeCurveAction;
     PlotWidgetMode _mode;
     QwtPlotZoomer* _zoomer;

@@ -59,7 +59,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     createActions();
-    buildData();
+
+  //  buildData();
 
 }
 
@@ -124,32 +125,44 @@ QColor MainWindow::colorHint()
 
 void MainWindow::buildData()
 {
-    long size_plot = 100*1000;
+    long SIZE = 100*1000;
 
     ui->listWidget->addItems( words_list );
+    QSharedPointer<std::vector<double>> t_vector ( new std::vector<double>());
+    t_vector->reserve(SIZE);
+
+    double t = 0;
+    for (int indx=0; indx<SIZE; indx++)
+    {
+        t_vector->push_back( t );
+        t += 0.001;
+    }
 
     foreach( const QString& name, words_list)
     {
-        PlotData* plot = new PlotData(size_plot);
-        _mapped_plot_data.insert( std::make_pair( name, plot));
+        QSharedPointer<std::vector<double>> y_vector( new std::vector<double>() );
+        y_vector->reserve(SIZE);
 
-        PlotData* plot_data = _mapped_plot_data.at(name);
+        _mapped_raw_data.insert( std::make_pair( name, y_vector));
 
         float A =  qrand()/(float)RAND_MAX * 6 - 3;
         float B =  qrand()/(float)RAND_MAX *3;
         float C =  qrand()/(float)RAND_MAX *3;
         float D =  qrand()/(float)RAND_MAX *2 -1;
 
-        float t = 0;
-        for (int indx=0; indx<size_plot; indx++)
+        for (int indx=0; indx<SIZE; indx++)
         {
-            plot_data->pushBack( QPointF( t, A*sin(B*t + C) +D*t*0.01 ) ) ;
-            t += 0.001;
+            double x = t_vector->at(indx);
+            y_vector->push_back(  A*sin(B*x + C) +D*x*0.02 ) ;
         }
+
+        PlotData* plot = new PlotData(t_vector, y_vector);
         plot->setColorHint( colorHint() );
+        _mapped_plot_data.insert( std::make_pair( name, plot));
+
     }
 
-    ui->horizontalSlider->setRange(0, size_plot  );
+    ui->horizontalSlider->setRange(0, SIZE  );
     on_horizontalSlider_valueChanged(0);
 
 }
@@ -281,7 +294,8 @@ void MainWindow::on_pushremoveEmpty_pressed()
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
-    for( PlotDataMap::iterator it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
+    std::map<QString, PlotData*>::iterator it;
+    for( it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
     {
         PlotData* plot = (it->second);
 
@@ -402,7 +416,9 @@ void MainWindow::onActionLoadCSV()
 
     file.open(QFile::ReadOnly);
     QTextStream inB(&file);
-    QVector<PlotData*> index_to_plot;
+
+    std::vector<SharedVector> ordered_vectors;
+    std::vector<QString> ordered_names;
 
     bool first_line = true;
 
@@ -430,23 +446,29 @@ void MainWindow::onActionLoadCSV()
                 {
                     field_name = field_name.mid(6);
                 }
-                PlotData* plot = new PlotData(tot_lines);
 
-                plot->setColorHint( colorHint() );
                 QString name = field_name.toString();
+
+                SharedVector data_vector( new std::vector<double>());
+                data_vector->reserve(tot_lines);
+
+                PlotData* plot = new PlotData;
+                plot->setColorHint( colorHint() );
                 plot->setName( name );
 
-                _mapped_plot_data.insert( std::make_pair( name, plot));
-                index_to_plot.insert(  i, plot );
+                ordered_vectors.push_back( data_vector );
+                ordered_names.push_back( name );
 
-                qDebug() << field_name;
+                _mapped_raw_data.insert( std::make_pair( name, data_vector ) );
+                _mapped_plot_data.insert( std::make_pair( name, plot ) );
             }
+
             QDialog* dialog = new selectXAxisDialog(string_items, this);
             dialog->exec();
             time_index = dialog->result();
 
             first_line = false;
-            if( index_to_plot[time_index]->name().compare("%time") == 0)
+            if( ordered_names[time_index].compare("%time") == 0)
             {
                 use_time_bias = true;
             }
@@ -481,8 +503,8 @@ void MainWindow::onActionLoadCSV()
 
             for (int i=0; i < string_items.size(); i++ )
             {
-                QPointF point( t, string_items[i].toDouble());
-                index_to_plot[i]->pushBack(point);
+                double y = string_items[i].toDouble();
+                ordered_vectors[i]->push_back( y );
             }
             if(linecount++ %100 == 0)
             {
@@ -499,9 +521,14 @@ void MainWindow::onActionLoadCSV()
 
     if( taskDialog->wasCanceled() == false)
     {
-        for( int i=0; i < index_to_plot.size(); i++)
+        SharedVector time_vector = ordered_vectors[time_index];
+
+        for( int i=0; i < ordered_vectors.size(); i++)
         {
-            ui->listWidget->addItem( new QListWidgetItem( index_to_plot[i]->name() ) );
+            QString name = ordered_names[i];
+            _mapped_plot_data[ name ]->addData( time_vector, ordered_vectors[i]);
+
+            ui->listWidget->addItem( new QListWidgetItem( name ) );
         }
     }
     else{
