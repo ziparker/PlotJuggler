@@ -12,7 +12,7 @@ class selectXAxisDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit selectXAxisDialog(QVector<QStringRef> fields, QWidget *parent = 0);
+    explicit selectXAxisDialog(QStringList* fields, QWidget *parent = 0);
     ~selectXAxisDialog();
 
 private slots:

@@ -1,6 +1,7 @@
 #include "plotdata.h"
 #include <limits>
-
+#include <QMenu>
+#include <stdexcept>
 
 PlotData::PlotData()
 {

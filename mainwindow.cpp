@@ -60,7 +60,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     createActions();
 
-  //  buildData();
+    ui->menuBar->hide();
+    ui->mainToolBar->setMovable(false);
+    ui->mainToolBar->addAction( ui->menuFile->menuAction());
 
 }
 
@@ -128,7 +130,7 @@ void MainWindow::buildData()
     long SIZE = 100*1000;
 
     ui->listWidget->addItems( words_list );
-    QSharedPointer<std::vector<double>> t_vector ( new std::vector<double>());
+    QSharedPointer<std::vector<double> > t_vector ( new std::vector<double>());
     t_vector->reserve(SIZE);
 
     double t = 0;
@@ -140,7 +142,7 @@ void MainWindow::buildData()
 
     foreach( const QString& name, words_list)
     {
-        QSharedPointer<std::vector<double>> y_vector( new std::vector<double>() );
+        QSharedPointer<std::vector<double> > y_vector( new std::vector<double>() );
         y_vector->reserve(SIZE);
 
         _mapped_raw_data.insert( std::make_pair( name, y_vector));
@@ -226,7 +228,7 @@ void MainWindow::on_lineEdit_textChanged(const QString &search_string)
         if( ui->radioRegExp->isChecked())
             toHide = v.validate( name, pos ) != QValidator::Acceptable;
         else{
-            QVector<QStringRef> items = search_string.splitRef(' ');
+            QStringList items = search_string.split(' ');
             for (int i=0; i< items.size(); i++)
             {
                 if( name.contains(items[i], cs) == false )
@@ -401,7 +403,7 @@ void MainWindow::onActionLoadCSV()
 
         while (!inA.atEnd())
         {
-            inA.readLineInto(0);
+            inA.readLine();
             linecount++;
             if(linecount%1000 == 0) {
 
@@ -435,13 +437,13 @@ void MainWindow::onActionLoadCSV()
     {
         QString line = inB.readLine();
 
-        QVector<QStringRef> string_items = line.splitRef(',');
+        QStringList string_items = line.split(',');
 
         if( first_line )
         {
             for (int i=0; i < string_items.size(); i++ )
             {
-                QStringRef field_name = string_items[i];
+                QStringRef field_name ( &string_items[i] );
                 if( field_name.startsWith( "field." ) )
                 {
                     field_name = field_name.mid(6);
@@ -463,7 +465,7 @@ void MainWindow::onActionLoadCSV()
                 _mapped_plot_data.insert( std::make_pair( name, plot ) );
             }
 
-            QDialog* dialog = new selectXAxisDialog(string_items, this);
+            QDialog* dialog = new selectXAxisDialog( &string_items, this);
             dialog->exec();
             time_index = dialog->result();
 

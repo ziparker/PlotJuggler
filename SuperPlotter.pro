@@ -10,10 +10,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += qwt
 
-TARGET = Layout
+TARGET = SuperPlotter
 TEMPLATE = app
 
-INCLUDEPATH += C:\Qwt\include
+QWT_INSTALL_DIR = /usr/local/qwt-sys
+
+INCLUDEPATH += $${QWT_INSTALL_DIR}/include
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -43,13 +45,15 @@ FORMS    += mainwindow.ui \
     selectxaxisdialog.ui \
     busydialog.ui
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../Qwt/lib/ -lqwt
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../Qwt/lib/ -lqwtd
+LIBS += -L$${QWT_INSTALL_DIR}/lib/ -lqwt
 
-INCLUDEPATH += $$PWD/../../Qwt/include
-DEPENDPATH += $$PWD/../../Qwt/include
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../../Qwt/lib/libqwt.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../../Qwt/lib/libqwtd.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../../Qwt/lib/qwt.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../../Qwt/lib/qwtd.lib
+
+INCLUDEPATH += $${QWT_INSTALL_DIR}/include
+DEPENDPATH += $${QWT_INSTALL_DIR}/include
+
+PRE_TARGETDEPS += $${QWT_INSTALL_DIR}/lib/libqwt.so
+
+
+RESOURCES += \
+    resource.qrc

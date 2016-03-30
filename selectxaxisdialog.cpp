@@ -2,15 +2,15 @@
 #include "ui_selectxaxisdialog.h"
 #include <QDebug>
 
-selectXAxisDialog::selectXAxisDialog( QVector<QStringRef> fields, QWidget *parent) :
+selectXAxisDialog::selectXAxisDialog(QStringList *fields, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::selectXAxisDialog)
 {
     ui->setupUi(this);
 
-    for (int i=0; i< fields.size(); i++)
+    for (int i=0; i< fields->size(); i++)
     {
-        ui->listFieldsWidget->addItem( new QListWidgetItem( fields[i].toString() ) );
+        ui->listFieldsWidget->addItem( new QListWidgetItem( (*fields)[i] ) );
     }
 }
 

@@ -8,6 +8,7 @@
 #include <qwt_plot_layout.h>
 #include <QAction>
 #include <QMenu>
+#include <limits>
 #include "removecurvedialog.h"
 
 

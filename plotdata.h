@@ -5,10 +5,10 @@
 #include <QObject>
 #include <QColor>
 #include <qwt_series_data.h>
-#include <QSharedpointer>
+#include <QSharedPointer>
 
 
-typedef QSharedPointer<std::vector<double>> SharedVector;
+typedef QSharedPointer<std::vector<double> > SharedVector;
 
 class PlotData: public QwtSeriesData<QPointF>
 {

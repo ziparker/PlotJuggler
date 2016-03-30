@@ -86,8 +86,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
-              <normaloff>resources/cog.png</normaloff>resources/cog.png</iconset>
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/cog.png</normaloff>:/icons/resources/cog.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -343,8 +343,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
-              <normaloff>resources/resize_horizontal.png</normaloff>resources/resize_horizontal.png</iconset>
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/resize_horizontal.png</normaloff>:/icons/resources/resize_horizontal.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -366,8 +366,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
-              <normaloff>resources/resize_vertical.png</normaloff>resources/resize_vertical.png</iconset>
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/resize_vertical.png</normaloff>:/icons/resources/resize_vertical.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -386,8 +386,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
-              <normaloff>resources/link.png</normaloff>resources/link.png</iconset>
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/link.png</normaloff>:/icons/resources/link.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -412,8 +412,8 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
-              <normaloff>resources/Line_tracker.png</normaloff>resources/Line_tracker.png</iconset>
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/Line_tracker.png</normaloff>:/icons/resources/Line_tracker.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -518,8 +518,14 @@
      <x>0</x>
      <y>0</y>
      <width>964</width>
-     <height>26</height>
+     <height>25</height>
     </rect>
+   </property>
+   <property name="defaultUp">
+    <bool>true</bool>
+   </property>
+   <property name="nativeMenuBar">
+    <bool>true</bool>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -533,6 +539,12 @@
    <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -558,6 +570,8 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
  <connections/>
 </ui>
