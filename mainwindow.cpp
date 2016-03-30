@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QDrag>
 #include <QMimeData>
+#include <QMenu>
 #include <QStringListModel>
 #include <QRegExpValidator>
 #include <stdio.h>
@@ -60,9 +61,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     createActions();
 
-    ui->menuBar->hide();
-    ui->mainToolBar->setMovable(false);
-    ui->mainToolBar->addAction( ui->menuFile->menuAction());
 
 }
 
@@ -95,13 +93,13 @@ void MainWindow::dropEvent(QDropEvent *)
 
 void MainWindow::createActions()
 {
-    /* deleteAllAct = new QAction(tr("&Delete All"), this);
-    deleteAllAct->setStatusTip(tr("Delete the plot"));
-    connect(deleteAllAct, SIGNAL(triggered()), this, SLOT(deletePlot()));
-
-    deleteOneAct = new QAction(tr("&Delete One"), this);
-    deleteOneAct->setStatusTip(tr("Delete the plot"));
-    connect(deleteOneAct, SIGNAL(triggered()), this, SLOT(deletePlot()));*/
+    QMenu* menuFile = new QMenu("File", ui->mainToolBar);
+    menuFile->addAction(ui->actionLoadCSV);
+    menuFile->addSeparator();
+    menuFile->addAction(ui->actionLoad_layout);
+    menuFile->addAction(ui->actionSave_layout);
+    ui->mainToolBar->addAction( menuFile->menuAction());
+    ui->leftLayout->insertWidget(0, ui->mainToolBar );
 }
 
 

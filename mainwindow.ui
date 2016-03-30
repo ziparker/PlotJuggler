@@ -44,15 +44,15 @@
          <enum>QLayout::SetDefaultConstraint</enum>
         </property>
         <item>
-         <widget class="QLabel" name="label">
-          <property name="maximumSize">
-           <size>
-            <width>200</width>
-            <height>16777215</height>
-           </size>
+         <widget class="Line" name="line">
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
           </property>
-          <property name="text">
-           <string>Search</string>
+          <property name="lineWidth">
+           <number>1</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
@@ -71,6 +71,12 @@
               <width>16777215</width>
               <height>16777215</height>
              </size>
+            </property>
+            <property name="inputMask">
+             <string extracomment="Search"/>
+            </property>
+            <property name="placeholderText">
+             <string>Search</string>
             </property>
             <property name="clearButtonEnabled">
              <bool>true</bool>
@@ -512,33 +518,14 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>964</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="defaultUp">
-    <bool>true</bool>
-   </property>
-   <property name="nativeMenuBar">
-    <bool>true</bool>
-   </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionLoadCSV"/>
-    <addaction name="separator"/>
-    <addaction name="actionLoad_layout"/>
-    <addaction name="actionSave_layout"/>
-   </widget>
-   <addaction name="menuFile"/>
-  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="mainToolBar">
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>20</height>
+    </size>
+   </property>
    <property name="movable">
     <bool>false</bool>
    </property>
@@ -552,7 +539,6 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLoad_layout">
    <property name="text">
     <string>Load layout</string>
