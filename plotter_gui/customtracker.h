@@ -14,6 +14,8 @@ public:
     PickerTrackerMachine();
 
     virtual QList<Command> transition(const QwtEventPattern &, const QEvent * );
+private:
+    bool keypressed;
 };
 
 class CurveTracker: public QwtPlotPicker
@@ -22,16 +24,20 @@ class CurveTracker: public QwtPlotPicker
 public:
     explicit CurveTracker( QWidget * );
 
+    QPointF actualPosition() const;
+
 public slots:
-    void mirroredMove(const QPointF & );
+    void manualMove(const QPointF & );
+    void onExternalRescale();
+    void onExternalZoom( const QRectF &);
 
 protected:
     virtual QwtText trackerText( const QPoint &pos ) const;
-    virtual QwtText trackerTextF( const QPointF & ) const;
+    virtual QwtText trackerTextF(QPointF ) const;
     virtual void move( const QPoint & );
     virtual QRect trackerRect( const QFont &font ) const;
 private:
-    QString curveInfoAt( const QwtPlotCurve *, const QPointF & ) const;
+    QString curveInfoAt(const QwtPlotCurve *, QPointF ) const;
     QLineF  curveLineAt( const QwtPlotCurve *, double x ) const;
 
     QPointF _prev_trackerpoint;

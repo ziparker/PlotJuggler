@@ -4,6 +4,10 @@
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
 
+#include "qwt_picker_machine.h"
+#include "qwt_event_pattern.h"
+#include <qevent.h>
+
 struct compareX
 {
     inline bool operator()( const double x, const QPointF &pos ) const
@@ -17,24 +21,48 @@ struct compareX
 PickerTrackerMachine::PickerTrackerMachine():
     QwtPickerMachine( NoSelection )
 {
+    keypressed = false;
 }
 
 //! Transition
 QList<QwtPickerMachine::Command> PickerTrackerMachine::transition(
-    const QwtEventPattern &, const QEvent *e )
+        const QwtEventPattern & eventPattern, const QEvent *event )
 {
     QList<QwtPickerMachine::Command> cmdList;
 
-    switch ( e->type() )
+    switch ( event->type() )
     {
-        case QEvent::Enter:
-        case QEvent::MouseMove:
+        case  QEvent::MouseButtonPress:
         {
+            if( eventPattern.mouseMatch( QwtEventPattern::MouseSelect1, static_cast<const QMouseEvent *>( event ) ) )
+            {
+                qDebug() << "keypressed = true";
+                keypressed = true;
+                cmdList += Move;
+            }
+            break;
+        }
+
+        case  QEvent::MouseButtonRelease:
+        {
+            qDebug() << "keypressed = false";
+            keypressed = false;
             cmdList += Move;
+            break;
+        }
+
+        case  QEvent::MouseMove:
+        {
+            qDebug() << "move " << keypressed;
+            if( keypressed ){
+                cmdList += Move;
+            }
             break;
         }
         case QEvent::Leave:
         {
+            keypressed = false;
+            break;
         }
         default:
             break;
@@ -57,26 +85,37 @@ CurveTracker::CurveTracker( QWidget *canvas ):
     this->append( QPoint(0,0));
 }
 
-void CurveTracker::mirroredMove(const QPointF& plot_pos)
+QPointF CurveTracker::actualPosition() const
+{
+    return _prev_trackerpoint;
+}
+
+void CurveTracker::manualMove(const QPointF& plot_pos)
 {
     // the difference with move is that it will not emit a signal
     _prev_trackerpoint = plot_pos;
     QwtPicker::move( transform (plot_pos) );
 }
 
-QwtText CurveTracker::trackerText( const QPoint &pos ) const
+void CurveTracker::onExternalRescale()
 {
-    if ( pos.x() < 0 || pos.y() < 0 )
-    {
-        return trackerTextF(_prev_trackerpoint);
-    }
-    else {
-        return trackerTextF( invTransform( pos ) );
-    }
+    QwtPlotPicker::move( transform (_prev_trackerpoint) );
 }
 
-QwtText CurveTracker::trackerTextF( const QPointF &pos ) const
+void CurveTracker::onExternalZoom(const QRectF &)
 {
+    QwtPlotPicker::move( transform (_prev_trackerpoint) );
+}
+
+QwtText CurveTracker::trackerText( const QPoint &pos ) const
+{
+    return trackerTextF(_prev_trackerpoint);
+}
+
+QwtText CurveTracker::trackerTextF( QPointF pos ) const
+{
+    //qDebug() << "trackerTextF " << pos;
+
     QwtText trackerText;
 
     trackerText.setColor( Qt::black );
@@ -89,12 +128,12 @@ QwtText CurveTracker::trackerTextF( const QPointF &pos ) const
     QString info;
 
     const QwtPlotItemList curves =
-        plot()->itemList( QwtPlotItem::Rtti_PlotCurve );
+            plot()->itemList( QwtPlotItem::Rtti_PlotCurve );
 
     for ( int i = 0; i < curves.size(); i++ )
     {
         const QString curveInfo = curveInfoAt(
-            static_cast<const QwtPlotCurve *>( curves[i] ), pos );
+                    static_cast<const QwtPlotCurve *>( curves[i] ), pos );
 
         if ( !curveInfo.isEmpty() )
         {
@@ -111,12 +150,15 @@ QwtText CurveTracker::trackerTextF( const QPointF &pos ) const
 
 void CurveTracker::move(const QPoint &pos)
 {
+    qDebug() << "SM move " << pos;
     _prev_trackerpoint = invTransform(pos);
     QwtPlotPicker::move( pos );
 }
 
-QString CurveTracker::curveInfoAt( const QwtPlotCurve *curve, const QPointF &pos ) const
+QString CurveTracker::curveInfoAt( const QwtPlotCurve *curve, QPointF pos ) const
 {
+    // qDebug() << "curveInfoAt " << pos;
+
     const QLineF line = curveLineAt( curve, pos.x() );
     if ( line.isNull() )
         return QString::null;
@@ -136,7 +178,7 @@ QString CurveTracker::curveInfoAt( const QwtPlotCurve *curve, const QPointF &pos
 }
 
 QLineF CurveTracker::curveLineAt(
-    const QwtPlotCurve *curve, double x ) const
+        const QwtPlotCurve *curve, double x ) const
 {
     QLineF line;
 
@@ -146,10 +188,10 @@ QLineF CurveTracker::curveLineAt(
         if ( ( br.width() > 0 ) && ( x >= br.left() ) && ( x <= br.right() ) )
         {
             int index = qwtUpperSampleIndex<QPointF>(
-                *curve->data(), x, compareX() );
+                        *curve->data(), x, compareX() );
 
             if ( index == -1 &&
-                x == curve->sample( curve->dataSize() - 1 ).x() )
+                 x == curve->sample( curve->dataSize() - 1 ).x() )
             {
                 // the last sample is excluded from qwtUpperSampleIndex
                 index = curve->dataSize() - 1;

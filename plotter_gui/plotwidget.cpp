@@ -48,15 +48,16 @@ PlotWidget::PlotWidget(QWidget *parent):
 
 
     _magnifier = new PlotMagnifier( this->canvas() );
-//    _magnifier->setMouseButton( Qt::MiddleButton );
+    //    _magnifier->setMouseButton( Qt::MiddleButton );
 
     _magnifier->setAxisEnabled(xTop, false);
     _magnifier->setAxisEnabled(yRight, false);
 
-   // _panner = new QwtPlotPanner( this->canvas() );
-   // _panner->setMouseButton( Qt::MiddleButton );
-
     _tracker = new CurveTracker( this->canvas() );
+
+    connect(_magnifier, SIGNAL(rescaled()), _tracker, SLOT(onExternalRescale()) );
+
+    connect(_zoomer, SIGNAL(zoomed(QRectF)), _tracker, SLOT(onExternalZoom(QRectF)) );
 
     setMode( ZOOM_MODE );
 }
@@ -98,10 +99,10 @@ void PlotWidget::removeCurve(const QString &name)
     std::map<QString, QwtPlotCurve*>::iterator it = _curve_list.find(name);
     if( it != _curve_list.end() )
     {
-         QwtPlotCurve* curve = it->second;
-         curve->detach();
-         this->replot();
-         _curve_list.erase( it );
+        QwtPlotCurve* curve = it->second;
+        curve->detach();
+        this->replot();
+        _curve_list.erase( it );
     }
 }
 
@@ -238,7 +239,7 @@ void PlotWidget::setHorizontalAxisRange(float min, float max)
 {
     float EPS = 0.001*( max-min );
     if( fabs( min - _prev_bounding.left()) > EPS ||
-        fabs( max - _prev_bounding.right()) > EPS )
+            fabs( max - _prev_bounding.right()) > EPS )
     {
         this->setAxisScale( xBottom, min, max);
     }
@@ -251,7 +252,7 @@ void PlotWidget::setVerticalAxisRange(float min, float max)
 {
     float EPS = 0.001*( max-min );
     if( fabs( min - _prev_bounding.bottom()) > EPS ||
-        fabs( max - _prev_bounding.top()) > EPS )
+            fabs( max - _prev_bounding.top()) > EPS )
     {
         this->setAxisScale( yLeft, min, max);
     }
@@ -284,7 +285,7 @@ QRectF PlotWidget::maximumBoundingRect()
     if( fabs(top-bottom) < 1e-10  )
     {
         qDebug() << QRectF(left, top+0.01,  right - left, -0.02 ) ;
-         return QRectF(left, top+0.01,  right - left, -0.02 ) ;
+        return QRectF(left, top+0.01,  right - left, -0.02 ) ;
     }
     else{
         return QRectF(left, top,  right - left, bottom - top ) ;
@@ -293,7 +294,7 @@ QRectF PlotWidget::maximumBoundingRect()
 
 void PlotWidget::contextMenuEvent(QContextMenuEvent *event)
 {
-  //  detachAllCurves();
+    //  detachAllCurves();
     QMenu menu(this);
     menu.addAction(removeCurveAction);
 
@@ -311,18 +312,20 @@ void PlotWidget::replot()
 
     QRectF canvas_range = currentBoundingRect();
 
-    float x_min = canvas_range.left() ;
-    float x_max = canvas_range.right() ;
-
-    float EPS = 0.001*( x_max - x_min );
-    if( fabs( x_min - _prev_bounding.left()) > EPS ||
-        fabs( x_max - _prev_bounding.right()) > EPS )
+    if( _curve_list.empty() == false)
     {
-        emit horizontalScaleChanged(canvas_range);
+        float x_min = canvas_range.left() ;
+        float x_max = canvas_range.right() ;
+
+        float EPS = 0.001*( x_max - x_min );
+
+        if( fabs( x_min - _prev_bounding.left()) > EPS ||
+                fabs( x_max - _prev_bounding.right()) > EPS )
+        {
+            emit horizontalScaleChanged(canvas_range);
+        }
     }
     _prev_bounding = canvas_range;
-
-
 }
 
 void PlotWidget::launchRemoveCurveDialog()
@@ -364,7 +367,7 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
 void PlotWidget::mouseReleaseEvent(QMouseEvent *event )
 {
     if ( (event->modifiers() & Qt::ShiftModifier) == false &&
-        event->button() == Qt::LeftButton    )
+         event->button() == Qt::LeftButton    )
     {
         QApplication::restoreOverrideCursor();
         qDebug() << "ShiftModifier release";

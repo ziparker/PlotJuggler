@@ -48,10 +48,10 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
             if (other_plot )
             {
                 connect(other_plot->tracker(),SIGNAL( moved(const QPointF&)),
-                        plot->tracker(), SLOT(mirroredMove(const QPointF&)) );
+                        plot->tracker(), SLOT(manualMove(const QPointF&)) );
 
                 connect(plot->tracker(),SIGNAL(moved(const QPointF&)),
-                        other_plot->tracker(), SLOT(mirroredMove(const QPointF&)) );
+                        other_plot->tracker(), SLOT(manualMove(const QPointF&)) );
             }
         }
     }
@@ -313,14 +313,18 @@ void PlotMatrix::setActiveTracker(bool active)
 
 void PlotMatrix::maximizeHorizontalScale()
 {
+
     for ( int row = 0; row < numRows(); row++ )
     {
         for ( int col = 0; col < numColumns(); col++ )
         {
             PlotWidget *plot = static_cast<PlotWidget*>( plotAt( row, col ) );
 
-            QRectF bound = plot->maximumBoundingRect();
-            plot->setHorizontalAxisRange( bound.left(), bound.right() );
+            if( plot->isEmpty() == false)
+            {
+                QRectF bound = plot->maximumBoundingRect();
+                plot->setHorizontalAxisRange( bound.left(), bound.right() );
+            }
         }
     }
     replot();
@@ -334,8 +338,11 @@ void PlotMatrix::maximizeVerticalScale()
         {
             PlotWidget *plot = static_cast<PlotWidget*>( plotAt( row, col ) );
 
-            QRectF bound = plot->maximumBoundingRect();
-            plot->setVerticalAxisRange( bound.bottom(), bound.top() );
+            if( plot->isEmpty() == false)
+            {
+                QRectF bound = plot->maximumBoundingRect();
+                plot->setVerticalAxisRange( bound.bottom(), bound.top() );
+            }
         }
     }
     replot();

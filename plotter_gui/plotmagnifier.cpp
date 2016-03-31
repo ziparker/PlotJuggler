@@ -77,6 +77,8 @@ void PlotMagnifier::rescale( double factor )
 
     plt->setAutoReplot( autoReplot );
 
-    if ( doReplot )
+    if ( doReplot ){
         plt->replot();
+        emit rescaled();
+    }
 }
