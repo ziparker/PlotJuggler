@@ -15,7 +15,7 @@ public:
 
 
 protected:
-    void rescale( double factor ) Q_DECL_OVERRIDE;
+    void rescale( double factor ) ;
 
     float _lower_bounds[QwtPlot::axisCnt];
     float _upper_bounds[QwtPlot::axisCnt];

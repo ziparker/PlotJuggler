@@ -11,6 +11,7 @@
 #include <limits>
 #include "removecurvedialog.h"
 
+#include <QApplication>
 
 PlotWidget::PlotWidget(QWidget *parent):
     QwtPlot(parent),
@@ -43,7 +44,8 @@ PlotWidget::PlotWidget(QWidget *parent):
 
     _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
     _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
-    _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::NoModifier );
+    _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::ShiftModifier );
+
 
     _magnifier = new PlotMagnifier( this->canvas() );
 //    _magnifier->setMouseButton( Qt::MiddleButton );
@@ -356,5 +358,34 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
     {
         qDebug() << "RightButton";
     }
+    QwtPlot::mousePressEvent(event);
 }
+
+void PlotWidget::mouseReleaseEvent(QMouseEvent *event )
+{
+    if (event->modifiers() & Qt::ShiftModifier == false &&
+        event->button() == Qt::LeftButton    )
+    {
+        QApplication::restoreOverrideCursor();
+        qDebug() << "ShiftModifier release";
+    }
+    QwtPlot::mouseReleaseEvent(event);
+}
+
+void PlotWidget::keyPressEvent(QKeyEvent *event)
+{
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+        QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/zoom_in_32px.png")));
+    }
+    QwtPlot::keyPressEvent(event);
+}
+
+void PlotWidget::keyReleaseEvent(QKeyEvent *event)
+{
+    QApplication::restoreOverrideCursor();
+    QwtPlot::keyReleaseEvent(event);
+}
+
+
 

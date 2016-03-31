@@ -23,7 +23,7 @@ private slots:
  //   void swapWidgets(QString src, QString dst);
 
     void on_splitter_splitterMoved(int, int);
-    void resizeEvent(QResizeEvent *) Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent *) ;
 
     void on_lineEdit_textChanged(const QString &search_string);
 
@@ -86,12 +86,12 @@ private:
     QColor colorHint();
 
 protected:
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void contextMenuEvent(QContextMenuEvent *event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent *event) ;
+    void contextMenuEvent(QContextMenuEvent *event) ;
 
-    void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
-    void dragMoveEvent(QDragMoveEvent *event) Q_DECL_OVERRIDE;
-    void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
+    void dragEnterEvent(QDragEnterEvent *event) ;
+    void dragMoveEvent(QDragMoveEvent *event) ;
+    void dropEvent(QDropEvent *event) ;
 
 };
 
