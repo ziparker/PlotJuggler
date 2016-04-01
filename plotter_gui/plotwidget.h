@@ -15,6 +15,7 @@
 #include <QDomDocument>
 #include "plotdata.h"
 #include "customtracker.h"
+#include <qwt_plot_legenditem.h>
 
 
 
@@ -82,7 +83,8 @@ private:
     QwtPlotPanner* _panner;
     QRectF _prev_bounding;
     CurveTracker* _tracker;
+    QwtPlotLegendItem* _legend;
 
 };
 
-#endif // DragableWidget_H
+#endif

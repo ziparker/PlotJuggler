@@ -10,8 +10,8 @@
 #include <QMenu>
 #include <limits>
 #include "removecurvedialog.h"
-
 #include <QApplication>
+
 
 PlotWidget::PlotWidget(QWidget *parent):
     QwtPlot(parent),
@@ -60,6 +60,32 @@ PlotWidget::PlotWidget(QWidget *parent):
     connect(_zoomer, SIGNAL(zoomed(QRectF)), _tracker, SLOT(onExternalZoom(QRectF)) );
 
     setMode( ZOOM_MODE );
+
+    //-------------------------
+
+    _legend = new QwtPlotLegendItem();
+    _legend->attach( this );
+
+    _legend->setRenderHint( QwtPlotItem::RenderAntialiased );
+    QColor color( Qt::black );
+    _legend->setTextPen( color );
+    _legend->setBorderPen( color );
+    QColor c( Qt::white );
+    c.setAlpha( 200 );
+    _legend->setBackgroundBrush( c );
+
+    _legend->setMaxColumns( 1 );
+    _legend->setAlignment( Qt::Alignment( Qt::AlignTop | Qt::AlignRight ) );
+    _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
+
+    _legend->setBorderRadius( 6 );
+    _legend->setMargin( 4 );
+    _legend->setSpacing( 2 );
+    _legend->setItemMargin( 0 );
+
+    QFont font = _legend->font();
+    font.setPointSize( 9 );
+    _legend->setFont( font );
 }
 
 PlotWidget::~PlotWidget()
@@ -317,13 +343,11 @@ void PlotWidget::replot()
         float x_min = canvas_range.left() ;
         float x_max = canvas_range.right() ;
 
-        float EPS = 0.001*( x_max - x_min );
-
-        if( fabs( x_min - _prev_bounding.left()) > EPS ||
-                fabs( x_max - _prev_bounding.right()) > EPS )
-        {
-            emit horizontalScaleChanged(canvas_range);
-        }
+    float EPS = 0.001*( x_max - x_min );
+    if( fabs( x_min - _prev_bounding.left()) > EPS ||
+            fabs( x_max - _prev_bounding.right()) > EPS )
+    {
+        emit horizontalScaleChanged(canvas_range);
     }
     _prev_bounding = canvas_range;
 }
