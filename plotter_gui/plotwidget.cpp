@@ -61,6 +61,8 @@ PlotWidget::PlotWidget(QWidget *parent):
 
     setMode( ZOOM_MODE );
 
+    this->canvas()->setContextMenuPolicy( Qt::ContextMenuPolicy::CustomContextMenu );
+    connect( canvas, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(canvasContextMenuTriggered(QPoint)) );
     //-------------------------
 
     _legend = new QwtPlotLegendItem();
@@ -134,7 +136,7 @@ void PlotWidget::removeCurve(const QString &name)
 
 bool PlotWidget::isEmpty()
 {
-    return this->itemList().empty();
+    return _curve_list.empty();
 }
 
 void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -318,16 +320,6 @@ QRectF PlotWidget::maximumBoundingRect()
     }
 }
 
-void PlotWidget::contextMenuEvent(QContextMenuEvent *event)
-{
-    //  detachAllCurves();
-    QMenu menu(this);
-    menu.addAction(removeCurveAction);
-
-    removeCurveAction->setEnabled( ! _curve_list.empty() );
-
-    menu.exec( event->globalPos() );
-}
 
 void PlotWidget::replot()
 {
@@ -343,11 +335,12 @@ void PlotWidget::replot()
         float x_min = canvas_range.left() ;
         float x_max = canvas_range.right() ;
 
-    float EPS = 0.001*( x_max - x_min );
-    if( fabs( x_min - _prev_bounding.left()) > EPS ||
-            fabs( x_max - _prev_bounding.right()) > EPS )
-    {
-        emit horizontalScaleChanged(canvas_range);
+        float EPS = 0.001*( x_max - x_min );
+        if( fabs( x_min - _prev_bounding.left()) > EPS  ||
+                fabs( x_max - _prev_bounding.right()) > EPS )
+        {
+            emit horizontalScaleChanged(canvas_range);
+        }
     }
     _prev_bounding = canvas_range;
 }
@@ -363,6 +356,31 @@ void PlotWidget::launchRemoveCurveDialog()
     }
 
     dialog->exec();
+}
+
+void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
+{
+    bool legend_right_clicked = false;
+
+    foreach(const QwtPlotItem *item  , _legend->plotItems() )
+    {
+        foreach(QRect rect , _legend->legendGeometries( item ) )
+        {
+            if(rect.contains( pos ) )
+            {
+                qDebug() << "clicked " ;
+                legend_right_clicked = true;
+            }
+        }
+    }
+
+    if( ! legend_right_clicked)
+    {
+        QMenu menu(this);
+        menu.addAction(removeCurveAction);
+        removeCurveAction->setEnabled( ! _curve_list.empty() );
+        menu.exec( canvas()->mapToGlobal(pos) );
+    }
 }
 
 void PlotWidget::mousePressEvent(QMouseEvent *event)
@@ -381,10 +399,7 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
         drag->setMimeData(mimeData);
         drag->exec();
     }
-    else if(event->button() == Qt::RightButton)
-    {
-        qDebug() << "RightButton";
-    }
+
     QwtPlot::mousePressEvent(event);
 }
 

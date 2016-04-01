@@ -60,7 +60,6 @@ protected:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
 
-    virtual void contextMenuEvent(QContextMenuEvent *event) ;
 
 signals:
     void swapWidgets(QString s, QString to);
@@ -72,6 +71,7 @@ public Q_SLOTS:
 
 private slots:
     void launchRemoveCurveDialog();
+    void canvasContextMenuTriggered(const QPoint &pos);
 
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
