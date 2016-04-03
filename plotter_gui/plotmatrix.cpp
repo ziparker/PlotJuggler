@@ -24,6 +24,21 @@ PlotMatrix::PlotMatrix(QWidget *parent ):
 
 PickerTrackerMachine* sm = new PickerTrackerMachine();
 
+void PlotMatrix::rebuildWidgetList()
+{
+    _widget_list.clear();
+    _widget_list.reserve( numRows()*numColumns() );
+
+    for ( int row = 0; row < numRows(); row++ )
+    {
+        for ( int col = 0; col < numColumns(); col++ )
+        {
+            PlotWidget *plot = static_cast<PlotWidget*>( plotAt( row, col ) );
+            _widget_list.push_back( plot );
+        }
+    }
+}
+
 PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 {
     PlotWidget *plot = new PlotWidget( this );
@@ -59,13 +74,13 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
     plot->tracker()->setEnabled( false );
 
     layout->addWidget( plot, row, col );
+
     emit plotAdded(plot);
     return plot;
 }
 
 void PlotMatrix::addRow()
 {
-
     if( num_rows==0 && num_cols==0 )
     {
         addPlotWidget( 0, 0 );
@@ -79,6 +94,8 @@ void PlotMatrix::addRow()
         }
         num_rows++;
     }
+    rebuildWidgetList();
+
     updateLayout();
 }
 
@@ -97,6 +114,7 @@ void PlotMatrix::addColumn()
         }
         num_cols++;
     }
+    rebuildWidgetList();
     updateLayout();
 }
 
@@ -114,8 +132,6 @@ void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
 
 void PlotMatrix::removeColumn(int column_to_delete)
 {
-        qDebug() << " removeColumn " << column_to_delete+1 << " / " << numColumns();
-
     for(int col = column_to_delete; col< num_cols-1; col++)
     {
         for(int row=0; row< num_rows; row++)
@@ -128,15 +144,16 @@ void PlotMatrix::removeColumn(int column_to_delete)
         plotAt( row, num_cols -1)->close();
     }
     num_cols--;
+
+    rebuildWidgetList();
     updateLayout();
 }
 
 void PlotMatrix::removeRow(int row_to_delete)
 {
-    qDebug() << " removeRow " << row_to_delete+1 << " / " << numRows();
     for(int row = row_to_delete; row< num_rows-1; row++)
     {
-       for(int col = 0; col< num_cols; col++)
+        for(int col = 0; col< num_cols; col++)
         {
             this->swapPlots( row, col, row+1, col);
         }
@@ -146,6 +163,7 @@ void PlotMatrix::removeRow(int row_to_delete)
         plotAt( num_rows-1, col)->close();
     }
     num_rows--;
+    rebuildWidgetList();
     updateLayout();
 }
 
@@ -282,14 +300,10 @@ void PlotMatrix::updateLayout()
 
 void PlotMatrix::replot()
 {
-    for ( int row = 0; row < numRows(); row++ )
+    for ( unsigned i = 0; i<_widget_list.size(); i++ )
     {
-        for ( int col = 0; col < numColumns(); col++ )
-        {
-            QwtPlot *p = plotAt( row, col );
-            if ( p )
-                p->replot();
-        }
+        PlotWidget *plot = _widget_list.at(i);
+        plot->replot();
     }
 }
 
@@ -301,30 +315,27 @@ void PlotMatrix::setHorizontalLink(bool linked)
 
 void PlotMatrix::setActiveTracker(bool active)
 {
-    for(int i=0; i< layout->count(); i++)
+    for ( unsigned i = 0; i<_widget_list.size(); i++ )
     {
-        QLayoutItem * item = layout->itemAt(i);
-        if( item  ){
-            PlotWidget *plot = static_cast<PlotWidget *>( item->widget() );
-            plot->tracker()->setEnabled( active );
-        }
+        PlotWidget *plot = _widget_list.at(i);
+        plot->tracker()->setEnabled( active );
     }
+}
+
+const std::vector<PlotWidget *> &PlotMatrix::widgetList()
+{
+    return _widget_list;
 }
 
 void PlotMatrix::maximizeHorizontalScale()
 {
-
-    for ( int row = 0; row < numRows(); row++ )
+    for ( unsigned i = 0; i<_widget_list.size(); i++ )
     {
-        for ( int col = 0; col < numColumns(); col++ )
+        PlotWidget *plot = _widget_list.at(i);
+        if( plot->isEmpty() == false)
         {
-            PlotWidget *plot = static_cast<PlotWidget*>( plotAt( row, col ) );
-
-            if( plot->isEmpty() == false)
-            {
-                QRectF bound = plot->maximumBoundingRect();
-                plot->setHorizontalAxisRange( bound.left(), bound.right() );
-            }
+            QRectF bound = plot->maximumBoundingRect();
+            plot->setHorizontalAxisRange( bound.left(), bound.right() );
         }
     }
     replot();
@@ -332,17 +343,13 @@ void PlotMatrix::maximizeHorizontalScale()
 
 void PlotMatrix::maximizeVerticalScale()
 {
-    for ( int row = 0; row < numRows(); row++ )
+    for ( unsigned i = 0; i<_widget_list.size(); i++ )
     {
-        for ( int col = 0; col < numColumns(); col++ )
+        PlotWidget *plot = _widget_list.at(i);
+        if( plot->isEmpty() == false)
         {
-            PlotWidget *plot = static_cast<PlotWidget*>( plotAt( row, col ) );
-
-            if( plot->isEmpty() == false)
-            {
-                QRectF bound = plot->maximumBoundingRect();
-                plot->setVerticalAxisRange( bound.bottom(), bound.top() );
-            }
+            QRectF bound = plot->maximumBoundingRect();
+            plot->setVerticalAxisRange( bound.bottom(), bound.top() );
         }
     }
     replot();
@@ -376,18 +383,15 @@ void PlotMatrix::onHorizontalAxisScaleChanged(QRectF range)
 {
     if( ! _horizontal_link ) return;
 
-    for(int i=0; i< layout->count(); i++)
+    for ( unsigned i = 0; i<_widget_list.size(); i++ )
     {
-        QLayoutItem * item = layout->itemAt(i);
-        if( item  ){
-            PlotWidget *widget = static_cast<PlotWidget *>( item->widget() );
-            if (widget )
-            {
-                widget->setHorizontalAxisRange( range.left(), range.right() );
-            }
+        PlotWidget *plot = _widget_list.at(i);
+        if( plot->isEmpty() == false)
+        {
+            plot->setHorizontalAxisRange( range.left(), range.right() );
         }
     }
-    this->replot();
+    replot();
 }
 
 void PlotMatrix::alignAxes( int rowOrColumn, int axis )

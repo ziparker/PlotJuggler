@@ -4,16 +4,18 @@
 #include <QDialog>
 
 namespace Ui {
-class selectXAxisDialog;
+class SelectXAxisDialog;
 }
 
-class selectXAxisDialog : public QDialog
+class SelectXAxisDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit selectXAxisDialog(QStringList* fields, QWidget *parent = 0);
-    ~selectXAxisDialog();
+    explicit SelectXAxisDialog(QStringList* fields, QWidget *parent = 0);
+    ~SelectXAxisDialog();
+
+    int getSelectedRowNumber() const;
 
 private slots:
     void on_buttonBox_accepted();
@@ -23,8 +25,8 @@ private slots:
     void on_listFieldsWidget_doubleClicked(const QModelIndex &index);
 
 private:
-    Ui::selectXAxisDialog *ui;
-
+    Ui::SelectXAxisDialog *ui;
+    int _selected_row_number;
 };
 
 #endif // SELECTXAXISDIALOG_H

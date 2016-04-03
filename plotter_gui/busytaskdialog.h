@@ -8,7 +8,7 @@ class BusyTaskDialog : public QProgressDialog
 {
     Q_OBJECT
 public:
-    explicit BusyTaskDialog(QString text);
+    explicit BusyTaskDialog(QString text, QWidget *parent = 0);
 
 signals:
 

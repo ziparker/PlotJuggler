@@ -1,6 +1,5 @@
 #include "plotdata.h"
 #include <limits>
-#include <QMenu>
 #include <stdexcept>
 
 PlotData::PlotData()
@@ -71,7 +70,7 @@ QRectF PlotData::boundingRect() const
     return rect ;
 }
 
-QColor PlotData::colorHint()
+QColor PlotData::colorHint() const
 {
     return _color;
 }

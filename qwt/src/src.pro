@@ -14,7 +14,7 @@ include( $${QWT_ROOT}/qwtconfig.pri )
 include( $${QWT_ROOT}/qwtbuild.pri )
 include( $${QWT_ROOT}/qwtfunctions.pri )
 
-QWT_OUT_ROOT = $${OUT_PWD}/..
+QWT_OUT_ROOT = $${OUT_PWD}/../..
 
 TEMPLATE          = lib
 TARGET            = $$qwtLibraryTarget(qwt)

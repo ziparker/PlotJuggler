@@ -10,8 +10,10 @@ CONFIG   += ordered
 
 SUBDIRS = \
     qwt \
-    qwt/src \
-    plotter_gui
+    common \
+    plotter_gui \
+    plugins
+
 
 
 

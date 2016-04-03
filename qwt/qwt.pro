@@ -13,6 +13,8 @@ TEMPLATE = subdirs
 CONFIG   += ordered
 
 
+SUBDIRS = src
+
 qwtspec.files  = qwtconfig.pri qwtfunctions.pri qwt.prf
 qwtspec.path  = $${QWT_INSTALL_FEATURES}
 

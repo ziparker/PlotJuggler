@@ -549,9 +549,12 @@
     <string>Save layout</string>
    </property>
   </action>
-  <action name="actionLoadCSV">
+  <action name="actionLoadData">
    <property name="text">
     <string>Load .csv</string>
+   </property>
+   <property name="toolTip">
+    <string>Load data file</string>
    </property>
   </action>
  </widget>

@@ -26,7 +26,7 @@ public:
     virtual QPointF sample( size_t i ) const;
     virtual QRectF boundingRect() const;
 
-    QColor colorHint();
+    QColor colorHint() const;
     void setColorHint(QColor color);
 
     void setRangeX(double t_left, double t_right);

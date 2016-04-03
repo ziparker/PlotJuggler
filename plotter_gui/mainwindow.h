@@ -5,6 +5,7 @@
 
 #include "plotwidget.h"
 #include "plotmatrix.h"
+#include "../plugins/dataloader_base.h"
 
 namespace Ui {
 class MainWindow;
@@ -47,7 +48,7 @@ private slots:
 
     void onActionSaveLayout();
     void onActionLoadLayout();
-    void onActionLoadCSV();
+    void onActionLoadDataFile();
 
     void on_pushButton_toggled(bool checked);
 
@@ -75,7 +76,7 @@ private:
 
     void buildData();
 
-    std::map<QString, SharedVector> _mapped_raw_data;
+    //std::map<QString, SharedVector> _mapped_raw_data;
     std::map<QString, PlotData*>    _mapped_plot_data;
 
     void rearrangeGridLayout();
@@ -85,6 +86,10 @@ private:
 
     QColor colorHint();
 
+    void loadDataPlugins(QString subdir_name);
+
+    std::map<QString,DataLoader*> data_loader;
+
 protected:
     void mousePressEvent(QMouseEvent *event) ;
     void contextMenuEvent(QContextMenuEvent *event) ;
@@ -93,6 +98,8 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) ;
     void dropEvent(QDropEvent *event) ;
 
+
+    void deleteLoadedData();
 };
 
 #endif // MAINWINDOW_H

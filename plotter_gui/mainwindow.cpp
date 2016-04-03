@@ -1,3 +1,4 @@
+#include <functional>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QMouseEvent>
@@ -15,9 +16,11 @@
 #include <QPropertyAnimation>
 #include <QStringRef>
 #include <QThread>
-#include "selectxaxisdialog.h"
+#include "../plugins/dataloader_base.h"
+#include <QPluginLoader>
 #include "busydialog.h"
 #include "busytaskdialog.h"
+
 
 QStringList  words_list;
 int unique_number = 0;
@@ -44,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
     connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
-    connect(ui->actionLoadCSV,SIGNAL(triggered()), this, SLOT(onActionLoadCSV()) );
+    connect(ui->actionLoadData,SIGNAL(triggered()), this, SLOT(onActionLoadDataFile()) );
 
     for( int i=0; i< ui->gridLayoutSettings->count(); i++)
     {
@@ -60,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     createActions();
-
+    loadDataPlugins("plugins");
 
 }
 
@@ -94,7 +97,7 @@ void MainWindow::dropEvent(QDropEvent *)
 void MainWindow::createActions()
 {
     QMenu* menuFile = new QMenu("File", ui->mainToolBar);
-    menuFile->addAction(ui->actionLoadCSV);
+    menuFile->addAction(ui->actionLoadData);
     menuFile->addSeparator();
     menuFile->addAction(ui->actionLoad_layout);
     menuFile->addAction(ui->actionSave_layout);
@@ -123,9 +126,40 @@ QColor MainWindow::colorHint()
     return color;
 }
 
+void MainWindow::loadDataPlugins(QString subdir_name)
+{
+    QDir pluginsDir(qApp->applicationDirPath());
+
+#if defined(Q_OS_WIN)
+    if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
+        pluginsDir.cdUp();
+#endif
+
+    pluginsDir.cd( subdir_name );
+
+    foreach (QString fileName, pluginsDir.entryList(QDir::Files))
+    {
+        qDebug() << fileName;
+        QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
+        QObject *plugin = pluginLoader.instance();
+        if (plugin) {
+            DataLoader *loader = qobject_cast<DataLoader *>(plugin);
+            if (loader)
+            {
+                std::vector<const char*> extensions = loader->compatibleFileExtensions();
+
+                for(unsigned i = 0; i < extensions.size(); i++)
+                {
+                    data_loader.insert( std::make_pair( QString(extensions[i]), loader) );
+                }
+            }
+        }
+    }
+}
+
 void MainWindow::buildData()
 {
-    long SIZE = 100*1000;
+ /*   long SIZE = 100*1000;
 
     ui->listWidget->addItems( words_list );
     QSharedPointer<std::vector<double> > t_vector ( new std::vector<double>());
@@ -164,7 +198,7 @@ void MainWindow::buildData()
 
     ui->horizontalSlider->setRange(0, SIZE  );
     on_horizontalSlider_valueChanged(0);
-
+*/
 }
 
 
@@ -375,171 +409,105 @@ void MainWindow::onActionSaveLayout()
     }
 }
 
-void MainWindow::onActionLoadCSV()
+void MainWindow::deleteLoadedData()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  QDir::currentPath(), "*.csv");
+    std::map<QString, PlotData*>& data = _mapped_plot_data;
+
+    std::map<QString, PlotData*>::iterator it;
+    for(  it= data.begin(); it != data.end(); it++)
+    {
+        delete it->second;
+    }
+    data.erase( data.begin(), data.end() );
+    ui->listWidget->clear();
+
+    for (int index = 0; index < ui->tabWidget->count(); index++)
+    {
+        PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+        if (tab){
+             for (unsigned p = 0; p < tab->widgetList().size(); p++)
+             {
+                 PlotWidget* plot = tab->widgetList().at(p);
+                 plot->detachAllCurves();
+             }
+        }
+    }
+}
+
+void MainWindow::onActionLoadDataFile()
+{
+    if( data_loader.empty())
+    {
+        QMessageBox::warning(0, tr("Warning"),
+              tr("No plugin was loaded to process a data file\n") );
+        return;
+    }
+    if( _mapped_plot_data.empty() == false)
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(0, tr("Warning"),
+                             tr("Do you want to delete the previously loaded data?\n") );
+        if( reply == QMessageBox::Yes )
+        {
+            deleteLoadedData();
+        }
+    }
+
+    std::map<QString,DataLoader*>::iterator it;
+
+    QString file_extension_filter;
+
+    for (it = data_loader.begin(); it != data_loader.end(); it++)
+    {
+        QString extension = it->first.toLower();
+        file_extension_filter.append( QString(" *.") + extension );
+    }
+
+    QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  QDir::currentPath(), file_extension_filter);
+
     if (fileName.isEmpty())
         return;
 
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Layout"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return;
-    }
 
-    int linecount = 0;
+    DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
 
+    if( loader )
     {
-        QTextStream inA(&file);
+            QFile file(fileName);
 
-        BusyDialog* progressDialog = new BusyDialog(this);
+            if (!file.open(QFile::ReadOnly | QFile::Text)) {
+                QMessageBox::warning(this, tr("Layout"),
+                                     tr("Cannot read file %1:\n%2.")
+                                     .arg(fileName)
+                                     .arg(file.errorString()));
+                return;
+            }
 
-        QApplication::processEvents();
+        BusyTaskDialog* busy = new BusyTaskDialog("Loading file");
+        busy->show();
+        using namespace std::placeholders;
 
-        while (!inA.atEnd())
+        _mapped_plot_data = loader->readDataFromFile( &file,
+              [busy](int value) {
+            busy->setValue(value);
+            QApplication::processEvents();
+        },
+        [busy]() { return busy->wasCanceled(); } );
+
+        busy->close();
+
+        std::map<QString, PlotData*>::iterator it;
+        for ( it= _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
         {
-            inA.readLine();
-            linecount++;
-            if(linecount%1000 == 0) {
-
-                qDebug() << linecount;
-                QApplication::processEvents();
-            }
-        }
-        file.close();
-        progressDialog->close();
-    }
-
-
-    file.open(QFile::ReadOnly);
-    QTextStream inB(&file);
-
-    std::vector<SharedVector> ordered_vectors;
-    std::vector<QString> ordered_names;
-
-    bool first_line = true;
-
-    BusyTaskDialog* taskDialog = 0;
-
-    int time_index = -1;
-    int tot_lines = linecount -1;
-    linecount = 0;
-    double prev_time = -1;
-    double time_offset = 0;
-    bool use_time_bias = false;
-
-    while (!inB.atEnd())
-    {
-        QString line = inB.readLine();
-
-        QStringList string_items = line.split(',');
-
-        if( first_line )
-        {
-            for (int i=0; i < string_items.size(); i++ )
-            {
-                QStringRef field_name ( &string_items[i] );
-                if( field_name.startsWith( "field." ) )
-                {
-                    field_name = field_name.mid(6);
-                }
-
-                QString name = field_name.toString();
-
-                SharedVector data_vector( new std::vector<double>());
-                data_vector->reserve(tot_lines);
-
-                PlotData* plot = new PlotData;
-                plot->setColorHint( colorHint() );
-                plot->setName( name );
-
-                ordered_vectors.push_back( data_vector );
-                ordered_names.push_back( name );
-
-                _mapped_raw_data.insert( std::make_pair( name, data_vector ) );
-                _mapped_plot_data.insert( std::make_pair( name, plot ) );
-            }
-
-            QDialog* dialog = new selectXAxisDialog( &string_items, this);
-            dialog->exec();
-            time_index = dialog->result();
-
-            first_line = false;
-            if( ordered_names[time_index].compare("%time") == 0)
-            {
-                use_time_bias = true;
-            }
-        }
-        else{
-            if( !taskDialog )
-            {
-                taskDialog = new BusyTaskDialog("Loading file");
-                taskDialog->show();
-            }
-
-            if( use_time_bias && time_offset <= 0){
-                time_offset = string_items[ time_index ].toDouble();
-            }
-
-            double t = string_items[ time_index ].toDouble();
-
-            if( use_time_bias )
-            {
-                t -= time_offset;
-                t *= 0.000000001;
-            }
-
-            if( t <= prev_time)
-            {
-                QMessageBox::warning(this, tr("Error reading file"),
-                                     tr("Selected time in not monotonic") );
-                taskDialog->cancel();
-                break;
-            }
-            prev_time = t;
-
-            for (int i=0; i < string_items.size(); i++ )
-            {
-                double y = string_items[i].toDouble();
-                ordered_vectors[i]->push_back( y );
-            }
-            if(linecount++ %100 == 0)
-            {
-                taskDialog->setValue( (100* linecount) / tot_lines );
-                QApplication::processEvents();
-                if( taskDialog->wasCanceled() )
-                {
-                    break;
-                }
-            }
-        }
-    }
-    file.close();
-
-    if( taskDialog->wasCanceled() == false)
-    {
-        SharedVector time_vector = ordered_vectors[time_index];
-
-        for( unsigned i=0; i < ordered_vectors.size(); i++)
-        {
-            QString name = ordered_names[i];
-            _mapped_plot_data[ name ]->addData( time_vector, ordered_vectors[i]);
-
+            QString name   = it->first;
+            PlotData* plot = it->second;
+            plot->setColorHint( colorHint() );
             ui->listWidget->addItem( new QListWidgetItem( name ) );
         }
     }
     else{
-        while( _mapped_plot_data.size() > 0)
-        {
-            delete _mapped_plot_data.begin()->second;
-            _mapped_plot_data.erase( _mapped_plot_data.begin() );
-        }
+        qDebug() << "no loader found";
     }
-
-    taskDialog->close();
 
     qDebug() << "DONE";
 

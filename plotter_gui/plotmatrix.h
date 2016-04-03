@@ -41,6 +41,8 @@ public:
     void setHorizontalLink(bool linked);
     void setActiveTracker(bool active);
 
+    const std::vector<PlotWidget*>& widgetList();
+
 public slots:
     void maximizeHorizontalScale();
     void maximizeVerticalScale();
@@ -60,9 +62,12 @@ private:
     int num_cols;
     int widget_uid;
     bool _horizontal_link;
+    std::vector<PlotWidget*> _widget_list;
 
 signals:
     void plotAdded(PlotWidget*);
+protected:
+    void rebuildWidgetList();
 };
 
 #endif
