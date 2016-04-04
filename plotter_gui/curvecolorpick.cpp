@@ -21,12 +21,12 @@ CurveColorPick::CurveColorPick(std::map<QString, QColor>* mapped_colors, QWidget
     }
 
     color_wheel = new  color_widgets::ColorWheel(this);
-    ui->verticalLayout->insertWidget(0, color_wheel );
+    ui->verticalLayoutRight->insertWidget(0, color_wheel );
     color_wheel->setMinimumWidth(150);
     color_wheel->setMinimumHeight(150);
 
     color_preview = new  color_widgets::ColorPreview(this);
-    ui->verticalLayout->insertWidget(1, color_preview );
+    ui->verticalLayoutRight->insertWidget(1, color_preview );
     color_preview->setMinimumWidth(150);
     color_preview->setMinimumHeight(100);
 
