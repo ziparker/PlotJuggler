@@ -28,7 +28,7 @@ win32 {
     # Enable debug_and_release + build_all if you want to build both.
 
 #    CONFIG           += debug_and_release
-    CONFIG           += build_all
+#    CONFIG           += build_all
 }
 else {
 
@@ -42,15 +42,15 @@ else {
 
 linux-g++ | linux-g++-64 {
     #CONFIG           += separate_debug_info
-    #QMAKE_CXXFLAGS   *= -Wfloat-equal 
-    #QMAKE_CXXFLAGS   *= -Wshadow 
+    QMAKE_CXXFLAGS   *= -Wfloat-equal
+    QMAKE_CXXFLAGS   *= -Wshadow
     #QMAKE_CXXFLAGS   *= -Wpointer-arith 
     #QMAKE_CXXFLAGS   *= -Wconversion 
     #QMAKE_CXXFLAGS   *= -Wsign-compare 
     #QMAKE_CXXFLAGS   *= -Wsign-conversion 
     #QMAKE_CXXFLAGS   *= -Wlogical-op
     #QMAKE_CXXFLAGS   *= -Werror=format-security
-    #QMAKE_CXXFLAGS   *= -std=c++11
+    QMAKE_CXXFLAGS   *= -std=c++11
 
     # when using the gold linker ( Qt < 4.8 ) - might be 
     # necessary on non linux systems too
