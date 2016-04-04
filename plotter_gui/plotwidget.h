@@ -31,6 +31,8 @@ public:
     void removeCurve(const QString& name);
     bool isEmpty();
 
+    const std::map<QString, QwtPlotCurve*>& curveList();
+
     void detachAllCurves();
     QDomElement getDomElement(QDomDocument &doc);
 
@@ -72,11 +74,13 @@ public Q_SLOTS:
 private slots:
     void launchRemoveCurveDialog();
     void canvasContextMenuTriggered(const QPoint &pos);
+    void launchChangeColorDialog();
 
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
 
     QAction *removeCurveAction;
+    QAction *changeColorsAction;
     PlotWidgetMode _mode;
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;

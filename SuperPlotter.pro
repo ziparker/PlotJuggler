@@ -11,6 +11,7 @@ CONFIG   += ordered
 SUBDIRS = \
     qwt \
     common \
+    color_widgets \
     plotter_gui \
     plugins
 

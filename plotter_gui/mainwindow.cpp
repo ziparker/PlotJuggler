@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadDataPlugins("plugins");
 
+    buildData();
 }
 
 MainWindow::~MainWindow()
@@ -159,7 +160,7 @@ void MainWindow::loadDataPlugins(QString subdir_name)
 
 void MainWindow::buildData()
 {
- /*   long SIZE = 100*1000;
+    long SIZE = 100*1000;
 
     ui->listWidget->addItems( words_list );
     QSharedPointer<std::vector<double> > t_vector ( new std::vector<double>());
@@ -176,8 +177,6 @@ void MainWindow::buildData()
     {
         QSharedPointer<std::vector<double> > y_vector( new std::vector<double>() );
         y_vector->reserve(SIZE);
-
-        _mapped_raw_data.insert( std::make_pair( name, y_vector));
 
         float A =  qrand()/(float)RAND_MAX * 6 - 3;
         float B =  qrand()/(float)RAND_MAX *3;
@@ -198,7 +197,7 @@ void MainWindow::buildData()
 
     ui->horizontalSlider->setRange(0, SIZE  );
     on_horizontalSlider_valueChanged(0);
-*/
+
 }
 
 

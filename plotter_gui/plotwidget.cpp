@@ -10,6 +10,7 @@
 #include <QMenu>
 #include <limits>
 #include "removecurvedialog.h"
+#include "curvecolorpick.h"
 #include <QApplication>
 
 
@@ -39,6 +40,10 @@ PlotWidget::PlotWidget(QWidget *parent):
     removeCurveAction = new QAction(tr("&Remove curves"), this);
     removeCurveAction->setStatusTip(tr("Remove one or more curves from this plot"));
     connect(removeCurveAction, SIGNAL(triggered()), this, SLOT(launchRemoveCurveDialog()));
+
+    changeColorsAction = new QAction(tr("&Change colors"), this);
+    changeColorsAction->setStatusTip(tr("Change the color of the curves"));
+    connect(changeColorsAction, SIGNAL(triggered()), this, SLOT(launchChangeColorDialog()));
 
     _zoomer = new QwtPlotZoomer( this->canvas() );
 
@@ -137,6 +142,11 @@ void PlotWidget::removeCurve(const QString &name)
 bool PlotWidget::isEmpty()
 {
     return _curve_list.empty();
+}
+
+const std::map<QString, QwtPlotCurve *> &PlotWidget::curveList()
+{
+    return _curve_list;
 }
 
 void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -358,6 +368,29 @@ void PlotWidget::launchRemoveCurveDialog()
     dialog->exec();
 }
 
+void PlotWidget::launchChangeColorDialog()
+{
+    std::map<QString,QColor> color_by_name;
+
+    std::map<QString, QwtPlotCurve*>::iterator it;
+    for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        const QString& curve_name = it->first;
+        QwtPlotCurve* curve = it->second;
+        color_by_name.insert(std::make_pair( curve_name, curve->pen().color() ));
+    }
+
+    CurveColorPick* dialog = new CurveColorPick(&color_by_name, this);
+    dialog->exec();
+
+    for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        const QString& curve_name = it->first;
+        QwtPlotCurve* curve = it->second;
+        curve->setPen( color_by_name[curve_name], 1.0 );
+    }
+}
+
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 {
     bool legend_right_clicked = false;
@@ -378,7 +411,11 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     {
         QMenu menu(this);
         menu.addAction(removeCurveAction);
+        menu.addAction(changeColorsAction);
+
         removeCurveAction->setEnabled( ! _curve_list.empty() );
+        changeColorsAction->setEnabled(  ! _curve_list.empty() );
+
         menu.exec( canvas()->mapToGlobal(pos) );
     }
 }
