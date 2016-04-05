@@ -102,8 +102,20 @@ void PlotData::setRangeX(double t_center, double t_range)
     x_max = t_max;
 }
 
-int PlotData::getIndexAtPositionX(double ) const
+int PlotData::getIndexFromX(double x ) const
 {
-    return -1;
+    std::vector<double>::const_iterator lower;
+    lower = std::lower_bound(_x_points->begin(), _x_points->end(), x );
+    return (lower - _x_points->begin());
+}
+
+double PlotData::getY(double x) const
+{
+    int index = getIndexFromX(x);
+    if( index >0 && index < size())
+    {
+        return _y_points->at(index);
+    }
+    return 0;
 }
 

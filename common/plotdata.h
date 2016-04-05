@@ -31,7 +31,10 @@ public:
 
     void setRangeX(double t_left, double t_right);
 
-    int getIndexAtPositionX(double x) const;
+    int getIndexFromX(double x) const;
+
+    double getY(double x ) const;
+
 private:
 
     SharedVector _x_points;
