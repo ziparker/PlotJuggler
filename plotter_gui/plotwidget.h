@@ -69,12 +69,14 @@ private slots:
     void launchRemoveCurveDialog();
     void canvasContextMenuTriggered(const QPoint &pos);
     void launchChangeColorDialog();
+    void on_showPoints(bool checked);
 
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
 
     QAction *removeCurveAction;
     QAction *changeColorsAction;
+    QAction *showPointsAction;
 
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;

@@ -418,6 +418,24 @@ void QwtPlotCurve::drawCurve( QPainter *painter, int style,
         case Dots:
             drawDots( painter, xMap, yMap, canvasRect, from, to );
             break;
+
+        case LinesAndDots:
+           { if ( testCurveAttribute( Fitted ) )
+            {
+                from = 0;
+                to = dataSize() - 1;
+            }
+            drawLines( painter, xMap, yMap, canvasRect, from, to );
+
+            QPen prev_pen = painter->pen();
+            QPen new_pen  = prev_pen;
+            new_pen.setWidth( prev_pen.width() * 3);
+
+            painter->setPen( new_pen );
+            drawDots( painter, xMap, yMap, canvasRect, from, to );
+            painter->setPen( prev_pen );
+        }
+            break;
         case NoCurve:
         default:
             break;

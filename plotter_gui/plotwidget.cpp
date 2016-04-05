@@ -45,6 +45,11 @@ PlotWidget::PlotWidget(QWidget *parent):
     changeColorsAction->setStatusTip(tr("Change the color of the curves"));
     connect(changeColorsAction, SIGNAL(triggered()), this, SLOT(launchChangeColorDialog()));
 
+    showPointsAction = new QAction(tr("&Show lines and points"), this);
+    showPointsAction->setCheckable( true );
+    showPointsAction->setChecked( false );
+    connect(showPointsAction, SIGNAL(triggered(bool)), this, SLOT(on_showPoints(bool)));
+
     _zoomer = new QwtPlotZoomer( this->canvas() );
 
     _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
@@ -61,7 +66,6 @@ PlotWidget::PlotWidget(QWidget *parent):
     _tracker = new CurveTracker( this->canvas() );
 
     connect(_magnifier, SIGNAL(rescaled()), _tracker, SLOT(onExternalRescale()) );
-
     connect(_zoomer, SIGNAL(zoomed(QRectF)), _tracker, SLOT(onExternalZoom(QRectF)) );
 
     this->canvas()->setContextMenuPolicy( Qt::ContextMenuPolicy::CustomContextMenu );
@@ -110,6 +114,8 @@ void PlotWidget::addCurve(const QString &name, PlotData *data)
 
     curve->setData( data  );
     curve->attach( this );
+
+    curve->setStyle( QwtPlotCurve::Lines);
 
     curve->setPen( data->colorHint(), 1.0 );
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
@@ -377,6 +383,22 @@ void PlotWidget::launchChangeColorDialog()
     }
 }
 
+void PlotWidget::on_showPoints(bool checked)
+{
+    std::map<QString, QwtPlotCurve*>::iterator it;
+    for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        QwtPlotCurve* curve = it->second;
+        if( checked )
+        {
+            curve->setStyle( QwtPlotCurve::LinesAndDots);
+        }
+        else{
+            curve->setStyle( QwtPlotCurve::Lines);
+        }
+    }
+}
+
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 {
     bool legend_right_clicked = false;
@@ -398,6 +420,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
         QMenu menu(this);
         menu.addAction(removeCurveAction);
         menu.addAction(changeColorsAction);
+        menu.addAction(showPointsAction);
 
         removeCurveAction->setEnabled( ! _curve_list.empty() );
         changeColorsAction->setEnabled(  ! _curve_list.empty() );
