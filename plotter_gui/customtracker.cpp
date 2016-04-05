@@ -107,7 +107,7 @@ void CurveTracker::onExternalZoom(const QRectF &)
     QwtPlotPicker::move( transform (_prev_trackerpoint) );
 }
 
-QwtText CurveTracker::trackerText( const QPoint &pos ) const
+QwtText CurveTracker::trackerText( const QPoint & ) const
 {
     return trackerTextF(_prev_trackerpoint);
 }

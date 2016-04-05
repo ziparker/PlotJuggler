@@ -64,8 +64,6 @@ PlotWidget::PlotWidget(QWidget *parent):
 
     connect(_zoomer, SIGNAL(zoomed(QRectF)), _tracker, SLOT(onExternalZoom(QRectF)) );
 
-    setMode( ZOOM_MODE );
-
     this->canvas()->setContextMenuPolicy( Qt::ContextMenuPolicy::CustomContextMenu );
     connect( canvas, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(canvasContextMenuTriggered(QPoint)) );
     //-------------------------
@@ -165,7 +163,7 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
         {
             event->acceptProposedAction();
         }
-        if( format.contains( "plot_area") && _mode == DRAG_N_DROP_MODE )
+        if( format.contains( "plot_area")  )
         {
             QString source_name;
             stream >> source_name;
@@ -208,7 +206,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
                 emit curveNameDropped( itemName , this );
             }
         }
-        if( format.contains( "plot_area") && _mode == DRAG_N_DROP_MODE )
+        if( format.contains( "plot_area") )
         {
             QString source_name;
             stream >> source_name;
@@ -243,18 +241,6 @@ QDomElement PlotWidget::getDomElement( QDomDocument &doc)
     return element;
 }
 
-void PlotWidget::setMode(PlotWidget::PlotWidgetMode mode)
-{
-    _mode = mode;
-
-
-    if( _mode == ZOOM_MODE ) {
-
-    }
-    else if( _mode == DRAG_N_DROP_MODE){
-
-    }
-}
 
 QRectF PlotWidget::currentBoundingRect()
 {
@@ -422,7 +408,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 
 void PlotWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && _mode == DRAG_N_DROP_MODE)
+    if (event->button() == Qt::LeftButton && (event->modifiers() & Qt::ControlModifier) )
     {
         QDrag *drag = new QDrag(this);
         QMimeData *mimeData = new QMimeData;

@@ -36,12 +36,6 @@ public:
     void detachAllCurves();
     QDomElement getDomElement(QDomDocument &doc);
 
-    typedef enum{
-        ZOOM_MODE,
-        DRAG_N_DROP_MODE
-    }PlotWidgetMode;
-
-    void setMode(PlotWidgetMode mode);
 
     void setHorizontalAxisRange(float min, float max);
     void setVerticalAxisRange(float min, float max);
@@ -81,7 +75,7 @@ private:
 
     QAction *removeCurveAction;
     QAction *changeColorsAction;
-    PlotWidgetMode _mode;
+
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
     QwtPlotPanner* _panner;

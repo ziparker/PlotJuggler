@@ -36,7 +36,7 @@ HEADERS += \
     $$PWD/include/colorwidgets_global.hpp \
     $$PWD/include/color_palette.hpp \
     $$PWD/include/swatch.hpp \
-    $$PWD/src/color_utils.hpp \
+    $$PWD/include/color_utils.hpp \
     $$PWD/include/color_names.hpp
 
 FORMS += \

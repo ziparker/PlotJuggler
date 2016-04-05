@@ -144,7 +144,9 @@ void PlotMatrix::removeColumn(int column_to_delete)
         plotAt( row, num_cols -1)->close();
     }
     num_cols--;
-
+    if( num_cols == 0){
+        num_rows = 0;
+    }
     rebuildWidgetList();
     updateLayout();
 }
@@ -163,6 +165,9 @@ void PlotMatrix::removeRow(int row_to_delete)
         plotAt( num_rows-1, col)->close();
     }
     num_rows--;
+    if( num_rows == 0){
+        num_cols = 0;
+    }
     rebuildWidgetList();
     updateLayout();
 }

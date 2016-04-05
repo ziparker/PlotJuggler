@@ -313,6 +313,7 @@ void MainWindow::on_pushremoveEmpty_pressed()
     for( int row = 0; row< grid->numRows(); row++)
     {
         while( grid->isRowEmpty( row ) && row < grid->numRows() ){
+            qDebug() << "remove row";
             grid->removeRow( row );
         }
     }
@@ -322,6 +323,11 @@ void MainWindow::on_pushremoveEmpty_pressed()
         while( grid->isColumnEmpty( col ) && col < grid->numColumns() ){
             grid->removeColumn( col );
         }
+    }
+
+    if( grid->numColumns() == 0 &&  grid->numRows() == 0 )
+    {
+        on_pushAddColumn_pressed();
     }
 }
 
@@ -369,6 +375,8 @@ void MainWindow::on_addTabButton_pressed()
 
     ui->tabWidget->setCurrentWidget( grid );
     grid->setHorizontalLink( _horizontal_link );
+
+    on_pushAddColumn_pressed();
 }
 
 void MainWindow::onActionSaveLayout()
@@ -564,9 +572,10 @@ void MainWindow::onActionLoadLayout()
         int rows = plotmatrix.attribute("rows").toInt();
         int columns = plotmatrix.attribute("columns").toInt();
 
-        // add the tab
+        // add the tab. It includes a single plot
         this->on_addTabButton_pressed();
-        for(int c = 0; c<columns; ++c)
+
+        for(int c = 1; c<columns; ++c)
         {
             currentPlotGrid()->addColumn();
         }

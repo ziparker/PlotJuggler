@@ -56,11 +56,11 @@ else:unix:!macx: PRE_TARGETDEPS += $$OUT_PWD/../lib/libqwt.a
 INCLUDEPATH += $$PWD/../common
 DEPENDPATH += $$PWD/../common
 
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/libcommon.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/libcommon.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/common.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../common/lib/common.lib
-else:unix:!macx: PRE_TARGETDEPS += $$OUT_PWD/../common/libcommon.a
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lib/libcommon.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lib/libcommond.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lib/common.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lib/commond.lib
+else:unix:!macx: PRE_TARGETDEPS += $$OUT_PWD/../libcommon.a
 
 
 INCLUDEPATH += $$PWD/../color_widgets/include
