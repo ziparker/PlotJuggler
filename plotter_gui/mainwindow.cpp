@@ -20,7 +20,7 @@
 #include <QPluginLoader>
 #include "busydialog.h"
 #include "busytaskdialog.h"
-
+#include <QSettings>
 
 QStringList  words_list;
 int unique_number = 0;
@@ -64,6 +64,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     createActions();
     loadDataPlugins("plugins");
+
+    _settings_file = QApplication::applicationDirPath().left(1) + ":/superplot_settings.ini";
 
     buildData();
 }
@@ -470,11 +472,22 @@ void MainWindow::onActionLoadDataFile()
         file_extension_filter.append( QString(" *.") + extension );
     }
 
-    QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  QDir::currentPath(), file_extension_filter);
+    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+    QString directory_path = QDir::currentPath();
+
+    const QString SETTINGS_KEY( "load_directory");
+
+    if( settings.contains(SETTINGS_KEY) ) {
+        directory_path = settings.value(SETTINGS_KEY).toString();
+    }
+
+    QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  directory_path, file_extension_filter);
 
     if (fileName.isEmpty())
         return;
 
+    directory_path = QFileInfo(fileName).absolutePath();
+    settings.setValue(SETTINGS_KEY, directory_path);
 
     DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
 

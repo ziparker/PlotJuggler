@@ -28,7 +28,6 @@ public:
 
 public slots:
     void manualMove(const QPointF & );
-    void onExternalRescale();
     void onExternalZoom( const QRectF &);
 
 protected:

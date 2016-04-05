@@ -100,6 +100,8 @@ protected:
 
 
     void deleteLoadedData();
+
+    QString _settings_file;
 };
 
 #endif // MAINWINDOW_H

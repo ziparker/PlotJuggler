@@ -50,23 +50,20 @@ PlotWidget::PlotWidget(QWidget *parent):
     showPointsAction->setChecked( false );
     connect(showPointsAction, SIGNAL(triggered(bool)), this, SLOT(on_showPoints(bool)));
 
-    _zoomer = new QwtPlotZoomer( this->canvas() );
+     _zoomer = new QwtPlotZoomer( this->canvas() );
 
     _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
     _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
-    _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::ShiftModifier );
-
+    _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::NoModifier );
 
     _magnifier = new PlotMagnifier( this->canvas() );
-    //    _magnifier->setMouseButton( Qt::MiddleButton );
-
     _magnifier->setAxisEnabled(xTop, false);
     _magnifier->setAxisEnabled(yRight, false);
 
-    _tracker = new CurveTracker( this->canvas() );
+    _panner = new QwtPlotPanner( this->canvas());
+    _panner->setMouseButton(  Qt::MiddleButton, Qt::NoModifier);
 
-    connect(_magnifier, SIGNAL(rescaled()), _tracker, SLOT(onExternalRescale()) );
-    connect(_zoomer, SIGNAL(zoomed(QRectF)), _tracker, SLOT(onExternalZoom(QRectF)) );
+    _tracker = new CurveTracker( this->canvas() );
 
     this->canvas()->setContextMenuPolicy( Qt::ContextMenuPolicy::CustomContextMenu );
     connect( canvas, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(canvasContextMenuTriggered(QPoint)) );
@@ -125,8 +122,8 @@ void PlotWidget::addCurve(const QString &name, PlotData *data)
     _magnifier->setAxisLimits( yLeft, bounding.bottom(), bounding.top());
     _magnifier->setAxisLimits( xBottom, bounding.left(), bounding.right());
 
-    QRectF bound = this->maximumBoundingRect();
-    this->setVerticalAxisRange( bound.bottom(), bound.top() );
+    this->setVerticalAxisRange( bounding.bottom(), bounding.top() );
+    this->setHorizontalAxisRange( bounding.left(), bounding.right() );
 
     this->replot();
 }
@@ -332,6 +329,9 @@ void PlotWidget::replot()
 
     QRectF canvas_range = currentBoundingRect();
 
+    if(_tracker )
+        _tracker->onExternalZoom( canvas_range );
+
     if( _curve_list.empty() == false)
     {
         float x_min = canvas_range.left() ;
@@ -431,19 +431,31 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 
 void PlotWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && (event->modifiers() & Qt::ControlModifier) )
+    if( event->button() == Qt::LeftButton)
     {
-        QDrag *drag = new QDrag(this);
-        QMimeData *mimeData = new QMimeData;
+        if (event->modifiers() & Qt::ControlModifier )
+        {
+            QDrag *drag = new QDrag(this);
+            QMimeData *mimeData = new QMimeData;
 
-        QByteArray data;
-        QDataStream dataStream(&data, QIODevice::WriteOnly);
+            QByteArray data;
+            QDataStream dataStream(&data, QIODevice::WriteOnly);
 
-        dataStream << this->windowTitle();
+            dataStream << this->windowTitle();
 
-        mimeData->setData("plot_area", data );
-        drag->setMimeData(mimeData);
-        drag->exec();
+            mimeData->setData("plot_area", data );
+            drag->setMimeData(mimeData);
+            drag->exec();
+        }
+        else if( event->modifiers() == Qt::NoModifier)
+        {
+            QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/zoom_in_32px.png")));
+        }
+    }
+
+    if( event->button() == Qt::MiddleButton && event->modifiers() == Qt::NoModifier)
+    {
+        QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/move.png")));
     }
 
     QwtPlot::mousePressEvent(event);
@@ -451,28 +463,18 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
 
 void PlotWidget::mouseReleaseEvent(QMouseEvent *event )
 {
-    if ( (event->modifiers() & Qt::ShiftModifier) == false &&
-         event->button() == Qt::LeftButton    )
-    {
-        QApplication::restoreOverrideCursor();
-        qDebug() << "ShiftModifier release";
-    }
+    QApplication::restoreOverrideCursor();
     QwtPlot::mouseReleaseEvent(event);
 }
 
 void PlotWidget::keyPressEvent(QKeyEvent *event)
 {
-    if (event->modifiers() & Qt::ShiftModifier)
-    {
-        QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/zoom_in_32px.png")));
-    }
-    QwtPlot::keyPressEvent(event);
+
 }
 
 void PlotWidget::keyReleaseEvent(QKeyEvent *event)
 {
-    QApplication::restoreOverrideCursor();
-    QwtPlot::keyReleaseEvent(event);
+
 }
 
 

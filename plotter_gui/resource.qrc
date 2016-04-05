@@ -25,5 +25,6 @@
         <file>resources/undo_32px.png</file>
         <file>resources/zoom_in_32px.png</file>
         <file>resources/zoom_out_32px.png</file>
+		<file>resources/move.png</file>
     </qresource>
 </RCC>

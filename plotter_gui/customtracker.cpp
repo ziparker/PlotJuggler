@@ -29,14 +29,15 @@ QList<QwtPickerMachine::Command> PickerTrackerMachine::transition(
         const QwtEventPattern & eventPattern, const QEvent *event )
 {
     QList<QwtPickerMachine::Command> cmdList;
+    const QMouseEvent *mouse_event =  static_cast<const QMouseEvent *>( event );
+    bool shift = mouse_event->modifiers() & Qt::ShiftModifier;
 
     switch ( event->type() )
     {
         case  QEvent::MouseButtonPress:
         {
-            if( eventPattern.mouseMatch( QwtEventPattern::MouseSelect1, static_cast<const QMouseEvent *>( event ) ) )
+            if( mouse_event->button() == Qt::LeftButton && shift )
             {
-                qDebug() << "keypressed = true";
                 keypressed = true;
                 cmdList += Move;
             }
@@ -45,15 +46,13 @@ QList<QwtPickerMachine::Command> PickerTrackerMachine::transition(
 
         case  QEvent::MouseButtonRelease:
         {
-            qDebug() << "keypressed = false";
             keypressed = false;
-            cmdList += Move;
+            if( keypressed) cmdList += Move;
             break;
         }
 
         case  QEvent::MouseMove:
         {
-            qDebug() << "move " << keypressed;
             if( keypressed ){
                 cmdList += Move;
             }
@@ -95,11 +94,6 @@ void CurveTracker::manualMove(const QPointF& plot_pos)
     // the difference with move is that it will not emit a signal
     _prev_trackerpoint = plot_pos;
     QwtPicker::move( transform (plot_pos) );
-}
-
-void CurveTracker::onExternalRescale()
-{
-    QwtPlotPicker::move( transform (_prev_trackerpoint) );
 }
 
 void CurveTracker::onExternalZoom(const QRectF &)
@@ -150,15 +144,12 @@ QwtText CurveTracker::trackerTextF( QPointF pos ) const
 
 void CurveTracker::move(const QPoint &pos)
 {
-    qDebug() << "SM move " << pos;
     _prev_trackerpoint = invTransform(pos);
     QwtPlotPicker::move( pos );
 }
 
 QString CurveTracker::curveInfoAt( const QwtPlotCurve *curve, QPointF pos ) const
 {
-    // qDebug() << "curveInfoAt " << pos;
-
     const QLineF line = curveLineAt( curve, pos.x() );
     if ( line.isNull() )
         return QString::null;
