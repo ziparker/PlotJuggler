@@ -7,6 +7,8 @@
 class PlotMagnifier : public QwtPlotMagnifier
 {
     Q_OBJECT
+
+
 public:
     explicit PlotMagnifier( QWidget *canvas);
     virtual ~PlotMagnifier();
@@ -15,13 +17,20 @@ public:
 
 
 protected:
-    void rescale( double factor ) ;
+    virtual void rescale( double factor ) ;
+   // virtual void widgetMouseMoveEvent( QMouseEvent *event );
+    virtual void widgetWheelEvent( QWheelEvent *event );
 
     float _lower_bounds[QwtPlot::axisCnt];
     float _upper_bounds[QwtPlot::axisCnt];
 
+    QPointF _mouse_position;
+
 signals:
     void rescaled();
+
+private:
+    QPointF invTransform(QPoint pos);
 
 };
 
