@@ -24,17 +24,18 @@ class PlotWidget : public QwtPlot
     Q_OBJECT
 
 public:
-    PlotWidget( QWidget *parent=0);
+    PlotWidget(PlotDataMap* datamap, QWidget *parent=0);
     virtual ~PlotWidget();
 
-    void addCurve(const QString&  name, PlotData* data);
+    void addCurve(const QString&  name, bool do_replot = true);
     void removeCurve(const QString& name);
     bool isEmpty();
 
     const std::map<QString, QwtPlotCurve*>& curveList();
 
     void detachAllCurves();
-    QDomElement getDomElement(QDomDocument &doc);
+    QDomElement xmlSaveState(QDomDocument &doc);
+    void xmlLoadState(QDomElement &element);
 
     QRectF maximumBoundingRect();
     QRectF currentBoundingRect();
@@ -43,7 +44,7 @@ public:
 
     void setScale( QRectF rect, bool emit_signal = true );
 
-    void undoScaleChange();
+   // void undoScaleChange();
 
 
 protected:
@@ -60,7 +61,6 @@ protected:
 
 signals:
     void swapWidgets(QString s, QString to);
-    void curveNameDropped(QString curve_name, PlotWidget* destination);
     void rectChanged(PlotWidget* self, QRectF rect );
 
 public Q_SLOTS:
@@ -93,7 +93,7 @@ private:
 
     void setAxisScale( int axisId, double min, double max, double step = 0 );
 
-    std::deque<QRectF> _undo_view;
+    PlotDataMap* _mapped_data;
 
 };
 

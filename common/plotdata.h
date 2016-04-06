@@ -51,4 +51,7 @@ private:
     QString _name;
 };
 
+typedef  std::map<QString, PlotData*> PlotDataMap;
+
+
 #endif // PLOTDATA_H

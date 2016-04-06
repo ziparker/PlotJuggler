@@ -338,7 +338,7 @@ void MainWindow::on_pushremoveEmpty_pressed()
 
 void MainWindow::on_horizontalSlider_valueChanged(int )
 {
-    std::map<QString, PlotData*>::iterator it;
+    PlotDataMap::iterator it;
     for( it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
     {
         //PlotData* plot = (it->second);
@@ -358,8 +358,7 @@ void MainWindow::on_horizontalSlider_valueChanged(int )
 
 void MainWindow::on_plotAdded(PlotWidget *widget)
 {
-    connect(widget,SIGNAL(curveNameDropped(QString, PlotWidget*)),
-            this,  SLOT(addCurveToPlot(QString, PlotWidget*)));
+
 }
 
 void MainWindow::addCurveToPlot(QString curve_name, PlotWidget* destination)
@@ -374,7 +373,7 @@ PlotMatrix *MainWindow::currentPlotGrid()
 
 void MainWindow::on_addTabButton_pressed()
 {
-    PlotMatrix* grid = new PlotMatrix(this);
+    PlotMatrix* grid = new PlotMatrix(&_mapped_plot_data, this);
     ui->tabWidget->addTab( grid, QString("plot") );
     connect( grid, SIGNAL(plotAdded(PlotWidget*)), this, SLOT(on_plotAdded(PlotWidget*)));
 
@@ -398,7 +397,7 @@ void MainWindow::onActionSaveLayout()
     for(int i=0; i< ui->tabWidget->count(); i++)
     {
         PlotMatrix* widget = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
-        QDomElement element = widget->getDomElement(doc);
+        QDomElement element = widget->xmlSaveState(doc);
 
         root.appendChild( element );
     }
@@ -423,9 +422,9 @@ void MainWindow::onActionSaveLayout()
 
 void MainWindow::deleteLoadedData()
 {
-    std::map<QString, PlotData*>& data = _mapped_plot_data;
+    PlotDataMap& data = _mapped_plot_data;
 
-    std::map<QString, PlotData*>::iterator it;
+    PlotDataMap::iterator it;
     for(  it= data.begin(); it != data.end(); it++)
     {
         delete it->second;
@@ -519,7 +518,7 @@ void MainWindow::onActionLoadDataFile()
 
         busy->close();
 
-        std::map<QString, PlotData*>::iterator it;
+        PlotDataMap::iterator it;
         for ( it= _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
         {
             QString name   = it->first;
@@ -538,10 +537,6 @@ void MainWindow::onActionLoadDataFile()
 
 void MainWindow::onActionLoadLayout()
 {
-    while(ui->tabWidget->count()>0)
-    {
-        ui->tabWidget->removeTab(0);
-    }
     QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  QDir::currentPath(), "*.xml");
     if (fileName.isEmpty())
         return;
@@ -575,60 +570,30 @@ void MainWindow::onActionLoadLayout()
         return ;
     }
 
-    QDomElement plotmatrix;
-    for (  plotmatrix = root.firstChildElement( "plotmatrix" )  ;
-           !plotmatrix.isNull();
-           plotmatrix = plotmatrix.nextSiblingElement( "plotmatrix" ) )
+    int num_tabs = ui->tabWidget->count();
+    int index = 0;
+
+    QDomElement plotmatrix_el;
+
+    for (  plotmatrix_el = root.firstChildElement( "plotmatrix" )  ;
+          !plotmatrix_el.isNull();
+           plotmatrix_el = plotmatrix_el.nextSiblingElement( "plotmatrix" ) )
     {
-        if( !plotmatrix.hasAttribute("rows") || !plotmatrix.hasAttribute("columns") )
-        {
-            qWarning() << "No [rows] or [columns] attribute in <plotmatrix> XML file!";
-            return ;
+        // add if tabs are too few
+        if( index == num_tabs) {
+            on_addTabButton_pressed();
+            num_tabs++;
         }
-        int rows = plotmatrix.attribute("rows").toInt();
-        int columns = plotmatrix.attribute("columns").toInt();
+        PlotMatrix* plot_matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+        plot_matrix->xmlLoadState( plotmatrix_el );
 
-        // add the tab. It includes a single plot
-        this->on_addTabButton_pressed();
+        index++;
+    }
 
-        for(int c = 1; c<columns; ++c)
-        {
-            currentPlotGrid()->addColumn();
-        }
-        for(int r = 1; r<rows; ++r)
-        {
-            currentPlotGrid()->addRow();
-        }
-        //----------------
-        QDomElement plot;
-        for (  plot = plotmatrix.firstChildElement( "plot" )  ;
-               !plot.isNull();
-               plot = plot.nextSiblingElement( "plot" ) )
-        {
-            if( !plot.hasAttribute("row") || !plot.hasAttribute("col") )
-            {
-                qWarning() << "No [row] or [col] attribute in <plot> XML file!";
-                return ;
-            }
-            int row = plot.attribute("row").toInt();
-            int col = plot.attribute("col").toInt();
-
-            PlotWidget *plot_widget = currentPlotGrid()->plotAt(row,col);
-            //-----------------------------
-            QDomElement curve;
-            for (  curve = plot.firstChildElement( "curve" )  ;
-                   !curve.isNull();
-                   curve = curve.nextSiblingElement( "curve" ) )
-            {
-                if( !curve.hasAttribute("name") )
-                {
-                    qWarning() << "No [name] attribute in <plot> XML file!";
-                    return ;
-                }
-                QString curve_name = curve.attribute("name");
-                this->addCurveToPlot( curve_name, plot_widget);
-            }
-        }
+    // remove if tabs are too much
+    while( num_tabs > index ){
+        ui->tabWidget->removeTab( num_tabs-1 );
+        num_tabs--;
     }
 }
 
@@ -716,7 +681,14 @@ void MainWindow::on_pushButtonUndo_clicked()
     for (int i=0; i<widgets.size(); i++ )
     {
         PlotWidget *plot = widgets[i];
-        plot->undoScaleChange();
+        //TODO
+        //plot->undoScaleChange();
     }
     currentPlotGrid()->replot();
+}
+
+void MainWindow::on_tabWidget_currentChanged(int index)
+{
+    PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+    tab->replot();
 }

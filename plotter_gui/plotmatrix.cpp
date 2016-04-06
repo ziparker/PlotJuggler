@@ -9,8 +9,9 @@
 
 
 
-PlotMatrix::PlotMatrix(QWidget *parent ):
-    QFrame( parent )
+PlotMatrix::PlotMatrix(PlotDataMap *datamap, QWidget *parent ):
+    QFrame( parent ),
+    _mapped_data(datamap)
 {
     num_rows = 0;
     num_cols = 0;
@@ -41,10 +42,9 @@ void PlotMatrix::rebuildWidgetList()
 
 PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 {
-    PlotWidget *plot = new PlotWidget( this );
+    PlotWidget *plot = new PlotWidget( _mapped_data, this );
 
     plot->setWindowTitle(QString("PlotWidget ") + QString::number(widget_uid++));
-
 
     CurveTracker* tracker = plot->tracker();
     tracker->setRubberBandPen( QPen( "MediumOrchid" ) );
@@ -255,7 +255,7 @@ void PlotMatrix::setAxisScale( int axis, int row, int col,
     }
 }
 
-QDomElement PlotMatrix::getDomElement( QDomDocument &doc )
+QDomElement PlotMatrix::xmlSaveState( QDomDocument &doc )
 {
     QDomElement element = doc.createElement("plotmatrix");
 
@@ -267,7 +267,7 @@ QDomElement PlotMatrix::getDomElement( QDomDocument &doc )
         for(int row=0; row< num_rows; row++)
         {
             PlotWidget* plot = plotAt(row,col);
-            QDomElement child = plot->getDomElement(doc);
+            QDomElement child = plot->xmlSaveState(doc);
 
             child.setAttribute("row", row);
             child.setAttribute("col", col);
@@ -275,9 +275,42 @@ QDomElement PlotMatrix::getDomElement( QDomDocument &doc )
             element.appendChild( child );
         }
     }
-
     return element;
 }
+
+void PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
+{
+    if( !plotmatrix.hasAttribute("rows") || !plotmatrix.hasAttribute("columns") )
+    {
+        qWarning() << "No [rows] or [columns] attribute in <plotmatrix> XML file!";
+        return ;
+    }
+    int rows = plotmatrix.attribute("rows").toInt();
+    int cols = plotmatrix.attribute("columns" ).toInt();
+
+    while( rows > num_rows){ addRow(); }
+    while( rows < num_rows){ removeRow( num_rows-1 );  }
+
+    while( cols > num_cols){ addColumn();  }
+    while( cols < num_cols){ removeColumn( num_cols-1 ); }
+
+    QDomElement plot_element;
+    for (  plot_element = plotmatrix.firstChildElement( "plot" )  ;
+           !plot_element.isNull();
+           plot_element = plot_element.nextSiblingElement( "plot" ) )
+    {
+        if( !plot_element.hasAttribute("row") || !plot_element.hasAttribute("col") )
+        {
+            qWarning() << "No [row] or [col] attribute in <plot> XML file!";
+            return ;
+        }
+        int row = plot_element.attribute("row").toInt();
+        int col = plot_element.attribute("col").toInt();
+
+        plotAt(row,col)->xmlLoadState( plot_element );
+    }
+}
+
 
 
 void PlotMatrix::updateLayout()
