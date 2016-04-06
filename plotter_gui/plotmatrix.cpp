@@ -51,7 +51,7 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
 
     connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgetByName(QString,QString)) );
- //   connect( plot, SIGNAL(horizontalScaleChanged(QRectF)), this, SLOT(on_singlePlotScaleChanged(QRectF)));
+    connect( plot, SIGNAL(rectChanged(PlotWidget*,QRectF)), this, SLOT(on_singlePlotScaleChanged(PlotWidget*,QRectF)));
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -390,21 +390,22 @@ void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
     updateLayout();
 }
 
-void PlotMatrix::on_singlePlotScaleChanged(QRectF new_range)
+void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new_range)
 {
     for ( unsigned i = 0; i<_widget_list.size(); i++ )
     {
         PlotWidget *plot = _widget_list.at(i);
-        if( plot->isEmpty() == false)
+        if( plot->isEmpty() == false && modified_plot != plot)
         {
-            QRectF bound_act= plot->currentBoundingRect();
+            QRectF bound_act = plot->currentBoundingRect();
 
-            if( ! _horizontal_link )
+            if( _horizontal_link )
             {
                 bound_act.setLeft( new_range.left() );
                 bound_act.setRight( new_range.right() );
             }
-            plot->setScale( bound_act );
+            plot->setScale( bound_act, false );
+            qDebug() << "on_singlePlotScaleChanged";
         }
     }
     replot();

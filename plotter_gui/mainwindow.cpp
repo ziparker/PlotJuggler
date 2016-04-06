@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
     connect(ui->actionLoadData,SIGNAL(triggered()), this, SLOT(onActionLoadDataFile()) );
 
+    this->addAction( ui->actionUndo );
     connect(ui->actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked()) );
 
     for( int i=0; i< ui->gridLayoutSettings->count(); i++)
@@ -717,4 +718,5 @@ void MainWindow::on_pushButtonUndo_clicked()
         PlotWidget *plot = widgets[i];
         plot->undoScaleChange();
     }
+    currentPlotGrid()->replot();
 }

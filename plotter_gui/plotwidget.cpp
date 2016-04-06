@@ -266,13 +266,21 @@ CurveTracker *PlotWidget::tracker()
     return _tracker;
 }
 
-void PlotWidget::setScale(QRectF rect)
+void PlotWidget::setScale(QRectF rect, bool emit_signal)
 {
     qDebug() << "store " << rect ;
     _undo_view.push_back( rect  );
 
     this->setAxisScale( yLeft, rect.bottom(), rect.top());
     this->setAxisScale( xBottom, rect.left(), rect.right());
+
+    if( emit_signal) {
+        qDebug() << " emitted scale";
+        emit rectChanged(this, rect);
+    }
+    else{
+        qDebug() << " will not emit";
+    }
 }
 
 void PlotWidget::undoScaleChange()
@@ -285,7 +293,6 @@ void PlotWidget::undoScaleChange()
         this->setAxisScale( yLeft, rect.bottom(), rect.top());
         this->setAxisScale( xBottom, rect.left(), rect.right());
     }
-    replot();
 }
 
 
@@ -365,7 +372,7 @@ void PlotWidget::replot()
    // if(_tracker && _tracker->isEnabled() && _tracker->isActive())
    //     _tracker->onExternalZoom( canvas_range );
 
-    if( _curve_list.empty() == false)
+   /* if( _curve_list.empty() == false)
     {
         float x_min = canvas_range.left() ;
         float x_max = canvas_range.right() ;
@@ -374,9 +381,10 @@ void PlotWidget::replot()
         if( fabs( x_min - _prev_bounding.left()) > EPS  ||
             fabs( x_max - _prev_bounding.right()) > EPS )
         {
+            qDebug() << canvas_range  << "    " << _prev_bounding;
             emit horizontalScaleChanged(canvas_range);
         }
-    }
+    }*/
     _prev_bounding = canvas_range;
 }
 
@@ -432,10 +440,12 @@ void PlotWidget::on_showPoints(bool checked)
     }
 }
 
-void PlotWidget::on_externallyResized(QRectF )
+void PlotWidget::on_externallyResized(QRectF rect)
 {
-    _undo_view.push_back( this->currentBoundingRect() );
-    qDebug() << "store " << this->currentBoundingRect();
+    _undo_view.push_back( rect );
+    qDebug() << "store " << rect;
+
+    emit rectChanged( this, rect);
 }
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)

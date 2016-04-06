@@ -41,7 +41,7 @@ public:
 
     CurveTracker* tracker();
 
-    void setScale( QRectF rect );
+    void setScale( QRectF rect, bool emit_signal = true );
 
     void undoScaleChange();
 
@@ -61,7 +61,7 @@ protected:
 signals:
     void swapWidgets(QString s, QString to);
     void curveNameDropped(QString curve_name, PlotWidget* destination);
-    void horizontalScaleChanged(QRectF bound);
+    void rectChanged(PlotWidget* self, QRectF rect );
 
 public Q_SLOTS:
     void replot() ;

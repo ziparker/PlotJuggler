@@ -49,7 +49,7 @@ public slots:
 
 private slots:
     void swapWidgetByName(QString name_a, QString name_b);
-    void on_singlePlotScaleChanged(QRectF range);
+    void on_singlePlotScaleChanged(PlotWidget* modified_plot, QRectF range);
 
 private:
     void alignAxes( int rowOrColumn, int axis );
