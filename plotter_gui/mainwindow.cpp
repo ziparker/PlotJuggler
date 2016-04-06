@@ -398,9 +398,12 @@ void MainWindow::onActionSaveLayout()
     {
         PlotMatrix* widget = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
         QDomElement element = widget->xmlSaveState(doc);
-
         root.appendChild( element );
     }
+
+    QDomElement current_plotmatrix =  doc.createElement( "currentPlotMatrix" );
+    current_plotmatrix.setAttribute( "index", ui->tabWidget->currentIndex() );
+    root.appendChild( current_plotmatrix );
 
     doc.appendChild(root);
 
@@ -595,6 +598,10 @@ void MainWindow::onActionLoadLayout()
         ui->tabWidget->removeTab( num_tabs-1 );
         num_tabs--;
     }
+
+    QDomElement current_plotmatrix =  root.firstChildElement( "currentPlotMatrix" );
+    int current_index = current_plotmatrix.attribute( "index" ).toInt();
+    ui->tabWidget->setCurrentIndex( current_index );
 }
 
 
@@ -691,4 +698,39 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 {
     PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
     tab->replot();
+}
+
+void MainWindow::on_tabWidget_tabCloseRequested(int index)
+{
+    PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+
+    bool ask_confirmation = true;
+    if( tab->widgetList().size() == 1 )
+    {
+        if( tab->widgetList().at(0)->isEmpty()){
+            ask_confirmation = false;
+        }
+    }
+
+    QMessageBox::StandardButton do_remove = QMessageBox::Yes;
+
+    if( ask_confirmation )
+    {
+        ui->tabWidget->setCurrentIndex( index );
+        QApplication::processEvents();
+
+        do_remove = QMessageBox::question(0, tr("Warning"),
+                             tr("Do you really want to destroy this tab?\n") );
+    }
+    if( do_remove == QMessageBox::Yes )
+    {
+        // first add then delete.
+        // Otherwise currentPlotGrid might be empty
+        if( ui->tabWidget->count() == 1){
+            on_addTabButton_pressed();
+        }
+        ui->tabWidget->removeTab( index );
+    }
+
+
 }

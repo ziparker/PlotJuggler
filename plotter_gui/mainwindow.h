@@ -70,6 +70,8 @@ private slots:
 
     void on_tabWidget_currentChanged(int index);
 
+    void on_tabWidget_tabCloseRequested(int index);
+
 private:
     Ui::MainWindow *ui;
 
