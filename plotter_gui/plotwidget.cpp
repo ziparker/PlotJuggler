@@ -12,14 +12,15 @@
 #include "removecurvedialog.h"
 #include "curvecolorpick.h"
 #include <QApplication>
+#include <set>
 
-
-PlotWidget::PlotWidget(QWidget *parent):
+PlotWidget::PlotWidget(PlotDataMap* datamap, QWidget *parent):
     QwtPlot(parent),
     _zoomer( 0 ),
     _magnifier(0 ),
     _panner( 0 ),
-    _tracker ( 0 )
+    _tracker ( 0 ),
+    _mapped_data( datamap )
 {
     this->setAcceptDrops( true );
     this->setMinimumWidth( 100 );
@@ -103,35 +104,41 @@ PlotWidget::~PlotWidget()
     detachAllCurves();
 }
 
-void PlotWidget::addCurve(const QString &name, PlotData *data)
+void PlotWidget::addCurve(const QString &name, bool do_replot)
 {
+    PlotDataMap::iterator it = _mapped_data->find(name);
+    if( it == _mapped_data->end())
+    {
+        return;
+    }
+
     if( _curve_list.find(name) != _curve_list.end())
     {
         return;
     }
+
+    PlotData *data = it->second;
 
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
 
     curve->setData( data  );
     curve->attach( this );
-
     curve->setStyle( QwtPlotCurve::Lines);
 
     curve->setPen( data->colorHint(), 1.0 );
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
     QRectF bounding = maximumBoundingRect();
-
     _magnifier->setAxisLimits( yLeft, bounding.bottom(), bounding.top());
     _magnifier->setAxisLimits( xBottom, bounding.left(), bounding.right());
 
-    this->setVerticalAxisRange( bounding.bottom(), bounding.top() );
-    this->setHorizontalAxisRange( bounding.left(), bounding.right() );
-
-    _undo_view.push_back( bounding );
-
-    this->replot();
+    if( do_replot )
+    {
+        this->setVerticalAxisRange( bounding.bottom(), bounding.top() );
+        this->setHorizontalAxisRange( bounding.left(), bounding.right() );
+        this->replot();
+    }
 }
 
 void PlotWidget::removeCurve(const QString &name)
@@ -203,6 +210,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
 
         if( format.contains( "qabstractitemmodeldatalist") )
         {
+            bool plot_added = false;
             while (!stream.atEnd())
             {
                 int row, col;
@@ -210,8 +218,13 @@ void PlotWidget::dropEvent(QDropEvent *event)
 
                 stream >> row >> col >> roleDataMap;
 
-                QString itemName = roleDataMap[0].toString();
-                emit curveNameDropped( itemName , this );
+                QString curve_name = roleDataMap[0].toString();
+                addCurve( curve_name );
+                plot_added = true;
+            }
+            if( plot_added )
+            {
+                emit plotModified();
             }
         }
         if( format.contains( "plot_area") )
@@ -226,25 +239,79 @@ void PlotWidget::dropEvent(QDropEvent *event)
 void PlotWidget::detachAllCurves()
 {
     this->detachItems(QwtPlotItem::Rtti_PlotItem, false);
-
     _curve_list.erase(_curve_list.begin(), _curve_list.end());
-
 }
 
-QDomElement PlotWidget::getDomElement( QDomDocument &doc)
+QDomElement PlotWidget::xmlSaveState( QDomDocument &doc)
 {
-    QDomElement element = doc.createElement("plot");
+    QDomElement plot_el = doc.createElement("plot");
+
+    QDomElement range_el = doc.createElement("range");
+    QRectF rect = this->currentBoundingRect();
+    range_el.setAttribute("bottom", rect.bottom());
+    range_el.setAttribute("top", rect.top());
+    range_el.setAttribute("left", rect.left());
+    range_el.setAttribute("right", rect.right());
+    plot_el.appendChild(range_el);
 
     std::map<QString, QwtPlotCurve*>::iterator it;
 
     for( it=_curve_list.begin(); it != _curve_list.end(); ++it)
     {
-        QDomElement curve = doc.createElement("curve");
-        curve.setAttribute( "name", it->first);
-        curve.setNodeValue("1");
-        element.appendChild(curve);
+        QString name = it->first;
+        QwtPlotCurve* curve = it->second;
+        QDomElement curve_el = doc.createElement("curve");
+        curve_el.setAttribute( "name",name);
+        curve_el.setAttribute( "R", curve->pen().color().red());
+        curve_el.setAttribute( "G", curve->pen().color().green());
+        curve_el.setAttribute( "B", curve->pen().color().blue());
+
+        plot_el.appendChild(curve_el);
     }
-    return element;
+    return plot_el;
+}
+
+void PlotWidget::xmlLoadState(QDomElement &plot_widget)
+{
+    QDomElement curve;
+    std::set<QString> added_curve_names;
+
+    for (  curve = plot_widget.firstChildElement( "curve" )  ;
+           !curve.isNull();
+           curve = curve.nextSiblingElement( "curve" ) )
+    {
+        QString curve_name = curve.attribute("name");
+        int R = curve.attribute("R").toInt();
+        int G = curve.attribute("G").toInt();
+        int B = curve.attribute("B").toInt();
+        QColor color(R,G,B);
+
+        added_curve_names.insert(curve_name );
+        if( _curve_list.find( curve_name) == _curve_list.end())
+        {
+            this->addCurve(curve_name, false);
+        }
+
+        _curve_list[curve_name]->setPen( color, 1.0);
+    }
+
+    std::map<QString, QwtPlotCurve*>::iterator it;
+    for( it = _curve_list.begin(); it != _curve_list.end(); it++)
+    {
+        QString curve_name = it->first;
+        if( added_curve_names.find( curve_name ) == added_curve_names.end())
+        {
+            removeCurve( curve_name );
+        }
+    }
+
+    QDomElement rectangle =  plot_widget.firstChildElement( "range" );
+    QRectF rect;
+    rect.setBottom( rectangle.attribute("bottom").toDouble());
+    rect.setTop( rectangle.attribute("top").toDouble());
+    rect.setLeft( rectangle.attribute("left").toDouble());
+    rect.setRight( rectangle.attribute("right").toDouble());
+    this->setScale( rect, false);
 }
 
 
@@ -266,8 +333,6 @@ CurveTracker *PlotWidget::tracker()
 
 void PlotWidget::setScale(QRectF rect, bool emit_signal)
 {
-    _undo_view.push_back( rect  );
-
     this->setAxisScale( yLeft, rect.bottom(), rect.top());
     this->setAxisScale( xBottom, rect.left(), rect.right());
 
@@ -275,7 +340,7 @@ void PlotWidget::setScale(QRectF rect, bool emit_signal)
         emit rectChanged(this, rect);
     }
 }
-
+/*
 void PlotWidget::undoScaleChange()
 {
     if( _undo_view.size() > 1)
@@ -286,7 +351,7 @@ void PlotWidget::undoScaleChange()
         this->setAxisScale( xBottom, rect.left(), rect.right());
     }
 }
-
+*/
 
 void PlotWidget::setHorizontalAxisRange(float min, float max)
 {
@@ -369,6 +434,7 @@ void PlotWidget::replot()
 void PlotWidget::launchRemoveCurveDialog()
 {
     RemoveCurveDialog* dialog = new RemoveCurveDialog(this);
+    int prev_curve_count = _curve_list.size();
 
     std::map<QString, QwtPlotCurve*>::iterator it;
     for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
@@ -377,6 +443,11 @@ void PlotWidget::launchRemoveCurveDialog()
     }
 
     dialog->exec();
+
+    if( prev_curve_count != _curve_list.size() )
+    {
+        emit plotModified();
+    }
 }
 
 void PlotWidget::launchChangeColorDialog()
@@ -394,11 +465,21 @@ void PlotWidget::launchChangeColorDialog()
     CurveColorPick* dialog = new CurveColorPick(&color_by_name, this);
     dialog->exec();
 
+    bool modified = false;
+
     for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         const QString& curve_name = it->first;
         QwtPlotCurve* curve = it->second;
-        curve->setPen( color_by_name[curve_name], 1.0 );
+        QColor new_color = color_by_name[curve_name];
+        if( curve->pen().color() != new_color)
+        {
+            curve->setPen( color_by_name[curve_name], 1.0 );
+            modified = true;
+        }
+    }
+    if( modified){
+        emit plotModified();
     }
 }
 
@@ -420,7 +501,6 @@ void PlotWidget::on_showPoints(bool checked)
 
 void PlotWidget::on_externallyResized(QRectF rect)
 {
-    _undo_view.push_back( rect );
     emit rectChanged( this, rect);
 }
 

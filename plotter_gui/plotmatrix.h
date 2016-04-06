@@ -11,7 +11,7 @@ class PlotMatrix: public QFrame
     Q_OBJECT
 
 public:
-    PlotMatrix(QWidget * parent = NULL );
+    PlotMatrix(PlotDataMap *datamap,QWidget * parent = NULL );
     virtual ~PlotMatrix();
 
     void addRow();
@@ -33,7 +33,8 @@ public:
     void setAxisScale(int axisId, int row, int col,
         double min, double max, double step = 0 );
 
-    QDomElement getDomElement(QDomDocument &doc);
+    QDomElement xmlSaveState(QDomDocument &doc);
+    void xmlLoadState(QDomElement &plotmatrix_element );
 
     void updateLayout();
     void replot();
@@ -64,8 +65,12 @@ private:
     bool _horizontal_link;
     std::vector<PlotWidget*> _widget_list;
 
+    PlotDataMap *_mapped_data;
+
 signals:
     void plotAdded(PlotWidget*);
+    void layoutModified();
+
 protected:
     void rebuildWidgetList();
 };

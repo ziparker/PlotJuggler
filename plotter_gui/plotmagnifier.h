@@ -1,6 +1,7 @@
 #ifndef PLOTMAGNIFIER_H
 #define PLOTMAGNIFIER_H
 
+#include <QTimer>
 #include <qwt_plot_magnifier.h>
 #include <qwt_plot.h>
 
@@ -31,6 +32,7 @@ signals:
 
 private:
     QPointF invTransform(QPoint pos);
+    QTimer _future_emit;
 
 };
 

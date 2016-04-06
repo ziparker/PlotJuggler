@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include <QElapsedTimer>
 #include "plotwidget.h"
 #include "plotmatrix.h"
 #include "../plugins/dataloader_base.h"
@@ -18,6 +18,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+public slots:
+    void undoableChangeHappened();
 
 private slots:
 
@@ -43,7 +46,9 @@ private slots:
     void on_horizontalSlider_valueChanged(int value);
 
     void on_plotAdded(PlotWidget* widget);
+
     void addCurveToPlot(QString curve_name, PlotWidget* destination);
+
     void on_addTabButton_pressed();
 
     void onActionSaveLayout();
@@ -68,6 +73,10 @@ private slots:
 
     void on_pushButtonUndo_clicked();
 
+    void on_tabWidget_currentChanged(int index);
+
+    void on_tabWidget_tabCloseRequested(int index);
+
 private:
     Ui::MainWindow *ui;
 
@@ -79,7 +88,7 @@ private:
     void buildData();
 
     //std::map<QString, SharedVector> _mapped_raw_data;
-    std::map<QString, PlotData*>    _mapped_plot_data;
+    PlotDataMap    _mapped_plot_data;
 
     void rearrangeGridLayout();
     QVector< QWidget*> settings_widgets;
@@ -92,6 +101,13 @@ private:
 
     std::map<QString,DataLoader*> data_loader;
 
+    QDomDocument xmlSaveState();
+    void xmlLoadState(QDomDocument state_document);
+
+    std::deque<QDomDocument> _undo_states;
+
+    QElapsedTimer _undo_timer;
+
 protected:
     void mousePressEvent(QMouseEvent *event) ;
     void contextMenuEvent(QContextMenuEvent *event) ;
@@ -100,10 +116,8 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) ;
     void dropEvent(QDropEvent *event) ;
 
-
     void deleteLoadedData();
 
-    QString _settings_file;
 };
 
 #endif // MAINWINDOW_H
