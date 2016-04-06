@@ -36,14 +36,15 @@ public:
     void detachAllCurves();
     QDomElement getDomElement(QDomDocument &doc);
 
-
-    void setHorizontalAxisRange(float min, float max);
-    void setVerticalAxisRange(float min, float max);
-
     QRectF maximumBoundingRect();
     QRectF currentBoundingRect();
 
     CurveTracker* tracker();
+
+    void setScale( QRectF rect );
+
+    void undoScaleChange();
+    void redoScaleChange();
 
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) ;
@@ -84,6 +85,11 @@ private:
     QRectF _prev_bounding;
     CurveTracker* _tracker;
     QwtPlotLegendItem* _legend;
+
+private:
+    void setHorizontalAxisRange(float min, float max);
+    void setVerticalAxisRange(float min, float max);
+    void setAxisScale( int axisId, double min, double max, double step = 0 );
 
 };
 

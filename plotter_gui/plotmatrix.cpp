@@ -51,7 +51,7 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
 
     connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgetByName(QString,QString)) );
-    connect( plot, SIGNAL(horizontalScaleChanged(QRectF)), this, SLOT(onHorizontalAxisScaleChanged(QRectF)));
+    connect( plot, SIGNAL(horizontalScaleChanged(QRectF)), this, SLOT(on_singlePlotScaleChanged(QRectF)));
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -384,7 +384,7 @@ void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
     updateLayout();
 }
 
-void PlotMatrix::onHorizontalAxisScaleChanged(QRectF range)
+void PlotMatrix::on_singlePlotScaleChanged(QRectF range)
 {
     if( ! _horizontal_link ) return;
 

@@ -329,8 +329,8 @@ void PlotWidget::replot()
 
     QRectF canvas_range = currentBoundingRect();
 
-    if(_tracker )
-        _tracker->onExternalZoom( canvas_range );
+   // if(_tracker && _tracker->isEnabled() && _tracker->isActive())
+   //     _tracker->onExternalZoom( canvas_range );
 
     if( _curve_list.empty() == false)
     {
