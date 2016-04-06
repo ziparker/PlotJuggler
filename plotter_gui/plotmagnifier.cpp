@@ -40,6 +40,7 @@ void PlotMagnifier::rescale( double factor )
     plt->setAutoReplot( false );
 
     const int axis_list[2] = {QwtPlot::xBottom, QwtPlot::yLeft};
+    QRectF new_rect;
 
     for ( int i = 0; i <2; i++ )
     {
@@ -81,6 +82,16 @@ void PlotMagnifier::rescale( double factor )
 
             plt->setAxisScale( axisId, v1, v2 );
 
+            if( axisId == QwtPlot::xBottom)
+            {
+                new_rect.setLeft(  v1 );
+                new_rect.setRight( v2 );
+            }
+            else{
+                new_rect.setBottom(  v1 );
+                new_rect.setTop( v2 );
+            }
+
             doReplot = true;
         }
     }
@@ -89,7 +100,7 @@ void PlotMagnifier::rescale( double factor )
 
     if ( doReplot ){
         plt->replot();
-        emit rescaled();
+        emit rescaled( new_rect );
     }
 }
 

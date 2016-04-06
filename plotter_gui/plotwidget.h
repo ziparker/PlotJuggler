@@ -16,7 +16,7 @@
 #include "plotdata.h"
 #include "customtracker.h"
 #include <qwt_plot_legenditem.h>
-
+#include <deque>
 
 
 class PlotWidget : public QwtPlot
@@ -44,7 +44,7 @@ public:
     void setScale( QRectF rect );
 
     void undoScaleChange();
-    void redoScaleChange();
+
 
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) ;
@@ -71,6 +71,7 @@ private slots:
     void canvasContextMenuTriggered(const QPoint &pos);
     void launchChangeColorDialog();
     void on_showPoints(bool checked);
+    void on_externallyResized(QRectF new_rect);
 
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
@@ -89,7 +90,10 @@ private:
 private:
     void setHorizontalAxisRange(float min, float max);
     void setVerticalAxisRange(float min, float max);
+
     void setAxisScale( int axisId, double min, double max, double step = 0 );
+
+    std::deque<QRectF> _undo_view;
 
 };
 

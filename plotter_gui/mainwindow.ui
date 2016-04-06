@@ -92,7 +92,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="resource.qrc">
               <normaloff>:/icons/resources/cog.png</normaloff>:/icons/resources/cog.png</iconset>
             </property>
             <property name="iconSize">
@@ -344,12 +344,32 @@
            <number>0</number>
           </property>
           <item>
+           <widget class="QPushButton" name="pushButtonUndo">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/undo_32px.png</normaloff>:/icons/resources/undo_32px.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>26</width>
+              <height>26</height>
+             </size>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="pushHorizontalResize">
             <property name="text">
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="resource.qrc">
               <normaloff>:/icons/resources/resize_horizontal.png</normaloff>:/icons/resources/resize_horizontal.png</iconset>
             </property>
             <property name="iconSize">
@@ -372,7 +392,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="resource.qrc">
               <normaloff>:/icons/resources/resize_vertical.png</normaloff>:/icons/resources/resize_vertical.png</iconset>
             </property>
             <property name="iconSize">
@@ -392,7 +412,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="resource.qrc">
               <normaloff>:/icons/resources/link.png</normaloff>:/icons/resources/link.png</iconset>
             </property>
             <property name="iconSize">
@@ -418,7 +438,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="resource.qrc">
               <normaloff>:/icons/resources/Line_tracker.png</normaloff>:/icons/resources/Line_tracker.png</iconset>
             </property>
             <property name="iconSize">
@@ -557,8 +577,18 @@
     <string>Load data from file</string>
    </property>
   </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

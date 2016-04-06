@@ -49,6 +49,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
     connect(ui->actionLoadData,SIGNAL(triggered()), this, SLOT(onActionLoadDataFile()) );
 
+    connect(ui->actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked()) );
+
     for( int i=0; i< ui->gridLayoutSettings->count(); i++)
     {
         QLayoutItem* item = ui->gridLayoutSettings->itemAt(i);
@@ -703,5 +705,16 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
         if (tab){
             tab->setActiveTracker( checked );
         }
+    }
+}
+
+void MainWindow::on_pushButtonUndo_clicked()
+{
+    const std::vector<PlotWidget *> widgets = currentPlotGrid()->widgetList();
+
+    for (int i=0; i<widgets.size(); i++ )
+    {
+        PlotWidget *plot = widgets[i];
+        plot->undoScaleChange();
     }
 }

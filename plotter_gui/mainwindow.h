@@ -66,6 +66,8 @@ private slots:
 
     void on_pushButtonActivateTracker_toggled(bool checked);
 
+    void on_pushButtonUndo_clicked();
+
 private:
     Ui::MainWindow *ui;
 

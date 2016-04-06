@@ -27,7 +27,7 @@ protected:
     QPointF _mouse_position;
 
 signals:
-    void rescaled();
+    void rescaled(QRectF new_size);
 
 private:
     QPointF invTransform(QPoint pos);

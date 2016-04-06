@@ -51,7 +51,7 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
 
     connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgetByName(QString,QString)) );
-    connect( plot, SIGNAL(horizontalScaleChanged(QRectF)), this, SLOT(on_singlePlotScaleChanged(QRectF)));
+ //   connect( plot, SIGNAL(horizontalScaleChanged(QRectF)), this, SLOT(on_singlePlotScaleChanged(QRectF)));
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -339,8 +339,11 @@ void PlotMatrix::maximizeHorizontalScale()
         PlotWidget *plot = _widget_list.at(i);
         if( plot->isEmpty() == false)
         {
-            QRectF bound = plot->maximumBoundingRect();
-            plot->setHorizontalAxisRange( bound.left(), bound.right() );
+            QRectF bound_max = plot->maximumBoundingRect();
+            QRectF bound_act= plot->currentBoundingRect();
+            bound_act.setLeft( bound_max.left() );
+            bound_act.setRight( bound_max.right() );
+            plot->setScale( bound_act );
         }
     }
     replot();
@@ -353,8 +356,11 @@ void PlotMatrix::maximizeVerticalScale()
         PlotWidget *plot = _widget_list.at(i);
         if( plot->isEmpty() == false)
         {
-            QRectF bound = plot->maximumBoundingRect();
-            plot->setVerticalAxisRange( bound.bottom(), bound.top() );
+            QRectF bound_max = plot->maximumBoundingRect();
+            QRectF bound_act= plot->currentBoundingRect();
+            bound_act.setBottom( bound_max.bottom() );
+            bound_act.setTop( bound_max.top() );
+            plot->setScale( bound_act );
         }
     }
     replot();
@@ -384,16 +390,21 @@ void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
     updateLayout();
 }
 
-void PlotMatrix::on_singlePlotScaleChanged(QRectF range)
+void PlotMatrix::on_singlePlotScaleChanged(QRectF new_range)
 {
-    if( ! _horizontal_link ) return;
-
     for ( unsigned i = 0; i<_widget_list.size(); i++ )
     {
         PlotWidget *plot = _widget_list.at(i);
         if( plot->isEmpty() == false)
         {
-            plot->setHorizontalAxisRange( range.left(), range.right() );
+            QRectF bound_act= plot->currentBoundingRect();
+
+            if( ! _horizontal_link )
+            {
+                bound_act.setLeft( new_range.left() );
+                bound_act.setRight( new_range.right() );
+            }
+            plot->setScale( bound_act );
         }
     }
     replot();

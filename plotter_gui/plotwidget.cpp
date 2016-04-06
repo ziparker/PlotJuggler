@@ -50,15 +50,17 @@ PlotWidget::PlotWidget(QWidget *parent):
     showPointsAction->setChecked( false );
     connect(showPointsAction, SIGNAL(triggered(bool)), this, SLOT(on_showPoints(bool)));
 
-     _zoomer = new QwtPlotZoomer( this->canvas() );
+    _zoomer = new QwtPlotZoomer( this->canvas() );
 
     _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
     _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
     _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::NoModifier );
+    connect(_zoomer, SIGNAL(zoomed(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
 
     _magnifier = new PlotMagnifier( this->canvas() );
     _magnifier->setAxisEnabled(xTop, false);
     _magnifier->setAxisEnabled(yRight, false);
+    connect(_magnifier, SIGNAL(rescaled(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
 
     _panner = new QwtPlotPanner( this->canvas());
     _panner->setMouseButton(  Qt::MiddleButton, Qt::NoModifier);
@@ -124,6 +126,9 @@ void PlotWidget::addCurve(const QString &name, PlotData *data)
 
     this->setVerticalAxisRange( bounding.bottom(), bounding.top() );
     this->setHorizontalAxisRange( bounding.left(), bounding.right() );
+
+    _undo_view.push_back( bounding );
+    qDebug() << "store " << bounding;
 
     this->replot();
 }
@@ -261,6 +266,28 @@ CurveTracker *PlotWidget::tracker()
     return _tracker;
 }
 
+void PlotWidget::setScale(QRectF rect)
+{
+    qDebug() << "store " << rect ;
+    _undo_view.push_back( rect  );
+
+    this->setAxisScale( yLeft, rect.bottom(), rect.top());
+    this->setAxisScale( xBottom, rect.left(), rect.right());
+}
+
+void PlotWidget::undoScaleChange()
+{
+    if( _undo_view.size() > 1)
+    {
+        _undo_view.pop_back();
+        QRectF rect = _undo_view.back();
+        qDebug() << "pop " << rect;
+        this->setAxisScale( yLeft, rect.bottom(), rect.top());
+        this->setAxisScale( xBottom, rect.left(), rect.right());
+    }
+    replot();
+}
+
 
 void PlotWidget::setHorizontalAxisRange(float min, float max)
 {
@@ -286,6 +313,11 @@ void PlotWidget::setVerticalAxisRange(float min, float max)
 
     _prev_bounding.setBottom(min);
     _prev_bounding.setTop(max);
+}
+
+void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
+{
+    QwtPlot::setAxisScale( axisId, min, max, step);
 }
 
 QRectF PlotWidget::maximumBoundingRect()
@@ -329,6 +361,7 @@ void PlotWidget::replot()
 
     QRectF canvas_range = currentBoundingRect();
 
+    //FIXME
    // if(_tracker && _tracker->isEnabled() && _tracker->isActive())
    //     _tracker->onExternalZoom( canvas_range );
 
@@ -339,7 +372,7 @@ void PlotWidget::replot()
 
         float EPS = 0.001*( x_max - x_min );
         if( fabs( x_min - _prev_bounding.left()) > EPS  ||
-                fabs( x_max - _prev_bounding.right()) > EPS )
+            fabs( x_max - _prev_bounding.right()) > EPS )
         {
             emit horizontalScaleChanged(canvas_range);
         }
@@ -397,6 +430,12 @@ void PlotWidget::on_showPoints(bool checked)
             curve->setStyle( QwtPlotCurve::Lines);
         }
     }
+}
+
+void PlotWidget::on_externallyResized(QRectF )
+{
+    _undo_view.push_back( this->currentBoundingRect() );
+    qDebug() << "store " << this->currentBoundingRect();
 }
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
