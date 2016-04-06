@@ -68,14 +68,26 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadDataPlugins("plugins");
 
-    _settings_file = QApplication::applicationDirPath().left(1) + ":/superplot_settings.ini";
-
     buildData();
+    _undo_timer.start();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::undoableChangeHappened()
+{
+    int elapsed_ms = _undo_timer.restart();
+
+    // overwrite the previous
+    if( elapsed_ms < 150)
+    {
+        _undo_states.pop_back();
+    }
+    _undo_states.push_back( xmlSaveState() );
+
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
@@ -291,7 +303,6 @@ void MainWindow::on_radioRegExp_toggled(bool checked)
 
 void MainWindow::on_checkBoxCaseSensitive_toggled(bool )
 {
-
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
@@ -300,6 +311,7 @@ void MainWindow::on_checkBoxCaseSensitive_toggled(bool )
 void MainWindow::on_pushAddRow_pressed()
 {
     currentPlotGrid()->addRow();
+    undoableChangeHappened();
 }
 
 
@@ -307,6 +319,7 @@ void MainWindow::on_pushAddRow_pressed()
 void MainWindow::on_pushAddColumn_pressed()
 {
     currentPlotGrid()->addColumn();
+    undoableChangeHappened();
 }
 
 
@@ -334,6 +347,7 @@ void MainWindow::on_pushremoveEmpty_pressed()
     {
         on_pushAddColumn_pressed();
     }
+    undoableChangeHappened();
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int )
@@ -358,7 +372,7 @@ void MainWindow::on_horizontalSlider_valueChanged(int )
 
 void MainWindow::on_plotAdded(PlotWidget *widget)
 {
-
+    connect(widget,SIGNAL(plotModified()), SLOT(undoableChangeHappened()) );
 }
 
 void MainWindow::addCurveToPlot(QString curve_name, PlotWidget* destination)
@@ -377,13 +391,17 @@ void MainWindow::on_addTabButton_pressed()
     ui->tabWidget->addTab( grid, QString("plot") );
     connect( grid, SIGNAL(plotAdded(PlotWidget*)), this, SLOT(on_plotAdded(PlotWidget*)));
 
+    connect( grid, SIGNAL(layoutModified()), this, SLOT( undoableChangeHappened()) );
+
     ui->tabWidget->setCurrentWidget( grid );
     grid->setHorizontalLink( _horizontal_link );
 
     on_pushAddColumn_pressed();
+
+    undoableChangeHappened();
 }
 
-void MainWindow::onActionSaveLayout()
+QDomDocument MainWindow::xmlSaveState()
 {
     QDomDocument doc;
     QDomProcessingInstruction instr = doc.createProcessingInstruction(
@@ -393,7 +411,6 @@ void MainWindow::onActionSaveLayout()
 
     QDomElement root = doc.createElement( "root" );
 
-    qDebug() << ">> add root";
     for(int i=0; i< ui->tabWidget->count(); i++)
     {
         PlotMatrix* widget = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
@@ -406,6 +423,54 @@ void MainWindow::onActionSaveLayout()
     root.appendChild( current_plotmatrix );
 
     doc.appendChild(root);
+
+    return doc;
+}
+
+void MainWindow::xmlLoadState(QDomDocument state_document)
+{
+    QDomElement root = state_document.namedItem("root").toElement();
+    if ( root.isNull() ) {
+        qWarning() << "No <root> element found at the top-level of the XML file!";
+        return ;
+    }
+
+    int num_tabs = ui->tabWidget->count();
+    int index = 0;
+
+    QDomElement plotmatrix_el;
+
+    for (  plotmatrix_el = root.firstChildElement( "plotmatrix" )  ;
+          !plotmatrix_el.isNull();
+           plotmatrix_el = plotmatrix_el.nextSiblingElement( "plotmatrix" ) )
+    {
+        // add if tabs are too few
+        if( index == num_tabs) {
+            on_addTabButton_pressed();
+            num_tabs++;
+        }
+        PlotMatrix* plot_matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
+        plot_matrix->xmlLoadState( plotmatrix_el );
+
+        index++;
+    }
+
+    // remove if tabs are too much
+    while( num_tabs > index ){
+        ui->tabWidget->removeTab( num_tabs-1 );
+        num_tabs--;
+    }
+
+    QDomElement current_plotmatrix =  root.firstChildElement( "currentPlotMatrix" );
+    int current_index = current_plotmatrix.attribute( "index" ).toInt();
+    ui->tabWidget->setCurrentIndex( current_index );
+
+    currentPlotGrid()->replot();
+}
+
+void MainWindow::onActionSaveLayout()
+{
+    QDomDocument doc = xmlSaveState();
 
     QString filename = QFileDialog::getSaveFileName(this, "Save Layout", QDir::currentPath(), "*.xml");
     if (filename.isEmpty())
@@ -554,8 +619,7 @@ void MainWindow::onActionLoadLayout()
     }
 
     QString errorStr;
-    int errorLine;
-    int errorColumn;
+    int errorLine, errorColumn;
 
     QDomDocument domDocument;
 
@@ -567,41 +631,10 @@ void MainWindow::onActionLoadLayout()
         return;
     }
 
-    QDomElement root = domDocument.namedItem("root").toElement();
-    if ( root.isNull() ) {
-        qWarning() << "No <root> element found at the top-level of the XML file!";
-        return ;
-    }
+    xmlLoadState( domDocument );
+    _undo_states.clear();
+    _undo_states.push_back( domDocument );
 
-    int num_tabs = ui->tabWidget->count();
-    int index = 0;
-
-    QDomElement plotmatrix_el;
-
-    for (  plotmatrix_el = root.firstChildElement( "plotmatrix" )  ;
-          !plotmatrix_el.isNull();
-           plotmatrix_el = plotmatrix_el.nextSiblingElement( "plotmatrix" ) )
-    {
-        // add if tabs are too few
-        if( index == num_tabs) {
-            on_addTabButton_pressed();
-            num_tabs++;
-        }
-        PlotMatrix* plot_matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
-        plot_matrix->xmlLoadState( plotmatrix_el );
-
-        index++;
-    }
-
-    // remove if tabs are too much
-    while( num_tabs > index ){
-        ui->tabWidget->removeTab( num_tabs-1 );
-        num_tabs--;
-    }
-
-    QDomElement current_plotmatrix =  root.firstChildElement( "currentPlotMatrix" );
-    int current_index = current_plotmatrix.attribute( "index" ).toInt();
-    ui->tabWidget->setCurrentIndex( current_index );
 }
 
 
@@ -683,15 +716,12 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
 
 void MainWindow::on_pushButtonUndo_clicked()
 {
-    const std::vector<PlotWidget *> widgets = currentPlotGrid()->widgetList();
-
-    for (int i=0; i<widgets.size(); i++ )
+    if( _undo_states.size() > 1)
     {
-        PlotWidget *plot = widgets[i];
-        //TODO
-        //plot->undoScaleChange();
+        _undo_states.pop_back();
+        QDomDocument state_document = _undo_states.back();
+        xmlLoadState( state_document );
     }
-    currentPlotGrid()->replot();
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)

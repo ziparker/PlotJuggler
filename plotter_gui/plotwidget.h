@@ -62,6 +62,7 @@ protected:
 signals:
     void swapWidgets(QString s, QString to);
     void rectChanged(PlotWidget* self, QRectF rect );
+    void plotModified();
 
 public Q_SLOTS:
     void replot() ;

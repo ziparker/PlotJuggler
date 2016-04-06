@@ -116,6 +116,7 @@ void PlotMatrix::addColumn()
     }
     rebuildWidgetList();
     updateLayout();
+
 }
 
 void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
@@ -128,6 +129,7 @@ void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
 
     layout->addWidget(widgetA, rowB, colB);
     layout->addWidget(widgetB, rowA, colA);
+
 }
 
 void PlotMatrix::removeColumn(int column_to_delete)
@@ -170,6 +172,7 @@ void PlotMatrix::removeRow(int row_to_delete)
     }
     rebuildWidgetList();
     updateLayout();
+
 }
 
 
@@ -421,6 +424,8 @@ void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
     swapPlots(rowA,colA,  rowB,colB);
 
     updateLayout();
+
+    emit layoutModified();
 }
 
 void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new_range)
@@ -442,6 +447,7 @@ void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new
         }
     }
     replot();
+    emit layoutModified();
 }
 
 void PlotMatrix::alignAxes( int rowOrColumn, int axis )

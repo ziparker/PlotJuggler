@@ -69,6 +69,8 @@ private:
 
 signals:
     void plotAdded(PlotWidget*);
+    void layoutModified();
+
 protected:
     void rebuildWidgetList();
 };

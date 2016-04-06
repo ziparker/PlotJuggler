@@ -210,6 +210,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
 
         if( format.contains( "qabstractitemmodeldatalist") )
         {
+            bool plot_added = false;
             while (!stream.atEnd())
             {
                 int row, col;
@@ -219,6 +220,11 @@ void PlotWidget::dropEvent(QDropEvent *event)
 
                 QString curve_name = roleDataMap[0].toString();
                 addCurve( curve_name );
+                plot_added = true;
+            }
+            if( plot_added )
+            {
+                emit plotModified();
             }
         }
         if( format.contains( "plot_area") )
@@ -272,7 +278,7 @@ void PlotWidget::xmlLoadState(QDomElement &plot_widget)
 
     for (  curve = plot_widget.firstChildElement( "curve" )  ;
            !curve.isNull();
-           curve = plot_widget.nextSiblingElement( "curve" ) )
+           curve = curve.nextSiblingElement( "curve" ) )
     {
         QString curve_name = curve.attribute("name");
         int R = curve.attribute("R").toInt();
@@ -284,6 +290,10 @@ void PlotWidget::xmlLoadState(QDomElement &plot_widget)
         if( _curve_list.find( curve_name) == _curve_list.end())
         {
             this->addCurve(curve_name, false);
+            qDebug() << " ADD curve " << curve_name;
+        }
+        else{
+            qDebug() << " KEEP curve " << curve_name;
         }
         _curve_list[curve_name]->setPen( color, 1.0);
     }
@@ -291,9 +301,11 @@ void PlotWidget::xmlLoadState(QDomElement &plot_widget)
     std::map<QString, QwtPlotCurve*>::iterator it;
     for( it = _curve_list.begin(); it != _curve_list.end(); it++)
     {
-        if( added_curve_names.find( it->first ) == added_curve_names.end())
+        QString curve_name = it->first;
+        if( added_curve_names.find( curve_name ) == added_curve_names.end())
         {
-            removeCurve( it->first );
+            removeCurve( curve_name );
+            qDebug() << " REMOVE curve " << curve_name;
         }
     }
 
@@ -426,6 +438,7 @@ void PlotWidget::replot()
 void PlotWidget::launchRemoveCurveDialog()
 {
     RemoveCurveDialog* dialog = new RemoveCurveDialog(this);
+    int prev_curve_count = _curve_list.size();
 
     std::map<QString, QwtPlotCurve*>::iterator it;
     for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
@@ -434,6 +447,11 @@ void PlotWidget::launchRemoveCurveDialog()
     }
 
     dialog->exec();
+
+    if( prev_curve_count != _curve_list.size() )
+    {
+        emit plotModified();
+    }
 }
 
 void PlotWidget::launchChangeColorDialog()
@@ -451,11 +469,21 @@ void PlotWidget::launchChangeColorDialog()
     CurveColorPick* dialog = new CurveColorPick(&color_by_name, this);
     dialog->exec();
 
+    bool modified = false;
+
     for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         const QString& curve_name = it->first;
         QwtPlotCurve* curve = it->second;
-        curve->setPen( color_by_name[curve_name], 1.0 );
+        QColor new_color = color_by_name[curve_name];
+        if( curve->pen().color() != new_color)
+        {
+            curve->setPen( color_by_name[curve_name], 1.0 );
+            modified = true;
+        }
+    }
+    if( modified){
+        emit plotModified();
     }
 }
 
@@ -477,7 +505,6 @@ void PlotWidget::on_showPoints(bool checked)
 
 void PlotWidget::on_externallyResized(QRectF rect)
 {
-    //_undo_view.push_back( rect );
     emit rectChanged( this, rect);
 }
 
