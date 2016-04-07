@@ -104,14 +104,26 @@ void PlotData::setRangeX(double t_center, double t_range)
 
 int PlotData::getIndexFromX(double x ) const
 {
+    static double prev_query = std::numeric_limits<double>::min();
+    static int prev_index = 0;
+
+    if( x == prev_query)
+    {
+        return prev_index;
+    }
+    prev_query = x;
+
     std::vector<double>::const_iterator lower;
     lower = std::lower_bound(_x_points->begin(), _x_points->end(), x );
-    return (lower - _x_points->begin());
+    int index = (lower - _x_points->begin());
+
+    prev_index = index;
+    return index;
 }
 
 double PlotData::getY(double x) const
 {
-    int index = getIndexFromX(x);
+    unsigned index = getIndexFromX(x);
     if( index >0 && index < size())
     {
         return _y_points->at(index);

@@ -9,7 +9,6 @@ class QFile;
 QT_END_NAMESPACE
 
 
-
 class DataLoader{
 
 public:

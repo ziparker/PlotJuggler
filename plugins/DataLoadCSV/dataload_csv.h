@@ -9,7 +9,7 @@
 class  DataLoadCSV: public QObject, DataLoader
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "com.icarustechnology.Superplotter.DataLoader" FILE "../dataloader.json")
+    Q_PLUGIN_METADATA(IID DataRead_iid "../dataloader.json")
     Q_INTERFACES(DataLoader)
 
 public:

@@ -434,7 +434,7 @@ void PlotWidget::replot()
 void PlotWidget::launchRemoveCurveDialog()
 {
     RemoveCurveDialog* dialog = new RemoveCurveDialog(this);
-    int prev_curve_count = _curve_list.size();
+    unsigned prev_curve_count = _curve_list.size();
 
     std::map<QString, QwtPlotCurve*>::iterator it;
     for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
