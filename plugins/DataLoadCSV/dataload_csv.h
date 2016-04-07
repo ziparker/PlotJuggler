@@ -15,7 +15,7 @@ class  DataLoadCSV: public QObject, DataLoader
 public:
     DataLoadCSV();
     virtual const std::vector<const char*>& compatibleFileExtensions() const ;
-    virtual DataRead readDataFromFile(QFile* file, std::function<void(int)> updateCompletion, std::function<bool()> checkInterruption);
+    virtual PlotDataMap readDataFromFile(QFile* file, std::function<void(int)> updateCompletion, std::function<bool()> checkInterruption);
 
     virtual ~DataLoadCSV();
 

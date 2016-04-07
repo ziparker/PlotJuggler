@@ -2,6 +2,7 @@
 #define PLOTDATA_H
 
 #include <vector>
+#include <memory>
 #include <QObject>
 #include <QColor>
 #include <qwt_series_data.h>
@@ -51,6 +52,7 @@ private:
     QString _name;
 };
 
-typedef std::map<QString,PlotData*> PlotDataMap;
+typedef std::shared_ptr<PlotData> PlotDataPtr;
+typedef std::map<QString, PlotDataPtr> PlotDataMap;
 
 #endif // PLOTDATA_H

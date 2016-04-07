@@ -47,8 +47,6 @@ private slots:
 
     void on_plotAdded(PlotWidget* widget);
 
-    void addCurveToPlot(QString curve_name, PlotWidget* destination);
-
     void on_addTabButton_pressed();
 
     void onActionSaveLayout();

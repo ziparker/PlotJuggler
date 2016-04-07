@@ -117,12 +117,12 @@ void PlotWidget::addCurve(const QString &name, bool do_replot)
         return;
     }
 
-    PlotData *data = it->second;
+    PlotDataPtr data = it->second;
 
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
 
-    curve->setData( data  );
+    curve->setData( data.get()  );
     curve->attach( this );
     curve->setStyle( QwtPlotCurve::Lines);
 

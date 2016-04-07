@@ -323,7 +323,7 @@ void Swatch::clearSelection()
     setSelected(-1);
 }
 
-void Swatch::paintEvent(QPaintEvent* event)
+void Swatch::paintEvent(QPaintEvent* )
 {
     QSize rowcols = p->rowcols();
     if ( rowcols.isEmpty() )
@@ -595,7 +595,7 @@ void Swatch::dragMoveEvent(QDragMoveEvent* event)
     p->dropEvent(event);
 }
 
-void Swatch::dragLeaveEvent(QDragLeaveEvent *event)
+void Swatch::dragLeaveEvent(QDragLeaveEvent *)
 {
     p->clearDrop();
 }

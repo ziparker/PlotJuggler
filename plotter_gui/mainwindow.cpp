@@ -211,7 +211,7 @@ void MainWindow::buildData()
             y_vector->push_back(  A*sin(B*x + C) +D*x*0.02 ) ;
         }
 
-        PlotData* plot = new PlotData(t_vector, y_vector);
+        PlotDataPtr plot ( new PlotData(t_vector, y_vector) );
         plot->setColorHint( colorHint() );
         _mapped_plot_data.insert( std::make_pair( name, plot));
 
@@ -375,15 +375,11 @@ void MainWindow::on_horizontalSlider_valueChanged(int )
     }
 }
 
-void MainWindow::on_plotAdded(PlotWidget *widget)
+void MainWindow::on_plotAdded(PlotWidget* widget)
 {
     connect(widget,SIGNAL(plotModified()), SLOT(undoableChangeHappened()) );
 }
 
-void MainWindow::addCurveToPlot(QString curve_name, PlotWidget* destination)
-{
-    destination->addCurve( curve_name, (_mapped_plot_data.at(curve_name)) );
-}
 
 PlotMatrix *MainWindow::currentPlotGrid()
 {
@@ -497,11 +493,6 @@ void MainWindow::deleteLoadedData()
 {
     PlotDataMap& data = _mapped_plot_data;
 
-    PlotDataMap::iterator it;
-    for(  it= data.begin(); it != data.end(); it++)
-    {
-        delete it->second;
-    }
     data.erase( data.begin(), data.end() );
     ui->listWidget->clear();
 
@@ -595,7 +586,7 @@ void MainWindow::onActionLoadDataFile()
         for ( it= _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
         {
             QString name   = it->first;
-            PlotData* plot = it->second;
+            PlotDataPtr plot = it->second;
             plot->setColorHint( colorHint() );
             ui->listWidget->addItem( new QListWidgetItem( name ) );
         }
@@ -603,6 +594,10 @@ void MainWindow::onActionLoadDataFile()
     else{
         qDebug() << "no loader found";
     }
+
+    _undo_states.clear();
+    _redo_states.clear();
+    _undo_states.push_back(  xmlSaveState() );
 
     qDebug() << "DONE";
 

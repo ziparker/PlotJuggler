@@ -14,11 +14,11 @@ const std::vector<const char*> &DataLoadCSV::compatibleFileExtensions() const
     return _extensions;
 }
 
-DataRead DataLoadCSV::readDataFromFile(QFile *file,
+PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                                        std::function<void(int)> updateCompletion,
                                        std::function<bool()> checkInterruption)
 {
-    DataRead plot_data;
+    PlotDataMap plot_data;
 
     int linecount = 0;
 
@@ -79,7 +79,7 @@ DataRead DataLoadCSV::readDataFromFile(QFile *file,
                 ordered_vectors.push_back( data_vector );
                 ordered_names.push_back( name );
 
-                PlotData* plot = new PlotData;
+                PlotDataPtr plot( new PlotData );
                 plot->setName( name );
 
                 plot_data.insert( std::make_pair( name, plot ) );
@@ -132,11 +132,7 @@ DataRead DataLoadCSV::readDataFromFile(QFile *file,
 
     if(interrupted)
     {
-        while( plot_data.size() > 0)
-        {
-            delete plot_data.begin()->second;
-            plot_data.erase( plot_data.begin() );
-        }
+        plot_data.erase( plot_data.begin(), plot_data.end() );
     }
     else{
         for( unsigned i=0; i < ordered_vectors.size(); i++)

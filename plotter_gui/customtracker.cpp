@@ -26,7 +26,7 @@ PickerTrackerMachine::PickerTrackerMachine():
 
 //! Transition
 QList<QwtPickerMachine::Command> PickerTrackerMachine::transition(
-        const QwtEventPattern & eventPattern, const QEvent *event )
+        const QwtEventPattern & /*eventPattern*/, const QEvent *event )
 {
     QList<QwtPickerMachine::Command> cmdList;
     const QMouseEvent *mouse_event =  static_cast<const QMouseEvent *>( event );

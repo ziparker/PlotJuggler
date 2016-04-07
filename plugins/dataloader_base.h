@@ -8,13 +8,13 @@ QT_BEGIN_NAMESPACE
 class QFile;
 QT_END_NAMESPACE
 
-typedef std::map<QString, PlotData*> DataRead;
+
 
 class DataLoader{
 
 public:
     virtual const std::vector<const char*>& compatibleFileExtensions() const = 0;
-    virtual DataRead readDataFromFile(QFile* file,
+    virtual PlotDataMap readDataFromFile(QFile* file,
                                       std::function<void(int)> updateCompletion,
                                       std::function<bool()> checkInterruption) = 0;
 
