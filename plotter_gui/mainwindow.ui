@@ -591,6 +591,14 @@
     <string>Ctrl+Z</string>
    </property>
   </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Z</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

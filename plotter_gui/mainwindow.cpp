@@ -50,7 +50,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionLoadData,SIGNAL(triggered()), this, SLOT(onActionLoadDataFile()) );
 
     this->addAction( ui->actionUndo );
-    connect(ui->actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked()) );
+    connect(ui->actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked(bool)) );
+
+    this->addAction( ui->actionRedo );
+    connect(ui->actionRedo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonRedo_clicked(bool)) );
 
     for( int i=0; i< ui->gridLayoutSettings->count(); i++)
     {
@@ -84,9 +87,11 @@ void MainWindow::undoableChangeHappened()
     // overwrite the previous
     if( elapsed_ms < 150)
     {
-        _undo_states.pop_back();
+        if( _undo_states.empty() == false)
+            _undo_states.pop_back();
     }
     _undo_states.push_back( xmlSaveState() );
+    _redo_states.clear();
 
 }
 
@@ -714,12 +719,26 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
     }
 }
 
-void MainWindow::on_pushButtonUndo_clicked()
+void MainWindow::on_pushButtonUndo_clicked(bool )
 {
     if( _undo_states.size() > 1)
     {
-        _undo_states.pop_back();
         QDomDocument state_document = _undo_states.back();
+        _redo_states.push_back( state_document );
+        _undo_states.pop_back();
+        state_document = _undo_states.back();
+        xmlLoadState( state_document );
+    }
+}
+
+void MainWindow::on_pushButtonRedo_clicked(bool )
+{
+    if( _redo_states.size() > 0)
+    {
+        QDomDocument state_document = _redo_states.back();
+        _undo_states.push_back( state_document );
+        _redo_states.pop_back();
+
         xmlLoadState( state_document );
     }
 }

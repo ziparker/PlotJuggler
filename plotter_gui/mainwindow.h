@@ -71,7 +71,9 @@ private slots:
 
     void on_pushButtonActivateTracker_toggled(bool checked);
 
-    void on_pushButtonUndo_clicked();
+    void on_pushButtonUndo_clicked(bool checked);
+
+    void on_pushButtonRedo_clicked(bool checked);
 
     void on_tabWidget_currentChanged(int index);
 
@@ -105,6 +107,7 @@ private:
     void xmlLoadState(QDomDocument state_document);
 
     std::deque<QDomDocument> _undo_states;
+    std::deque<QDomDocument> _redo_states;
 
     QElapsedTimer _undo_timer;
 
