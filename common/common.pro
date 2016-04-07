@@ -8,7 +8,7 @@
 
 TARGET = common
 TEMPLATE = lib
-CONFIG += staticlib
+CONFIG += staticlib c++11
 
 SOURCES += plotdata.cpp
 HEADERS += plotdata.h

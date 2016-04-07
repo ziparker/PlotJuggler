@@ -4,6 +4,8 @@ TEMPLATE = app
 QT       += core gui xml
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+CONFIG += c++11
+
 SOURCES = main.cpp\
         mainwindow.cpp \
     plotwidget.cpp \
@@ -37,7 +39,7 @@ DESTDIR = $$OUT_PWD/../bin
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../lib/ -lqwt -lcommon -lColorWidgets
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../lib/ -lqwtd -lcommond -lColorWidgetsd
-else:unix:!macx: LIBS += -L$$OUT_PWD/../lib/ -lqwt -lcommon
+else:unix:!macx: LIBS += -L$$OUT_PWD/../lib/ -lqwt -lcommon -lColorWidgets
 
 
 INCLUDEPATH += $$PWD/../qwt/src
@@ -60,7 +62,7 @@ win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lib/lib
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lib/libcommond.a
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lib/common.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../lib/commond.lib
-else:unix:!macx: PRE_TARGETDEPS += $$OUT_PWD/../libcommon.a
+else:unix:!macx: PRE_TARGETDEPS += $$OUT_PWD/../lib/libcommon.a
 
 
 INCLUDEPATH += $$PWD/../color_widgets/include

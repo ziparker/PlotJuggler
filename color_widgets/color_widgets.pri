@@ -21,8 +21,7 @@ INCLUDEPATH += $$PWD/src $$PWD/include
 SOURCES += \
     $$PWD/src/color_preview.cpp \
     $$PWD/src/color_wheel.cpp \
-    $$PWD/src/color_dialog.cpp \
-    $$PWD/src/color_selector.cpp \
+ #   $$PWD/src/color_selector.cpp \
     $$PWD/src/color_palette.cpp \
     $$PWD/src/swatch.cpp \
     $$PWD/src/color_utils.cpp \
@@ -31,8 +30,7 @@ SOURCES += \
 HEADERS += \
     $$PWD/include/color_wheel.hpp \
     $$PWD/include/color_preview.hpp \
-    $$PWD/include/color_dialog.hpp \
-    $$PWD/include/color_selector.hpp \
+  #   $$PWD/include/color_selector.hpp \
     $$PWD/include/colorwidgets_global.hpp \
     $$PWD/include/color_palette.hpp \
     $$PWD/include/swatch.hpp \
@@ -40,7 +38,7 @@ HEADERS += \
     $$PWD/include/color_names.hpp
 
 FORMS += \
-    $$PWD/src/color_dialog.ui
+  #   $$PWD/src/color_dialog.ui
 
 RESOURCES += \
     $$PWD/src/color_widgets.qrc
