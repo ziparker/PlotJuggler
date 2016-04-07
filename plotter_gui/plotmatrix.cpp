@@ -443,7 +443,6 @@ void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new
                 bound_act.setRight( new_range.right() );
             }
             plot->setScale( bound_act, false );
-            qDebug() << "on_singlePlotScaleChanged";
         }
     }
     replot();
