@@ -19,6 +19,11 @@ public:
 
     virtual ~DataLoadCSV();
 
+protected:
+    int parseHeader(QFile *file,
+                     std::vector<std::pair<bool, QString> > &ordered_names,
+                     std::function<void(int)> updateCompletion);
+
 private:
     std::vector<const char*> _extensions;
 

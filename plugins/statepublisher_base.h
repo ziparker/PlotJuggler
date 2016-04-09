@@ -1,6 +1,7 @@
-#ifndef DATALOAD_TEMPLATE_H
-#define DATALOAD_TEMPLATE_H
+#ifndef STATEPUBLISHER_TEMPLATE_H
+#define STATEPUBLISHER_TEMPLATE_H
 
+#include <QtPlugin>
 #include <functional>
 #include "plotdata.h"
 
