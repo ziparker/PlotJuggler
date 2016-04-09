@@ -17,6 +17,7 @@
 #include <QStringRef>
 #include <QThread>
 #include "../plugins/dataloader_base.h"
+#include "../plugins/statepublisher_base.h"
 #include <QPluginLoader>
 #include "busydialog.h"
 #include "busytaskdialog.h"
@@ -71,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     createActions();
-    loadDataPlugins("plugins");
+    loadPlugins("plugins");
 
     buildData();
     _undo_timer.start();
@@ -164,7 +165,7 @@ QColor MainWindow::colorHint()
     return color;
 }
 
-void MainWindow::loadDataPlugins(QString subdir_name)
+void MainWindow::loadPlugins(QString subdir_name)
 {
     QDir pluginsDir(qApp->applicationDirPath());
 
@@ -179,19 +180,29 @@ void MainWindow::loadDataPlugins(QString subdir_name)
     {
         qDebug() << fileName;
         QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
+
         QObject *plugin = pluginLoader.instance();
-        if (plugin) {
+        if (plugin)
+        {
             DataLoader *loader = qobject_cast<DataLoader *>(plugin);
             if (loader)
             {
                 std::vector<const char*> extensions = loader->compatibleFileExtensions();
+                qDebug() << "loaded a DataLoader plugin";
 
                 for(unsigned i = 0; i < extensions.size(); i++)
                 {
                     data_loader.insert( std::make_pair( QString(extensions[i]), loader) );
                 }
             }
-        }
+
+            StatePublisher *publisher = qobject_cast<StatePublisher *>(plugin);
+            if (publisher)
+            {
+                qDebug() << "loaded a StatePublisher plugin";
+                state_publisher.push_back( publisher );
+            }
+        }  
     }
 }
 

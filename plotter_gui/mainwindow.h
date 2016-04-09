@@ -6,6 +6,7 @@
 #include "plotwidget.h"
 #include "plotmatrix.h"
 #include "../plugins/dataloader_base.h"
+#include "../plugins/statepublisher_base.h"
 
 namespace Ui {
 class MainWindow;
@@ -24,9 +25,8 @@ public slots:
 
 private slots:
 
- //   void swapWidgets(QString src, QString dst);
-
     void on_splitter_splitterMoved(int, int);
+
     void resizeEvent(QResizeEvent *) ;
 
     void on_lineEdit_textChanged(const QString &search_string);
@@ -100,9 +100,10 @@ private:
 
     QColor colorHint();
 
-    void loadDataPlugins(QString subdir_name);
+    void loadPlugins(QString subdir_name);
 
     std::map<QString,DataLoader*> data_loader;
+    std::vector<StatePublisher*>  state_publisher;
 
     QDomDocument xmlSaveState();
     void xmlLoadState(QDomDocument state_document);
