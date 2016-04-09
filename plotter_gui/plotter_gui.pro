@@ -15,7 +15,8 @@ SOURCES = main.cpp\
     busydialog.cpp \
     busytaskdialog.cpp \
     customtracker.cpp \
-    curvecolorpick.cpp
+    curvecolorpick.cpp \
+    plotdata_qwt.cpp
 
 HEADERS  = mainwindow.h \
     plotwidget.h \
@@ -25,7 +26,8 @@ HEADERS  = mainwindow.h \
     busydialog.h \
     busytaskdialog.h \
     customtracker.h \
-    curvecolorpick.h
+    curvecolorpick.h \
+    plotdata_qwt.cpp
 
 FORMS  += mainwindow.ui \
     removecurvedialog.ui \

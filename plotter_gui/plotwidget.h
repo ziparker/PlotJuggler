@@ -13,7 +13,7 @@
 #include <qwt_plot_zoomer.h>
 #include <qwt_plot_panner.h>
 #include <QDomDocument>
-#include "plotdata.h"
+#include "plotdata_qwt.h"
 #include "customtracker.h"
 #include <qwt_plot_legenditem.h>
 #include <deque>
@@ -24,7 +24,7 @@ class PlotWidget : public QwtPlot
     Q_OBJECT
 
 public:
-    PlotWidget(PlotDataMap* datamap, QWidget *parent=0);
+    PlotWidget(PlotDataQwtMap* datamap, QWidget *parent=0);
     virtual ~PlotWidget();
 
     void addCurve(const QString&  name, bool do_replot = true);
@@ -74,12 +74,17 @@ private slots:
     void on_showPoints(bool checked);
     void on_externallyResized(QRectF new_rect);
 
+    void zoomOutHorizontal();
+    void zoomOutVertical();
+
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
 
     QAction *removeCurveAction;
     QAction *changeColorsAction;
     QAction *showPointsAction;
+    QAction *zoomOutHorizontallyAction;
+    QAction *zoomOutVerticallyAction;
 
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
@@ -94,8 +99,10 @@ private:
 
     void setAxisScale( int axisId, double min, double max, double step = 0 );
 
-    PlotDataMap* _mapped_data;
+    PlotDataQwtMap* _mapped_data;
 
+    void buildActions();
+    void buildLegend();
 };
 
 #endif

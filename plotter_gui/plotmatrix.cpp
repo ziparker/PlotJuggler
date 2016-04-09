@@ -9,7 +9,7 @@
 
 
 
-PlotMatrix::PlotMatrix(PlotDataMap *datamap, QWidget *parent ):
+PlotMatrix::PlotMatrix(PlotDataQwtMap *datamap, QWidget *parent ):
     QFrame( parent ),
     _mapped_data(datamap)
 {

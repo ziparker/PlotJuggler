@@ -1,34 +1,29 @@
-#ifndef PLOTDATA_H
-#define PLOTDATA_H
+#ifndef PLOTDATA_RAW_H
+#define PLOTDATA_RAW_H
 
 #include <vector>
 #include <memory>
-#include <QObject>
-#include <QColor>
-#include <qwt_series_data.h>
-#include <QSharedPointer>
+#include <memory>
+#include <string>
+#include <map>
 
+typedef std::shared_ptr<std::vector<double> > SharedVector;
 
-typedef QSharedPointer<std::vector<double> > SharedVector;
-
-class PlotData: public QwtSeriesData<QPointF>
+class PlotData
 {
 public:
     PlotData();
-    PlotData(SharedVector x, SharedVector y);
+    PlotData(SharedVector x, SharedVector y, std::string name);
+    virtual ~PlotData() {}
+
     void addData( SharedVector x, SharedVector y );
 
-    void setName(QString name) { _name = name; }
-    QString name() { return _name; }
+    void setName(const std::string& name) { _name = name; }
+    std::string name() { return _name; }
 
     void setSubsampleFactor(int factor);
 
-    virtual size_t size() const;
-    virtual QPointF sample( size_t i ) const;
-    virtual QRectF boundingRect() const;
-
-    QColor colorHint() const;
-    void setColorHint(QColor color);
+    size_t size() const;
 
     void setRangeX(double t_left, double t_right);
 
@@ -36,7 +31,12 @@ public:
 
     double getY(double x ) const;
 
-private:
+    SharedVector getVectorX();
+    SharedVector getVectorY();
+
+protected:
+
+    std::string _name;
 
     SharedVector _x_points;
     SharedVector _y_points;
@@ -47,12 +47,10 @@ private:
     float x_min, x_max;
     int _index_first, _index_last;
 
-    int _preferedColor;
-    QColor _color;
-    QString _name;
+
 };
 
 typedef std::shared_ptr<PlotData> PlotDataPtr;
-typedef std::map<QString, PlotDataPtr> PlotDataMap;
+typedef std::map<std::string, PlotDataPtr> PlotDataMap;
 
 #endif // PLOTDATA_H

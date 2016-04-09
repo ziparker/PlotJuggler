@@ -21,6 +21,9 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
     PlotDataMap plot_data;
 
     int linecount = 0;
+    std::vector<QString> ordered_names;
+
+    bool first_line = true;
 
     {
         QTextStream inA(file);
@@ -41,9 +44,8 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
     QTextStream inB( file );
 
     std::vector<SharedVector> ordered_vectors;
-    std::vector<QString> ordered_names;
 
-    bool first_line = true;
+
     bool interrupted = false;
 
     int tot_lines = linecount -1;
@@ -71,13 +73,14 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                     field_name = field_name.mid(6);
                 }
 
-                QString name = field_name.toString();
+                QString qname = field_name.toString();
+                std::string name = qname.toStdString();
 
                 SharedVector data_vector( new std::vector<double>());
                 data_vector->reserve(tot_lines);
 
                 ordered_vectors.push_back( data_vector );
-                ordered_names.push_back( name );
+                ordered_names.push_back( qname );
 
                 PlotDataPtr plot( new PlotData );
                 plot->setName( name );
@@ -138,7 +141,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
         for( unsigned i=0; i < ordered_vectors.size(); i++)
         {
             QString name = ordered_names[i];
-            plot_data[ name ]->addData( time_vector, ordered_vectors[i]);
+            plot_data[ name.toStdString() ]->addData( time_vector, ordered_vectors[i]);
         }
     }
 

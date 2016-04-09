@@ -185,7 +185,7 @@ void MainWindow::buildData()
     long SIZE = 100*1000;
 
     ui->listWidget->addItems( words_list );
-    QSharedPointer<std::vector<double> > t_vector ( new std::vector<double>());
+    SharedVector t_vector ( new std::vector<double>());
     t_vector->reserve(SIZE);
 
     double t = 0;
@@ -197,7 +197,7 @@ void MainWindow::buildData()
 
     foreach( const QString& name, words_list)
     {
-        QSharedPointer<std::vector<double> > y_vector( new std::vector<double>() );
+        SharedVector y_vector( new std::vector<double>() );
         y_vector->reserve(SIZE);
 
         float A =  qrand()/(float)RAND_MAX * 6 - 3;
@@ -211,7 +211,7 @@ void MainWindow::buildData()
             y_vector->push_back(  A*sin(B*x + C) +D*x*0.02 ) ;
         }
 
-        PlotDataPtr plot ( new PlotData(t_vector, y_vector) );
+        PlotDataQwtPtr plot ( new PlotDataQwt(t_vector, y_vector, name.toStdString() ) );
         plot->setColorHint( colorHint() );
         _mapped_plot_data.insert( std::make_pair( name, plot));
 
@@ -220,20 +220,6 @@ void MainWindow::buildData()
     ui->horizontalSlider->setRange(0, SIZE  );
     on_horizontalSlider_valueChanged(0);
 
-}
-
-
-
-void MainWindow::contextMenuEvent(QContextMenuEvent *)
-{
-    /*  QWidget * w =  this->childAt( event->pos() );
-    if( w )
-        qDebug()<< w->objectName();
-
-    QMenu menu(this);
-    menu.addAction(deleteOneAct);
-    menu.addAction(deleteAllAct);
-    menu.exec( event->globalPos() );*/
 }
 
 
@@ -357,11 +343,10 @@ void MainWindow::on_pushremoveEmpty_pressed()
 
 void MainWindow::on_horizontalSlider_valueChanged(int )
 {
-    PlotDataMap::iterator it;
+    PlotDataQwtMap::iterator it;
     for( it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
     {
         //PlotData* plot = (it->second);
-
         //float range = (float)ui->horizontalSlider->maximum() *0.001*0.1;
         //  plot->setRangeX( (float)value*0.001 , range ) ;
     }
@@ -491,9 +476,9 @@ void MainWindow::onActionSaveLayout()
 
 void MainWindow::deleteLoadedData()
 {
-    PlotDataMap& data = _mapped_plot_data;
+    _mapped_plot_data.erase( _mapped_plot_data.begin(),
+                             _mapped_plot_data.end() );
 
-    data.erase( data.begin(), data.end() );
     ui->listWidget->clear();
 
     for (int index = 0; index < ui->tabWidget->count(); index++)
@@ -573,7 +558,7 @@ void MainWindow::onActionLoadDataFile()
         busy->show();
         using namespace std::placeholders;
 
-        _mapped_plot_data = loader->readDataFromFile( &file,
+        PlotDataMap mapped_data = loader->readDataFromFile( &file,
               [busy](int value) {
             busy->setValue(value);
             QApplication::processEvents();
@@ -582,13 +567,25 @@ void MainWindow::onActionLoadDataFile()
 
         busy->close();
 
+        // remap to different type
         PlotDataMap::iterator it;
-        for ( it= _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
+        for ( it= mapped_data.begin(); it != mapped_data.end(); it++)
         {
-            QString name   = it->first;
-            PlotDataPtr plot = it->second;
-            plot->setColorHint( colorHint() );
-            ui->listWidget->addItem( new QListWidgetItem( name ) );
+            std::string name  = it->first;
+            PlotDataPtr plot  = it->second;
+
+            // slow.. it will be better in the future
+            PlotDataQwtPtr plot_qwt( new PlotDataQwt(
+                                     plot->getVectorX(),
+                                     plot->getVectorY(),
+                                     plot->name()));
+
+            QString qname = QString::fromStdString(name);
+            // remap to derived class
+            _mapped_plot_data.insert( std::make_pair( qname, plot_qwt) );
+
+            plot_qwt->setColorHint( colorHint() );
+            ui->listWidget->addItem( new QListWidgetItem( qname ) );
         }
     }
     else{

@@ -11,6 +11,7 @@ TEMPLATE = lib
 CONFIG += staticlib c++11
 
 SOURCES += plotdata.cpp
+
 HEADERS += plotdata.h
 
 INCLUDEPATH += $$PWD/../qwt/src

@@ -2,5 +2,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     DataLoadCSV \
-	StatePublisherZMQ \
+#	StatePublisherZMQ \
 

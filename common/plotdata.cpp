@@ -1,5 +1,6 @@
 #include "plotdata.h"
 #include <limits>
+#include <algorithm>
 #include <stdexcept>
 
 PlotData::PlotData()
@@ -9,13 +10,15 @@ PlotData::PlotData()
     _index_last  = 0;
 }
 
-PlotData::PlotData(SharedVector x, SharedVector y)
+PlotData::PlotData(SharedVector x, SharedVector y, std::string name)
 {
     _subsample = 1;
     _index_first = 0;
     _index_last  = 0;
+    _name = name;
     addData(x,y);
 }
+
 
 void PlotData::addData(SharedVector x, SharedVector y)
 {
@@ -57,33 +60,8 @@ size_t PlotData::size() const
    return _index_last - _index_first + 1;
 }
 
-QPointF PlotData::sample(size_t i) const
-{
-    int index = i +_index_first;
-    QPointF point( (*_x_points)[index], (*_y_points)[index] ) ;
-    return point ;
-}
 
-QRectF PlotData::boundingRect() const
-{
-    QRectF rect(  x_min, y_min, (x_max - x_min),  y_max - y_min );
-    return rect ;
-}
 
-QColor PlotData::colorHint() const
-{
-    return _color;
-}
-
-void PlotData::setColorHint(QColor color)
-{
-    _color = color;
-}
-
-bool compareQPointF(const QPointF &a, const QPointF &b)
-{
-     return ( a.x() < b.x() );
-}
 
 void PlotData::setRangeX(double t_center, double t_range)
 {
@@ -130,4 +108,8 @@ double PlotData::getY(double x) const
     }
     return 0;
 }
+
+SharedVector PlotData::getVectorX() { return _x_points; }
+
+SharedVector PlotData::getVectorY() { return _y_points; }
 

@@ -88,7 +88,7 @@ private:
     void buildData();
 
     //std::map<QString, SharedVector> _mapped_raw_data;
-    PlotDataMap    _mapped_plot_data;
+    PlotDataQwtMap    _mapped_plot_data;
 
     void rearrangeGridLayout();
     QVector< QWidget*> settings_widgets;
@@ -111,7 +111,6 @@ private:
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
-    void contextMenuEvent(QContextMenuEvent *event) ;
 
     void dragEnterEvent(QDragEnterEvent *event) ;
     void dragMoveEvent(QDragMoveEvent *event) ;

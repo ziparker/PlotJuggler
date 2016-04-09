@@ -14,7 +14,65 @@
 #include <QApplication>
 #include <set>
 
-PlotWidget::PlotWidget(PlotDataMap* datamap, QWidget *parent):
+void PlotWidget::buildActions()
+{
+    removeCurveAction = new QAction(tr("&Remove curves"), this);
+    removeCurveAction->setStatusTip(tr("Remove one or more curves from this plot"));
+    connect(removeCurveAction, SIGNAL(triggered()), this, SLOT(launchRemoveCurveDialog()));
+
+    changeColorsAction = new QAction(tr("&Change colors"), this);
+    changeColorsAction->setStatusTip(tr("Change the color of the curves"));
+    connect(changeColorsAction, SIGNAL(triggered()), this, SLOT(launchChangeColorDialog()));
+
+    showPointsAction = new QAction(tr("&Show lines and points"), this);
+    showPointsAction->setCheckable( true );
+    showPointsAction->setChecked( false );
+    connect(showPointsAction, SIGNAL(triggered(bool)), this, SLOT(on_showPoints(bool)));
+
+    QIcon iconH;
+    iconH.addFile(QStringLiteral(":/icons/resources/resize_horizontal.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
+
+    QIcon iconV;
+    iconV.addFile(QStringLiteral(":/icons/resources/resize_vertical.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
+
+    zoomOutHorizontallyAction = new QAction(tr("&Zoom Out Horizontally"), this);
+    zoomOutHorizontallyAction->setIcon(iconH);
+    connect(zoomOutHorizontallyAction, SIGNAL(triggered()), this, SLOT(zoomOutHorizontal()));
+
+    zoomOutVerticallyAction = new QAction(tr("&Zoom Out Vertically"), this);
+    zoomOutVerticallyAction->setIcon(iconV);
+    connect(zoomOutVerticallyAction, SIGNAL(triggered()), this, SLOT(zoomOutVertical()));
+
+}
+
+void PlotWidget::buildLegend()
+{
+    _legend = new QwtPlotLegendItem();
+    _legend->attach( this );
+
+    _legend->setRenderHint( QwtPlotItem::RenderAntialiased );
+    QColor color( Qt::black );
+    _legend->setTextPen( color );
+    _legend->setBorderPen( color );
+    QColor c( Qt::white );
+    c.setAlpha( 200 );
+    _legend->setBackgroundBrush( c );
+
+    _legend->setMaxColumns( 1 );
+    _legend->setAlignment( Qt::Alignment( Qt::AlignTop | Qt::AlignRight ) );
+    _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
+
+    _legend->setBorderRadius( 6 );
+    _legend->setMargin( 4 );
+    _legend->setSpacing( 2 );
+    _legend->setItemMargin( 0 );
+
+    QFont font = _legend->font();
+    font.setPointSize( 9 );
+    _legend->setFont( font );
+}
+
+PlotWidget::PlotWidget(PlotDataQwtMap *datamap, QWidget *parent):
     QwtPlot(parent),
     _zoomer( 0 ),
     _magnifier(0 ),
@@ -46,19 +104,6 @@ PlotWidget::PlotWidget(PlotDataMap* datamap, QWidget *parent):
     _panner = ( new QwtPlotPanner( this->canvas() ) );
     _tracker = ( new CurveTracker( this->canvas()) );
 
-    removeCurveAction = new QAction(tr("&Remove curves"), this);
-    removeCurveAction->setStatusTip(tr("Remove one or more curves from this plot"));
-    connect(removeCurveAction, SIGNAL(triggered()), this, SLOT(launchRemoveCurveDialog()));
-
-    changeColorsAction = new QAction(tr("&Change colors"), this);
-    changeColorsAction->setStatusTip(tr("Change the color of the curves"));
-    connect(changeColorsAction, SIGNAL(triggered()), this, SLOT(launchChangeColorDialog()));
-
-    showPointsAction = new QAction(tr("&Show lines and points"), this);
-    showPointsAction->setCheckable( true );
-    showPointsAction->setChecked( false );
-    connect(showPointsAction, SIGNAL(triggered(bool)), this, SLOT(on_showPoints(bool)));
-
     _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
     _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
     _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::NoModifier );
@@ -74,29 +119,8 @@ PlotWidget::PlotWidget(PlotDataMap* datamap, QWidget *parent):
     connect( canvas, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(canvasContextMenuTriggered(QPoint)) );
     //-------------------------
 
-    _legend = new QwtPlotLegendItem();
-    _legend->attach( this );
-
-    _legend->setRenderHint( QwtPlotItem::RenderAntialiased );
-    QColor color( Qt::black );
-    _legend->setTextPen( color );
-    _legend->setBorderPen( color );
-    QColor c( Qt::white );
-    c.setAlpha( 200 );
-    _legend->setBackgroundBrush( c );
-
-    _legend->setMaxColumns( 1 );
-    _legend->setAlignment( Qt::Alignment( Qt::AlignTop | Qt::AlignRight ) );
-    _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
-
-    _legend->setBorderRadius( 6 );
-    _legend->setMargin( 4 );
-    _legend->setSpacing( 2 );
-    _legend->setItemMargin( 0 );
-
-    QFont font = _legend->font();
-    font.setPointSize( 9 );
-    _legend->setFont( font );
+    buildActions();
+    buildLegend();
 }
 
 PlotWidget::~PlotWidget()
@@ -106,7 +130,7 @@ PlotWidget::~PlotWidget()
 
 void PlotWidget::addCurve(const QString &name, bool do_replot)
 {
-    PlotDataMap::iterator it = _mapped_data->find(name);
+    PlotDataQwtMap::iterator it = _mapped_data->find(name);
     if( it == _mapped_data->end())
     {
         return;
@@ -117,7 +141,7 @@ void PlotWidget::addCurve(const QString &name, bool do_replot)
         return;
     }
 
-    PlotDataPtr data = it->second;
+    PlotDataQwtPtr data = it->second;
 
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
@@ -504,6 +528,26 @@ void PlotWidget::on_externallyResized(QRectF rect)
     emit rectChanged( this, rect);
 }
 
+void PlotWidget::zoomOutHorizontal()
+{
+    QRectF act = currentBoundingRect();
+    QRectF max = maximumBoundingRect();
+    act.setLeft( max.left() );
+    act.setRight( max.right() );
+    this->setScale(act);
+    qDebug() << act;
+}
+
+void PlotWidget::zoomOutVertical()
+{
+    QRectF act = currentBoundingRect();
+    QRectF max = maximumBoundingRect();
+    act.setTop( max.top() );
+    act.setBottom( max.bottom() );
+    this->setScale(act);
+    qDebug() << act;
+}
+
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 {
     bool legend_right_clicked = false;
@@ -526,6 +570,9 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
         menu.addAction(removeCurveAction);
         menu.addAction(changeColorsAction);
         menu.addAction(showPointsAction);
+
+        menu.addAction(zoomOutHorizontallyAction);
+        menu.addAction(zoomOutVerticallyAction);
 
         removeCurveAction->setEnabled( ! _curve_list.empty() );
         changeColorsAction->setEnabled(  ! _curve_list.empty() );
