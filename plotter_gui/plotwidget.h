@@ -55,10 +55,6 @@ protected:
     virtual void mousePressEvent(QMouseEvent *event) ;
     virtual void mouseReleaseEvent(QMouseEvent *event);
 
-    virtual void keyPressEvent(QKeyEvent *event);
-    virtual void keyReleaseEvent(QKeyEvent *event);
-
-
 signals:
     void swapWidgets(QString s, QString to);
     void rectChanged(PlotWidget* self, QRectF rect );

@@ -14,6 +14,58 @@
 #include <QApplication>
 #include <set>
 
+PlotWidget::PlotWidget(PlotDataQwtMap *datamap, QWidget *parent):
+    QwtPlot(parent),
+    _zoomer( 0 ),
+    _magnifier(0 ),
+    _panner( 0 ),
+    _tracker ( 0 ),
+    _legend( 0 ),
+    _mapped_data( datamap )
+{
+    this->setAcceptDrops( true );
+    this->setMinimumWidth( 100 );
+    this->setMinimumHeight( 100 );
+
+    this->sizePolicy().setHorizontalPolicy( QSizePolicy::Expanding);
+    this->sizePolicy().setVerticalPolicy( QSizePolicy::Expanding);
+
+    QwtPlotCanvas *canvas = new QwtPlotCanvas(this);
+    canvas->setFrameStyle( QFrame::NoFrame );
+    canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, false );
+
+    this->setCanvas( canvas );
+    this->setCanvasBackground( QColor( 250, 250, 250 ) );
+    this->setAxisAutoScale(0, true);
+
+    this->axisScaleEngine(QwtPlot::xBottom)->setAttribute(QwtScaleEngine::Floating,true);
+    this->plotLayout()->setAlignCanvasToScales( true );
+
+    //--------------------------
+    _zoomer = ( new QwtPlotZoomer( this->canvas() ) );
+    _magnifier = ( new PlotMagnifier( this->canvas() ) );
+    _panner = ( new QwtPlotPanner( this->canvas() ) );
+    _tracker = ( new CurveTracker( this->canvas()) );
+
+    _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
+    _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
+    _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::NoModifier );
+    connect(_zoomer, SIGNAL(zoomed(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
+
+    _magnifier->setAxisEnabled(xTop, false);
+    _magnifier->setAxisEnabled(yRight, false);
+    connect(_magnifier, SIGNAL(rescaled(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
+
+    _panner->setMouseButton(  Qt::MiddleButton, Qt::NoModifier);
+
+    this->canvas()->setContextMenuPolicy( Qt::ContextMenuPolicy::CustomContextMenu );
+    connect( canvas, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(canvasContextMenuTriggered(QPoint)) );
+    //-------------------------
+
+    buildActions();
+    buildLegend();
+}
+
 void PlotWidget::buildActions()
 {
     removeCurveAction = new QAction(tr("&Remove curves"), this);
@@ -72,56 +124,6 @@ void PlotWidget::buildLegend()
     _legend->setFont( font );
 }
 
-PlotWidget::PlotWidget(PlotDataQwtMap *datamap, QWidget *parent):
-    QwtPlot(parent),
-    _zoomer( 0 ),
-    _magnifier(0 ),
-    _panner( 0 ),
-    _tracker ( 0 ),
-    _mapped_data( datamap )
-{
-    this->setAcceptDrops( true );
-    this->setMinimumWidth( 100 );
-    this->setMinimumHeight( 100 );
-
-    this->sizePolicy().setHorizontalPolicy( QSizePolicy::Expanding);
-    this->sizePolicy().setVerticalPolicy( QSizePolicy::Expanding);
-
-    QwtPlotCanvas *canvas = new QwtPlotCanvas(this);
-    canvas->setFrameStyle( QFrame::NoFrame );
-    canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, false );
-
-    this->setCanvas( canvas );
-    this->setCanvasBackground( QColor( 250, 250, 250 ) );
-    this->setAxisAutoScale(0, true);
-
-    this->axisScaleEngine(QwtPlot::xBottom)->setAttribute(QwtScaleEngine::Floating,true);
-    this->plotLayout()->setAlignCanvasToScales( true );
-
-    //--------------------------
-    _zoomer = ( new QwtPlotZoomer( this->canvas() ) );
-    _magnifier = ( new PlotMagnifier( this->canvas() ) );
-    _panner = ( new QwtPlotPanner( this->canvas() ) );
-    _tracker = ( new CurveTracker( this->canvas()) );
-
-    _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
-    _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
-    _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::NoModifier );
-    connect(_zoomer, SIGNAL(zoomed(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
-
-    _magnifier->setAxisEnabled(xTop, false);
-    _magnifier->setAxisEnabled(yRight, false);
-    connect(_magnifier, SIGNAL(rescaled(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
-
-    _panner->setMouseButton(  Qt::MiddleButton, Qt::NoModifier);
-
-    this->canvas()->setContextMenuPolicy( Qt::ContextMenuPolicy::CustomContextMenu );
-    connect( canvas, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(canvasContextMenuTriggered(QPoint)) );
-    //-------------------------
-
-    buildActions();
-    buildLegend();
-}
 
 PlotWidget::~PlotWidget()
 {
@@ -262,7 +264,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
 
 void PlotWidget::detachAllCurves()
 {
-    this->detachItems(QwtPlotItem::Rtti_PlotItem, false);
+    this->detachItems(QwtPlotItem::Rtti_PlotCurve, false);
     _curve_list.erase(_curve_list.begin(), _curve_list.end());
 }
 
@@ -364,18 +366,6 @@ void PlotWidget::setScale(QRectF rect, bool emit_signal)
         emit rectChanged(this, rect);
     }
 }
-/*
-void PlotWidget::undoScaleChange()
-{
-    if( _undo_view.size() > 1)
-    {
-        _undo_view.pop_back();
-        QRectF rect = _undo_view.back();
-        this->setAxisScale( yLeft, rect.bottom(), rect.top());
-        this->setAxisScale( xBottom, rect.left(), rect.right());
-    }
-}
-*/
 
 void PlotWidget::setHorizontalAxisRange(float min, float max)
 {
@@ -550,35 +540,19 @@ void PlotWidget::zoomOutVertical()
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 {
-    bool legend_right_clicked = false;
+    QMenu menu(this);
+    menu.addAction(removeCurveAction);
+    menu.addAction(changeColorsAction);
+    menu.addAction(showPointsAction);
 
-    foreach(const QwtPlotItem *item  , _legend->plotItems() )
-    {
-        foreach(QRect rect , _legend->legendGeometries( item ) )
-        {
-            if(rect.contains( pos ) )
-            {
-                qDebug() << "legend clicked " ;
-                legend_right_clicked = true;
-            }
-        }
-    }
+    menu.addAction(zoomOutHorizontallyAction);
+    menu.addAction(zoomOutVerticallyAction);
 
-    if( ! legend_right_clicked)
-    {
-        QMenu menu(this);
-        menu.addAction(removeCurveAction);
-        menu.addAction(changeColorsAction);
-        menu.addAction(showPointsAction);
+    removeCurveAction->setEnabled( ! _curve_list.empty() );
+    changeColorsAction->setEnabled(  ! _curve_list.empty() );
 
-        menu.addAction(zoomOutHorizontallyAction);
-        menu.addAction(zoomOutVerticallyAction);
+    menu.exec( canvas()->mapToGlobal(pos) );
 
-        removeCurveAction->setEnabled( ! _curve_list.empty() );
-        changeColorsAction->setEnabled(  ! _curve_list.empty() );
-
-        menu.exec( canvas()->mapToGlobal(pos) );
-    }
 }
 
 void PlotWidget::mousePressEvent(QMouseEvent *event)
@@ -618,16 +592,4 @@ void PlotWidget::mouseReleaseEvent(QMouseEvent *event )
     QApplication::restoreOverrideCursor();
     QwtPlot::mouseReleaseEvent(event);
 }
-
-void PlotWidget::keyPressEvent(QKeyEvent *event)
-{
-
-}
-
-void PlotWidget::keyReleaseEvent(QKeyEvent *event)
-{
-
-}
-
-
 
