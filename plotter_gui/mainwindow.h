@@ -51,7 +51,10 @@ private slots:
 
     void onActionSaveLayout();
     void onActionLoadLayout();
-    void onActionLoadDataFile();
+
+    void onActionLoadDataFile(bool reload_previous = false);
+
+    void onActionReloadDataFile();
 
     void on_pushButton_toggled(bool checked);
 

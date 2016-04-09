@@ -48,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
     connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
     connect(ui->actionLoadData,SIGNAL(triggered()), this, SLOT(onActionLoadDataFile()) );
+    connect(ui->actionLoad_Recent_file,SIGNAL(triggered()), this, SLOT(onActionReloadDataFile()) );
+
 
     this->addAction( ui->actionUndo );
     connect(ui->actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked(bool)) );
@@ -121,6 +123,19 @@ void MainWindow::createActions()
 {
     QMenu* menuFile = new QMenu("File", ui->mainToolBar);
     menuFile->addAction(ui->actionLoadData);
+
+    menuFile->addAction(ui->actionLoad_Recent_file);
+
+    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+    if( settings.contains("recentlyLoadedFile") )
+    {
+        QString fileName = settings.value("recentlyLoadedFile").toString();
+        ui->actionLoad_Recent_file->setText( "Load data from: " + fileName);
+        ui->actionLoad_Recent_file->setEnabled( true );
+    }
+    else{
+        ui->actionLoad_Recent_file->setEnabled( false );
+    }
     menuFile->addSeparator();
     menuFile->addAction(ui->actionLoad_layout);
     menuFile->addAction(ui->actionSave_layout);
@@ -135,15 +150,15 @@ QColor MainWindow::colorHint()
     QColor color;
     switch( index%9 )
     {
-    case 0:  color = QColor(Qt::black) ;break;
-    case 1:  color = QColor(Qt::blue);break;
-    case 2:  color =  QColor(Qt::red); break;
-    case 3:  color =  QColor(Qt::darkGreen); break;
-    case 4:  color =  QColor(Qt::magenta); break;
-    case 5:  color =  QColor(Qt::darkCyan); break;
-    case 6:  color =  QColor(Qt::gray); break;
-    case 7:  color =  QColor(Qt::darkBlue); break;
-    case 8:  color =  QColor(Qt::darkYellow); break;
+        case 0:  color = QColor(Qt::black) ;break;
+        case 1:  color = QColor(Qt::blue);break;
+        case 2:  color =  QColor(Qt::red); break;
+        case 3:  color =  QColor(Qt::darkGreen); break;
+        case 4:  color =  QColor(Qt::magenta); break;
+        case 5:  color =  QColor(Qt::darkCyan); break;
+        case 6:  color =  QColor(Qt::gray); break;
+        case 7:  color =  QColor(Qt::darkBlue); break;
+        case 8:  color =  QColor(Qt::darkYellow); break;
     }
     index++;
     return color;
@@ -427,7 +442,7 @@ void MainWindow::xmlLoadState(QDomDocument state_document)
     QDomElement plotmatrix_el;
 
     for (  plotmatrix_el = root.firstChildElement( "plotmatrix" )  ;
-          !plotmatrix_el.isNull();
+           !plotmatrix_el.isNull();
            plotmatrix_el = plotmatrix_el.nextSiblingElement( "plotmatrix" ) )
     {
         // add if tabs are too few
@@ -485,33 +500,36 @@ void MainWindow::deleteLoadedData()
     {
         PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
         if (tab){
-             for (unsigned p = 0; p < tab->widgetList().size(); p++)
-             {
-                 PlotWidget* plot = tab->widgetList().at(p);
-                 plot->detachAllCurves();
-             }
+            for (unsigned p = 0; p < tab->widgetList().size(); p++)
+            {
+                PlotWidget* plot = tab->widgetList().at(p);
+                plot->detachAllCurves();
+            }
         }
     }
 }
 
-void MainWindow::onActionLoadDataFile()
+void MainWindow::onActionLoadDataFile(bool reload_previous)
 {
     if( data_loader.empty())
     {
         QMessageBox::warning(0, tr("Warning"),
-              tr("No plugin was loaded to process a data file\n") );
+                             tr("No plugin was loaded to process a data file\n") );
         return;
     }
     if( _mapped_plot_data.empty() == false)
     {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(0, tr("Warning"),
-                             tr("Do you want to delete the previously loaded data?\n") );
+                                      tr("Do you want to delete the previously loaded data?\n") );
         if( reply == QMessageBox::Yes )
         {
             deleteLoadedData();
         }
     }
+
+    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+
 
     std::map<QString,DataLoader*>::iterator it;
 
@@ -523,43 +541,54 @@ void MainWindow::onActionLoadDataFile()
         file_extension_filter.append( QString(" *.") + extension );
     }
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+
     QString directory_path = QDir::currentPath();
 
     const QString SETTINGS_KEY( "load_directory");
 
-    if( settings.contains(SETTINGS_KEY) ) {
+    if( settings.contains(SETTINGS_KEY) )
+    {
         directory_path = settings.value(SETTINGS_KEY).toString();
     }
 
-    QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  directory_path, file_extension_filter);
+    QString fileName;
+    if( reload_previous && settings.contains("recentlyLoadedFile") )
+    {
+        fileName = settings.value("recentlyLoadedFile").toString();
+    }
+    else{
+        fileName = QFileDialog::getOpenFileName(this, "Open Layout",  directory_path, file_extension_filter);
+    }
 
     if (fileName.isEmpty())
         return;
 
     directory_path = QFileInfo(fileName).absolutePath();
+
     settings.setValue(SETTINGS_KEY, directory_path);
+    settings.setValue("recentlyLoadedFile", fileName);
+    ui->actionLoad_Recent_file->setText("Load data from: " + fileName);
 
     DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
 
     if( loader )
     {
-            QFile file(fileName);
+        QFile file(fileName);
 
-            if (!file.open(QFile::ReadOnly | QFile::Text)) {
-                QMessageBox::warning(this, tr("Layout"),
-                                     tr("Cannot read file %1:\n%2.")
-                                     .arg(fileName)
-                                     .arg(file.errorString()));
-                return;
-            }
+        if (!file.open(QFile::ReadOnly | QFile::Text)) {
+            QMessageBox::warning(this, tr("Layout"),
+                                 tr("Cannot read file %1:\n%2.")
+                                 .arg(fileName)
+                                 .arg(file.errorString()));
+            return;
+        }
 
         BusyTaskDialog* busy = new BusyTaskDialog("Loading file");
         busy->show();
         using namespace std::placeholders;
 
         PlotDataMap mapped_data = loader->readDataFromFile( &file,
-              [busy](int value) {
+                                                            [busy](int value) {
             busy->setValue(value);
             QApplication::processEvents();
         },
@@ -569,16 +598,19 @@ void MainWindow::onActionLoadDataFile()
 
         // remap to different type
         PlotDataMap::iterator it;
-        for ( it= mapped_data.begin(); it != mapped_data.end(); it++)
+        int count = 0;
+        for ( it = mapped_data.begin(); it != mapped_data.end(); it++)
         {
             std::string name  = it->first;
             PlotDataPtr plot  = it->second;
 
+            qDebug() << count++ << " converting " << QString::fromStdString(name) << " " <<  plot->getVectorX()->size();
+
             // slow.. it will be better in the future
             PlotDataQwtPtr plot_qwt( new PlotDataQwt(
-                                     plot->getVectorX(),
-                                     plot->getVectorY(),
-                                     plot->name()));
+                                         plot->getVectorX(),
+                                         plot->getVectorY(),
+                                         plot->name()));
 
             QString qname = QString::fromStdString(name);
             // remap to derived class
@@ -598,6 +630,11 @@ void MainWindow::onActionLoadDataFile()
 
     qDebug() << "DONE";
 
+}
+
+void MainWindow::onActionReloadDataFile()
+{
+    onActionLoadDataFile( true );
 }
 
 void MainWindow::onActionLoadLayout()
@@ -761,7 +798,7 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
         QApplication::processEvents();
 
         do_remove = QMessageBox::question(0, tr("Warning"),
-                             tr("Do you really want to destroy this tab?\n") );
+                                          tr("Do you really want to destroy this tab?\n") );
     }
     if( do_remove == QMessageBox::Yes )
     {

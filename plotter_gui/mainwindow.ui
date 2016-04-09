@@ -599,6 +599,11 @@
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
+  <action name="actionLoad_Recent_file">
+   <property name="text">
+    <string>Load Recent file</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
