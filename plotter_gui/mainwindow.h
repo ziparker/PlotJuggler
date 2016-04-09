@@ -25,6 +25,8 @@ public slots:
 
 private slots:
 
+    void onTrackerTimeUpdated(double current_time );
+
     void on_splitter_splitterMoved(int, int);
 
     void resizeEvent(QResizeEvent *) ;
@@ -92,6 +94,7 @@ private:
 
     //std::map<QString, SharedVector> _mapped_raw_data;
     PlotDataQwtMap    _mapped_plot_data;
+    PlotDataMap       _mapped_data_raw;
 
     void rearrangeGridLayout();
     QVector< QWidget*> settings_widgets;

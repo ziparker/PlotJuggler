@@ -146,6 +146,7 @@ void CurveTracker::move(const QPoint &pos)
 {
     _prev_trackerpoint = invTransform(pos);
     QwtPlotPicker::move( pos );
+    emit timePointMoved( pos.x() );
 }
 
 QString CurveTracker::curveInfoAt( const QwtPlotCurve *curve, QPointF pos ) const

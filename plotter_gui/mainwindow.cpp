@@ -98,6 +98,14 @@ void MainWindow::undoableChangeHappened()
 
 }
 
+void MainWindow::onTrackerTimeUpdated(double current_time)
+{
+    for (int i=0; i< state_publisher.size(); i++)
+    {
+        state_publisher[i]->updateState( &_mapped_data_raw, current_time);
+    }
+}
+
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
     const QMimeData *mimeData = event->mimeData();
@@ -237,10 +245,12 @@ void MainWindow::buildData()
             y_vector->push_back(  A*sin(B*x + C) +D*x*0.02 ) ;
         }
 
+        PlotDataPtr plot_raw ( new PlotData(t_vector, y_vector, name.toStdString() ) );
         PlotDataQwtPtr plot ( new PlotDataQwt(t_vector, y_vector, name.toStdString() ) );
         plot->setColorHint( colorHint() );
-        _mapped_plot_data.insert( std::make_pair( name, plot));
 
+        _mapped_plot_data.insert( std::make_pair( name, plot));
+        _mapped_data_raw.insert( std::make_pair( name.toStdString(), plot_raw) );
     }
 
     ui->horizontalSlider->setRange(0, SIZE  );
@@ -369,14 +379,6 @@ void MainWindow::on_pushremoveEmpty_pressed()
 
 void MainWindow::on_horizontalSlider_valueChanged(int )
 {
-    PlotDataQwtMap::iterator it;
-    for( it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++)
-    {
-        //PlotData* plot = (it->second);
-        //float range = (float)ui->horizontalSlider->maximum() *0.001*0.1;
-        //  plot->setRangeX( (float)value*0.001 , range ) ;
-    }
-
     for (int index = 0; index < ui->tabWidget->count(); index++)
     {
         PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
@@ -389,6 +391,7 @@ void MainWindow::on_horizontalSlider_valueChanged(int )
 void MainWindow::on_plotAdded(PlotWidget* widget)
 {
     connect(widget,SIGNAL(plotModified()), SLOT(undoableChangeHappened()) );
+    connect( widget->tracker(), SIGNAL(timePointMoved(double)), this, SLOT( onTrackerTimeUpdated( double )) );
 }
 
 
@@ -505,6 +508,9 @@ void MainWindow::deleteLoadedData()
     _mapped_plot_data.erase( _mapped_plot_data.begin(),
                              _mapped_plot_data.end() );
 
+    _mapped_data_raw.erase( _mapped_data_raw.begin(),
+                            _mapped_data_raw.end() );
+
     ui->listWidget->clear();
 
     for (int index = 0; index < ui->tabWidget->count(); index++)
@@ -528,6 +534,7 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
                              tr("No plugin was loaded to process a data file\n") );
         return;
     }
+
     if( _mapped_plot_data.empty() == false)
     {
         QMessageBox::StandardButton reply;
@@ -626,6 +633,8 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
             QString qname = QString::fromStdString(name);
             // remap to derived class
             _mapped_plot_data.insert( std::make_pair( qname, plot_qwt) );
+            _mapped_data_raw.insert( std::make_pair( name, plot) );
+
 
             plot_qwt->setColorHint( colorHint() );
             ui->listWidget->addItem( new QListWidgetItem( qname ) );

@@ -125,6 +125,7 @@ void PlotWidget::buildLegend()
 }
 
 
+
 PlotWidget::~PlotWidget()
 {
     detachAllCurves();

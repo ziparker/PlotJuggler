@@ -99,6 +99,7 @@ private:
 
     void buildActions();
     void buildLegend();
+
 };
 
 #endif

@@ -40,6 +40,9 @@ private:
     QLineF  curveLineAt( const QwtPlotCurve *, double x ) const;
 
     QPointF _prev_trackerpoint;
+
+signals:
+    void timePointMoved(double time);
 };
 
 #endif // CUSTOMTRACKER_H
