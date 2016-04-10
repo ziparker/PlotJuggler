@@ -108,14 +108,18 @@ QwtText CurveTracker::trackerText( const QPoint & ) const
 
 QwtText CurveTracker::trackerTextF( QPointF pos ) const
 {
-    static QPointF prev_pos;
-    static QwtText trackerText;
-
-    if( pos == prev_pos)
+    if ( plot() )
     {
-        return trackerText;
+       const QwtScaleMap scaleMap = plot()->canvasMap(QwtPlot::xBottom);
+       double v1 = scaleMap.s1();
+       double v2 = scaleMap.s2();
+       if( pos.x() < v1 || pos.x() > v2)
+       {
+           return QwtText();
+       }
     }
-    prev_pos = pos;
+
+    QwtText trackerText;
 
     trackerText.setColor( Qt::black );
 
