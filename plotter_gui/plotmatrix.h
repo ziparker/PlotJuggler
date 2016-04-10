@@ -44,6 +44,7 @@ public:
 
     const std::vector<PlotWidget*>& widgetList();
 
+
 public slots:
     void maximizeHorizontalScale();
     void maximizeVerticalScale();

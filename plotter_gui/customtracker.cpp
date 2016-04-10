@@ -108,7 +108,14 @@ QwtText CurveTracker::trackerText( const QPoint & ) const
 
 QwtText CurveTracker::trackerTextF( QPointF pos ) const
 {
-    QwtText trackerText;
+    static QPointF prev_pos;
+    static QwtText trackerText;
+
+    if( pos == prev_pos)
+    {
+        return trackerText;
+    }
+    prev_pos = pos;
 
     trackerText.setColor( Qt::black );
 
@@ -170,6 +177,15 @@ QString CurveTracker::curveInfoAt( const QwtPlotCurve *curve, QPointF pos ) cons
 QLineF CurveTracker::curveLineAt(
         const QwtPlotCurve *curve, double x ) const
 {
+  /*  static double prev_x = 0;
+    static QLineF prev_result;
+
+    if( x == prev_x)
+    {
+        return prev_result;
+    }
+    prev_x = x;*/
+
     QLineF line;
 
     if ( curve->dataSize() >= 2 )
@@ -194,7 +210,7 @@ QLineF CurveTracker::curveLineAt(
             }
         }
     }
-
+   // prev_result = line;
     return line;
 }
 

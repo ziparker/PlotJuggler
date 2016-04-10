@@ -82,6 +82,8 @@ private slots:
 
     void on_tabWidget_tabCloseRequested(int index);
 
+    void on_horizontalSlider_sliderMoved(int position);
+
 private:
     Ui::MainWindow *ui;
 
@@ -124,6 +126,8 @@ protected:
     void dropEvent(QDropEvent *event) ;
 
     void deleteLoadedData();
+
+    void updateSlider();
 
 };
 

@@ -8,7 +8,6 @@
 #include "customtracker.h"
 
 
-
 PlotMatrix::PlotMatrix(PlotDataQwtMap *datamap, QWidget *parent ):
     QFrame( parent ),
     _mapped_data(datamap)
@@ -335,8 +334,6 @@ void PlotMatrix::updateLayout()
         alignScaleBorder( col, QwtPlot::xBottom );
         alignScaleBorder( col, QwtPlot::xTop );
     }
-
-    this->replot();
 }
 
 void PlotMatrix::replot()
@@ -350,7 +347,6 @@ void PlotMatrix::replot()
 
 void PlotMatrix::setHorizontalLink(bool linked)
 {
-    qDebug() << "setHorizontalLink " << linked;
     _horizontal_link = linked;
 }
 

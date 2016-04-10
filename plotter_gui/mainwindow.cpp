@@ -4,6 +4,7 @@
 #include <QMouseEvent>
 #include <QDebug>
 #include <QDrag>
+#include <numeric>
 #include <QMimeData>
 #include <QMenu>
 #include <QStringListModel>
@@ -100,10 +101,29 @@ void MainWindow::undoableChangeHappened()
 
 void MainWindow::onTrackerTimeUpdated(double current_time)
 {
+    double minX = std::numeric_limits<double>::max();
+    double maxX = std::numeric_limits<double>::min();
+
+    for ( unsigned i = 0; i< currentPlotGrid()->widgetList().size(); i++ )
+    {
+        PlotWidget *plot =  currentPlotGrid()->widgetList().at(i);
+        QRectF bound_max = plot->maximumBoundingRect();
+        if( minX > bound_max.left() )    minX = bound_max.left();
+        if( maxX < bound_max.right() )   maxX = bound_max.right();
+    }
+
+    double ratio = current_time/(double)(maxX-minX);
+
+    double max_slider_value = (double)ui->horizontalSlider->maximum();
+    ui->horizontalSlider->setValue( (int)(max_slider_value* ratio) );
+
+    //------------------------
     for (int i=0; i< state_publisher.size(); i++)
     {
         state_publisher[i]->updateState( &_mapped_data_raw, current_time);
     }
+
+
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
@@ -159,15 +179,15 @@ QColor MainWindow::colorHint()
     QColor color;
     switch( index%9 )
     {
-        case 0:  color = QColor(Qt::black) ;break;
-        case 1:  color = QColor(Qt::blue);break;
-        case 2:  color =  QColor(Qt::red); break;
-        case 3:  color =  QColor(Qt::darkGreen); break;
-        case 4:  color =  QColor(Qt::magenta); break;
-        case 5:  color =  QColor(Qt::darkCyan); break;
-        case 6:  color =  QColor(Qt::gray); break;
-        case 7:  color =  QColor(Qt::darkBlue); break;
-        case 8:  color =  QColor(Qt::darkYellow); break;
+    case 0:  color = QColor(Qt::black) ;break;
+    case 1:  color = QColor(Qt::blue);break;
+    case 2:  color =  QColor(Qt::red); break;
+    case 3:  color =  QColor(Qt::darkGreen); break;
+    case 4:  color =  QColor(Qt::magenta); break;
+    case 5:  color =  QColor(Qt::darkCyan); break;
+    case 6:  color =  QColor(Qt::gray); break;
+    case 7:  color =  QColor(Qt::darkBlue); break;
+    case 8:  color =  QColor(Qt::darkYellow); break;
     }
     index++;
     return color;
@@ -210,7 +230,7 @@ void MainWindow::loadPlugins(QString subdir_name)
                 qDebug() << "loaded a StatePublisher plugin";
                 state_publisher.push_back( publisher );
             }
-        }  
+        }
     }
 }
 
@@ -377,15 +397,9 @@ void MainWindow::on_pushremoveEmpty_pressed()
     undoableChangeHappened();
 }
 
-void MainWindow::on_horizontalSlider_valueChanged(int )
+void MainWindow::on_horizontalSlider_valueChanged(int position)
 {
-    for (int index = 0; index < ui->tabWidget->count(); index++)
-    {
-        PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
-        if (tab){
-            tab->updateLayout();
-        }
-    }
+
 }
 
 void MainWindow::on_plotAdded(PlotWidget* widget)
@@ -439,6 +453,7 @@ QDomDocument MainWindow::xmlSaveState()
 
     doc.appendChild(root);
 
+    updateSlider();
     return doc;
 }
 
@@ -481,6 +496,7 @@ void MainWindow::xmlLoadState(QDomDocument state_document)
     ui->tabWidget->setCurrentIndex( current_index );
 
     currentPlotGrid()->replot();
+    updateSlider();
 }
 
 void MainWindow::onActionSaveLayout()
@@ -501,6 +517,28 @@ void MainWindow::onActionSaveLayout()
         QTextStream stream(&file);
         stream << doc.toString() << endl;
     }
+}
+
+void MainWindow::updateSlider()
+{
+    /*   double minX = std::numeric_limits<double>::max();
+    double maxX = std::numeric_limits<double>::min();
+
+    for ( unsigned i = 0; i< currentPlotGrid()->widgetList().size(); i++ )
+    {
+        PlotWidget *plot =  currentPlotGrid()->widgetList().at(i);
+        if( plot->isEmpty() == false)
+        {
+            QRectF bound_max = plot->maximumBoundingRect();
+            if( minX > bound_max.left() )    minX = bound_max.left();
+            if( maxX < bound_max.right() )   maxX = bound_max.right();
+        }
+    }
+
+    ui->horizontalSlider->setMinimum( minX );
+    ui->horizontalSlider->setMaximum( maxX );
+
+    qDebug() << "updateSlider " << minX << " " << maxX;*/
 }
 
 void MainWindow::deleteLoadedData()
@@ -617,10 +655,17 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
         // remap to different type
         PlotDataMap::iterator it;
         int count = 0;
+
+        int maxSizeX = std::numeric_limits<int>::min();
+
         for ( it = mapped_data.begin(); it != mapped_data.end(); it++)
         {
             std::string name  = it->first;
             PlotDataPtr plot  = it->second;
+
+            if( maxSizeX <  plot->getVectorX()->size() ){
+                maxSizeX =  plot->getVectorX()->size();
+            }
 
             qDebug() << count++ << " converting " << QString::fromStdString(name) << " " <<  plot->getVectorX()->size();
 
@@ -635,21 +680,18 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
             _mapped_plot_data.insert( std::make_pair( qname, plot_qwt) );
             _mapped_data_raw.insert( std::make_pair( name, plot) );
 
-
             plot_qwt->setColorHint( colorHint() );
             ui->listWidget->addItem( new QListWidgetItem( qname ) );
         }
+
+        _undo_states.clear();
+        _redo_states.clear();
+        _undo_states.push_back(  xmlSaveState() );
+        ui->horizontalSlider->setRange(0, maxSizeX );
     }
     else{
         qDebug() << "no loader found";
     }
-
-    _undo_states.clear();
-    _redo_states.clear();
-    _undo_states.push_back(  xmlSaveState() );
-
-    qDebug() << "DONE";
-
 }
 
 void MainWindow::onActionReloadDataFile()
@@ -688,7 +730,7 @@ void MainWindow::onActionLoadLayout()
     xmlLoadState( domDocument );
     _undo_states.clear();
     _undo_states.push_back( domDocument );
-
+    updateSlider();
 }
 
 
@@ -831,4 +873,31 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
     }
 
 
+}
+
+void MainWindow::on_horizontalSlider_sliderMoved(int position)
+{
+    QSlider* slider = ui->horizontalSlider;
+    double ratio = (double)position / (double)(slider->maximum() -  slider->minimum() );
+
+    double minX = std::numeric_limits<double>::max();
+    double maxX = std::numeric_limits<double>::min();
+
+    for ( unsigned i = 0; i< currentPlotGrid()->widgetList().size(); i++ )
+    {
+        PlotWidget *plot =  currentPlotGrid()->widgetList().at(i);
+        if( plot->isEmpty() == false)
+        {
+            QRectF bound_max = plot->maximumBoundingRect();
+            if( minX > bound_max.left() )    minX = bound_max.left();
+            if( maxX < bound_max.right() )   maxX = bound_max.right();
+        }
+    }
+    double posX = (maxX-minX) * ratio;
+
+    for ( unsigned i = 0; i< currentPlotGrid()->widgetList().size(); i++ )
+    {
+        PlotWidget *plot =  currentPlotGrid()->widgetList().at(i);
+        plot->tracker()->manualMove( QPointF(posX,0) );
+    }
 }
