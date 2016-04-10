@@ -54,6 +54,10 @@ PlotWidget::PlotWidget(PlotDataQwtMap *datamap, QWidget *parent):
 
     _magnifier->setAxisEnabled(xTop, false);
     _magnifier->setAxisEnabled(yRight, false);
+
+    // disable right button. keep mouse wheel
+    _magnifier->setMouseButton( Qt::NoButton );
+
     connect(_magnifier, SIGNAL(rescaled(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
 
     _panner->setMouseButton(  Qt::MiddleButton, Qt::NoModifier);

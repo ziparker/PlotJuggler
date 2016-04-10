@@ -108,8 +108,6 @@ QwtText CurveTracker::trackerText( const QPoint & ) const
 
 QwtText CurveTracker::trackerTextF( QPointF pos ) const
 {
-    //qDebug() << "trackerTextF " << pos;
-
     QwtText trackerText;
 
     trackerText.setColor( Qt::black );
@@ -146,7 +144,7 @@ void CurveTracker::move(const QPoint &pos)
 {
     _prev_trackerpoint = invTransform(pos);
     QwtPlotPicker::move( pos );
-    emit timePointMoved( pos.x() );
+    emit timePointMoved( _prev_trackerpoint.x() );
 }
 
 QString CurveTracker::curveInfoAt( const QwtPlotCurve *curve, QPointF pos ) const
