@@ -45,8 +45,6 @@ private slots:
 
     void on_pushremoveEmpty_pressed();
 
-    void on_horizontalSlider_valueChanged(int value);
-
     void on_plotAdded(PlotWidget* widget);
 
     void on_addTabButton_pressed();
@@ -127,7 +125,6 @@ protected:
 
     void deleteLoadedData();
 
-    void updateSlider();
 
 };
 

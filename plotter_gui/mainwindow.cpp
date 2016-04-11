@@ -114,8 +114,16 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
 
     double ratio = current_time/(double)(maxX-minX);
 
-    double max_slider_value = (double)ui->horizontalSlider->maximum();
-    ui->horizontalSlider->setValue( (int)(max_slider_value* ratio) );
+    double min_slider = (double)ui->horizontalSlider->minimum();
+    double max_slider = (double)ui->horizontalSlider->maximum();
+    int slider_value = (int)((max_slider- min_slider)* ratio);
+
+  /*  qDebug() << current_time << ": " << minX << " " << maxX
+             << " " << min_slider
+             << " " << max_slider
+             << " " << slider_value;*/
+
+    ui->horizontalSlider->setValue(slider_value);
 
     //------------------------
     for (int i=0; i< state_publisher.size(); i++)
@@ -274,7 +282,6 @@ void MainWindow::buildData()
     }
 
     ui->horizontalSlider->setRange(0, SIZE  );
-    on_horizontalSlider_valueChanged(0);
 
 }
 
@@ -397,10 +404,6 @@ void MainWindow::on_pushremoveEmpty_pressed()
     undoableChangeHappened();
 }
 
-void MainWindow::on_horizontalSlider_valueChanged(int position)
-{
-
-}
 
 void MainWindow::on_plotAdded(PlotWidget* widget)
 {
@@ -453,7 +456,6 @@ QDomDocument MainWindow::xmlSaveState()
 
     doc.appendChild(root);
 
-    updateSlider();
     return doc;
 }
 
@@ -496,7 +498,6 @@ void MainWindow::xmlLoadState(QDomDocument state_document)
     ui->tabWidget->setCurrentIndex( current_index );
 
     currentPlotGrid()->replot();
-    updateSlider();
 }
 
 void MainWindow::onActionSaveLayout()
@@ -519,27 +520,7 @@ void MainWindow::onActionSaveLayout()
     }
 }
 
-void MainWindow::updateSlider()
-{
-    /*   double minX = std::numeric_limits<double>::max();
-    double maxX = std::numeric_limits<double>::min();
 
-    for ( unsigned i = 0; i< currentPlotGrid()->widgetList().size(); i++ )
-    {
-        PlotWidget *plot =  currentPlotGrid()->widgetList().at(i);
-        if( plot->isEmpty() == false)
-        {
-            QRectF bound_max = plot->maximumBoundingRect();
-            if( minX > bound_max.left() )    minX = bound_max.left();
-            if( maxX < bound_max.right() )   maxX = bound_max.right();
-        }
-    }
-
-    ui->horizontalSlider->setMinimum( minX );
-    ui->horizontalSlider->setMaximum( maxX );
-
-    qDebug() << "updateSlider " << minX << " " << maxX;*/
-}
 
 void MainWindow::deleteLoadedData()
 {
@@ -654,9 +635,8 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
 
         // remap to different type
         PlotDataMap::iterator it;
-        int count = 0;
 
-        int maxSizeX = std::numeric_limits<int>::min();
+        size_t maxSizeX = 0;
 
         for ( it = mapped_data.begin(); it != mapped_data.end(); it++)
         {
@@ -666,8 +646,6 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
             if( maxSizeX <  plot->getVectorX()->size() ){
                 maxSizeX =  plot->getVectorX()->size();
             }
-
-            qDebug() << count++ << " converting " << QString::fromStdString(name) << " " <<  plot->getVectorX()->size();
 
             // slow.. it will be better in the future
             PlotDataQwtPtr plot_qwt( new PlotDataQwt(
@@ -730,7 +708,7 @@ void MainWindow::onActionLoadLayout()
     xmlLoadState( domDocument );
     _undo_states.clear();
     _undo_states.push_back( domDocument );
-    updateSlider();
+
 }
 
 
