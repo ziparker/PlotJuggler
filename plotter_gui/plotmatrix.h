@@ -11,7 +11,7 @@ class PlotMatrix: public QFrame
     Q_OBJECT
 
 public:
-    PlotMatrix(PlotDataQwtMap *datamap,QWidget * parent = NULL );
+    PlotMatrix(PlotDataMap *datamap,QWidget * parent = NULL );
     virtual ~PlotMatrix();
 
     void addRow();
@@ -66,7 +66,7 @@ private:
     bool _horizontal_link;
     std::vector<PlotWidget*> _widget_list;
 
-    PlotDataQwtMap *_mapped_data;
+    PlotDataMap *_mapped_data;
 
 signals:
     void plotAdded(PlotWidget*);

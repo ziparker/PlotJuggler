@@ -126,9 +126,9 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     ui->horizontalSlider->setValue(slider_value);
 
     //------------------------
-    for (int i=0; i< state_publisher.size(); i++)
+    for (unsigned i=0; i< state_publisher.size(); i++)
     {
-        state_publisher[i]->updateState( &_mapped_data_raw, current_time);
+        state_publisher[i]->updateState( &_mapped_plot_data, current_time);
     }
 
 
@@ -273,12 +273,12 @@ void MainWindow::buildData()
             y_vector->push_back(  A*sin(B*x + C) +D*x*0.02 ) ;
         }
 
-        PlotDataPtr plot_raw ( new PlotData(t_vector, y_vector, name.toStdString() ) );
-        PlotDataQwtPtr plot ( new PlotDataQwt(t_vector, y_vector, name.toStdString() ) );
-        plot->setColorHint( colorHint() );
+        PlotDataPtr plot ( new PlotData(t_vector, y_vector, name.toStdString() ) );
 
-        _mapped_plot_data.insert( std::make_pair( name, plot));
-        _mapped_data_raw.insert( std::make_pair( name.toStdString(), plot_raw) );
+        QColor color = colorHint();
+        plot->setColorHint( color.red(), color.green(), color.blue() );
+
+        _mapped_plot_data.insert( std::make_pair( name.toStdString(), plot) );
     }
 
     ui->horizontalSlider->setRange(0, SIZE  );
@@ -527,9 +527,6 @@ void MainWindow::deleteLoadedData()
     _mapped_plot_data.erase( _mapped_plot_data.begin(),
                              _mapped_plot_data.end() );
 
-    _mapped_data_raw.erase( _mapped_data_raw.begin(),
-                            _mapped_data_raw.end() );
-
     ui->listWidget->clear();
 
     for (int index = 0; index < ui->tabWidget->count(); index++)
@@ -647,18 +644,13 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
                 maxSizeX =  plot->getVectorX()->size();
             }
 
-            // slow.. it will be better in the future
-            PlotDataQwtPtr plot_qwt( new PlotDataQwt(
-                                         plot->getVectorX(),
-                                         plot->getVectorY(),
-                                         plot->name()));
-
             QString qname = QString::fromStdString(name);
             // remap to derived class
-            _mapped_plot_data.insert( std::make_pair( qname, plot_qwt) );
-            _mapped_data_raw.insert( std::make_pair( name, plot) );
+            _mapped_plot_data.insert( std::make_pair( name, plot) );
 
-            plot_qwt->setColorHint( colorHint() );
+            QColor color = colorHint();
+            plot->setColorHint( color.red(), color.green(), color.blue() );
+
             ui->listWidget->addItem( new QListWidgetItem( qname ) );
         }
 

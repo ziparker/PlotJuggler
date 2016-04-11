@@ -92,9 +92,7 @@ private:
 
     void buildData();
 
-    //std::map<QString, SharedVector> _mapped_raw_data;
-    PlotDataQwtMap    _mapped_plot_data;
-    PlotDataMap       _mapped_data_raw;
+    PlotDataMap    _mapped_plot_data;
 
     void rearrangeGridLayout();
     QVector< QWidget*> settings_widgets;

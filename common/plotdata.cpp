@@ -5,16 +5,11 @@
 
 PlotData::PlotData()
 {
-    _subsample = 1;
-    _index_first = 0;
-    _index_last  = 0;
+
 }
 
 PlotData::PlotData(SharedVector x, SharedVector y, std::string name)
 {
-    _subsample = 1;
-    _index_first = 0;
-    _index_last  = 0;
     _name = name;
     addData(x,y);
 }
@@ -30,55 +25,28 @@ void PlotData::addData(SharedVector x, SharedVector y)
         throw std::runtime_error("size of x and y vectors must match");
     }
 
-    y_min = std::numeric_limits<double>::max();
-    y_max = std::numeric_limits<double>::min();
+    _y_min = std::numeric_limits<double>::max();
+    _y_max = std::numeric_limits<double>::min();
 
-    x_min = _x_points->front();
-    x_max = _x_points->back();
+    _x_min = _x_points->front();
+    _x_max = _x_points->back();
 
     for (unsigned i=0; i< x->size(); i++)
     {
         double Y = _y_points->at(i);
-        if( Y < y_min ) y_min = Y;
-        if( Y > y_max ) y_max = Y;
+        if( Y < _y_min ) _y_min = Y;
+        if( Y > _y_max ) _y_max = Y;
     }
-    _index_first = 0;
-    _index_last  = _x_points->size() -1;
 }
 
 
-
-void PlotData::setSubsampleFactor(int factor)
-{
-    if( factor < 1) factor = 10;
-    _subsample = factor;
-}
 
 size_t PlotData::size() const
 {
-    // return _raw_points.size() ;
-   return _index_last - _index_first + 1;
+   return _x_points->size();
 }
 
 
-
-
-void PlotData::setRangeX(double t_center, double t_range)
-{
-    double t_min = t_center - t_range/2;
-    double t_max = t_center + t_range/2;
-
-    std::vector<double>::const_iterator lower, upper;
-
-    lower = std::lower_bound(_x_points->begin(), _x_points->end(), t_min );
-    upper = std::upper_bound(_x_points->begin(), _x_points->end(), t_max );
-
-    _index_first = ( lower - _x_points->begin());
-    _index_last  = ( upper - _x_points->begin());
-
-    x_min = t_min;
-    x_max = t_max;
-}
 
 int PlotData::getIndexFromX(double x ) const
 {
@@ -91,12 +59,29 @@ int PlotData::getIndexFromX(double x ) const
     }
     prev_query = x;
 
-    std::vector<double>::const_iterator lower;
+    std::vector<double>::iterator lower;
     lower = std::lower_bound(_x_points->begin(), _x_points->end(), x );
-    int index = (lower - _x_points->begin());
+    int index =   std::distance( _x_points->begin(), lower);
 
     prev_index = index;
     return index;
+}
+
+void PlotData::getColorHint(PlotData::Color *color) const
+{
+    *color = _color_hint;
+}
+
+void PlotData::setColorHint(PlotData::Color color)
+{
+    _color_hint = color;
+}
+
+void PlotData::setColorHint(int red, int green, int blue)
+{
+    _color_hint.red   = red;
+    _color_hint.green = green;
+    _color_hint.blue  = blue;
 }
 
 double PlotData::getY(double x) const
@@ -109,7 +94,7 @@ double PlotData::getY(double x) const
     return 0;
 }
 
-SharedVector PlotData::getVectorX() { return _x_points; }
+SharedVector PlotData::getVectorX() const { return _x_points; }
 
-SharedVector PlotData::getVectorY() { return _y_points; }
+SharedVector PlotData::getVectorY() const { return _y_points; }
 

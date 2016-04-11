@@ -12,6 +12,13 @@ typedef std::shared_ptr<std::vector<double> > SharedVector;
 class PlotData
 {
 public:
+    typedef struct {
+        int red;
+        int green;
+        int blue;
+    }Color;
+
+
     PlotData();
     PlotData(SharedVector x, SharedVector y, std::string name);
     virtual ~PlotData() {}
@@ -19,34 +26,31 @@ public:
     void addData( SharedVector x, SharedVector y );
 
     void setName(const std::string& name) { _name = name; }
-    std::string name() { return _name; }
+    std::string name() const { return _name; }
 
-    void setSubsampleFactor(int factor);
+    virtual size_t size() const;
 
-    size_t size() const;
+    virtual int getIndexFromX(double x) const;
 
-    void setRangeX(double t_left, double t_right);
-
-    int getIndexFromX(double x) const;
+    void getColorHint(Color* color) const;
+    void setColorHint(Color color);
+    void setColorHint(int red, int green, int blue);
 
     double getY(double x ) const;
 
-    SharedVector getVectorX();
-    SharedVector getVectorY();
+    SharedVector getVectorX() const;
+    SharedVector getVectorY() const;
 
 protected:
 
     std::string _name;
+    Color _color_hint;
 
     SharedVector _x_points;
     SharedVector _y_points;
 
-    int _subsample;
-
-    float y_min, y_max;
-    float x_min, x_max;
-    int _index_first, _index_last;
-
+    double _y_min, _y_max;
+    double _x_min, _x_max;
 
 };
 

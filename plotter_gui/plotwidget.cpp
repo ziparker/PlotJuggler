@@ -14,7 +14,7 @@
 #include <QApplication>
 #include <set>
 
-PlotWidget::PlotWidget(PlotDataQwtMap *datamap, QWidget *parent):
+PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     QwtPlot(parent),
     _zoomer( 0 ),
     _magnifier(0 ),
@@ -137,7 +137,7 @@ PlotWidget::~PlotWidget()
 
 void PlotWidget::addCurve(const QString &name, bool do_replot)
 {
-    PlotDataQwtMap::iterator it = _mapped_data->find(name);
+    PlotDataMap::iterator it = _mapped_data->find( name.toStdString() );
     if( it == _mapped_data->end())
     {
         return;
@@ -148,16 +148,21 @@ void PlotWidget::addCurve(const QString &name, bool do_replot)
         return;
     }
 
-    PlotDataQwtPtr data = it->second;
+    PlotDataPtr data = it->second;
 
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
 
-    curve->setData( data.get()  );
+    PlotDataQwt* plot_qwt = new PlotDataQwt( data->getVectorX(), data->getVectorY(), data->name() );
+
+    curve->setData( plot_qwt );
     curve->attach( this );
     curve->setStyle( QwtPlotCurve::Lines);
 
-    curve->setPen( data->colorHint(), 1.0 );
+    PlotData::Color color;
+    data->getColorHint(&color);
+    curve->setPen( QColor( color.red, color.green, color.blue), 1.0 );
+
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
     QRectF bounding = maximumBoundingRect();
@@ -166,9 +171,9 @@ void PlotWidget::addCurve(const QString &name, bool do_replot)
 
     if( do_replot )
     {
-        this->setVerticalAxisRange( bounding.bottom(), bounding.top() );
-        this->setHorizontalAxisRange( bounding.left(), bounding.right() );
-        this->replot();
+        this->setAxisScale(yLeft,   bounding.bottom(), bounding.top() );
+        this->setAxisScale(xBottom, bounding.left(), bounding.right() );
+        replot();
     }
 }
 
@@ -179,7 +184,7 @@ void PlotWidget::removeCurve(const QString &name)
     {
         QwtPlotCurve* curve = it->second;
         curve->detach();
-        this->replot();
+        replot();
         _curve_list.erase( it );
     }
 }
@@ -197,7 +202,6 @@ const std::map<QString, QwtPlotCurve *> &PlotWidget::curveList()
 void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
 {
     QwtPlot::dragEnterEvent(event);
-
 
     const QMimeData *mimeData = event->mimeData();
     QStringList mimeFormats = mimeData->formats();
@@ -372,34 +376,19 @@ void PlotWidget::setScale(QRectF rect, bool emit_signal)
     }
 }
 
-void PlotWidget::setHorizontalAxisRange(float min, float max)
-{
-    float EPS = 0.001*( max-min );
-    if( fabs( min - _prev_bounding.left()) > EPS ||
-            fabs( max - _prev_bounding.right()) > EPS )
-    {
-        this->setAxisScale( xBottom, min, max);
-    }
-
-    _prev_bounding.setLeft(min);
-    _prev_bounding.setRight(max);
-}
-
-void PlotWidget::setVerticalAxisRange(float min, float max)
-{
-    float EPS = 0.001*( max-min );
-    if( fabs( min - _prev_bounding.bottom()) > EPS ||
-            fabs( max - _prev_bounding.top()) > EPS )
-    {
-        this->setAxisScale( yLeft, min, max);
-    }
-
-    _prev_bounding.setBottom(min);
-    _prev_bounding.setTop(max);
-}
 
 void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
 {
+    if (axisId == xBottom)
+    {
+        std::map<QString, QwtPlotCurve*>::iterator it;
+        for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
+        {
+            PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
+            data->setRangeX( min,max );
+        }
+    }
+
     QwtPlot::setAxisScale( axisId, min, max, step);
 }
 
@@ -414,11 +403,11 @@ QRectF PlotWidget::maximumBoundingRect()
     std::map<QString, QwtPlotCurve*>::iterator it;
     for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
-        QwtPlotCurve* curve = it->second;
-        QRectF bounding_rect = curve->data()->boundingRect();
+        PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
+        QRectF bounding_rect = data->maximumBoundingRect();
 
         if( bottom > bounding_rect.top() )    bottom = bounding_rect.top();
-        if( top < bounding_rect.bottom() ) top = bounding_rect.bottom();
+        if( top < bounding_rect.bottom() )    top = bounding_rect.bottom();
 
         if( left > bounding_rect.left() )    left = bounding_rect.left();
         if( right < bounding_rect.right() ) right = bounding_rect.right();
@@ -447,7 +436,7 @@ void PlotWidget::replot()
     if(_tracker && _tracker->isEnabled() && _tracker->isActive())
         _tracker->onExternalZoom( canvas_range );
 
-    _prev_bounding = canvas_range;
+    //_prev_bounding = canvas_range;
 }
 
 void PlotWidget::launchRemoveCurveDialog()
