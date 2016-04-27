@@ -1,16 +1,42 @@
-TEMPLATE=lib
-CONFIG += dll
-QT += core gui
-DEFINES += QTCOLORWIDGETS_LIBRARY
 
-TARGET=ColorWidgets
+
+TARGET = colorwidgets
+
+TEMPLATE=lib
+CONFIG += staticlib c++11
+QT += core gui
+
+#DEFINES += QTCOLORWIDGETS_LIBRARY
+
 
 greaterThan(QT_MAJOR_VERSION, 4) {
 	QT += widgets
 }
 
+INCLUDEPATH += $$PWD/src $$PWD/include
 
-include(color_widgets.pri)
+SOURCES += \
+    $$PWD/src/color_preview.cpp \
+    $$PWD/src/color_wheel.cpp \
+    $$PWD/src/color_palette.cpp \
+    $$PWD/src/swatch.cpp \
+    $$PWD/src/color_utils.cpp \
+   $$PWD/src/color_names.cpp
+
+HEADERS += \
+    $$PWD/include/color_wheel.hpp \
+    $$PWD/include/color_preview.hpp \
+    $$PWD/include/colorwidgets_global.hpp \
+    $$PWD/include/color_palette.hpp \
+    $$PWD/include/swatch.hpp \
+    $$PWD/include/color_utils.hpp \
+    $$PWD/include/color_names.hpp
+
+FORMS += \
+  #   $$PWD/src/color_dialog.ui
+
+RESOURCES += \
+    $$PWD/src/color_widgets.qrc
 
 CONFIG(debug, debug|release) {
      mac: TARGET = $$join(TARGET,,,_debug)
@@ -19,12 +45,6 @@ CONFIG(debug, debug|release) {
 
 DESTDIR = $$OUT_PWD/../lib
 
-unix {
-    LIB_TARGET = lib$${TARGET}.so
-}
-win32 {
-    LIB_TARGET = $${TARGET}.dll
-}
 
 isEmpty(PREFIX) {
     PREFIX = /usr/local

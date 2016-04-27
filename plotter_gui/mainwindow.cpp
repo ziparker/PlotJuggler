@@ -118,14 +118,11 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     double max_slider = (double)ui->horizontalSlider->maximum();
     int slider_value = (int)((max_slider- min_slider)* ratio);
 
-  /*  qDebug() << current_time << ": " << minX << " " << maxX
-             << " " << min_slider
-             << " " << max_slider
-             << " " << slider_value;*/
-
     ui->horizontalSlider->setValue(slider_value);
 
     //------------------------
+    qDebug() << "updating " << current_time ;
+
     for (unsigned i=0; i< state_publisher.size(); i++)
     {
         state_publisher[i]->updateState( &_mapped_plot_data, current_time);
@@ -870,4 +867,6 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
         PlotWidget *plot =  currentPlotGrid()->widgetList().at(i);
         plot->tracker()->manualMove( QPointF(posX,0) );
     }
+
+    onTrackerTimeUpdated( posX );
 }
