@@ -1,6 +1,7 @@
 
 include_directories( ../qwt/src ../common ../color_widgets/include)
 
+QT5_ADD_RESOURCES (RES_SRC  resource.qrc)
 
 SET( PLOTTER_SRC
     main.cpp
@@ -20,7 +21,7 @@ SET( PLOTTER_SRC
     busydialog.ui
     )
 
-add_executable(SuperPlotter ${PLOTTER_SRC})
+add_executable(SuperPlotter ${PLOTTER_SRC} ${RES_SRC})
 
 target_link_libraries(SuperPlotter
     ${Qt5Widgets_LIBRARIES}
