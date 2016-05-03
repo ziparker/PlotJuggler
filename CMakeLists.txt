@@ -23,11 +23,15 @@ include_directories(
     ${Qt5Xml_INCLUDE_DIRS}
     )
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(common)
 add_subdirectory(color_widgets)
 add_subdirectory(qwt/src)
 add_subdirectory( plotter_gui )
 
-
+add_subdirectory( plugins/DataLoadCSV )
+add_subdirectory( plugins/DataLoadFB )
 
