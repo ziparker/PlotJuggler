@@ -41,6 +41,8 @@ QString extractSchemaFromHeader(QDataStream* stream )
     return header;
 }
 
+
+
 std::vector<uint8_t> parseSchema(QString schema_text)
 {
     flatbuffers::Parser parser;
@@ -63,6 +65,7 @@ std::vector<uint8_t> parseSchema(QString schema_text)
 
 bool getFlatbuffer(QDataStream* source, std::vector<uint8_t>* destination)
 {
+
     if( source->atEnd())
     {
         return false;
@@ -75,12 +78,13 @@ bool getFlatbuffer(QDataStream* source, std::vector<uint8_t>* destination)
         chunk_size += c << (8*i);
     }
 
-    std::cout << std::endl;
-    destination->resize( chunk_size );
-
     if( destination)    {
-        for (uint32_t i=0; i< chunk_size; i++ ) {
-            (*source) >> (*destination)[i];
+
+        destination->resize( chunk_size );
+        for (uint32_t i=0; i< chunk_size; i++ )
+        {
+            (*source) >> c;
+            (*destination)[i] = c;
         }
     }
     else{
@@ -89,10 +93,10 @@ bool getFlatbuffer(QDataStream* source, std::vector<uint8_t>* destination)
     return true;
 }
 
-std::vector<std::string> getFieldNamesFromSchema(const reflection::Schema* schema,
-                                                 flatbuffers::Table *root_table )
+QStringList getFieldNamesFromSchema(const reflection::Schema* schema,
+                                    flatbuffers::Table *root_table )
 {
-    std::vector<std::string> field_names;
+    QStringList field_names;
     auto fields = schema->root_table()->fields();
 
     for (uint32_t f=0; f< fields->size(); f++)
@@ -108,13 +112,14 @@ std::vector<std::string> getFieldNamesFromSchema(const reflection::Schema* schem
             {
                 std::stringstream ss;
                 ss << field_name << "." << v;
-                field_names.push_back( ss.str() );
+                field_names.push_back(  ss.str().c_str() );
             }
         }
         else{
-            field_names.push_back( std::string(field_name)  );
+            field_names.push_back( field_name  );
         }
     }
+
     return field_names;
 }
 
@@ -134,35 +139,63 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
     std::vector<uint8_t> schema_buffer = parseSchema( schema_text );
     const reflection::Schema* schema = reflection::GetSchema( schema_buffer.data() );
 
+    file_stream.device()->setTextModeEnabled( false );
+
     //--------------------------------------
     // build data
 
     std::vector<uint8_t> flatbuffer;
-    std::vector<std::string> field_names;
+    QStringList field_names;
 
     auto fields = schema->root_table()->fields();
 
-    std::vector<SharedVector> data_ptr;
+    std::vector<SharedVector> data_vectors;
 
     bool first_pass = true;
 
-    while( getFlatbuffer( &file_stream, &flatbuffer) )
+    int time_index = -1;
+    int linecount = 0;
+
+    SharedVector time_vector (new std::vector<double>() );
+
+    bool interrupted = false;
+
+    while( getFlatbuffer( &file_stream, &flatbuffer) && !interrupted )
     {
+
+        interrupted = checkInterruption();
+        updateCompletion(0);
+
         auto root_table = flatbuffers::GetAnyRoot( flatbuffer.data() );
+
+       // qDebug() << linecount << " " << flatbuffer.size() ;
 
         // at the first flatbuffer, create a vector with the names.
         if( first_pass)
         {
             field_names = getFieldNamesFromSchema( schema, root_table );
 
+            SelectXAxisDialog* dialog = new SelectXAxisDialog( &field_names );
+            dialog->exec();
+            time_index = dialog->getSelectedRowNumber();
+
             for (int i=0; i< field_names.size(); i++)
             {
-                data_ptr.push_back( SharedVector(new std::vector<double>()) );
+                data_vectors.push_back( SharedVector(new std::vector<double>()) );
+
+                PlotDataPtr plot( new PlotData );
+                std::string name = field_names.at(i).toStdString();
+                plot->setName( name );
+                plot_data.insert( std::make_pair( name, plot ) );
             }
             first_pass = false;
         }
 
         int index = 0;
+
+        if( time_index < 0) {
+            time_vector->push_back( linecount++ );
+        }
 
         for (uint32_t f=0; f< fields->size(); f++)
         {
@@ -177,20 +210,43 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
 
                 for (int v=0; v < vect->size(); v++)
                 {
-                    data_vector = data_ptr[index];
-                    index++;
+                    data_vector = data_vectors[index];
+
 
                     double value = GetAnyVectorElemF( vect, vect_type, v);
                     data_vector->push_back( value );
+
+                    if( time_index == index) {
+                        time_vector->push_back( value );
+                    }
+                    index++;
                 }
             }
             else{
-                data_vector = data_ptr[index];
-                index++;
+                data_vector = data_vectors[index];
 
                 double value = GetAnyFieldF(*root_table, *field );
                 data_vector->push_back( value );
+
+                if( time_index == index) {
+                    time_vector->push_back( value );
+                }
+                index++;
             }
+        }
+    }
+
+
+    if(interrupted)
+    {
+        plot_data.erase( plot_data.begin(), plot_data.end() );
+    }
+    else{
+
+        for( unsigned i=0; i < field_names.size(); i++)
+        {
+            QString name = field_names[i];
+            plot_data[ name.toStdString() ]->addData( time_vector, data_vectors[i]);
         }
     }
 
