@@ -3,6 +3,13 @@ include_directories( ../qwt/src ../common ../color_widgets/include)
 
 QT5_ADD_RESOURCES (RES_SRC  resource.qrc)
 
+QT5_WRAP_UI ( UI_SRC
+    mainwindow.ui
+    removecurvedialog.ui
+    busydialog.ui
+    curvecolorpick.ui
+    )
+
 SET( PLOTTER_SRC
     main.cpp
     mainwindow.cpp
@@ -16,12 +23,9 @@ SET( PLOTTER_SRC
     curvecolorpick.cpp
     plotdata_qwt.cpp
 
-    mainwindow.ui
-    removecurvedialog.ui
-    busydialog.ui
     )
 
-add_executable(SuperPlotter ${PLOTTER_SRC} ${RES_SRC})
+add_executable(SuperPlotter ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})
 
 target_link_libraries(SuperPlotter
     ${Qt5Widgets_LIBRARIES}
