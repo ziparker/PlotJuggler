@@ -9,6 +9,7 @@
 #include <sstream>
 #include "flatbuffers/reflection.h"
 #include "flatbuffers/idl.h"
+#include "lz4.h"
 
 DataLoadFlatbuffer::DataLoadFlatbuffer()
 {
@@ -63,34 +64,86 @@ std::vector<uint8_t> parseSchema(QString schema_text)
 }
 
 
-bool getFlatbuffer(QDataStream* source, std::vector<uint8_t>* destination)
+bool decompressBlock( QDataStream* source, LZ4_streamDecode_t* lz4_stream, std::vector<char>* output )
 {
+    qDebug() << "decompress block";
 
     if( source->atEnd())
     {
         return false;
     }
-    quint8 c;
+
+    const long BUFFER_SIZE = 1024*128 ;
+    output->resize( BUFFER_SIZE );
+
+    char comp_buffer[LZ4_COMPRESSBOUND( BUFFER_SIZE )];
+    int64_t block_size = 0;
+
+    char c[8];
+    source->readRawData( c, 8);
+
+    for (int i=0; i<8; i++ )
+    {
+        block_size += ((uint8_t)c[i]) << (8*i);
+        printf(" %02X ", (uint8_t)c[i]);
+    }
+    std::cout << std::endl;
+    qDebug() << "  block size " << block_size;
+
+    if( block_size <= 0 || block_size > BUFFER_SIZE) {
+        return false;
+    }
+
+    const size_t readCount =  source->readRawData( comp_buffer, (size_t) block_size);
+    if(readCount != (size_t) block_size) {
+        return false;
+    }
+
+    const int64_t decBytes = LZ4_decompress_safe_continue(
+                lz4_stream,
+                comp_buffer,
+                output->data(),
+                block_size,
+                BUFFER_SIZE );
+
+    qDebug() << "uncompressed size " << decBytes;
+
+    if(decBytes <= 0) {
+        return false;
+    }
+    output->shrink_to_fit();
+
+    return true;
+}
+
+
+char* getSingleFlatbuffer(char* source, std::vector<uint8_t>* destination)
+{
+    uint8_t c;
     uint32_t chunk_size = 0;
     for (int i=0; i< sizeof(uint32_t); i++ )
     {
-        (*source) >> c;
+        c = (uint8_t)(*source);
+        source++;
         chunk_size += c << (8*i);
     }
 
-    if( destination)    {
+    qDebug() <<  "chunk_size " << chunk_size ;
+
+    if( destination) {
 
         destination->resize( chunk_size );
         for (uint32_t i=0; i< chunk_size; i++ )
         {
-            (*source) >> c;
-            (*destination)[i] = c;
+            (*destination)[i] = (uint8_t)(*source);
+            source++;
         }
     }
     else{
-        source->skipRawData( chunk_size );
+        source += chunk_size ;
     }
-    return true;
+
+    return source;
 }
 
 QStringList getFieldNamesFromSchema(const reflection::Schema* schema,
@@ -133,13 +186,13 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
     // get the schema from the header of the file
     QDataStream file_stream(file);
 
+    file_stream.device()->setTextModeEnabled( false );
+
     QString schema_text = extractSchemaFromHeader( &file_stream );
 
     // parse the schema
     std::vector<uint8_t> schema_buffer = parseSchema( schema_text );
     const reflection::Schema* schema = reflection::GetSchema( schema_buffer.data() );
-
-    file_stream.device()->setTextModeEnabled( false );
 
     //--------------------------------------
     // build data
@@ -160,60 +213,85 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
 
     bool interrupted = false;
 
-    while( getFlatbuffer( &file_stream, &flatbuffer) && !interrupted )
+    std::vector<char> decompressed_block;
+
+    LZ4_streamDecode_t lz4_stream;
+
+    LZ4_setStreamDecode( &lz4_stream, NULL, 0);
+
+    while( decompressBlock( &file_stream, &lz4_stream, &decompressed_block ) && !interrupted )
     {
-
         interrupted = checkInterruption();
-        updateCompletion(0);
+        uint64_t block_size = decompressed_block.size();
+        char* block_end = &decompressed_block.data()[ block_size ];
+        char* block_ptr = &decompressed_block.data()[ 0 ];
 
-        auto root_table = flatbuffers::GetAnyRoot( flatbuffer.data() );
-
-       // qDebug() << linecount << " " << flatbuffer.size() ;
-
-        // at the first flatbuffer, create a vector with the names.
-        if( first_pass)
+        while( block_ptr !=  block_end )
         {
-            field_names = getFieldNamesFromSchema( schema, root_table );
+            block_ptr = getSingleFlatbuffer( block_ptr, &flatbuffer );
 
-            SelectXAxisDialog* dialog = new SelectXAxisDialog( &field_names );
-            dialog->exec();
-            time_index = dialog->getSelectedRowNumber();
+            qDebug() << linecount << " " << flatbuffer.size() ;
 
-            for (int i=0; i< field_names.size(); i++)
+            auto root_table = flatbuffers::GetAnyRoot( flatbuffer.data() );
+
+            // qDebug() << linecount << " " << flatbuffer.size() ;
+
+            // at the first flatbuffer, create a vector with the names.
+            if( first_pass)
             {
-                data_vectors.push_back( SharedVector(new std::vector<double>()) );
+                field_names = getFieldNamesFromSchema( schema, root_table );
 
-                PlotDataPtr plot( new PlotData );
-                std::string name = field_names.at(i).toStdString();
-                plot->setName( name );
-                plot_data.insert( std::make_pair( name, plot ) );
-            }
-            first_pass = false;
-        }
+                SelectXAxisDialog* dialog = new SelectXAxisDialog( &field_names );
+                dialog->exec();
+                time_index = dialog->getSelectedRowNumber();
 
-        int index = 0;
-
-        if( time_index < 0) {
-            time_vector->push_back( linecount++ );
-        }
-
-        for (uint32_t f=0; f< fields->size(); f++)
-        {
-            auto field = fields->Get(f);
-
-            SharedVector data_vector;
-
-            if( field->type()->base_type() == reflection::Vector)
-            {
-                const auto& vect = GetFieldAnyV( *root_table, *field );
-                const auto& vect_type = field->type()->element();
-
-                for (int v=0; v < vect->size(); v++)
+                for (int i=0; i< field_names.size(); i++)
                 {
+                    data_vectors.push_back( SharedVector(new std::vector<double>()) );
+
+                    PlotDataPtr plot( new PlotData );
+                    std::string name = field_names.at(i).toStdString();
+                    plot->setName( name );
+                    plot_data.insert( std::make_pair( name, plot ) );
+                }
+                first_pass = false;
+            }
+
+            int index = 0;
+
+            if( time_index < 0) {
+                time_vector->push_back( linecount++ );
+            }
+
+            for (uint32_t f=0; f< fields->size(); f++)
+            {
+                auto field = fields->Get(f);
+
+                SharedVector data_vector;
+
+                if( field->type()->base_type() == reflection::Vector)
+                {
+                    const auto& vect = GetFieldAnyV( *root_table, *field );
+                    const auto& vect_type = field->type()->element();
+
+                    for (int v=0; v < vect->size(); v++)
+                    {
+                        data_vector = data_vectors[index];
+
+
+                        double value = GetAnyVectorElemF( vect, vect_type, v);
+                        data_vector->push_back( value );
+
+                        if( time_index == index) {
+                            time_vector->push_back( value );
+                        }
+                        index++;
+                    }
+                }
+                else{
                     data_vector = data_vectors[index];
 
-
-                    double value = GetAnyVectorElemF( vect, vect_type, v);
+                    double value = GetAnyFieldF(*root_table, *field );
                     data_vector->push_back( value );
 
                     if( time_index == index) {
@@ -221,17 +299,6 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
                     }
                     index++;
                 }
-            }
-            else{
-                data_vector = data_vectors[index];
-
-                double value = GetAnyFieldF(*root_table, *field );
-                data_vector->push_back( value );
-
-                if( time_index == index) {
-                    time_vector->push_back( value );
-                }
-                index++;
             }
         }
     }

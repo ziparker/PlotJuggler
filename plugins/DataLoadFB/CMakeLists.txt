@@ -1,5 +1,5 @@
 
-include_directories( ./ ../  ../../common ./flatbuffers)
+include_directories( ./ ../  ../../common ./flatbuffers ./lz4)
 
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
@@ -15,6 +15,9 @@ SET( SRC
     flatbuffers/util.cpp
     flatbuffers/reflection.cpp
     flatbuffers/idl_parser.cpp
+
+    lz4/lz4.h
+    lz4/lz4.c
     )
 
 add_library(DataLoadFB SHARED  ${SRC} ${UI_SRC}  )
