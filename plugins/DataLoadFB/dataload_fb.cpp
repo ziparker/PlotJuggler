@@ -38,7 +38,6 @@ QString extractSchemaFromHeader(QDataStream* stream )
     }
     while (line.contains( "root_type" ) == false );
 
-    qDebug() << header;
     return header;
 }
 
@@ -64,20 +63,18 @@ std::vector<uint8_t> parseSchema(QString schema_text)
 }
 
 
-bool decompressBlock( QDataStream* source, LZ4_streamDecode_t* lz4_stream, std::vector<char>* output )
+bool decompressBlock( QDataStream* source, LZ4_streamDecode_t* lz4_stream, std::vector<char>* output, size_t* parsed_size )
 {
-    qDebug() << "decompress block";
-
     if( source->atEnd())
     {
         return false;
     }
 
-    const long BUFFER_SIZE = 1024*128 ;
+    const size_t BUFFER_SIZE = 1024*512 ;
     output->resize( BUFFER_SIZE );
 
     char comp_buffer[LZ4_COMPRESSBOUND( BUFFER_SIZE )];
-    int64_t block_size = 0;
+    size_t block_size = 0;
 
     char c[8];
     source->readRawData( c, 8);
@@ -85,33 +82,31 @@ bool decompressBlock( QDataStream* source, LZ4_streamDecode_t* lz4_stream, std::
     for (int i=0; i<8; i++ )
     {
         block_size += ((uint8_t)c[i]) << (8*i);
-        printf(" %02X ", (uint8_t)c[i]);
     }
-    std::cout << std::endl;
-    qDebug() << "  block size " << block_size;
 
     if( block_size <= 0 || block_size > BUFFER_SIZE) {
         return false;
     }
 
     const size_t readCount =  source->readRawData( comp_buffer, (size_t) block_size);
+
+    *parsed_size = 8+ readCount;
+
     if(readCount != (size_t) block_size) {
         return false;
     }
 
-    const int64_t decBytes = LZ4_decompress_safe_continue(
+    const size_t decBytes = LZ4_decompress_safe_continue(
                 lz4_stream,
                 comp_buffer,
                 output->data(),
                 block_size,
                 BUFFER_SIZE );
 
-    qDebug() << "uncompressed size " << decBytes;
-
     if(decBytes <= 0) {
         return false;
     }
-    output->shrink_to_fit();
+    output->resize(decBytes);
 
     return true;
 }
@@ -127,8 +122,6 @@ char* getSingleFlatbuffer(char* source, std::vector<uint8_t>* destination)
         source++;
         chunk_size += c << (8*i);
     }
-
-    qDebug() <<  "chunk_size " << chunk_size ;
 
     if( destination) {
 
@@ -181,6 +174,10 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
                                                  std::function<void(int)> updateCompletion,
                                                  std::function<bool()> checkInterruption)
 {
+    float file_size = file->size();
+    float parsed_size = 0;
+    size_t block_size;
+
     PlotDataMap plot_data;
 
     // get the schema from the header of the file
@@ -219,9 +216,14 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
 
     LZ4_setStreamDecode( &lz4_stream, NULL, 0);
 
-    while( decompressBlock( &file_stream, &lz4_stream, &decompressed_block ) && !interrupted )
+    while( decompressBlock( &file_stream, &lz4_stream, &decompressed_block , &block_size)
+           && !interrupted )
     {
+        parsed_size += block_size;
+
+        updateCompletion( (100.0*parsed_size)/file_size );
         interrupted = checkInterruption();
+
         uint64_t block_size = decompressed_block.size();
         char* block_end = &decompressed_block.data()[ block_size ];
         char* block_ptr = &decompressed_block.data()[ 0 ];
@@ -229,8 +231,6 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
         while( block_ptr !=  block_end )
         {
             block_ptr = getSingleFlatbuffer( block_ptr, &flatbuffer );
-
-            qDebug() << linecount << " " << flatbuffer.size() ;
 
             auto root_table = flatbuffers::GetAnyRoot( flatbuffer.data() );
 
@@ -269,7 +269,9 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
 
                 SharedVector data_vector;
 
-                if( field->type()->base_type() == reflection::Vector)
+                const auto& type = field->type()->base_type();
+
+                if( type == reflection::Vector)
                 {
                     const auto& vect = GetFieldAnyV( *root_table, *field );
                     const auto& vect_type = field->type()->element();
@@ -278,8 +280,16 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
                     {
                         data_vector = data_vectors[index];
 
+                        double value = 0;
+                        if( vect_type == reflection::Float || vect_type == reflection::Double)
+                        {
+                            value = flatbuffers::GetAnyVectorElemF( vect, vect_type, v);
+                        }
+                        else{
+                            long value_int = flatbuffers::GetAnyVectorElemI( vect, vect_type, v);
+                            value = value_int;
+                        }
 
-                        double value = GetAnyVectorElemF( vect, vect_type, v);
                         data_vector->push_back( value );
 
                         if( time_index == index) {
@@ -291,7 +301,16 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
                 else{
                     data_vector = data_vectors[index];
 
-                    double value = GetAnyFieldF(*root_table, *field );
+                    double value = 0;
+                    if( type == reflection::Float || type == reflection::Double)
+                    {
+                        value = flatbuffers::GetAnyFieldI(*root_table, *field );
+                    }
+                    else{
+                        long value_int = flatbuffers::GetAnyFieldI(*root_table, *field );
+                        value = value_int;
+                    }
+
                     data_vector->push_back( value );
 
                     if( time_index == index) {
