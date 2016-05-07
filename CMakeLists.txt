@@ -1,7 +1,6 @@
 project(SuperPlotterCmake)
 cmake_minimum_required(VERSION 2.8)
 
-CMAKE_POLICY(SET CMP0020 NEW)
 
 find_package(Qt5Core)
 find_package(Qt5Widgets)
