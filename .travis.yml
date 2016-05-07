@@ -1,0 +1,11 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+script: make 
+notifications:
+  email:
+    recipients:
+      - davide.faconti@gmail.com
+    on_success: change
+    on_failure: always
