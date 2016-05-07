@@ -37,3 +37,6 @@ target_link_libraries(SuperPlotter
     colorwidgets
     qwt_static
     )
+
+INSTALL(TARGETS SuperPlotter DESTINATION Superplotter )
+

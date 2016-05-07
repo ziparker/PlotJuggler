@@ -16,3 +16,5 @@ add_library(DataLoadCSV SHARED ${SRC} ${UI_SRC}  )
 
 
 target_link_libraries(DataLoadCSV common ${Qt5Widgets_LIBRARIES} )
+
+INSTALL(TARGETS DataLoadCSV DESTINATION Superplotter )

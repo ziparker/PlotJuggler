@@ -23,3 +23,5 @@ SET( FT_SRC
 add_library(DataLoadFB SHARED  ${FT_SRC} ${UI_SRC}  )
 
 target_link_libraries(DataLoadFB common ${Qt5Widgets_LIBRARIES} )
+
+INSTALL(TARGETS DataLoadFB DESTINATION Superplotter )
