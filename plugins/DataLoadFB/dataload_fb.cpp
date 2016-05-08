@@ -6,15 +6,60 @@
 #include "selectxaxisdialog.h"
 #include <QDebug>
 #include <iostream>
-#include <sstream>
-#include "flatbuffers/reflection.h"
+#include <functional>
 #include "flatbuffers/idl.h"
 #include "lz4.h"
 
+enum BaseType {
+  None = 0,
+  Bool = 1,
+  Byte = 2,
+  UByte = 3,
+  Short = 4,
+  UShort = 5,
+  Int = 6,
+  UInt = 7,
+  Long = 8,
+  ULong = 9,
+  Float = 10,
+  Double = 11,
+  MIN = None,
+  MAX = Double
+};
+
+inline const char **EnumNamesBaseType() {
+  static const char *names[] = { "None", "Bool",      "Byte", "UByte",
+                                 "Short", "UShort",   "Int",  "UInt",
+                                 "Long", "ULong",     "Float", "Double",
+                                 nullptr };
+  return names;
+}
+
+inline BaseType BaseTypeFromString( const char* type_name)
+{
+    const char **names = EnumNamesBaseType();
+
+    for (int i=1; i<= BaseType::MAX; i++)
+    {
+        if( strcmp( names[i], type_name) == 0)
+        {
+            return static_cast<BaseType>( i );
+        }
+    }
+    return BaseType::None;
+}
+
+inline int SizeOf(BaseType e) {
+    static int sizes[] = { 0, 1, 1, 1,
+                           2, 2, 4, 4,
+                           8,8, 4, 8 };
+    return sizes[static_cast<int>(e)];
+}
+
+
 DataLoadFlatbuffer::DataLoadFlatbuffer()
 {
-    _extensions.push_back( "fb");
-    _extensions.push_back( "dtl");
+    _extensions.push_back( "pms");
 }
 
 const std::vector<const char*> &DataLoadFlatbuffer::compatibleFileExtensions() const
@@ -36,30 +81,75 @@ QString extractSchemaFromHeader(QDataStream* stream )
 
         header.append( line );
     }
-    while (line.contains( "root_type" ) == false );
+    while (line.contains( "COMPRESSED_DATA_STARTS_NEXT" ) == false );
 
     return header;
 }
 
+typedef struct{
+    std::vector<uint64_t> offsets;
+    std::vector<BaseType> types;
+    std::vector<QString> names;
+    std::vector< std::function<double(void*) > > readFunction;
 
+} Schema;
 
-std::vector<uint8_t> parseSchema(QString schema_text)
+Schema parseSchemaAndGetOffsets(QString schema_text)
 {
-    flatbuffers::Parser parser;
-    bool ok = parser.Parse( schema_text.toStdString().c_str(), nullptr, nullptr );
+    Schema schema;
+    schema.offsets.push_back( 0 );
 
-    if( !ok ) {
-        qDebug() << parser.error_.c_str();
+
+    QStringList lines = schema_text.split(QRegExp("\n|\r\n|\r"));
+
+    for (int i=0; i< lines.size(); i++)
+    {
+        QString line = lines.at(i);
+        QStringList items = line.split( QRegExp("[ :]"),QString::SkipEmptyParts);
+        schema.names.push_back( items.at(0) );
+
+        QString type_name = items.at(1);
+
+        if( type_name.compare("Float") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<float>(ptr); } );
+        }
+        else if( type_name.compare("Double") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<double>(ptr); } );
+        }
+        else if( type_name.compare("Bool") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<bool>(ptr); } );
+        }
+        else if( type_name.compare("Byte") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<int8_t>(ptr); } );
+        }
+        else if( type_name.compare("UByte") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<uint8_t>(ptr); } );
+        }
+        else if( type_name.compare("Short") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<int16_t>(ptr); } );
+        }
+        else if( type_name.compare("UShort") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<uint16_t>(ptr); } );
+        }
+        else if( type_name.compare("Int") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<int32_t>(ptr); } );
+        }
+        else if( type_name.compare("UInt") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<uint32_t>(ptr); } );
+        }
+        else if( type_name.compare("Long") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<int64_t>(ptr); } );
+        }
+        else if( type_name.compare("ULong") == 0) {
+            schema.readFunction.push_back( [](void* ptr) { return flatbuffers::ReadScalar<uint64_t>(ptr); } );
+        }
+
+        BaseType type = BaseTypeFromString( type_name.toStdString().c_str()) ;
+        schema.types.push_back( type );
+        schema.offsets.push_back(  schema.offsets.back() + SizeOf(type) );
+
     }
-
-    assert("Parse failed " && ok);
-
-    parser.Serialize();
-
-    auto data_ptr = parser.builder_.GetBufferPointer();
-    auto length = parser.builder_.GetSize();
-
-    return std::vector<uint8_t>(  &data_ptr[0], &data_ptr[length] );
+    return schema;
 }
 
 
@@ -139,36 +229,6 @@ char* getSingleFlatbuffer(char* source, std::vector<uint8_t>* destination)
     return source;
 }
 
-QStringList getFieldNamesFromSchema(const reflection::Schema* schema,
-                                    flatbuffers::Table *root_table )
-{
-    QStringList field_names;
-    auto fields = schema->root_table()->fields();
-
-    for (uint32_t f=0; f< fields->size(); f++)
-    {
-        auto field = fields->Get(f);
-        const char* field_name = field->name()->c_str();
-
-        if( field->type()->base_type() == reflection::Vector)
-        {
-            const auto& vect = GetFieldAnyV( *root_table, *field );
-
-            for (int v=0; v < vect->size(); v++)
-            {
-                std::stringstream ss;
-                ss << field_name << "." << v;
-                field_names.push_back(  ss.str().c_str() );
-            }
-        }
-        else{
-            field_names.push_back( field_name  );
-        }
-    }
-
-    return field_names;
-}
-
 
 PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
                                                  std::function<void(int)> updateCompletion,
@@ -188,20 +248,15 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
     QString schema_text = extractSchemaFromHeader( &file_stream );
 
     // parse the schema
-    std::vector<uint8_t> schema_buffer = parseSchema( schema_text );
-    const reflection::Schema* schema = reflection::GetSchema( schema_buffer.data() );
+    Schema schema = parseSchemaAndGetOffsets( schema_text );
+
 
     //--------------------------------------
     // build data
 
-    std::vector<uint8_t> flatbuffer;
-    QStringList field_names;
-
-    auto fields = schema->root_table()->fields();
-
     std::vector<SharedVector> data_vectors;
 
-    bool first_pass = true;
+
 
     int time_index = -1;
     int linecount = 0;
