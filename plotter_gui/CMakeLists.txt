@@ -33,7 +33,6 @@ target_link_libraries(SuperPlotter
     ${Qt5Xml_LIBRARIES}
     ${Qt5Concurrent_LIBRARIES}
     ${Qt5Core_QTMAIN_LIBRARIES}
-    common
     colorwidgets
     qwt_static
     )
