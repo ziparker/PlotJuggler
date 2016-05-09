@@ -43,7 +43,10 @@ protected:
 
     double _y_min, _y_max;
     double _x_min, _x_max;
-    int _red, _green, _blue;
+
+    int _color_hint_red;
+    int _color_hint_green;
+    int _color_hint_blue;
 
 };
 
@@ -128,15 +131,15 @@ inline size_t PlotData::size() const{
 
 inline void PlotData::getColorHint(int *red, int* green, int* blue) const
 {
-    *red = _red;
-    *green = _green;
-    *blue = _blue;
+    *red = _color_hint_red;
+    *green = _color_hint_green;
+    *blue = _color_hint_blue;
 }
 inline void PlotData::setColorHint(int red, int green, int blue)
 {
-    _red = red;
-    _green = green;
-    _blue = blue;
+    _color_hint_red = red;
+    _color_hint_green = green;
+    _color_hint_blue = blue;
 }
 
 

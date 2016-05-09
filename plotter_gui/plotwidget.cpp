@@ -159,9 +159,9 @@ void PlotWidget::addCurve(const QString &name, bool do_replot)
     curve->attach( this );
     curve->setStyle( QwtPlotCurve::Lines);
 
-    PlotData::Color color;
-    data->getColorHint(&color);
-    curve->setPen( QColor( color.red, color.green, color.blue), 1.0 );
+    int red, green,blue;
+    data->getColorHint(& red, &green, &blue);
+    curve->setPen( QColor( red, green, blue), 1.0 );
 
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 

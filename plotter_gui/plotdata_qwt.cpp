@@ -78,14 +78,14 @@ void PlotDataQwt::setRangeX(double x_left, double x_right)
 
 QColor PlotDataQwt::colorHint() const
 {
-    return QColor( _color_hint.red, _color_hint.green, _color_hint.blue);
+    return QColor( _color_hint_red, _color_hint_green, _color_hint_blue);
 }
 
 void PlotDataQwt::setColorHint(QColor color)
 {
-    _color_hint.red   = color.red();
-    _color_hint.green = color.green();
-    _color_hint.blue  = color.blue();
+    _color_hint_red   = color.red();
+    _color_hint_green = color.green();
+    _color_hint_blue  = color.blue();
 }
 
 

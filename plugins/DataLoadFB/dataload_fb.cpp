@@ -121,8 +121,6 @@ Schema parseSchemaAndGetOffsets(QString schema_text)
         QString line = lines.at(i);
         QStringList items = line.split( QRegExp("[ :;]"),QString::SkipEmptyParts);
 
-        qDebug()  << line  << " -> " << items;
-
         schema.names.push_back( items.at(0) );
 
         QString type_name = items.at(1).toLower();
@@ -304,7 +302,6 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
         plot_data.insert( std::make_pair( name, plot ) );
     }
 
-
     //--------------------------------------
 
     size_t msg_count = 0;
@@ -334,7 +331,6 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
 
         for (int m=0; m < num_messages; m++)
         {
-            qDebug() << msg_count;
             char *msg_ptr = & decompressed_buffer[ m*message_size ];
 
             if( time_index < 0) {
@@ -345,7 +341,6 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
             {
                 size_t offset = schema.offsets[f];
                 double value = schema.readFunction[f]( msg_ptr + offset  );
-                qDebug() << schema.names[f] << " = " << value;
                 data_vectors[f]->push_back( value );
             }
         }
