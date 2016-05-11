@@ -8,13 +8,11 @@
 #include <QMimeData>
 #include <QMenu>
 #include <QStringListModel>
-#include <QRegExpValidator>
 #include <stdio.h>
 #include <qwt_plot_canvas.h>
 #include <QDomDocument>
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QPropertyAnimation>
 #include <QStringRef>
 #include <QThread>
 #include "../plugins/dataloader_base.h"
@@ -22,6 +20,7 @@
 #include <QPluginLoader>
 #include "busydialog.h"
 #include "busytaskdialog.h"
+#include "filterablelistwidget.h"
 #include <QSettings>
 
 QStringList  words_list;
@@ -36,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent) :
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
                << "mai" << "nessun" << "ci" << "dividera";
 
+    curvelist_widget = new FilterableListWidget(this);
+
+     ui->splitter->insertWidget(0, curvelist_widget);
 
     ui->splitter->setStretchFactor(0,0);
     ui->splitter->setStretchFactor(1,1);
@@ -47,30 +49,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushHorizontalResize->setChecked( _horizontal_link );
     currentPlotGrid()->setHorizontalLink( _horizontal_link );
 
-    connect(ui->actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
-    connect(ui->actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
-    connect(ui->actionLoadData,SIGNAL(triggered()), this, SLOT(onActionLoadDataFile()) );
-    connect(ui->actionLoad_Recent_file,SIGNAL(triggered()), this, SLOT(onActionReloadDataFile()) );
-
-
     this->addAction( ui->actionUndo );
     connect(ui->actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked(bool)) );
 
     this->addAction( ui->actionRedo );
     connect(ui->actionRedo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonRedo_clicked(bool)) );
-
-    for( int i=0; i< ui->gridLayoutSettings->count(); i++)
-    {
-        QLayoutItem* item = ui->gridLayoutSettings->itemAt(i);
-        if(item)
-        {
-            QWidget* widget = item->widget();
-            if(widget) {
-                widget->setMaximumHeight( 0 );
-                settings_widgets.push_back( widget);
-            }
-        }
-    }
 
     createActions();
     loadPlugins("plugins");
@@ -155,7 +138,7 @@ void MainWindow::dropEvent(QDropEvent *)
 
 void MainWindow::createActions()
 {
-    QMenu* menuFile = new QMenu("File", ui->mainToolBar);
+   /* QMenu* menuFile = new QMenu("File", ui->mainToolBar);
     menuFile->addAction(ui->actionLoadData);
 
     menuFile->addAction(ui->actionLoad_Recent_file);
@@ -174,7 +157,7 @@ void MainWindow::createActions()
     menuFile->addAction(ui->actionLoad_layout);
     menuFile->addAction(ui->actionSave_layout);
     ui->mainToolBar->addAction( menuFile->menuAction());
-    ui->leftLayout->insertWidget(0, ui->mainToolBar );
+    ui->leftLayout->insertWidget(0, ui->mainToolBar );*/
 }
 
 
@@ -243,7 +226,7 @@ void MainWindow::buildData()
 {
     long SIZE = 100*1000;
 
-    ui->listWidget->addItems( words_list );
+    curvelist_widget->list()->addItems( words_list );
     SharedVector t_vector ( new std::vector<double>());
     t_vector->reserve(SIZE);
 
@@ -291,7 +274,7 @@ void MainWindow::mousePressEvent(QMouseEvent *)
 void MainWindow::on_splitter_splitterMoved(int , int )
 {
     QList<int> sizes = ui->splitter->sizes();
-    int maxLeftWidth = ui->listWidget->maximumWidth();
+    int maxLeftWidth = curvelist_widget->list()->maximumWidth();
     int totalWidth = sizes[0] + sizes[1];
 
     if( sizes[0] > maxLeftWidth)
@@ -307,64 +290,11 @@ void MainWindow::resizeEvent(QResizeEvent *)
     on_splitter_splitterMoved( 0, 0 );
 }
 
-void MainWindow::on_lineEdit_textChanged(const QString &search_string)
-{
-    Qt::CaseSensitivity cs = Qt::CaseInsensitive;
-    if( ui->checkBoxCaseSensitive->isChecked())
-    {
-        cs = Qt::CaseSensitive;
-    }
-    QRegExp regexp( search_string,  cs, QRegExp::Wildcard );
-    QRegExpValidator v(regexp, 0);
-
-    for (int i=0; i< ui->listWidget->count(); i++)
-    {
-        QListWidgetItem* item = ui->listWidget->item(i);
-        QString name = item->text();
-        int pos = 0;
-        bool toHide = false;
-
-        if( ui->radioRegExp->isChecked())
-            toHide = v.validate( name, pos ) != QValidator::Acceptable;
-        else{
-            QStringList items = search_string.split(' ');
-            for (int i=0; i< items.size(); i++)
-            {
-                if( name.contains(items[i], cs) == false )
-                {
-                    toHide = true;
-                }
-            }
-        }
-
-        item->setHidden( toHide );
-    }
-}
-
-
-
-void MainWindow::on_radioRegExp_toggled(bool checked)
-{
-    if(checked)
-    {
-        ui->radioContains->setChecked( false);
-        on_lineEdit_textChanged( ui->lineEdit->text() );
-    }
-}
-
-void MainWindow::on_checkBoxCaseSensitive_toggled(bool )
-{
-    on_lineEdit_textChanged( ui->lineEdit->text() );
-}
-
-
-
 void MainWindow::on_pushAddRow_pressed()
 {
     currentPlotGrid()->addRow();
     undoableChangeHappened();
 }
-
 
 
 void MainWindow::on_pushAddColumn_pressed()
@@ -524,7 +454,7 @@ void MainWindow::deleteLoadedData()
     _mapped_plot_data.erase( _mapped_plot_data.begin(),
                              _mapped_plot_data.end() );
 
-    ui->listWidget->clear();
+    curvelist_widget->list()->clear();
 
     for (int index = 0; index < ui->tabWidget->count(); index++)
     {
@@ -598,7 +528,8 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
 
     settings.setValue(SETTINGS_KEY, directory_path);
     settings.setValue("recentlyLoadedFile", fileName);
-    ui->actionLoad_Recent_file->setText("Load data from: " + fileName);
+
+    curvelist_widget->actionLoadRecentFile()->setText("Load data from: " + fileName);
 
     DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
 
@@ -648,7 +579,7 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
             QColor color = colorHint();
             plot->setColorHint( color.red(), color.green(), color.blue() );
 
-            ui->listWidget->addItem( new QListWidgetItem( qname ) );
+            curvelist_widget->list()->addItem( new QListWidgetItem( qname ) );
         }
 
         _undo_states.clear();
@@ -700,6 +631,7 @@ void MainWindow::onActionLoadLayout()
 
 }
 
+/* TODO move to curve_selector.cpp
 
 void MainWindow::on_pushButton_toggled(bool checked)
 {
@@ -715,33 +647,7 @@ void MainWindow::on_pushButton_toggled(bool checked)
         m_anim->start(QAbstractAnimation::DeleteWhenStopped);
     }
 }
-
-void MainWindow::on_radioFlatView_toggled(bool checked)
-{
-    if(checked)
-    {
-        ui->radioTreeView->setChecked( false);
-        on_lineEdit_textChanged( ui->lineEdit->text() );
-    }
-}
-
-void MainWindow::on_radioTreeView_toggled(bool checked)
-{
-    if(checked)
-    {
-        ui->radioFlatView->setChecked( false);
-        on_lineEdit_textChanged( ui->lineEdit->text() );
-    }
-}
-
-void MainWindow::on_radioContains_toggled(bool checked)
-{
-    if(checked)
-    {
-        ui->radioRegExp->setChecked( false);
-        on_lineEdit_textChanged( ui->lineEdit->text() );
-    }
-}
+*/
 
 void MainWindow::on_pushHorizontalResize_pressed()
 {
@@ -838,8 +744,6 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
         }
         ui->tabWidget->removeTab( index );
     }
-
-
 }
 
 void MainWindow::on_horizontalSlider_sliderMoved(int position)

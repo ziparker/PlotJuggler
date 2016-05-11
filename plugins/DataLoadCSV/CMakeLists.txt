@@ -17,4 +17,4 @@ add_library(DataLoadCSV SHARED ${SRC} ${UI_SRC}  )
 
 target_link_libraries(DataLoadCSV  ${Qt5Widgets_LIBRARIES} )
 
-INSTALL(TARGETS DataLoadCSV DESTINATION Superplotter )
+INSTALL(TARGETS DataLoadCSV DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )

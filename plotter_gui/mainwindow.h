@@ -5,6 +5,7 @@
 #include <QElapsedTimer>
 #include "plotwidget.h"
 #include "plotmatrix.h"
+#include "filterablelistwidget.h"
 #include "../plugins/dataloader_base.h"
 #include "../plugins/statepublisher_base.h"
 
@@ -31,12 +32,6 @@ private slots:
 
     void resizeEvent(QResizeEvent *) ;
 
-    void on_lineEdit_textChanged(const QString &search_string);
-
-    void on_radioRegExp_toggled(bool checked);
-
-    void on_checkBoxCaseSensitive_toggled(bool checked);
-
     void on_pushAddRow_pressed();
 
     void on_pushAddColumn_pressed();
@@ -50,19 +45,12 @@ private slots:
     void on_addTabButton_pressed();
 
     void onActionSaveLayout();
+
     void onActionLoadLayout();
 
     void onActionLoadDataFile(bool reload_previous = false);
 
     void onActionReloadDataFile();
-
-    void on_pushButton_toggled(bool checked);
-
-    void on_radioFlatView_toggled(bool checked);
-
-    void on_radioTreeView_toggled(bool checked);
-
-    void on_radioContains_toggled(bool checked);
 
     void on_pushHorizontalResize_pressed();
 
@@ -87,6 +75,7 @@ private:
 
     QAction *deleteOneAct;
     QAction *deleteAllAct;
+    FilterableListWidget* curvelist_widget;
 
     PlotMatrix *currentPlotGrid();
 
@@ -95,7 +84,6 @@ private:
     PlotDataMap    _mapped_plot_data;
 
     void rearrangeGridLayout();
-    QVector< QWidget*> settings_widgets;
 
     bool _horizontal_link;
 

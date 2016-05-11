@@ -8,6 +8,7 @@ QT5_WRAP_UI ( UI_SRC
     removecurvedialog.ui
     busydialog.ui
     curvecolorpick.ui
+    filterablelistwidget.ui
     )
 
 SET( PLOTTER_SRC
@@ -22,7 +23,7 @@ SET( PLOTTER_SRC
     customtracker.cpp
     curvecolorpick.cpp
     plotdata_qwt.cpp
-
+    filterablelistwidget.cpp
     )
 
 add_executable(SuperPlotter ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})
@@ -37,5 +38,5 @@ target_link_libraries(SuperPlotter
     qwt_static
     )
 
-INSTALL(TARGETS SuperPlotter DESTINATION Superplotter )
+INSTALL(TARGETS SuperPlotter DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
 
