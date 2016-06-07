@@ -102,12 +102,17 @@ private:
 
     QElapsedTimer _undo_timer;
 
+
 protected:
     void mousePressEvent(QMouseEvent *event) ;
 
     void dragEnterEvent(QDragEnterEvent *event) ;
     void dragMoveEvent(QDragMoveEvent *event) ;
     void dropEvent(QDropEvent *event) ;
+
+    bool eventFilter(QObject *obj, QEvent *event);
+
+
 
     void deleteLoadedData();
 

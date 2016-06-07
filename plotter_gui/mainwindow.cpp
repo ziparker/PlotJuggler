@@ -22,6 +22,8 @@
 #include "busytaskdialog.h"
 #include "filterablelistwidget.h"
 #include <QSettings>
+#include <QLineEdit>
+#include <QInputDialog>
 
 QStringList  words_list;
 int unique_number = 0;
@@ -37,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     curvelist_widget = new FilterableListWidget(this);
 
-     ui->splitter->insertWidget(0, curvelist_widget);
+    ui->splitter->insertWidget(0, curvelist_widget);
 
     ui->splitter->setStretchFactor(0,0);
     ui->splitter->setStretchFactor(1,1);
@@ -60,6 +62,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     buildData();
     _undo_timer.start();
+
+    qApp->installEventFilter( this );
 }
 
 MainWindow::~MainWindow()
@@ -114,6 +118,42 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
 
 }
 
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+
+    if( event->type() == QEvent::MouseButtonDblClick) {
+
+        qDebug() << obj;
+        qDebug() << ui->tabWidget->tabBar() << "\n";
+
+        if (obj == ui->tabWidget->tabBar() ) {
+
+            // query and set tab(s) names
+            QTabBar *tab_bar = qobject_cast<QTabBar *>(obj);
+            if(tab_bar)
+            {
+                int idx = tab_bar->currentIndex ();
+
+                bool ok = true;
+                QString newName = QInputDialog::getText (
+                            this, tr ("Change Name of the selected tab"),
+                            tr ("Insert New Tab Name"),
+                            QLineEdit::Normal,
+                            tab_bar->tabText (idx),
+                            &ok);
+
+                if (ok) {
+                    tab_bar->setTabText (idx, newName);
+                }
+            }
+        }
+    }
+
+    // Standard event processing
+    return QObject::eventFilter(obj, event);
+}
+
+
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
     const QMimeData *mimeData = event->mimeData();
@@ -138,7 +178,7 @@ void MainWindow::dropEvent(QDropEvent *)
 
 void MainWindow::createActions()
 {
-   /* QMenu* menuFile = new QMenu("File", ui->mainToolBar);
+    /* QMenu* menuFile = new QMenu("File", ui->mainToolBar);
     menuFile->addAction(ui->actionLoadData);
 
     menuFile->addAction(ui->actionLoad_Recent_file);
@@ -374,6 +414,10 @@ QDomDocument MainWindow::xmlSaveState()
     {
         PlotMatrix* widget = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
         QDomElement element = widget->xmlSaveState(doc);
+
+        // add tab name
+        element.setAttribute("tab_name",  ui->tabWidget->tabText(i) );
+
         root.appendChild( element );
     }
 
@@ -410,6 +454,12 @@ void MainWindow::xmlLoadState(QDomDocument state_document)
         }
         PlotMatrix* plot_matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
         plot_matrix->xmlLoadState( plotmatrix_el );
+
+        // read tab name
+        if( plotmatrix_el.hasAttribute("tab_name"))
+        {
+            ui->tabWidget->setTabText( index, plotmatrix_el.attribute("tab_name" ) );
+        }
 
         index++;
     }
