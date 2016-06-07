@@ -107,8 +107,18 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
 
     ui->horizontalSlider->setValue(slider_value);
 
+    for(int i=0; i< ui->tabWidget->count(); i++)
+    {
+        PlotMatrix* tab_plotgrid = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
+
+        for ( unsigned i = 0; i< tab_plotgrid->widgetList().size(); i++ )
+        {
+            PlotWidget *plot =  tab_plotgrid->widgetList().at(i);
+            plot->tracker()->manualMove( QPointF(current_time,0) );
+        }
+    }
+
     //------------------------
-    qDebug() << "updating " << current_time ;
 
     for (unsigned i=0; i< state_publisher.size(); i++)
     {
@@ -122,9 +132,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
 
     if( event->type() == QEvent::MouseButtonDblClick) {
-
-        qDebug() << obj;
-        qDebug() << ui->tabWidget->tabBar() << "\n";
 
         if (obj == ui->tabWidget->tabBar() ) {
 
@@ -804,23 +811,23 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
     double minX = std::numeric_limits<double>::max();
     double maxX = std::numeric_limits<double>::min();
 
-    for ( unsigned i = 0; i< currentPlotGrid()->widgetList().size(); i++ )
+    for(int i=0; i< ui->tabWidget->count(); i++)
     {
-        PlotWidget *plot =  currentPlotGrid()->widgetList().at(i);
-        if( plot->isEmpty() == false)
+        PlotMatrix* tab_plotgrid = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
+
+        for ( unsigned i = 0; i< tab_plotgrid->widgetList().size(); i++ )
         {
-            QRectF bound_max = plot->maximumBoundingRect();
-            if( minX > bound_max.left() )    minX = bound_max.left();
-            if( maxX < bound_max.right() )   maxX = bound_max.right();
+            PlotWidget *plot =  tab_plotgrid->widgetList().at(i);
+            if( plot->isEmpty() == false)
+            {
+                QRectF bound_max = plot->maximumBoundingRect();
+                if( minX > bound_max.left() )    minX = bound_max.left();
+                if( maxX < bound_max.right() )   maxX = bound_max.right();
+            }
         }
     }
-    double posX = (maxX-minX) * ratio;
 
-    for ( unsigned i = 0; i< currentPlotGrid()->widgetList().size(); i++ )
-    {
-        PlotWidget *plot =  currentPlotGrid()->widgetList().at(i);
-        plot->tracker()->manualMove( QPointF(posX,0) );
-    }
+    double posX = (maxX-minX) * ratio;
 
     onTrackerTimeUpdated( posX );
 }

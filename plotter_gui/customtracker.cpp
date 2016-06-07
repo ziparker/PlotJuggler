@@ -3,7 +3,6 @@
 #include <qwt_series_data.h>
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
-
 #include "qwt_picker_machine.h"
 #include "qwt_event_pattern.h"
 #include <qevent.h>
@@ -96,7 +95,7 @@ void CurveTracker::manualMove(const QPointF& plot_pos)
     QwtPicker::move( transform (plot_pos) );
 }
 
-void CurveTracker::onExternalZoom(const QRectF &)
+void CurveTracker::refreshPosition(const QRectF &)
 {
     QwtPlotPicker::move( transform (_prev_trackerpoint) );
 }
@@ -181,15 +180,6 @@ QString CurveTracker::curveInfoAt( const QwtPlotCurve *curve, QPointF pos ) cons
 QLineF CurveTracker::curveLineAt(
         const QwtPlotCurve *curve, double x ) const
 {
-  /*  static double prev_x = 0;
-    static QLineF prev_result;
-
-    if( x == prev_x)
-    {
-        return prev_result;
-    }
-    prev_x = x;*/
-
     QLineF line;
 
     if ( curve->dataSize() >= 2 )
@@ -214,7 +204,7 @@ QLineF CurveTracker::curveLineAt(
             }
         }
     }
-   // prev_result = line;
+
     return line;
 }
 

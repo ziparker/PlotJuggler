@@ -28,7 +28,7 @@ public:
 
 public slots:
     void manualMove(const QPointF & );
-    void onExternalZoom( const QRectF &);
+    void refreshPosition( const QRectF &);
 
 protected:
     virtual QwtText trackerText( const QPoint &pos ) const;

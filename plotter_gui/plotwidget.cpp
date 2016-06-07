@@ -425,16 +425,16 @@ QRectF PlotWidget::maximumBoundingRect()
 
 void PlotWidget::replot()
 {
-    QwtPlot::replot();
-
     if( _zoomer )
         _zoomer->setZoomBase( false );
 
     QRectF canvas_range = currentBoundingRect();
 
+    if(_tracker )
+        _tracker->refreshPosition( canvas_range );
 
-    if(_tracker && _tracker->isEnabled() && _tracker->isActive())
-        _tracker->onExternalZoom( canvas_range );
+    QwtPlot::replot();
+
 
     //_prev_bounding = canvas_range;
 }
