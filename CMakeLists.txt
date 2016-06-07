@@ -34,6 +34,8 @@ add_subdirectory( plotter_gui )
 add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataLoadFB )
 
+INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/SuperPlotter )
+INSTALL(FILES plugins/dataloader_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/SuperPlotter )
 
 SET(CMAKE_INSTALL_PREFIX  ${CMAKE_BINARY_DIR} )
 
