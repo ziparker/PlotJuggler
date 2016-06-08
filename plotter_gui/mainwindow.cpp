@@ -469,12 +469,12 @@ QDomDocument MainWindow::xmlSaveState()
     return doc;
 }
 
-void MainWindow::xmlLoadState(QDomDocument state_document)
+bool MainWindow::xmlLoadState(QDomDocument state_document)
 {
     QDomElement root = state_document.namedItem("root").toElement();
     if ( root.isNull() ) {
         qWarning() << "No <root> element found at the top-level of the XML file!";
-        return ;
+        return false;
     }
 
     int num_tabs = ui->tabWidget->count();
@@ -492,12 +492,17 @@ void MainWindow::xmlLoadState(QDomDocument state_document)
             num_tabs++;
         }
         PlotMatrix* plot_matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
-        plot_matrix->xmlLoadState( plotmatrix_el );
+        bool success = plot_matrix->xmlLoadState( plotmatrix_el );
 
         // read tab name
         if( plotmatrix_el.hasAttribute("tab_name"))
         {
             ui->tabWidget->setTabText( index, plotmatrix_el.attribute("tab_name" ) );
+        }
+
+        if( !success )
+        {
+            return false;
         }
 
         index++;
@@ -514,19 +519,22 @@ void MainWindow::xmlLoadState(QDomDocument state_document)
     ui->tabWidget->setCurrentIndex( current_index );
 
     currentPlotGrid()->replot();
+    return true;
 }
 
 void MainWindow::onActionSaveLayout()
 {
     QDomDocument doc = xmlSaveState();
 
-    QDomElement root = doc.namedItem("root").toElement();
-    QDomElement previously_loaded_datafile =  doc.createElement( "previouslyLoadedDatafile" );
-    QDomText textNode = doc.createTextNode( _loaded_datafile );
+    if( _loaded_datafile.isEmpty() == false)
+    {
+        QDomElement root = doc.namedItem("root").toElement();
+        QDomElement previously_loaded_datafile =  doc.createElement( "previouslyLoadedDatafile" );
+        QDomText textNode = doc.createTextNode( _loaded_datafile );
 
-    previously_loaded_datafile.appendChild( textNode );
-    root.appendChild( previously_loaded_datafile );
-
+        previously_loaded_datafile.appendChild( textNode );
+        root.appendChild( previously_loaded_datafile );
+    }
 
     QString filename = QFileDialog::getSaveFileName(this, "Save Layout", QDir::currentPath(), "*.xml");
     if (filename.isEmpty())
@@ -538,7 +546,7 @@ void MainWindow::onActionSaveLayout()
     }
 
     QFile file(filename);
-    if (file.open(QIODevice::ReadWrite)) {
+    if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
         stream << doc.toString() << endl;
     }

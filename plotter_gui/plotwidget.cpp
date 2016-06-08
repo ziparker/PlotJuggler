@@ -7,6 +7,7 @@
 #include <qwt_scale_engine.h>
 #include <qwt_plot_layout.h>
 #include <QAction>
+#include <QMessageBox>
 #include <QMenu>
 #include <limits>
 #include "removecurvedialog.h"
@@ -136,17 +137,17 @@ PlotWidget::~PlotWidget()
     detachAllCurves();
 }
 
-void PlotWidget::addCurve(const QString &name, bool do_replot)
+bool PlotWidget::addCurve(const QString &name, bool do_replot)
 {
     PlotDataMap::iterator it = _mapped_data->find( name.toStdString() );
     if( it == _mapped_data->end())
     {
-        return;
+        return false;
     }
 
     if( _curve_list.find(name) != _curve_list.end())
     {
-        return;
+        return false;
     }
 
     PlotDataPtr data = it->second;
@@ -176,6 +177,7 @@ void PlotWidget::addCurve(const QString &name, bool do_replot)
         this->setAxisScale(xBottom, bounding.left(), bounding.right() );
         replot();
     }
+    return true;
 }
 
 void PlotWidget::removeCurve(const QString &name)
@@ -307,7 +309,7 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc)
     return plot_el;
 }
 
-void PlotWidget::xmlLoadState(QDomElement &plot_widget)
+bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardButton* answer)
 {
     QDomElement curve;
     std::set<QString> added_curve_names;
@@ -322,13 +324,30 @@ void PlotWidget::xmlLoadState(QDomElement &plot_widget)
         int B = curve.attribute("B").toInt();
         QColor color(R,G,B);
 
-        added_curve_names.insert(curve_name );
-        if( _curve_list.find( curve_name) == _curve_list.end())
+        bool added_to_list = addCurve(curve_name, false);
+        if( added_to_list )
         {
-            this->addCurve(curve_name, false);
+            _curve_list[curve_name]->setPen( color, 1.0);
+            added_curve_names.insert(curve_name );
         }
+        else{
+            if( *answer !=  QMessageBox::YesToAll)
+            {
+                *answer = QMessageBox::question(0,
+                                               tr("Warning"),
+                                               tr("Can't find the curve with name %1.\n Do you want to ignore it? ").arg(curve_name),
+                                               QMessageBox::Yes | QMessageBox::YesToAll | QMessageBox::Abort ,
+                                               QMessageBox::Abort );
+            }
 
-        _curve_list[curve_name]->setPen( color, 1.0);
+            if( *answer ==  QMessageBox::Yes || *answer ==  QMessageBox::YesToAll) {
+                continue;
+            }
+
+            if( *answer ==  QMessageBox::Abort) {
+                return false;
+            }
+        }
     }
 
     std::map<QString, QwtPlotCurve*>::iterator it;
@@ -348,6 +367,8 @@ void PlotWidget::xmlLoadState(QDomElement &plot_widget)
     rect.setLeft( rectangle.attribute("left").toDouble());
     rect.setRight( rectangle.attribute("right").toDouble());
     this->setScale( rect, false);
+
+    return true;
 }
 
 
@@ -429,10 +450,10 @@ void PlotWidget::replot()
     if( _zoomer )
         _zoomer->setZoomBase( false );
 
-   // QRectF canvas_range = currentBoundingRect();
+    // QRectF canvas_range = currentBoundingRect();
 
     if(_tracker ) {
-       // _tracker->onExternalZoom( canvas_range );
+        // _tracker->onExternalZoom( canvas_range );
         _tracker->refreshPosition( );
     }
 

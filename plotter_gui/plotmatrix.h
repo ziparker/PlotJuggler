@@ -34,7 +34,7 @@ public:
         double min, double max, double step = 0 );
 
     QDomElement xmlSaveState(QDomDocument &doc);
-    void xmlLoadState(QDomElement &plotmatrix_element );
+    bool xmlLoadState(QDomElement &plotmatrix_element );
 
     void updateLayout();
     void replot();

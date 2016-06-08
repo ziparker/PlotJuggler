@@ -107,7 +107,7 @@ private:
     std::vector<StatePublisher*>  state_publisher;
 
     QDomDocument xmlSaveState();
-    void xmlLoadState(QDomDocument state_document);
+    bool xmlLoadState(QDomDocument state_document);
 
     std::deque<QDomDocument> _undo_states;
     std::deque<QDomDocument> _redo_states;

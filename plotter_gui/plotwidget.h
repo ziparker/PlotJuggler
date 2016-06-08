@@ -17,6 +17,7 @@
 #include "customtracker.h"
 #include <qwt_plot_legenditem.h>
 #include <deque>
+#include <QMessageBox>
 
 
 class PlotWidget : public QwtPlot
@@ -27,7 +28,7 @@ public:
     PlotWidget(PlotDataMap* datamap, QWidget *parent=0);
     virtual ~PlotWidget();
 
-    void addCurve(const QString&  name, bool do_replot = true);
+    bool addCurve(const QString&  name, bool do_replot = true);
     void removeCurve(const QString& name);
     bool isEmpty();
 
@@ -35,7 +36,7 @@ public:
 
     void detachAllCurves();
     QDomElement xmlSaveState(QDomDocument &doc);
-    void xmlLoadState(QDomElement &element);
+    bool xmlLoadState(QDomElement &element, QMessageBox::StandardButton* answer);
 
     QRectF maximumBoundingRect();
     QRectF currentBoundingRect();

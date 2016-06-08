@@ -275,12 +275,12 @@ QDomElement PlotMatrix::xmlSaveState( QDomDocument &doc )
     return element;
 }
 
-void PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
+bool PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
 {
     if( !plotmatrix.hasAttribute("rows") || !plotmatrix.hasAttribute("columns") )
     {
         qWarning() << "No [rows] or [columns] attribute in <plotmatrix> XML file!";
-        return ;
+        return false;
     }
     int rows = plotmatrix.attribute("rows").toInt();
     int cols = plotmatrix.attribute("columns" ).toInt();
@@ -291,6 +291,8 @@ void PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
     while( cols > num_cols){ addColumn();  }
     while( cols < num_cols){ removeColumn( num_cols-1 ); }
 
+    QMessageBox::StandardButton load_answer = QMessageBox::Ok;
+
     QDomElement plot_element;
     for (  plot_element = plotmatrix.firstChildElement( "plot" )  ;
            !plot_element.isNull();
@@ -299,13 +301,18 @@ void PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
         if( !plot_element.hasAttribute("row") || !plot_element.hasAttribute("col") )
         {
             qWarning() << "No [row] or [col] attribute in <plot> XML file!";
-            return ;
+            return false;
         }
         int row = plot_element.attribute("row").toInt();
         int col = plot_element.attribute("col").toInt();
 
-        plotAt(row,col)->xmlLoadState( plot_element );
+        bool success = plotAt(row,col)->xmlLoadState( plot_element, &load_answer ) ;
+        if( !success )
+        {
+            return false;
+        }
     }
+    return true;
 }
 
 
