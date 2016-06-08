@@ -36,6 +36,7 @@ QPointF CurveTracker::actualPosition() const
 
 void CurveTracker::setEnabled(bool enable)
 {
+    _visible = enable;
     _line_marker->setVisible( enable );
 
     for (int i=0; i<  _marker.size(); i++)
@@ -56,6 +57,7 @@ void CurveTracker::manualMove(const QPointF& plot_pos)
     {
         _marker.push_back( new QwtPlotMarker );
         _marker[i]->attach( _plot );
+        _marker[i]->setVisible( _visible );
     }
     _marker.resize( curves.size() );
 

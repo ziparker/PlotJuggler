@@ -57,6 +57,7 @@ private:
     std::vector<QwtPlotMarker*> _marker;
     QwtPlotMarker* _line_marker;
     QwtPlot* _plot;
+    bool _visible;
 
 signals:
     void timePointMoved(double time);
