@@ -68,6 +68,8 @@ private:
 
     PlotDataMap *_mapped_data;
 
+    bool _active_tracker;
+
 signals:
     void plotAdded(PlotWidget*);
     void layoutModified();

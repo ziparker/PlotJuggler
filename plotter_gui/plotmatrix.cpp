@@ -20,6 +20,8 @@ PlotMatrix::PlotMatrix(PlotDataMap *datamap, QWidget *parent ):
 
     _horizontal_link = true;
     updateLayout();
+
+    _active_tracker = false;
 }
 
 
@@ -56,18 +58,13 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
             PlotWidget *other_plot = static_cast<PlotWidget *>( item->widget() );
             if (other_plot )
             {
-            /*    connect(other_plot->tracker(),SIGNAL( moved(const QPointF&)),
-                        plot->tracker(), SLOT(manualMove(const QPointF&)) );
 
-                connect(plot->tracker(),SIGNAL(moved(const QPointF&)),
-                        other_plot->tracker(), SLOT(manualMove(const QPointF&)) );*/
             }
         }
     }
 
-    plot->tracker()->setEnabled( false );
-
     layout->addWidget( plot, row, col );
+    plot->tracker()->setEnabled( _active_tracker );
 
     emit plotAdded(plot);
     return plot;
@@ -166,7 +163,6 @@ void PlotMatrix::removeRow(int row_to_delete)
     }
     rebuildWidgetList();
     updateLayout();
-
 }
 
 
@@ -354,11 +350,17 @@ void PlotMatrix::setHorizontalLink(bool linked)
 
 void PlotMatrix::setActiveTracker(bool active)
 {
+
     for ( unsigned i = 0; i<_widget_list.size(); i++ )
     {
         PlotWidget *plot = _widget_list.at(i);
         plot->tracker()->setEnabled( active );
     }
+    if( active != _active_tracker)
+    {
+        replot();
+    }
+    _active_tracker = active;
 }
 
 const std::vector<PlotWidget *> &PlotMatrix::widgetList()
