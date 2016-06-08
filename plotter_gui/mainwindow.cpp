@@ -195,8 +195,8 @@ void MainWindow::createActions()
 
     this->addAction( _action_Undo );
     this->addAction( _action_Redo );
-    connect(_action_Undo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked(bool)) );
-    connect(_action_Redo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonRedo_clicked(bool)) );
+    connect(_action_Undo, SIGNAL(triggered()), this, SLOT(on_pushButtonUndo_clicked()) );
+    connect(_action_Redo, SIGNAL(triggered()), this, SLOT(on_pushButtonRedo_clicked()) );
 
     //---------------------------------------------
 
@@ -278,7 +278,6 @@ void MainWindow::loadPlugins(QString subdir_name)
 
     foreach (QString fileName, pluginsDir.entryList(QDir::Files))
     {
-        qDebug() << fileName;
         QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
 
         QObject *plugin = pluginLoader.instance();
@@ -288,7 +287,7 @@ void MainWindow::loadPlugins(QString subdir_name)
             if (loader)
             {
                 std::vector<const char*> extensions = loader->compatibleFileExtensions();
-                qDebug() << "loaded a DataLoader plugin";
+                qDebug() << fileName << ": is a DataLoader plugin";
 
                 for(unsigned i = 0; i < extensions.size(); i++)
                 {
@@ -299,12 +298,15 @@ void MainWindow::loadPlugins(QString subdir_name)
             StatePublisher *publisher = qobject_cast<StatePublisher *>(plugin);
             if (publisher)
             {
-                qDebug() << "loaded a StatePublisher plugin";
+                qDebug() << fileName << ": is a StatePublisher plugin";
                 state_publisher.push_back( publisher );
             }
         }
         else{
-            qDebug() << pluginLoader.errorString();
+            if( pluginLoader.errorString().contains("is not an ELF object") == false)
+            {
+                qDebug() << fileName << ": " << pluginLoader.errorString();
+            }
         }
     }
 }
@@ -879,7 +881,7 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
     }
 }
 
-void MainWindow::on_pushButtonUndo_clicked(bool )
+void MainWindow::on_pushButtonUndo_clicked( )
 {
     if( _undo_states.size() > 1)
     {
@@ -891,7 +893,7 @@ void MainWindow::on_pushButtonUndo_clicked(bool )
     }
 }
 
-void MainWindow::on_pushButtonRedo_clicked(bool )
+void MainWindow::on_pushButtonRedo_clicked()
 {
     if( _redo_states.size() > 0)
     {

@@ -324,9 +324,9 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         int B = curve.attribute("B").toInt();
         QColor color(R,G,B);
 
-        bool added_to_list = addCurve(curve_name, false);
-        if( added_to_list )
+        if(  _mapped_data->find(curve_name.toStdString()) != _mapped_data->end() )
         {
+            bool added = addCurve(curve_name, false);
             _curve_list[curve_name]->setPen( color, 1.0);
             added_curve_names.insert(curve_name );
         }
@@ -334,10 +334,10 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
             if( *answer !=  QMessageBox::YesToAll)
             {
                 *answer = QMessageBox::question(0,
-                                               tr("Warning"),
-                                               tr("Can't find the curve with name %1.\n Do you want to ignore it? ").arg(curve_name),
-                                               QMessageBox::Yes | QMessageBox::YesToAll | QMessageBox::Abort ,
-                                               QMessageBox::Abort );
+                                                tr("Warning"),
+                                                tr("Can't find the curve with name %1.\n Do you want to ignore it? ").arg(curve_name),
+                                                QMessageBox::Yes | QMessageBox::YesToAll | QMessageBox::Abort ,
+                                                QMessageBox::Abort );
             }
 
             if( *answer ==  QMessageBox::Yes || *answer ==  QMessageBox::YesToAll) {

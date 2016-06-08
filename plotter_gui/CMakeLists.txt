@@ -1,6 +1,4 @@
 
-include_directories( ../qwt/src ../common ../color_widgets/include)
-
 QT5_ADD_RESOURCES (RES_SRC  resource.qrc)
 
 QT5_WRAP_UI ( UI_SRC

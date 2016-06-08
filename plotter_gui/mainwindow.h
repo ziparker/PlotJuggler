@@ -66,9 +66,9 @@ private slots:
 
     void on_pushButtonActivateTracker_toggled(bool checked);
 
-    void on_pushButtonUndo_clicked(bool checked);
+    void on_pushButtonUndo_clicked();
 
-    void on_pushButtonRedo_clicked(bool checked);
+    void on_pushButtonRedo_clicked();
 
     void on_tabWidget_currentChanged(int index);
 
