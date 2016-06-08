@@ -179,15 +179,15 @@ void MainWindow::dropEvent(QDropEvent *)
 
 void MainWindow::createActions()
 {
-    actionUndo = new QAction("Undo");
-    actionRedo = new QAction("Redo");
+    actionUndo = new QAction(tr("Undo"),this);
+    actionRedo = new QAction(tr("Redo"),this);
 
     loadRecentFile = new QAction();
     loadRecentLayout = new QAction();
 
-    actionSave_layout = new QAction("Save current layout");
-    actionLoad_layout = new QAction("Load layout from file");
-    actionLoadData = new QAction("Load datafile");
+    actionSave_layout = new QAction(tr("Save current layout"),this);
+    actionLoad_layout = new QAction(tr("Load layout from file"),this);
+    actionLoadData = new QAction(tr("Load datafile"),this);
     //---------------------------------------------
     actionUndo->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_Z));
     actionRedo->setShortcut( QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
