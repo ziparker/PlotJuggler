@@ -28,6 +28,8 @@ private slots:
 
     void onTrackerTimeUpdated(double current_time );
 
+    void onTrackerPositionUpdated(QPointF pos );
+
     void on_splitter_splitterMoved(int, int);
 
     void resizeEvent(QResizeEvent *) ;
@@ -40,7 +42,7 @@ private slots:
 
     void on_pushremoveEmpty_pressed();
 
-    void on_plotAdded(PlotWidget* widget);
+    void on_plotAdded(PlotWidget* plot);
 
     void on_addTabButton_pressed();
 

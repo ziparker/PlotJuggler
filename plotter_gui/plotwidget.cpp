@@ -70,6 +70,9 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     buildActions();
     buildLegend();
 
+    this->canvas()->setMouseTracking(true);
+    this->canvas()->installEventFilter(this);
+
 }
 
 void PlotWidget::buildActions()
@@ -591,6 +594,16 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
             drag->setMimeData(mimeData);
             drag->exec();
         }
+        else if (event->modifiers() & Qt::ShiftModifier )
+        {
+            /*  const QPoint point = event->pos();
+
+            qDebug() << point;
+
+            qDebug() << invTransform( xBottom, point.x()) << " "
+                     << invTransform( yLeft, point.y());*/
+
+        }
         else if( event->modifiers() == Qt::NoModifier)
         {
             QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/zoom_in_32px.png")));
@@ -609,5 +622,50 @@ void PlotWidget::mouseReleaseEvent(QMouseEvent *event )
 {
     QApplication::restoreOverrideCursor();
     QwtPlot::mouseReleaseEvent(event);
+}
+
+bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
+{
+    static bool isPressed = true;
+
+    if ( event->type() == QEvent::MouseButtonPress)
+    {
+        QMouseEvent *mouse_event = (QMouseEvent *)event;
+
+        if( mouse_event->button() == Qt::LeftButton &&
+            (mouse_event->modifiers() & Qt::ShiftModifier) )
+        {
+            isPressed = true;
+            const QPoint point = mouse_event->pos();
+            QPointF pointF ( invTransform( xBottom, point.x()),
+                             invTransform( yLeft, point.y()) );
+            emit trackerMoved(pointF);
+        }
+    }
+
+    if ( event->type() == QEvent::MouseButtonRelease)
+    {
+        QMouseEvent *mouse_event = (QMouseEvent *)event;
+
+        if( mouse_event->button() == Qt::LeftButton )
+        {
+            isPressed = false;
+        }
+    }
+
+    if ( event->type() == QEvent::MouseMove )
+    {
+        // special processing for mouse move
+        QMouseEvent *mouse_event = (QMouseEvent *)event;
+
+        if ( isPressed && mouse_event->modifiers() & Qt::ShiftModifier )
+        {
+            const QPoint point = mouse_event->pos();
+            QPointF pointF ( invTransform( xBottom, point.x()),
+                             invTransform( yLeft, point.y()) );
+            emit trackerMoved(pointF);
+        }
+    }
+
 }
 

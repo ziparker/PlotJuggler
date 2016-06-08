@@ -100,7 +100,10 @@ void CurveTracker::refreshPosition()
         _marker[i]->setValue( p1 );
 
         text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( p1.y() );
-        text_marker_info += "<br>";
+
+        if(  i < curves.size()-1 ){
+            text_marker_info += "<br>";
+        }
     }
 
     QwtText mark_text;

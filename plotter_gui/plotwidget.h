@@ -45,9 +45,6 @@ public:
 
     void setScale( QRectF rect, bool emit_signal = true );
 
-   // void undoScaleChange();
-
-
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) ;
     virtual void dragMoveEvent(QDragMoveEvent *event) ;
@@ -56,10 +53,13 @@ protected:
     virtual void mousePressEvent(QMouseEvent *event) ;
     virtual void mouseReleaseEvent(QMouseEvent *event);
 
+    virtual bool eventFilter(QObject *obj, QEvent *event);
+
 signals:
     void swapWidgets(QString s, QString to);
     void rectChanged(PlotWidget* self, QRectF rect );
     void plotModified();
+    void trackerMoved(QPointF pos);
 
 public Q_SLOTS:
     void replot() ;

@@ -46,7 +46,7 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
     plot->setWindowTitle(QString("PlotWidget ") + QString::number(widget_uid++));
 
-    connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgetByName(QString,QString)) );
+    connect( plot, SIGNAL(swapWidgets(QString,QString)),    this, SLOT(swapWidgetByName(QString,QString)) );
     connect( plot, SIGNAL(rectChanged(PlotWidget*,QRectF)), this, SLOT(on_singlePlotScaleChanged(PlotWidget*,QRectF)));
 
     plot->setAttribute(Qt::WA_DeleteOnClose);

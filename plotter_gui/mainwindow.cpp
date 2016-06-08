@@ -23,6 +23,7 @@
 #include "filterablelistwidget.h"
 #include <QSettings>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QInputDialog>
 
 QStringList  words_list;
@@ -120,6 +121,11 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     {
         state_publisher[i]->updateState( &_mapped_plot_data, current_time);
     }
+}
+
+void MainWindow::onTrackerPositionUpdated(QPointF pos)
+{
+    onTrackerTimeUpdated( pos.x() );
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
@@ -421,10 +427,11 @@ void MainWindow::on_pushremoveEmpty_pressed()
 }
 
 
-void MainWindow::on_plotAdded(PlotWidget* widget)
+void MainWindow::on_plotAdded(PlotWidget* plot)
 {
-    connect(widget,SIGNAL(plotModified()), SLOT(undoableChangeHappened()) );
-    connect( widget->tracker(), SIGNAL(timePointMoved(double)), this, SLOT( onTrackerTimeUpdated( double )) );
+    connect( plot,SIGNAL(plotModified()),                     this, SLOT(undoableChangeHappened()) );
+    connect( plot->tracker(), SIGNAL(timePointMoved(double)), this, SLOT( onTrackerTimeUpdated( double )) );
+    connect( plot , SIGNAL(trackerMoved(QPointF)),            this, SLOT(onTrackerPositionUpdated(QPointF)));
 }
 
 
@@ -437,12 +444,14 @@ void MainWindow::on_addTabButton_pressed()
 {
     PlotMatrix* grid = new PlotMatrix(&_mapped_plot_data, this);
     ui->tabWidget->addTab( grid, QString("plot") );
-    connect( grid, SIGNAL(plotAdded(PlotWidget*)), this, SLOT(on_plotAdded(PlotWidget*)));
 
-    connect( grid, SIGNAL(layoutModified()), this, SLOT( undoableChangeHappened()) );
+    connect( grid, SIGNAL(plotAdded(PlotWidget*)), this, SLOT(on_plotAdded(PlotWidget*)));
+    connect( grid, SIGNAL(layoutModified()),       this, SLOT( undoableChangeHappened()) );
 
     ui->tabWidget->setCurrentWidget( grid );
     grid->setHorizontalLink( _horizontal_link );
+
+    grid->setActiveTracker( ui->pushButtonActivateTracker->isChecked() );
 
     on_pushAddColumn_pressed();
 
