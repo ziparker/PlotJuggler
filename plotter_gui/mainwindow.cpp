@@ -786,6 +786,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 
         if( reload_previous == QMessageBox::Yes )
         {
+            deleteLoadedData();
             onActionLoadDataFile( fileName );
         }
     }
