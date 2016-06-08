@@ -263,7 +263,8 @@ char* getSingleFlatbuffer(char* source, std::vector<uint8_t>* destination)
 
 PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
                                                  std::function<void(int)> updateCompletion,
-                                                 std::function<bool()> checkInterruption)
+                                                 std::function<bool()> checkInterruption,
+                                                 int time_index)
 {
     float file_size = file->size();
     float parsed_size = 0;
@@ -285,9 +286,12 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
 
     //--------------------------------------
     // choose the time axis
-    SelectXAxisDialog* dialog = new SelectXAxisDialog( &schema.names );
-    dialog->exec();
-    int time_index = dialog->getSelectedRowNumber();
+    if( time_index == TIME_INDEX_NOT_DEFINED)
+    {
+        SelectXAxisDialog* dialog = new SelectXAxisDialog( &schema.names );
+        dialog->exec();
+        time_index = dialog->getSelectedRowNumber();
+    }
 
     // allocate vectors
     std::vector<SharedVector> data_vectors;

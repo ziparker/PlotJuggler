@@ -15,7 +15,10 @@ class  DataLoadFlatbuffer: public QObject, DataLoader
 public:
     DataLoadFlatbuffer();
     virtual const std::vector<const char*>& compatibleFileExtensions() const ;
-    virtual PlotDataMap readDataFromFile(QFile* file, std::function<void(int)> updateCompletion, std::function<bool()> checkInterruption);
+    virtual PlotDataMap readDataFromFile(QFile* file,
+                                         std::function<void(int)> updateCompletion,
+                                         std::function<bool()> checkInterruption,
+                                         int time_index = TIME_INDEX_NOT_DEFINED );
 
     virtual ~DataLoadFlatbuffer();
 

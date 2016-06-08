@@ -303,6 +303,9 @@ void MainWindow::loadPlugins(QString subdir_name)
                 state_publisher.push_back( publisher );
             }
         }
+        else{
+            qDebug() << pluginLoader.errorString();
+        }
     }
 }
 
@@ -592,7 +595,9 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
     {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(0, tr("Warning"),
-                                      tr("Do you want to delete the previously loaded data?\n") );
+                                      tr("Do you want to delete the previously loaded data?\n"),
+                                      QMessageBox::Yes | QMessageBox::No,
+                                      QMessageBox::Yes );
         if( reply == QMessageBox::Yes )
         {
             deleteLoadedData();
@@ -669,12 +674,15 @@ void MainWindow::onActionLoadDataFile(QString fileName)
         busy->show();
         using namespace std::placeholders;
 
+        int last_timeindex = TIME_INDEX_NOT_DEFINED;
+
         PlotDataMap mapped_data = loader->readDataFromFile( &file,
                                                             [busy](int value) {
             busy->setValue(value);
             QApplication::processEvents();
         },
-        [busy]() { return busy->wasCanceled(); } );
+        [busy]() { return busy->wasCanceled(); },
+        last_timeindex);
 
         busy->close();
 
@@ -705,7 +713,7 @@ void MainWindow::onActionLoadDataFile(QString fileName)
             }
             else{
                 // update plot if it was already loaded
-               _mapped_plot_data[name] = plot;
+                _mapped_plot_data[name] = plot;
             }
         }
 
@@ -800,7 +808,9 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 
         QMessageBox::StandardButton reload_previous;
         reload_previous = QMessageBox::question(0, tr("Wait!"),
-                                     tr("Do you want to reload the datafile?\n\n[%1]\n").arg(fileName) );
+                                                tr("Do you want to reload the datafile?\n\n[%1]\n").arg(fileName),
+                                                QMessageBox::Yes | QMessageBox::No,
+                                                QMessageBox::Yes );
 
         if( reload_previous == QMessageBox::Yes )
         {
@@ -919,7 +929,9 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
         QApplication::processEvents();
 
         do_remove = QMessageBox::question(0, tr("Warning"),
-                                          tr("Do you really want to destroy this tab?\n") );
+                                          tr("Do you really want to destroy this tab?\n"),
+                                          QMessageBox::Yes | QMessageBox::No,
+                                          QMessageBox::No );
     }
     if( do_remove == QMessageBox::Yes )
     {

@@ -17,7 +17,7 @@ const std::vector<const char*> &DataLoadCSV::compatibleFileExtensions() const
 
 int DataLoadCSV::parseHeader(QFile *file,
                              std::vector<std::pair<bool,QString> >& ordered_names,
-                             std::function<void(int)> updateCompletion )
+                             std::function<void(int)> updateCompletion)
 {
     QTextStream inA(file);
 
@@ -98,7 +98,8 @@ int DataLoadCSV::parseHeader(QFile *file,
 
 PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                                           std::function<void(int)> updateCompletion,
-                                          std::function<bool()> checkInterruption)
+                                          std::function<bool()> checkInterruption,
+                                          int time_index )
 {
     PlotDataMap plot_data;
 
@@ -118,7 +119,6 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
 
     int tot_lines = linecount -1;
     linecount = 0;
-    int time_index = -1;
 
     double prev_time = -1;
 
@@ -156,9 +156,13 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                     valid_field_names.push_back( qname );
                 }
             }
-            SelectXAxisDialog* dialog = new SelectXAxisDialog( &valid_field_names );
-            dialog->exec();
-            time_index = dialog->getSelectedRowNumber();
+
+            if( time_index == TIME_INDEX_NOT_DEFINED)
+            {
+                SelectXAxisDialog* dialog = new SelectXAxisDialog( &valid_field_names );
+                dialog->exec();
+                time_index = dialog->getSelectedRowNumber();
+            }
 
             first_line = false;
         }
