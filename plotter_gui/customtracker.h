@@ -56,6 +56,7 @@ private:
     QPointF _prev_trackerpoint;
     std::vector<QwtPlotMarker*> _marker;
     QwtPlotMarker* _line_marker;
+    QwtPlotMarker* _text_marker;
     QwtPlot* _plot;
     bool _visible;
 

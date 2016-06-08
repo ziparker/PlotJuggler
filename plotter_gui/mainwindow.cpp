@@ -179,63 +179,68 @@ void MainWindow::dropEvent(QDropEvent *)
 
 void MainWindow::createActions()
 {
-    actionUndo = new QAction(tr("Undo"),this);
-    actionRedo = new QAction(tr("Redo"),this);
+    _action_Undo = new QAction(tr("Undo"),this);
+    _action_Redo = new QAction(tr("Redo"),this);
 
-    loadRecentFile = new QAction(this);
-    loadRecentLayout = new QAction(this);
+    _action_loadRecentFile = new QAction(tr("Load previous file..."),this);
+    _action_loadRecentLayout = new QAction(tr("Load previous layout..."),this);
+    _action_reloadFile = new QAction(tr("Reload data"),this);
 
-    actionSave_layout = new QAction(tr("Save current layout"),this);
-    actionLoad_layout = new QAction(tr("Load layout from file"),this);
-    actionLoadData = new QAction(tr("Load datafile"),this);
+    _action_SaveLayout = new QAction(tr("Save current layout"),this);
+    _action_LoadLayout = new QAction(tr("Load layout from file"),this);
+    _action_LoadData = new QAction(tr("Load datafile"),this);
     //---------------------------------------------
-    actionUndo->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_Z));
-    actionRedo->setShortcut( QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
+    _action_Undo->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_Z));
+    _action_Redo->setShortcut( QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
 
-    this->addAction( actionUndo );
-    this->addAction( actionRedo );
-    connect(actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked(bool)) );
-    connect(actionRedo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonRedo_clicked(bool)) );
+    this->addAction( _action_Undo );
+    this->addAction( _action_Redo );
+    connect(_action_Undo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked(bool)) );
+    connect(_action_Redo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonRedo_clicked(bool)) );
 
     //---------------------------------------------
 
-    connect(actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
-    connect(actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
-    connect(actionLoadData,SIGNAL(triggered()),    this, SLOT(onActionLoadDataFile()) );
-    connect(loadRecentFile,SIGNAL(triggered()),    this, SLOT(onActionReloadDataFile()) );
-    connect(loadRecentLayout,SIGNAL(triggered()),  this, SLOT(onActionReloadLayout()) );
+    connect(_action_SaveLayout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
+    connect(_action_LoadLayout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
+    connect(_action_LoadData,SIGNAL(triggered()),    this, SLOT(onActionLoadDataFile()) );
+    connect(_action_loadRecentFile,SIGNAL(triggered()),    this, SLOT(onActionReloadDataFileFromSettings()) );
+    connect(_action_loadRecentLayout,SIGNAL(triggered()),  this, SLOT(onActionReloadLayout()) );
+    connect(_action_reloadFile,SIGNAL(triggered()),    this, SLOT(onActionReloadSameDataFile()) );
 
     QMenu* menuFile = new QMenu("File", ui->mainToolBar);
-    menuFile->addAction(actionLoadData);
-    menuFile->addAction(loadRecentFile);
+    menuFile->addAction(_action_LoadData);
+    menuFile->addAction(_action_loadRecentFile);
 
     QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
     if( settings.contains("recentlyLoadedDatafile") )
     {
         QString fileName = settings.value("recentlyLoadedDatafile").toString();
-        loadRecentFile->setText( "Load data from: " + fileName);
-        loadRecentFile->setEnabled( true );
+        _action_loadRecentFile->setText( "Load data from: " + fileName);
+        _action_loadRecentFile->setEnabled( true );
     }
     else{
-        loadRecentFile->setEnabled( false );
+        _action_loadRecentFile->setEnabled( false );
     }
+
+    _action_reloadFile->setEnabled( false );
+    menuFile->addAction(_action_reloadFile);
 
 
     menuFile->addSeparator();
-    menuFile->addAction(actionLoad_layout);
+    menuFile->addAction(_action_LoadLayout);
 
     if( settings.contains("recentlyLoadedLayout") )
     {
         QString fileName = settings.value("recentlyLoadedLayout").toString();
-        loadRecentLayout->setText( "Load layout from: " + fileName);
-        loadRecentLayout->setEnabled( true );
+        _action_loadRecentLayout->setText( "Load layout from: " + fileName);
+        _action_loadRecentLayout->setEnabled( true );
     }
     else{
-        loadRecentLayout->setEnabled( false );
+        _action_loadRecentLayout->setEnabled( false );
     }
-    menuFile->addAction(loadRecentLayout);
+    menuFile->addAction(_action_loadRecentLayout);
 
-    menuFile->addAction(actionSave_layout);
+    menuFile->addAction(_action_SaveLayout);
     ui->mainToolBar->addAction( menuFile->menuAction());
 }
 
@@ -574,7 +579,7 @@ void MainWindow::deleteLoadedData()
     }
 }
 
-void MainWindow::onActionLoadDataFile(bool reload_previous)
+void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 {
     if( data_loader.empty())
     {
@@ -616,7 +621,7 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
     }
 
     QString fileName;
-    if( reload_previous && settings.contains("recentlyLoadedDatafile") )
+    if( reload_from_settings && settings.contains("recentlyLoadedDatafile") )
     {
         fileName = settings.value("recentlyLoadedDatafile").toString();
     }
@@ -635,7 +640,7 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
     settings.setValue(SETTINGS_KEY, directory_path);
     settings.setValue("recentlyLoadedDatafile", fileName);
 
-    loadRecentFile->setText("Load data from: " + fileName);
+    _action_loadRecentFile->setText("Load data from: " + fileName);
 
     onActionLoadDataFile( fileName );
 }
@@ -658,6 +663,7 @@ void MainWindow::onActionLoadDataFile(QString fileName)
         }
 
         _loaded_datafile = fileName;
+        _action_reloadFile->setEnabled( true );
 
         BusyTaskDialog* busy = new BusyTaskDialog("Loading file");
         busy->show();
@@ -687,13 +693,20 @@ void MainWindow::onActionLoadDataFile(QString fileName)
             }
 
             QString qname = QString::fromStdString(name);
+
             // remap to derived class
-            _mapped_plot_data.insert( std::make_pair( name, plot) );
+            if( _mapped_plot_data.find(name) == _mapped_plot_data.end() )
+            {
+                _mapped_plot_data.insert( std::make_pair( name, plot) );
 
-            QColor color = colorHint();
-            plot->setColorHint( color.red(), color.green(), color.blue() );
-
-            curvelist_widget->list()->addItem( new QListWidgetItem( qname ) );
+                QColor color = colorHint();
+                plot->setColorHint( color.red(), color.green(), color.blue() );
+                curvelist_widget->list()->addItem( new QListWidgetItem( qname ) );
+            }
+            else{
+                // update plot if it was already loaded
+               _mapped_plot_data[name] = plot;
+            }
         }
 
         _undo_states.clear();
@@ -708,7 +721,12 @@ void MainWindow::onActionLoadDataFile(QString fileName)
     }
 }
 
-void MainWindow::onActionReloadDataFile()
+void MainWindow::onActionReloadSameDataFile()
+{
+    onActionLoadDataFile(_loaded_datafile);
+}
+
+void MainWindow::onActionReloadDataFileFromSettings()
 {
     onActionLoadDataFile( true );
 }
@@ -749,7 +767,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
     settings.setValue(SETTINGS_KEY, directory_path);
     settings.setValue("recentlyLoadedLayout", fileName);
 
-    loadRecentLayout->setText("Load layout from: " + fileName);
+    _action_loadRecentLayout->setText("Load layout from: " + fileName);
 
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {

@@ -48,11 +48,13 @@ private slots:
 
     void onActionLoadLayout(bool reload_previous = false);
 
-    void onActionLoadDataFile(bool reload_previous = false);
+    void onActionLoadDataFile(bool reload_from_settings = false);
 
      void onActionLoadDataFile(QString filename);
 
-    void onActionReloadDataFile();
+    void onActionReloadDataFileFromSettings();
+
+    void onActionReloadSameDataFile();
 
     void onActionReloadLayout();
 
@@ -77,15 +79,16 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    QAction* loadRecentFile;
-    QAction* loadRecentLayout;
+    QAction* _action_loadRecentFile;
+    QAction* _action_reloadFile;
+    QAction* _action_loadRecentLayout;
 
-    QAction* actionSave_layout;
-    QAction* actionLoad_layout;
-    QAction* actionLoadData;
+    QAction* _action_SaveLayout;
+    QAction* _action_LoadLayout;
+    QAction* _action_LoadData;
 
-    QAction* actionUndo;
-    QAction* actionRedo;
+    QAction* _action_Undo;
+    QAction* _action_Redo;
 
     FilterableListWidget* curvelist_widget;
 

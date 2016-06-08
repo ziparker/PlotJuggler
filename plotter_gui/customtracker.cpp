@@ -27,6 +27,9 @@ CurveTracker::CurveTracker( QwtPlot *plot ):
     _line_marker->setValue(0,0);
     _line_marker->attach(plot);
 
+    _text_marker = ( new QwtPlotMarker );
+    _text_marker->attach(plot);
+
 }
 
 QPointF CurveTracker::actualPosition() const
@@ -37,7 +40,9 @@ QPointF CurveTracker::actualPosition() const
 void CurveTracker::setEnabled(bool enable)
 {
     _visible = enable;
+
     _line_marker->setVisible( enable );
+    _text_marker->setVisible( enable );
 
     for (int i=0; i<  _marker.size(); i++)
     {
@@ -48,10 +53,17 @@ void CurveTracker::setEnabled(bool enable)
 void CurveTracker::manualMove(const QPointF& plot_pos)
 {
     _prev_trackerpoint = plot_pos;
+    refreshPosition();
 
+}
+
+void CurveTracker::refreshPosition()
+{
     const QwtPlotItemList curves = _plot->itemList( QwtPlotItem::Rtti_PlotCurve );
 
-    _line_marker->setValue(plot_pos );
+    _line_marker->setValue( _prev_trackerpoint );
+
+    double tot_Y = 0;
 
     for (int i = _marker.size() ; i < curves.size(); i++ )
     {
@@ -61,10 +73,15 @@ void CurveTracker::manualMove(const QPointF& plot_pos)
     }
     _marker.resize( curves.size() );
 
+    QString text_marker_info;
+    double text_X_offset = 0;
+
     for ( int i = 0; i < curves.size(); i++ )
     {
         QwtPlotCurve *curve = static_cast<QwtPlotCurve *>(curves[i]);
         QColor color = curve->pen().color();
+
+        text_X_offset = curve->boundingRect().width() * 0.02;
 
         if( !_marker[i]->symbol() )
         {
@@ -76,29 +93,30 @@ void CurveTracker::manualMove(const QPointF& plot_pos)
             _marker[i]->setSymbol(sym);
         }
 
-        const QLineF line = curveLineAt( curve, plot_pos.x() );
+        const QLineF line = curveLineAt( curve, _prev_trackerpoint.x() );
         QPointF p1 = line.p1();
 
-        QwtText mark_text;
-        mark_text.setColor( color );
-
-        QColor c( "#FFFFFF" );
-        mark_text.setBorderPen( QPen( c, 2 ) );
-        c.setAlpha( 200 );
-        mark_text.setBackgroundBrush( c );
-
-        QString info = QString::number( p1.y() );
-
-        mark_text.setText( info );
-
-        _marker[i]->setLabel(mark_text);
-        _marker[i]->setLabelAlignment( Qt::AlignRight );
+        tot_Y += p1.y();
         _marker[i]->setValue( p1 );
-    }
-}
 
-void CurveTracker::refreshPosition()
-{
+        text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( p1.y() );
+        text_marker_info += "<br>";
+    }
+
+    QwtText mark_text;
+    mark_text.setColor( Qt::black );
+
+    QColor c( "#FFFFFF" );
+    mark_text.setBorderPen( QPen( c, 2 ) );
+    c.setAlpha( 200 );
+    mark_text.setBackgroundBrush( c );
+
+    mark_text.setText( text_marker_info );
+
+    _text_marker->setLabel(mark_text);
+    _text_marker->setLabelAlignment( Qt::AlignRight );
+    _text_marker->setXValue( _prev_trackerpoint.x() + text_X_offset );
+    _text_marker->setYValue( tot_Y/curves.size() );
 
 }
 
