@@ -50,6 +50,8 @@ private slots:
 
     void onActionLoadDataFile(bool reload_previous = false);
 
+     void onActionLoadDataFile(QString filename);
+
     void onActionReloadDataFile();
 
     void onActionReloadLayout();
@@ -111,6 +113,8 @@ private:
     std::deque<QDomDocument> _redo_states;
 
     QElapsedTimer _undo_timer;
+
+    QString _loaded_datafile;
 
 
 protected:

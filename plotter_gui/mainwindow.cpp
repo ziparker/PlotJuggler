@@ -520,6 +520,14 @@ void MainWindow::onActionSaveLayout()
 {
     QDomDocument doc = xmlSaveState();
 
+    QDomElement root = doc.namedItem("root").toElement();
+    QDomElement previously_loaded_datafile =  doc.createElement( "previouslyLoadedDatafile" );
+    QDomText textNode = doc.createTextNode( _loaded_datafile );
+
+    previously_loaded_datafile.appendChild( textNode );
+    root.appendChild( previously_loaded_datafile );
+
+
     QString filename = QFileDialog::getSaveFileName(this, "Save Layout", QDir::currentPath(), "*.xml");
     if (filename.isEmpty())
         return;
@@ -621,6 +629,12 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
 
     loadRecentFile->setText("Load data from: " + fileName);
 
+    onActionLoadDataFile( fileName );
+}
+
+void MainWindow::onActionLoadDataFile(QString fileName)
+{
+
     DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
 
     if( loader )
@@ -628,12 +642,14 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
         QFile file(fileName);
 
         if (!file.open(QFile::ReadOnly | QFile::Text)) {
-            QMessageBox::warning(this, tr("Layout"),
+            QMessageBox::warning(this, tr("Datafile"),
                                  tr("Cannot read file %1:\n%2.")
                                  .arg(fileName)
                                  .arg(file.errorString()));
             return;
         }
+
+        _loaded_datafile = fileName;
 
         BusyTaskDialog* busy = new BusyTaskDialog("Loading file");
         busy->show();
@@ -678,7 +694,9 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
         ui->horizontalSlider->setRange(0, maxSizeX );
     }
     else{
-        qDebug() << "no loader found";
+        QMessageBox::warning(this, tr("Error"),
+                             tr("Cannot read files with extension %1.\n No plugin can handle that!\n")
+                             .arg(fileName) );
     }
 }
 
@@ -747,7 +765,26 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
         return;
     }
 
+    QDomElement root = domDocument.namedItem("root").toElement();
+    QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoadedDatafile" );
+
+    if( previously_loaded_datafile.isNull() == false)
+    {
+        QString fileName = previously_loaded_datafile.text();
+
+        QMessageBox::StandardButton reload_previous;
+        reload_previous = QMessageBox::question(0, tr("Wait!"),
+                                     tr("Do you want to reload the datafile?\n\n[%1]\n").arg(fileName) );
+
+        if( reload_previous == QMessageBox::Yes )
+        {
+            onActionLoadDataFile( fileName );
+        }
+    }
+    ///--------------------------------------------------
+
     xmlLoadState( domDocument );
+
     _undo_states.clear();
     _undo_states.push_back( domDocument );
 
