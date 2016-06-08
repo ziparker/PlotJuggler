@@ -24,40 +24,7 @@ FilterableListWidget::FilterableListWidget(QWidget *parent) :
             }
         }
     }
-
-    connect(ui->actionSave_layout,SIGNAL(triggered()),      parent, SLOT(onActionSaveLayout()) );
-    connect(ui->actionLoad_layout,SIGNAL(triggered()),      parent, SLOT(onActionLoadLayout()) );
-    connect(ui->actionLoadData,SIGNAL(triggered()),         parent, SLOT(onActionLoadDataFile()) );
-    connect(ui->actionLoad_Recent_file,SIGNAL(triggered()), parent, SLOT(onActionReloadDataFile()) );
-
-    createActions();
 }
-
-
-void FilterableListWidget::createActions()
-{
-    QMenu* menuFile = new QMenu("File", ui->mainToolBar);
-    menuFile->addAction(ui->actionLoadData);
-
-    menuFile->addAction(ui->actionLoad_Recent_file);
-
-    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
-    if( settings.contains("recentlyLoadedFile") )
-    {
-        QString fileName = settings.value("recentlyLoadedFile").toString();
-        ui->actionLoad_Recent_file->setText( "Load data from: " + fileName);
-        ui->actionLoad_Recent_file->setEnabled( true );
-    }
-    else{
-        ui->actionLoad_Recent_file->setEnabled( false );
-    }
-    menuFile->addSeparator();
-    menuFile->addAction(ui->actionLoad_layout);
-    menuFile->addAction(ui->actionSave_layout);
-    ui->mainToolBar->addAction( menuFile->menuAction());
-    ui->verticalLayout->insertWidget(0, ui->mainToolBar );
-}
-
 
 FilterableListWidget::~FilterableListWidget()
 {
@@ -69,10 +36,6 @@ QListWidget *FilterableListWidget::list()
     return ui->listWidget;
 }
 
-QAction *FilterableListWidget::actionLoadRecentFile()
-{
-    return ui->actionLoad_Recent_file;
-}
 
 void FilterableListWidget::on_radioContains_toggled(bool checked)
 {

@@ -51,12 +51,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushHorizontalResize->setChecked( _horizontal_link );
     currentPlotGrid()->setHorizontalLink( _horizontal_link );
 
-    this->addAction( ui->actionUndo );
-    connect(ui->actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked(bool)) );
-
-    this->addAction( ui->actionRedo );
-    connect(ui->actionRedo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonRedo_clicked(bool)) );
-
     createActions();
     loadPlugins("plugins");
 
@@ -118,14 +112,14 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
         }
     }
 
+    currentPlotGrid()->replot();
+
     //------------------------
 
     for (unsigned i=0; i< state_publisher.size(); i++)
     {
         state_publisher[i]->updateState( &_mapped_plot_data, current_time);
     }
-
-
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
@@ -185,26 +179,64 @@ void MainWindow::dropEvent(QDropEvent *)
 
 void MainWindow::createActions()
 {
-    /* QMenu* menuFile = new QMenu("File", ui->mainToolBar);
-    menuFile->addAction(ui->actionLoadData);
+    actionUndo = new QAction("Undo");
+    actionRedo = new QAction("Redo");
 
-    menuFile->addAction(ui->actionLoad_Recent_file);
+    loadRecentFile = new QAction();
+    loadRecentLayout = new QAction();
+
+    actionSave_layout = new QAction("Save current layout");
+    actionLoad_layout = new QAction("Load layout from file");
+    actionLoadData = new QAction("Load datafile");
+    //---------------------------------------------
+    actionUndo->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_Z));
+    actionRedo->setShortcut( QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
+
+    this->addAction( actionUndo );
+    this->addAction( actionRedo );
+    connect(actionUndo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonUndo_clicked(bool)) );
+    connect(actionRedo, SIGNAL(triggered(bool)), this, SLOT(on_pushButtonRedo_clicked(bool)) );
+
+    //---------------------------------------------
+
+    connect(actionSave_layout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
+    connect(actionLoad_layout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
+    connect(actionLoadData,SIGNAL(triggered()),    this, SLOT(onActionLoadDataFile()) );
+    connect(loadRecentFile,SIGNAL(triggered()),    this, SLOT(onActionReloadDataFile()) );
+    connect(loadRecentLayout,SIGNAL(triggered()),  this, SLOT(onActionReloadLayout()) );
+
+    QMenu* menuFile = new QMenu("File", ui->mainToolBar);
+    menuFile->addAction(actionLoadData);
+    menuFile->addAction(loadRecentFile);
 
     QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
-    if( settings.contains("recentlyLoadedFile") )
+    if( settings.contains("recentlyLoadedDatafile") )
     {
-        QString fileName = settings.value("recentlyLoadedFile").toString();
-        ui->actionLoad_Recent_file->setText( "Load data from: " + fileName);
-        ui->actionLoad_Recent_file->setEnabled( true );
+        QString fileName = settings.value("recentlyLoadedDatafile").toString();
+        loadRecentFile->setText( "Load data from: " + fileName);
+        loadRecentFile->setEnabled( true );
     }
     else{
-        ui->actionLoad_Recent_file->setEnabled( false );
+        loadRecentFile->setEnabled( false );
     }
+
+
     menuFile->addSeparator();
-    menuFile->addAction(ui->actionLoad_layout);
-    menuFile->addAction(ui->actionSave_layout);
+    menuFile->addAction(actionLoad_layout);
+
+    if( settings.contains("recentlyLoadedLayout") )
+    {
+        QString fileName = settings.value("recentlyLoadedLayout").toString();
+        loadRecentLayout->setText( "Load layout from: " + fileName);
+        loadRecentLayout->setEnabled( true );
+    }
+    else{
+        loadRecentLayout->setEnabled( false );
+    }
+    menuFile->addAction(loadRecentLayout);
+
+    menuFile->addAction(actionSave_layout);
     ui->mainToolBar->addAction( menuFile->menuAction());
-    ui->leftLayout->insertWidget(0, ui->mainToolBar );*/
 }
 
 
@@ -548,7 +580,6 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
 
     QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
 
-
     std::map<QString,DataLoader*>::iterator it;
 
     QString file_extension_filter;
@@ -559,10 +590,9 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
         file_extension_filter.append( QString(" *.") + extension );
     }
 
-
     QString directory_path = QDir::currentPath();
 
-    const QString SETTINGS_KEY( "load_directory");
+    const QString SETTINGS_KEY( "lastDatafileDirectory");
 
     if( settings.contains(SETTINGS_KEY) )
     {
@@ -570,12 +600,15 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
     }
 
     QString fileName;
-    if( reload_previous && settings.contains("recentlyLoadedFile") )
+    if( reload_previous && settings.contains("recentlyLoadedDatafile") )
     {
-        fileName = settings.value("recentlyLoadedFile").toString();
+        fileName = settings.value("recentlyLoadedDatafile").toString();
     }
     else{
-        fileName = QFileDialog::getOpenFileName(this, "Open Layout",  directory_path, file_extension_filter);
+        fileName = QFileDialog::getOpenFileName(this,
+                                                "Open Datafile",
+                                                directory_path,
+                                                file_extension_filter);
     }
 
     if (fileName.isEmpty())
@@ -584,9 +617,9 @@ void MainWindow::onActionLoadDataFile(bool reload_previous)
     directory_path = QFileInfo(fileName).absolutePath();
 
     settings.setValue(SETTINGS_KEY, directory_path);
-    settings.setValue("recentlyLoadedFile", fileName);
+    settings.setValue("recentlyLoadedDatafile", fileName);
 
-    curvelist_widget->actionLoadRecentFile()->setText("Load data from: " + fileName);
+    loadRecentFile->setText("Load data from: " + fileName);
 
     DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
 
@@ -654,11 +687,43 @@ void MainWindow::onActionReloadDataFile()
     onActionLoadDataFile( true );
 }
 
-void MainWindow::onActionLoadLayout()
+void MainWindow::onActionReloadLayout()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, "Open Layout",  QDir::currentPath(), "*.xml");
+    onActionLoadLayout( true );
+}
+
+void MainWindow::onActionLoadLayout(bool reload_previous)
+{
+    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+
+    QString directory_path = QDir::currentPath();
+    const QString SETTINGS_KEY( "lastLayoutDirectory");
+
+    if( settings.contains(SETTINGS_KEY) )
+    {
+        directory_path = settings.value(SETTINGS_KEY).toString();
+    }
+
+    QString fileName;
+    if( reload_previous && settings.contains("recentlyLoadedLayout") )
+    {
+        fileName = settings.value("recentlyLoadedLayout").toString();
+    }
+    else{
+        fileName = QFileDialog::getOpenFileName(this,
+                                                "Open Layout",
+                                                directory_path,
+                                                "*.xml");
+    }
+
     if (fileName.isEmpty())
         return;
+
+    directory_path = QFileInfo(fileName).absolutePath();
+    settings.setValue(SETTINGS_KEY, directory_path);
+    settings.setValue("recentlyLoadedLayout", fileName);
+
+    loadRecentLayout->setText("Load layout from: " + fileName);
 
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {

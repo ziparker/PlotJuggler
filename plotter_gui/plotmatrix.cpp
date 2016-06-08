@@ -22,7 +22,6 @@ PlotMatrix::PlotMatrix(PlotDataMap *datamap, QWidget *parent ):
     updateLayout();
 }
 
-PickerTrackerMachine* sm = new PickerTrackerMachine();
 
 void PlotMatrix::rebuildWidgetList()
 {
@@ -45,10 +44,6 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
     plot->setWindowTitle(QString("PlotWidget ") + QString::number(widget_uid++));
 
-    CurveTracker* tracker = plot->tracker();
-    tracker->setRubberBandPen( QPen( "MediumOrchid" ) );
-
-
     connect( plot, SIGNAL(swapWidgets(QString,QString)), this, SLOT(swapWidgetByName(QString,QString)) );
     connect( plot, SIGNAL(rectChanged(PlotWidget*,QRectF)), this, SLOT(on_singlePlotScaleChanged(PlotWidget*,QRectF)));
 
@@ -61,11 +56,11 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
             PlotWidget *other_plot = static_cast<PlotWidget *>( item->widget() );
             if (other_plot )
             {
-                connect(other_plot->tracker(),SIGNAL( moved(const QPointF&)),
+            /*    connect(other_plot->tracker(),SIGNAL( moved(const QPointF&)),
                         plot->tracker(), SLOT(manualMove(const QPointF&)) );
 
                 connect(plot->tracker(),SIGNAL(moved(const QPointF&)),
-                        other_plot->tracker(), SLOT(manualMove(const QPointF&)) );
+                        other_plot->tracker(), SLOT(manualMove(const QPointF&)) );*/
             }
         }
     }

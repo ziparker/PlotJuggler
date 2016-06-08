@@ -19,11 +19,8 @@ public:
 
     QListWidget* list();
 
-    QAction* actionLoadRecentFile();
 
 private slots:
-
-    void createActions();
 
     void on_radioContains_toggled(bool checked);
 

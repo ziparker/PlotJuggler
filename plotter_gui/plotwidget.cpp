@@ -45,7 +45,7 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     _zoomer = ( new QwtPlotZoomer( this->canvas() ) );
     _magnifier = ( new PlotMagnifier( this->canvas() ) );
     _panner = ( new QwtPlotPanner( this->canvas() ) );
-    _tracker = ( new CurveTracker( this->canvas()) );
+    _tracker = ( new CurveTracker( this ) );
 
     _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
     _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
@@ -68,6 +68,7 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
 
     buildActions();
     buildLegend();
+
 }
 
 void PlotWidget::buildActions()
@@ -428,10 +429,12 @@ void PlotWidget::replot()
     if( _zoomer )
         _zoomer->setZoomBase( false );
 
-    QRectF canvas_range = currentBoundingRect();
+   // QRectF canvas_range = currentBoundingRect();
 
-    if(_tracker )
-        _tracker->refreshPosition( canvas_range );
+    if(_tracker ) {
+       // _tracker->onExternalZoom( canvas_range );
+        _tracker->refreshPosition( );
+    }
 
     QwtPlot::replot();
 

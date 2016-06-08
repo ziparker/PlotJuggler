@@ -4,42 +4,59 @@
 
 #include <qwt_plot_picker.h>
 #include <qwt_picker_machine.h>
+#include <qwt_plot_marker.h>
 #include <QEvent>
 
 class QwtPlotCurve;
 
-class QWT_EXPORT PickerTrackerMachine: public QwtPickerMachine
-{
-public:
-    PickerTrackerMachine();
+/*
+ *
+    QwtPlotMarker *mark=new QwtPlotMarker;
+    mark->setLinePen(QPen(Qt::red));
+    mark->setLineStyle(QwtPlotMarker::VLine);
 
-    virtual QList<Command> transition(const QwtEventPattern &, const QEvent * );
-private:
-    bool keypressed;
-};
+    QwtText mark_text;
 
-class CurveTracker: public QwtPlotPicker
+    mark_text.setColor( Qt::black );
+
+    QColor c( "#FFFFFF" );
+    mark_text.setBorderPen( QPen( c, 2 ) );
+    c.setAlpha( 200 );
+    mark_text.setBackgroundBrush( c );
+
+    QString info("default");
+    mark_text.setText( info );
+
+    mark->setLabel(mark_text);
+    mark->setValue(50,0);//here you have to set the coordinate axis i.e. where the axis are meeting.
+    mark->attach(this);
+*/
+
+class CurveTracker: public QObject
 {
     Q_OBJECT
 public:
-    explicit CurveTracker( QWidget * );
+    explicit CurveTracker(QwtPlot * );
 
     QPointF actualPosition() const;
 
+    void setEnabled(bool enable);
+
 public slots:
     void manualMove(const QPointF & );
-    void refreshPosition( const QRectF &);
+    void refreshPosition( );
 
-protected:
-    virtual QwtText trackerText( const QPoint &pos ) const;
-    virtual QwtText trackerTextF(QPointF ) const;
-    virtual void move( const QPoint & );
-    virtual QRect trackerRect( const QFont &font ) const;
+
 private:
-    QString curveInfoAt(const QwtPlotCurve *, QPointF ) const;
     QLineF  curveLineAt( const QwtPlotCurve *, double x ) const;
 
+    QPointF transform( QPoint);
+    QPoint  invTransform( QPointF);
+
     QPointF _prev_trackerpoint;
+    std::vector<QwtPlotMarker*> _marker;
+    QwtPlotMarker* _line_marker;
+    QwtPlot* _plot;
 
 signals:
     void timePointMoved(double time);

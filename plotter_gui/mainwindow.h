@@ -46,11 +46,13 @@ private slots:
 
     void onActionSaveLayout();
 
-    void onActionLoadLayout();
+    void onActionLoadLayout(bool reload_previous = false);
 
     void onActionLoadDataFile(bool reload_previous = false);
 
     void onActionReloadDataFile();
+
+    void onActionReloadLayout();
 
     void on_pushHorizontalResize_pressed();
 
@@ -73,8 +75,16 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    QAction *deleteOneAct;
-    QAction *deleteAllAct;
+    QAction* loadRecentFile;
+    QAction* loadRecentLayout;
+
+    QAction* actionSave_layout;
+    QAction* actionLoad_layout;
+    QAction* actionLoadData;
+
+    QAction* actionUndo;
+    QAction* actionRedo;
+
     FilterableListWidget* curvelist_widget;
 
     PlotMatrix *currentPlotGrid();
