@@ -182,8 +182,8 @@ void MainWindow::createActions()
     actionUndo = new QAction(tr("Undo"),this);
     actionRedo = new QAction(tr("Redo"),this);
 
-    loadRecentFile = new QAction();
-    loadRecentLayout = new QAction();
+    loadRecentFile = new QAction(this);
+    loadRecentLayout = new QAction(this);
 
     actionSave_layout = new QAction(tr("Save current layout"),this);
     actionLoad_layout = new QAction(tr("Load layout from file"),this);
