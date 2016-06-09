@@ -39,6 +39,8 @@ public:
     void updateLayout();
     void replot();
 
+    void removeAllCurves();
+
     void setHorizontalLink(bool linked);
     void setActiveTracker(bool active);
 

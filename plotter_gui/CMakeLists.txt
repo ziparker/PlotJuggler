@@ -7,6 +7,7 @@ QT5_WRAP_UI ( UI_SRC
     busydialog.ui
     curvecolorpick.ui
     filterablelistwidget.ui
+    tabbedplotwidget.ui
     )
 
 SET( PLOTTER_SRC
@@ -22,6 +23,7 @@ SET( PLOTTER_SRC
     curvecolorpick.cpp
     plotdata_qwt.cpp
     filterablelistwidget.cpp
+    tabbedplotwidget.cpp
     )
 
 add_executable(SuperPlotter ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})

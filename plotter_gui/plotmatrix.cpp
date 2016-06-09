@@ -343,6 +343,15 @@ void PlotMatrix::replot()
     }
 }
 
+void PlotMatrix::removeAllCurves()
+{
+    for (unsigned p = 0; p < this->widgetList().size(); p++)
+    {
+        PlotWidget* plot = this->widgetList().at(p);
+        plot->detachAllCurves();
+    }
+}
+
 void PlotMatrix::setHorizontalLink(bool linked)
 {
     _horizontal_link = linked;
