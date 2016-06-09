@@ -58,8 +58,6 @@ MainWindow::MainWindow(QWidget *parent) :
     buildData();
     _undo_timer.start();
 
-    qApp->installEventFilter( this );
-
     // save initial state
     on_undoableChange();
 }
@@ -161,39 +159,6 @@ void MainWindow::createTabbedDialog(bool undoable)
     window->addAction( _action_Redo );
 
     if( undoable ) on_undoableChange();
-}
-
-bool MainWindow::eventFilter(QObject *obj, QEvent *event)
-{
-
-    if( event->type() == QEvent::MouseButtonDblClick)
-    {
-        if (obj == _tabbed_plotarea.front()->tabWidget()->tabBar() ) {
-
-            // query and set tab(s) names
-            QTabBar *tab_bar = qobject_cast<QTabBar *>(obj);
-            if(tab_bar)
-            {
-                /*    int idx = tab_bar->currentIndex ();
-
-                bool ok = true;
-                QString newName = QInputDialog::getText (
-                            this, tr ("Change Name of the selected tab"),
-                            tr ("Insert New Tab Name"),
-                            QLineEdit::Normal,
-                            tab_bar->tabText (idx),
-                            &ok);
-
-                if (ok) {
-                    tab_bar->setTabText (idx, newName);
-                }*/
-                createTabbedDialog( true );
-            }
-        }
-    }
-
-    // Standard event processing
-    return QObject::eventFilter(obj, event);
 }
 
 

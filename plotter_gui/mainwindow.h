@@ -120,10 +120,6 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) ;
     void dropEvent(QDropEvent *event) ;
 
-    bool eventFilter(QObject *obj, QEvent *event);
-
-
-
     void deleteLoadedData();
 
 

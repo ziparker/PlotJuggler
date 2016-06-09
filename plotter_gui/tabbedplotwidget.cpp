@@ -1,3 +1,7 @@
+#include <QMenu>
+#include <QAction>
+#include <QInputDialog>
+#include <QMouseEvent>
 #include "tabbedplotwidget.h"
 #include "ui_tabbedplotwidget.h"
 
@@ -11,8 +15,8 @@ TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data,  MainWindow* main_w
     _parent_type = QString("floating_window");
 
     ui->setupUi(this);
-    addTab();
-    _horizontal_link = true;
+
+    init();
 }
 
 TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_window_parent ) :
@@ -22,13 +26,29 @@ TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_windo
     _main_window = main_window_parent;
     _mapped_data = mapped_data;
     _parent_type = QString("main_window");
-
     ui->setupUi(this);
-    addTab();
-    _horizontal_link = true;
+
+    init();
 }
 
-PlotMatrix *TabbedPlotWidget::currentPlotGrid()
+void TabbedPlotWidget::init()
+{
+    _horizontal_link = true;
+    addTab();
+
+    ui->tabWidget->tabBar()->installEventFilter( this );
+
+    _action_renameTab = new QAction(tr("rename tab"), this);
+    _action_moveTab   = new QAction(tr("move tab"), this);
+
+    connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(changeCurrentTabName()) );
+
+    _tab_menu = new QMenu(this);
+    _tab_menu->addAction( _action_renameTab );
+    _tab_menu->addAction( _action_moveTab );
+}
+
+PlotMatrix *TabbedPlotWidget::currentTab()
 {
     return static_cast<PlotMatrix*>( ui->tabWidget->currentWidget() );
 }
@@ -40,16 +60,16 @@ QTabWidget *TabbedPlotWidget::tabWidget()
 
 void TabbedPlotWidget::addTab()
 {
-    PlotMatrix* grid = new PlotMatrix( _mapped_data, this);
+    PlotMatrix* tab = new PlotMatrix( _mapped_data, this);
 
-    ui->tabWidget->addTab( grid, QString("plot") );
+    ui->tabWidget->addTab( tab, QString("plot") );
 
-    connect( grid, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT(on_plotAdded(PlotWidget*)));
-    connect( grid, SIGNAL(layoutModified()),       _main_window, SLOT( on_undoableChange()) );
+    connect( tab, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT(on_plotAdded(PlotWidget*)));
+    connect( tab, SIGNAL(layoutModified()),       _main_window, SLOT( on_undoableChange()) );
 
-    ui->tabWidget->setCurrentWidget( grid );
+    ui->tabWidget->setCurrentWidget( tab );
 
-    grid->setHorizontalLink( _horizontal_link );
+    tab->setHorizontalLink( _horizontal_link );
 
     //TODO  grid->setActiveTracker( ui->pushButtonActivateTracker->isChecked() );
 
@@ -63,7 +83,6 @@ QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument &doc)
     QDomElement tabbed_area = doc.createElement( "tabbed_widget" );
 
     tabbed_area.setAttribute("parent", _parent_type);
-    qDebug() << _parent_type;
 
     for(int i=0; i< ui->tabWidget->count(); i++)
     {
@@ -125,34 +144,52 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement &tabbed_area)
     int current_index = current_plotmatrix.attribute( "index" ).toInt();
     ui->tabWidget->setCurrentIndex( current_index );
 
-    currentPlotGrid()->replot();
+    currentTab()->replot();
     return true;
 }
+
 
 TabbedPlotWidget::~TabbedPlotWidget()
 {
     delete ui;
 }
 
+void TabbedPlotWidget::changeCurrentTabName()
+{
+    int idx = ui->tabWidget->tabBar()->currentIndex ();
+
+    bool ok = true;
+    QString newName = QInputDialog::getText (
+                this, tr ("Change Name of the selected tab"),
+                tr ("Insert New Tab Name"),
+                QLineEdit::Normal,
+                ui->tabWidget->tabText (idx),
+                &ok);
+
+    if (ok) {
+        ui->tabWidget->setTabText (idx, newName);
+    }
+}
+
 void TabbedPlotWidget::on_pushAddColumn_pressed()
 {
-    currentPlotGrid()->addColumn();
+    currentTab()->addColumn();
     emit undoableChangeHappened();
 }
 
 void TabbedPlotWidget::on_pushVerticalResize_pressed()
 {
-    currentPlotGrid()->maximizeHorizontalScale();
+    currentTab()->maximizeHorizontalScale();
 }
 
 void TabbedPlotWidget::on_pushHorizontalResize_pressed()
 {
-    currentPlotGrid()->maximizeVerticalScale();
+    currentTab()->maximizeVerticalScale();
 }
 
 void TabbedPlotWidget::on_pushAddRow_pressed()
 {
-    currentPlotGrid()->addRow();
+    currentTab()->addRow();
     emit undoableChangeHappened();
 }
 
@@ -163,23 +200,23 @@ void TabbedPlotWidget::on_addTabButton_pressed()
 
 void TabbedPlotWidget::on_pushremoveEmpty_pressed()
 {
-    PlotMatrix *grid = currentPlotGrid();
+    PlotMatrix *tab = currentTab();
 
-    for( int row = 0; row< grid->numRows(); row++)
+    for( int row = 0; row< tab->numRows(); row++)
     {
-        while( grid->isRowEmpty( row ) && row < grid->numRows() ){
-            grid->removeRow( row );
+        while( tab->isRowEmpty( row ) && row < tab->numRows() ){
+            tab->removeRow( row );
         }
     }
 
-    for( int col = 0; col< grid->numColumns(); col++)
+    for( int col = 0; col< tab->numColumns(); col++)
     {
-        while( grid->isColumnEmpty( col ) && col < grid->numColumns() ){
-            grid->removeColumn( col );
+        while( tab->isColumnEmpty( col ) && col < tab->numColumns() ){
+            tab->removeColumn( col );
         }
     }
 
-    if( grid->numColumns() == 0 &&  grid->numRows() == 0 )
+    if( tab->numColumns() == 0 &&  tab->numRows() == 0 )
     {
         on_pushAddColumn_pressed();
     }
@@ -236,4 +273,29 @@ void TabbedPlotWidget::on_buttonLinkHorizontalScale_toggled(bool checked)
         PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
         tab->setHorizontalLink( _horizontal_link );
     }
+}
+
+
+bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
+{
+    QTabBar* tab_bar = ui->tabWidget->tabBar();
+
+    if (obj == tab_bar )
+    {
+        if( event->type() == QEvent::MouseButtonPress)
+        {
+            QMouseEvent *mouse_event = (QMouseEvent *)event;
+
+            int index = tab_bar->tabAt( mouse_event->pos() );
+            tab_bar->setCurrentIndex( index );
+
+            if( mouse_event->button() == Qt::RightButton )
+            {
+                _tab_menu->exec( mouse_event->globalPos() );
+            }
+        }
+    }
+
+    // Standard event processing
+    return QObject::eventFilter(obj, event);
 }

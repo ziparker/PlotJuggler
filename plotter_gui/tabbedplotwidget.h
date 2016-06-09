@@ -22,7 +22,7 @@ public:
     explicit TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_window_parent );
 
 
-    PlotMatrix* currentPlotGrid();
+    PlotMatrix* currentTab();
 
     QTabWidget* tabWidget();
 
@@ -34,6 +34,9 @@ public:
     ~TabbedPlotWidget();
 
 private slots:
+
+    void changeCurrentTabName();
+
     void on_pushAddColumn_pressed();
 
     void on_pushVerticalResize_pressed();
@@ -55,6 +58,13 @@ private slots:
 private:
     Ui::TabbedPlotWidget *ui;
 
+    void init();
+
+    QAction* _action_renameTab;
+    QAction* _action_moveTab;
+
+    QMenu* _tab_menu;
+
     PlotDataMap *_mapped_data;
 
     QWidget* _main_window;
@@ -62,8 +72,12 @@ private:
 
     QString _parent_type;
 
+protected:
+    virtual bool eventFilter(QObject *obj, QEvent *event);
+
 signals:
     void undoableChangeHappened();
+    void createTabbedDialog(bool);
 };
 
 #endif // TABBEDPLOTWIDGET_H
