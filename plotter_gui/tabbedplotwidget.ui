@@ -49,11 +49,43 @@
           <enum>QLayout::SetMinimumSize</enum>
          </property>
          <item>
+          <widget class="QPushButton" name="buttonLinkHorizontalScale">
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="resource.qrc">
+             <normaloff>:/icons/resources/link.png</normaloff>:/icons/resources/link.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="pushVerticalResize">
            <property name="maximumSize">
             <size>
              <width>50</width>
-             <height>16777215</height>
+             <height>40</height>
             </size>
            </property>
            <property name="autoFillBackground">
@@ -82,7 +114,7 @@
            <property name="maximumSize">
             <size>
              <width>50</width>
-             <height>16777215</height>
+             <height>40</height>
             </size>
            </property>
            <property name="text">

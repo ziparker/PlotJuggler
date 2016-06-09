@@ -6,10 +6,26 @@ TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data,  MainWindow* main_w
     QWidget(parent),
     ui(new Ui::TabbedPlotWidget)
 {
-    _main_window = main_window;
+    _main_window = (QWidget*)main_window;
     _mapped_data = mapped_data;
+    _parent_type = QString("floating_window");
+
     ui->setupUi(this);
     addTab();
+    _horizontal_link = true;
+}
+
+TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_window_parent ) :
+    QWidget( main_window_parent ),
+    ui(new Ui::TabbedPlotWidget)
+{
+    _main_window = main_window_parent;
+    _mapped_data = mapped_data;
+    _parent_type = QString("main_window");
+
+    ui->setupUi(this);
+    addTab();
+    _horizontal_link = true;
 }
 
 PlotMatrix *TabbedPlotWidget::currentPlotGrid()
@@ -28,13 +44,14 @@ void TabbedPlotWidget::addTab()
 
     ui->tabWidget->addTab( grid, QString("plot") );
 
-    connect( grid, SIGNAL(plotAdded(PlotWidget*)), (QWidget *)_main_window, SLOT(on_plotAdded(PlotWidget*)));
-    connect( grid, SIGNAL(layoutModified()),       (QWidget *)_main_window, SLOT( on_undoableChange()) );
+    connect( grid, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT(on_plotAdded(PlotWidget*)));
+    connect( grid, SIGNAL(layoutModified()),       _main_window, SLOT( on_undoableChange()) );
 
     ui->tabWidget->setCurrentWidget( grid );
-   //TODO   grid->setHorizontalLink( _horizontal_link );
 
-   //TODO  grid->setActiveTracker( ui->pushButtonActivateTracker->isChecked() );
+    grid->setHorizontalLink( _horizontal_link );
+
+    //TODO  grid->setActiveTracker( ui->pushButtonActivateTracker->isChecked() );
 
     on_pushAddColumn_pressed();
 
@@ -45,14 +62,8 @@ QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument &doc)
 {
     QDomElement tabbed_area = doc.createElement( "tabbed_widget" );
 
-    if( (QWidget*)_main_window == this->parent())
-    {
-        tabbed_area.setAttribute("parent", "mainwindow");
-    }
-    else{
-        tabbed_area.setAttribute("parent", "dialog");
-    }
-
+    tabbed_area.setAttribute("parent", _parent_type);
+    qDebug() << _parent_type;
 
     for(int i=0; i< ui->tabWidget->count(); i++)
     {
@@ -93,7 +104,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement &tabbed_area)
         // read tab name
         if( plotmatrix_el.hasAttribute("tab_name"))
         {
-             ui->tabWidget->setTabText( index, plotmatrix_el.attribute("tab_name" ) );
+            ui->tabWidget->setTabText( index, plotmatrix_el.attribute("tab_name" ) );
         }
 
         if( !success )
@@ -106,7 +117,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement &tabbed_area)
 
     // remove if tabs are too much
     while( num_tabs > index ){
-         ui->tabWidget->removeTab( num_tabs-1 );
+        ui->tabWidget->removeTab( num_tabs-1 );
         num_tabs--;
     }
 
@@ -213,5 +224,16 @@ void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
             on_addTabButton_pressed();
         }
         ui->tabWidget->removeTab( index );
+    }
+}
+
+void TabbedPlotWidget::on_buttonLinkHorizontalScale_toggled(bool checked)
+{
+    _horizontal_link = checked;
+
+    for (int i = 0; i < ui->tabWidget->count(); i++)
+    {
+        PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
+        tab->setHorizontalLink( _horizontal_link );
     }
 }

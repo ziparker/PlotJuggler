@@ -19,6 +19,9 @@ class TabbedPlotWidget : public QWidget
 public:
     explicit TabbedPlotWidget(PlotDataMap *mapped_data, MainWindow* main_window, QWidget *parent );
 
+    explicit TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_window_parent );
+
+
     PlotMatrix* currentPlotGrid();
 
     QTabWidget* tabWidget();
@@ -47,13 +50,17 @@ private slots:
 
     void on_tabWidget_tabCloseRequested(int index);
 
+    void on_buttonLinkHorizontalScale_toggled(bool checked);
+
 private:
     Ui::TabbedPlotWidget *ui;
 
     PlotDataMap *_mapped_data;
 
-    MainWindow *_main_window;
+    QWidget* _main_window;
+    bool _horizontal_link;
 
+    QString _parent_type;
 
 signals:
     void undoableChangeHappened();

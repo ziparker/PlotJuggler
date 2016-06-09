@@ -53,8 +53,6 @@ private slots:
 
     void onActionReloadLayout();
 
-    void on_pushLinkHorizontalScale_toggled(bool checked);
-
     void on_pushButtonActivateTracker_toggled(bool checked);
 
     void on_UndoInvoked();
@@ -64,10 +62,14 @@ private slots:
     void on_horizontalSlider_sliderMoved(int position);
 
     void on_tabbedAreaDestroyed(QObject*object);
+
+    void on_floatingWindowDestroyed(QObject*object);
+
 private:
     Ui::MainWindow *ui;
 
     std::vector<TabbedPlotWidget *> _tabbed_plotarea;
+    std::vector<QMainWindow *>      _floating_window;
 
     QAction* _action_loadRecentFile;
     QAction* _action_reloadFile;
@@ -92,8 +94,6 @@ private:
 
     void rearrangeGridLayout();
 
-    bool _horizontal_link;
-
     QColor colorHint();
 
     void loadPlugins(QString subdir_name);
@@ -111,7 +111,7 @@ private:
 
     QString _loaded_datafile;
 
-    void createTabbedDialog();
+    void createTabbedDialog(bool undoable);
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;

@@ -25,6 +25,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QInputDialog>
+#include <QWindow>
 #include "tabbedplotwidget.h"
 
 QStringList  words_list;
@@ -41,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     curvelist_widget = new FilterableListWidget(this);
 
-    _tabbed_plotarea.push_back( new TabbedPlotWidget( &_mapped_plot_data, this, this) );
+    _tabbed_plotarea.push_back( new TabbedPlotWidget( &_mapped_plot_data, this) );
     connect( _tabbed_plotarea.back(), SIGNAL(undoableChangeHappened()), this, SLOT(on_undoableChange()) );
 
     ui->centralLayout->insertWidget(0, _tabbed_plotarea.back());
@@ -51,11 +52,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->splitter->setStretchFactor(0,0);
     ui->splitter->setStretchFactor(1,1);
 
-    _horizontal_link = true;
-
-    //TODO ui->pushHorizontalResize->setChecked( _horizontal_link );
-    // TODO currentPlotGrid()->setHorizontalLink( _horizontal_link );
-
     createActions();
     loadPlugins("plugins");
 
@@ -63,6 +59,9 @@ MainWindow::MainWindow(QWidget *parent) :
     _undo_timer.start();
 
     qApp->installEventFilter( this );
+
+    // save initial state
+    on_undoableChange();
 }
 
 MainWindow::~MainWindow()
@@ -72,20 +71,18 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_undoableChange()
 {
-    int elapsed_ms = _undo_timer.restart();
+   /* int elapsed_ms = _undo_timer.restart();
 
     // overwrite the previous
     if( elapsed_ms < 300)
     {
         if( _undo_states.empty() == false)
             _undo_states.pop_back();
-    }
+    }*/
+
     _undo_states.push_back( xmlSaveState() );
-
     buildPlotMatrixList();
-
     _redo_states.clear();
-
 }
 
 void MainWindow::onTrackerTimeUpdated(double current_time)
@@ -140,22 +137,30 @@ void MainWindow::onTrackerPositionUpdated(QPointF pos)
     onTrackerTimeUpdated( pos.x() );
 }
 
-void MainWindow::createTabbedDialog()
+void MainWindow::createTabbedDialog(bool undoable)
 {
-    QDialog* dlg = new QDialog(this);
-    dlg->setWindowTitle( "hello");
-    QVBoxLayout* pMainLay = new QVBoxLayout;
+    QMainWindow* window = new QMainWindow( this );
 
-    TabbedPlotWidget *tabbed_area = new TabbedPlotWidget( &_mapped_plot_data, this, dlg);
-    _tabbed_plotarea.push_back( tabbed_area );
-    connect( tabbed_area, SIGNAL(undoableChangeHappened()), this, SLOT(on_undoableChange()) );
-    connect( tabbed_area, SIGNAL(destroyed(QObject*)), this,  SLOT(on_tabbedAreaDestroyed(QObject*)) );
+    _floating_window.push_back( window );
 
-    pMainLay->addWidget( tabbed_area );
-    dlg->setLayout(pMainLay);
+ //   QVBoxLayout* pMainLay = new QVBoxLayout( window );
 
-    dlg->show();
-    dlg->setAttribute( Qt::WA_DeleteOnClose, true );
+    TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, this, window);
+    _tabbed_plotarea.push_back( tabbed_widget );
+
+    connect( tabbed_widget, SIGNAL(undoableChangeHappened()), this, SLOT(on_undoableChange()) );
+    connect( tabbed_widget, SIGNAL(destroyed(QObject*)), this,  SLOT(on_tabbedAreaDestroyed(QObject*)) );
+    connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(on_floatingWindowDestroyed(QObject*)) );
+
+  //  pMainLay->addWidget( tabbed_widget );
+    window->setCentralWidget( tabbed_widget );
+    window->setAttribute( Qt::WA_DeleteOnClose, true );
+    window->show();
+
+    window->addAction( _action_Undo );
+    window->addAction( _action_Redo );
+
+    if( undoable ) on_undoableChange();
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
@@ -182,7 +187,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 if (ok) {
                     tab_bar->setTabText (idx, newName);
                 }*/
-                createTabbedDialog();
+                createTabbedDialog( true );
             }
         }
     }
@@ -417,11 +422,6 @@ void MainWindow::resizeEvent(QResizeEvent *)
 }
 
 
-
-
-
-
-
 void MainWindow::on_plotAdded(PlotWidget* plot)
 {
     connect( plot,SIGNAL(plotModified()),                     this, SLOT(on_undoableChange()) );
@@ -440,7 +440,11 @@ QDomDocument MainWindow::xmlSaveState()
 
     QDomElement root = doc.createElement( "root" );
 
-    // TODO
+    for (int i = 0; i < _tabbed_plotarea.size(); i++)
+    {
+        QDomElement tabbed_area = _tabbed_plotarea[i]->xmlSaveState(doc);
+        root.appendChild( tabbed_area );
+    }
 
     doc.appendChild(root);
 
@@ -455,7 +459,52 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
         return false;
     }
 
-    // TODO
+    QDomElement tabbed_area;
+
+    int num_floating = 0;
+
+    for (  tabbed_area = root.firstChildElement(  "tabbed_widget" )  ;
+           tabbed_area.isNull() == false;
+           tabbed_area = tabbed_area.nextSiblingElement( "tabbed_widget" ) )
+    {
+        if( tabbed_area.attribute("parent").compare("main_window") != 0)
+        {
+            num_floating++;
+        }
+    }
+
+    // add windows if needed
+    while( _floating_window.size() < num_floating )
+    {
+        createTabbedDialog( false );
+    }
+
+    while( _floating_window.size() > num_floating ){
+        QMainWindow* window =  _floating_window.back();
+        _floating_window.pop_back();
+        window->deleteLater();
+    }
+
+    //-----------------------------------------------------
+
+    int index = 1;
+
+    for (  tabbed_area = root.firstChildElement(  "tabbed_widget" )  ;
+           tabbed_area.isNull() == false;
+           tabbed_area = tabbed_area.nextSiblingElement( "tabbed_widget" ) )
+    {
+
+
+        if( tabbed_area.attribute("parent").compare("main_window") == 0)
+        {
+            _tabbed_plotarea.front()->xmlLoadState( tabbed_area );
+        }
+        else{
+
+            TabbedPlotWidget* tabbed_widget = _tabbed_plotarea.at( index++ );
+            tabbed_widget->xmlLoadState( tabbed_area );
+        }
+    }
 
     return true;
 }
@@ -771,16 +820,6 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 }
 
 
-void MainWindow::on_pushLinkHorizontalScale_toggled(bool checked)
-{
-    _horizontal_link = checked;
-
-    for (int i = 0; i < _plot_matrix_list.size(); i++)
-    {
-        _plot_matrix_list[i]->setHorizontalLink( _horizontal_link );
-    }
-}
-
 void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
 {
     for (int i = 0; i < _plot_matrix_list.size(); i++)
@@ -793,8 +832,6 @@ void MainWindow::on_UndoInvoked( )
 {
     if( _undo_states.size() > 1)
     {
-        qDebug()<< "on_UndoInvoked";
-
         QDomDocument state_document = _undo_states.back();
         _redo_states.push_back( state_document );
         _undo_states.pop_back();
@@ -809,8 +846,6 @@ void MainWindow::on_RedoInvoked()
 {
     if( _redo_states.size() > 0)
     {
-        qDebug()<< "on_RedoInvoked";
-
         QDomDocument state_document = _redo_states.back();
         _undo_states.push_back( state_document );
         _redo_states.pop_back();
@@ -863,6 +898,18 @@ void MainWindow::on_tabbedAreaDestroyed(QObject *object)
     }
 }
 
+void MainWindow::on_floatingWindowDestroyed(QObject *object)
+{
+    for (int i=0; i< _floating_window.size(); i++)
+    {
+        if( _floating_window[i] == object)
+        {
+            _floating_window.erase( _floating_window.begin() + i);
+            break;
+        }
+    }
+    // on_undoableChange();
+}
 
 void MainWindow::buildPlotMatrixList()
 {
