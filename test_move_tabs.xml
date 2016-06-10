@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root>
+ <tabbed_widget parent="main_window">
+  <plotmatrix rows="1" tab_name="plot A" columns="1">
+   <plot row="0" col="0">
+    <range right="99.99900054931641" bottom="-1.584035634994507" top="2.521902322769165" left="0"/>
+    <curve R="255" name="piccoli" B="0" G="0"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix rows="1" tab_name="2222" columns="1">
+   <plot row="0" col="0">
+    <range right="99.99900054931641" bottom="-1.359544038772583" top="3.046036005020142" left="0"/>
+    <curve R="160" name="ci" B="164" G="160"/>
+    <curve R="0" name="tre" B="255" G="0"/>
+   </plot>
+  </plotmatrix>
+  <currentPlotMatrix index="1"/>
+ </tabbed_widget>
+ <tabbed_widget parent="floating_window">
+  <plotmatrix rows="1" tab_name="666" columns="1">
+   <plot row="0" col="0">
+    <range right="99.99900054931641" bottom="-0.6523891091346741" top="0.378093421459198" left="0"/>
+    <curve R="0" name="tre" B="255" G="0"/>
+   </plot>
+  </plotmatrix>
+  <currentPlotMatrix index="0"/>
+ </tabbed_widget>
+</root>
+
