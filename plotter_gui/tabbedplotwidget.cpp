@@ -40,20 +40,15 @@ TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_windo
 
 void TabbedPlotWidget::init()
 {
-
     ui->tabWidget->tabBar()->installEventFilter( this );
 
     _action_renameTab = new QAction(tr("Rename tab"), this);
-    _action_moveTab   = new QAction(tr("Create new subwindow"), this);
 
     connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(renameCurrentTab()) );
-    connect( _action_moveTab, SIGNAL(triggered()), _main_window, SLOT(on_createFloatingWindow()) );
-
     connect( this, SIGNAL(sendTabToNewWindow(PlotMatrix*)), _main_window, SLOT(on_createFloatingWindow(PlotMatrix*)) );
 
     _tab_menu = new QMenu(this);
     _tab_menu->addAction( _action_renameTab );
-    _tab_menu->addAction( _action_moveTab );
     _tab_menu->addSeparator();
 }
 

@@ -66,8 +66,6 @@ private:
     void init();
 
     QAction* _action_renameTab;
-    QAction* _action_moveTab;
-
     QMenu* _tab_menu;
 
     PlotDataMap *_mapped_data;

@@ -940,3 +940,8 @@ void MainWindow::updateInternalState()
         _tabbed_plotarea[i]->setSiblingsList( tabbed_map );
     }
 }
+
+void MainWindow::on_pushButtonAddSubwindow_pressed()
+{
+    createTabbedDialog( NULL, true );
+}

@@ -56,6 +56,38 @@
            <number>0</number>
           </property>
           <item>
+           <widget class="QPushButton" name="pushButtonAddSubwindow">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Add new subwindow</string>
+            </property>
+            <property name="whatsThis">
+             <string>Add new subwindow</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/stacks_32px.png</normaloff>:/icons/resources/stacks_32px.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>30</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="pushButtonActivateTracker">
             <property name="text">
              <string/>

@@ -65,6 +65,8 @@ private slots:
 
     void on_createFloatingWindow(PlotMatrix* first_tab = NULL);
 
+    void on_pushButtonAddSubwindow_pressed();
+
 private:
     Ui::MainWindow *ui;
 
