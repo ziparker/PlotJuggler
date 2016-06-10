@@ -35,8 +35,6 @@ private slots:
 
     void resizeEvent(QResizeEvent *) ;
 
-    void createActions();
-
     void on_plotAdded(PlotWidget* plot);
 
     void onActionSaveLayout();
@@ -65,6 +63,8 @@ private slots:
 
     void on_floatingWindowDestroyed(QObject*object);
 
+    void on_createFloatingWindow();
+
 private:
     Ui::MainWindow *ui;
 
@@ -81,6 +81,8 @@ private:
 
     QAction* _action_Undo;
     QAction* _action_Redo;
+
+    void createActions();
 
     FilterableListWidget* curvelist_widget;
 

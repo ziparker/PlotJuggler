@@ -42,6 +42,7 @@ void TabbedPlotWidget::init()
     _action_moveTab   = new QAction(tr("move tab"), this);
 
     connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(changeCurrentTabName()) );
+    connect( _action_moveTab, SIGNAL(triggered()), _main_window, SLOT(on_createFloatingWindow()) );
 
     _tab_menu = new QMenu(this);
     _tab_menu->addAction( _action_renameTab );
@@ -74,8 +75,6 @@ void TabbedPlotWidget::addTab()
     //TODO  grid->setActiveTracker( ui->pushButtonActivateTracker->isChecked() );
 
     on_pushAddColumn_pressed();
-
-    emit undoableChangeHappened();
 }
 
 QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument &doc)
@@ -196,6 +195,7 @@ void TabbedPlotWidget::on_pushAddRow_pressed()
 void TabbedPlotWidget::on_addTabButton_pressed()
 {
     addTab();
+    emit undoableChangeHappened();
 }
 
 void TabbedPlotWidget::on_pushremoveEmpty_pressed()
@@ -261,6 +261,7 @@ void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
             on_addTabButton_pressed();
         }
         ui->tabWidget->removeTab( index );
+        emit undoableChangeHappened();
     }
 }
 

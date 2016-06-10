@@ -69,7 +69,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_undoableChange()
 {
-   /* int elapsed_ms = _undo_timer.restart();
+    /* int elapsed_ms = _undo_timer.restart();
 
     // overwrite the previous
     if( elapsed_ms < 300)
@@ -137,11 +137,38 @@ void MainWindow::onTrackerPositionUpdated(QPointF pos)
 
 void MainWindow::createTabbedDialog(bool undoable)
 {
+
     QMainWindow* window = new QMainWindow( this );
+    Qt::WindowFlags flags = window->windowFlags();
+    window->setWindowFlags( flags | Qt::SubWindow );
+
+    const char prefix[] = "Window ";
+    int window_number = 1;
+
+    bool number_taken = true;
+    while( number_taken )
+    {
+        number_taken = false;
+        for (int i=0; i< _floating_window.size(); i++ )
+        {
+            QString win_title = _floating_window.at(i)->windowTitle();
+            win_title.remove(0, sizeof(prefix)-1 );
+            int num = win_title.toInt();
+
+            if (num == window_number)
+            {
+                number_taken = true;
+                window_number++;
+                break;
+            }
+        }
+    }
+
+    window->setWindowModality( Qt::WindowModal );
+
+    window->setWindowTitle( QString(prefix) + QString::number(window_number));
 
     _floating_window.push_back( window );
-
- //   QVBoxLayout* pMainLay = new QVBoxLayout( window );
 
     TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, this, window);
     _tabbed_plotarea.push_back( tabbed_widget );
@@ -150,10 +177,10 @@ void MainWindow::createTabbedDialog(bool undoable)
     connect( tabbed_widget, SIGNAL(destroyed(QObject*)), this,  SLOT(on_tabbedAreaDestroyed(QObject*)) );
     connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(on_floatingWindowDestroyed(QObject*)) );
 
-  //  pMainLay->addWidget( tabbed_widget );
     window->setCentralWidget( tabbed_widget );
     window->setAttribute( Qt::WA_DeleteOnClose, true );
     window->show();
+    window->activateWindow();
 
     window->addAction( _action_Undo );
     window->addAction( _action_Redo );
@@ -874,6 +901,11 @@ void MainWindow::on_floatingWindowDestroyed(QObject *object)
         }
     }
     // on_undoableChange();
+}
+
+void MainWindow::on_createFloatingWindow()
+{
+    createTabbedDialog( true );
 }
 
 void MainWindow::buildPlotMatrixList()
