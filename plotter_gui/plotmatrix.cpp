@@ -8,9 +8,10 @@
 #include "customtracker.h"
 
 
-PlotMatrix::PlotMatrix(PlotDataMap *datamap, QWidget *parent ):
+PlotMatrix::PlotMatrix(QString name, PlotDataMap *datamap, QWidget *parent ):
     QFrame( parent ),
-    _mapped_data(datamap)
+    _mapped_data(datamap),
+    _name(name)
 {
     num_rows = 0;
     num_cols = 0;
@@ -375,6 +376,16 @@ void PlotMatrix::setActiveTracker(bool active)
 const std::vector<PlotWidget *> &PlotMatrix::widgetList()
 {
     return _widget_list;
+}
+
+void PlotMatrix::setName(const QString &new_name)
+{
+    _name = new_name;
+}
+
+const QString &PlotMatrix::name() const
+{
+    return _name;
 }
 
 void PlotMatrix::maximizeHorizontalScale()

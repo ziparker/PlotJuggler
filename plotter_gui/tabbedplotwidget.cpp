@@ -1,4 +1,5 @@
 #include <QMenu>
+#include <QSignalMapper>
 #include <QAction>
 #include <QInputDialog>
 #include <QMouseEvent>
@@ -6,7 +7,7 @@
 #include "ui_tabbedplotwidget.h"
 
 
-TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data,  MainWindow* main_window, QWidget *parent ) :
+TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, PlotMatrix *first_tab,  MainWindow* main_window, QWidget *parent ) :
     QWidget(parent),
     ui(new Ui::TabbedPlotWidget)
 {
@@ -15,6 +16,9 @@ TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data,  MainWindow* main_w
     _parent_type = QString("floating_window");
 
     ui->setupUi(this);
+
+    _horizontal_link = true;
+    addTab( first_tab );
 
     init();
 }
@@ -28,25 +32,34 @@ TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_windo
     _parent_type = QString("main_window");
     ui->setupUi(this);
 
+    _horizontal_link = true;
+    addTab( NULL );
+
     init();
 }
 
 void TabbedPlotWidget::init()
 {
-    _horizontal_link = true;
-    addTab();
 
     ui->tabWidget->tabBar()->installEventFilter( this );
 
-    _action_renameTab = new QAction(tr("rename tab"), this);
-    _action_moveTab   = new QAction(tr("move tab"), this);
+    _action_renameTab = new QAction(tr("Rename tab"), this);
+    _action_moveTab   = new QAction(tr("Create new subwindow"), this);
 
-    connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(changeCurrentTabName()) );
+    connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(renameCurrentTab()) );
     connect( _action_moveTab, SIGNAL(triggered()), _main_window, SLOT(on_createFloatingWindow()) );
+
+    connect( this, SIGNAL(sendTabToNewWindow(PlotMatrix*)), _main_window, SLOT(on_createFloatingWindow(PlotMatrix*)) );
 
     _tab_menu = new QMenu(this);
     _tab_menu->addAction( _action_renameTab );
     _tab_menu->addAction( _action_moveTab );
+    _tab_menu->addSeparator();
+}
+
+void TabbedPlotWidget::setSiblingsList(const std::map<QString, TabbedPlotWidget *> &other_tabbed_widgets)
+{
+    _other_siblings = other_tabbed_widgets;
 }
 
 PlotMatrix *TabbedPlotWidget::currentTab()
@@ -59,14 +72,20 @@ QTabWidget *TabbedPlotWidget::tabWidget()
     return ui->tabWidget;
 }
 
-void TabbedPlotWidget::addTab()
+void TabbedPlotWidget::addTab( PlotMatrix* tab)
 {
-    PlotMatrix* tab = new PlotMatrix( _mapped_data, this);
+    if( !tab )
+    {
+        tab = new PlotMatrix("plot", _mapped_data, this);
+        ui->tabWidget->addTab( tab, QString("plot") );
+        tab->addColumn();
 
-    ui->tabWidget->addTab( tab, QString("plot") );
-
-    connect( tab, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT(on_plotAdded(PlotWidget*)));
-    connect( tab, SIGNAL(layoutModified()),       _main_window, SLOT( on_undoableChange()) );
+        connect( tab, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT(on_plotAdded(PlotWidget*)));
+        connect( tab, SIGNAL(layoutModified()),       _main_window, SLOT( on_undoableChange()) );
+    }
+    else{
+        ui->tabWidget->addTab( tab, tab->name() );
+    }
 
     ui->tabWidget->setCurrentWidget( tab );
 
@@ -74,7 +93,7 @@ void TabbedPlotWidget::addTab()
 
     //TODO  grid->setActiveTracker( ui->pushButtonActivateTracker->isChecked() );
 
-    on_pushAddColumn_pressed();
+    emit undoableChangeHappened();
 }
 
 QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument &doc)
@@ -113,7 +132,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement &tabbed_area)
         // add if tabs are too few
         if( index == num_tabs)
         {
-            this->addTab();
+            this->addTab( NULL );
             num_tabs++;
         }
         PlotMatrix* plot_matrix = static_cast<PlotMatrix*>(  ui->tabWidget->widget(index) );
@@ -122,7 +141,9 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement &tabbed_area)
         // read tab name
         if( plotmatrix_el.hasAttribute("tab_name"))
         {
-            ui->tabWidget->setTabText( index, plotmatrix_el.attribute("tab_name" ) );
+            QString tab_name = plotmatrix_el.attribute("tab_name" );
+            ui->tabWidget->setTabText( index, tab_name );
+            plot_matrix->setName( tab_name );
         }
 
         if( !success )
@@ -153,7 +174,7 @@ TabbedPlotWidget::~TabbedPlotWidget()
     delete ui;
 }
 
-void TabbedPlotWidget::changeCurrentTabName()
+void TabbedPlotWidget::renameCurrentTab()
 {
     int idx = ui->tabWidget->tabBar()->currentIndex ();
 
@@ -167,6 +188,7 @@ void TabbedPlotWidget::changeCurrentTabName()
 
     if (ok) {
         ui->tabWidget->setTabText (idx, newName);
+        currentTab()->setName( newName );
     }
 }
 
@@ -194,7 +216,7 @@ void TabbedPlotWidget::on_pushAddRow_pressed()
 
 void TabbedPlotWidget::on_addTabButton_pressed()
 {
-    addTab();
+    addTab( NULL );
     emit undoableChangeHappened();
 }
 
@@ -225,8 +247,22 @@ void TabbedPlotWidget::on_pushremoveEmpty_pressed()
 
 void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
 {
+    if( ui->tabWidget->count() == 0)
+    {
+        if( _parent_type.compare("main_window") == 0)
+        {
+            addTab( NULL);
+        }
+        else{
+            this->parent()->deleteLater();
+        }
+    }
+
     PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
-    tab->replot();
+    if( tab )
+    {
+        tab->replot();
+    }
 }
 
 void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
@@ -276,6 +312,28 @@ void TabbedPlotWidget::on_buttonLinkHorizontalScale_toggled(bool checked)
     }
 }
 
+void TabbedPlotWidget::on_requestTabMovement(const QString & destination_name)
+{
+    TabbedPlotWidget* destination_widget = _other_siblings[destination_name];
+
+    PlotMatrix* tab_to_move = currentTab();
+    int index = ui->tabWidget->tabBar()->currentIndex ();
+
+    const QString& tab_name =  this->tabWidget()->tabText(index);
+
+    destination_widget->tabWidget()->addTab( tab_to_move, tab_name );
+
+    // tab_to_move->setParent( destination_widget );
+
+    qDebug() << "move "<< tab_name<< " into " << destination_name;
+
+}
+
+void TabbedPlotWidget::moveTabIntoNewWindow()
+{
+    emit sendTabToNewWindow( currentTab() );
+}
+
 
 bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
@@ -290,9 +348,46 @@ bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
             int index = tab_bar->tabAt( mouse_event->pos() );
             tab_bar->setCurrentIndex( index );
 
+
             if( mouse_event->button() == Qt::RightButton )
             {
+                QMenu* submenu = new QMenu("Move tab to...");
+                _tab_menu->addMenu( submenu );
+
+                std::map<QString,TabbedPlotWidget*>::iterator it;
+                QSignalMapper* signalMapper = new QSignalMapper(submenu);
+
+                //-----------------------------------
+                QAction* action_new_window = submenu->addAction( "New Window" );
+
+                QIcon icon;
+                icon.addFile(QStringLiteral(":/icons/resources/stacks_32px.png"), QSize(16, 16), QIcon::Normal, QIcon::Off);
+
+                action_new_window->setIcon( icon);
+                submenu->addSeparator();
+
+                connect( action_new_window, SIGNAL(triggered()), this, SLOT(moveTabIntoNewWindow() ));
+
+                //-----------------------------------
+                for ( it = _other_siblings.begin(); it != _other_siblings.end(); it++)
+                {
+                    QString name = it->first;
+                    TabbedPlotWidget* tabbed_menu = it->second;
+                    if( tabbed_menu != this )
+                    {
+                        QAction* action = submenu->addAction( name );
+                        connect(action, SIGNAL(triggered()), signalMapper, SLOT(map()));
+                        signalMapper->setMapping( action, name );
+                    }
+                }
+
+                connect(signalMapper, SIGNAL(mapped(const QString &)),
+                        this, SLOT(on_requestTabMovement(const QString &)));
+
+                //-------------------------------
                 _tab_menu->exec( mouse_event->globalPos() );
+                //-------------------------------
+                submenu->deleteLater();
             }
         }
     }

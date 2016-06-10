@@ -17,16 +17,17 @@ class TabbedPlotWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit TabbedPlotWidget(PlotDataMap *mapped_data, MainWindow* main_window, QWidget *parent );
+    explicit TabbedPlotWidget(PlotDataMap *mapped_data, PlotMatrix* first_tab, MainWindow* main_window, QWidget *parent );
 
     explicit TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_window_parent );
 
+    void setSiblingsList( const std::map<QString,TabbedPlotWidget*>& other_tabbed_widgets );
 
     PlotMatrix* currentTab();
 
     QTabWidget* tabWidget();
 
-    void addTab();
+    void addTab(PlotMatrix *tab);
 
     QDomElement xmlSaveState(QDomDocument &doc);
     bool xmlLoadState(QDomElement &tabbed_area);
@@ -35,7 +36,7 @@ public:
 
 private slots:
 
-    void changeCurrentTabName();
+    void renameCurrentTab();
 
     void on_pushAddColumn_pressed();
 
@@ -55,6 +56,10 @@ private slots:
 
     void on_buttonLinkHorizontalScale_toggled(bool checked);
 
+    void on_requestTabMovement(const QString &destination_name);
+
+    void moveTabIntoNewWindow();
+
 private:
     Ui::TabbedPlotWidget *ui;
 
@@ -72,12 +77,15 @@ private:
 
     QString _parent_type;
 
+    std::map<QString,TabbedPlotWidget*> _other_siblings;
+
 protected:
     virtual bool eventFilter(QObject *obj, QEvent *event);
 
 signals:
     void undoableChangeHappened();
     void createTabbedDialog(bool);
+    void sendTabToNewWindow(PlotMatrix *);
 };
 
 #endif // TABBEDPLOTWIDGET_H

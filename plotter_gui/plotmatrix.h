@@ -11,7 +11,7 @@ class PlotMatrix: public QFrame
     Q_OBJECT
 
 public:
-    PlotMatrix(PlotDataMap *datamap,QWidget * parent = NULL );
+    PlotMatrix(QString name, PlotDataMap *datamap,QWidget * parent = NULL );
     virtual ~PlotMatrix();
 
     void addRow();
@@ -46,6 +46,9 @@ public:
 
     const std::vector<PlotWidget*>& widgetList();
 
+    void setName(const QString &new_name) ;
+
+    const QString& name() const;
 
 public slots:
     void maximizeHorizontalScale();
@@ -71,6 +74,8 @@ private:
     PlotDataMap *_mapped_data;
 
     bool _active_tracker;
+
+    QString _name;
 
 signals:
     void plotAdded(PlotWidget*);

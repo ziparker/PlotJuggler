@@ -63,7 +63,7 @@ private slots:
 
     void on_floatingWindowDestroyed(QObject*object);
 
-    void on_createFloatingWindow();
+    void on_createFloatingWindow(PlotMatrix* first_tab = NULL);
 
 private:
     Ui::MainWindow *ui;
@@ -88,7 +88,7 @@ private:
 
     std::vector<PlotMatrix*> _plot_matrix_list;
 
-    void buildPlotMatrixList();
+    void updateInternalState();
 
     void buildData();
 
@@ -113,7 +113,7 @@ private:
 
     QString _loaded_datafile;
 
-    void createTabbedDialog(bool undoable);
+    void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;

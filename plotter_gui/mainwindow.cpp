@@ -79,7 +79,7 @@ void MainWindow::on_undoableChange()
     }*/
 
     _undo_states.push_back( xmlSaveState() );
-    buildPlotMatrixList();
+    updateInternalState();
     _redo_states.clear();
 }
 
@@ -135,7 +135,7 @@ void MainWindow::onTrackerPositionUpdated(QPointF pos)
     onTrackerTimeUpdated( pos.x() );
 }
 
-void MainWindow::createTabbedDialog(bool undoable)
+void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 {
 
     QMainWindow* window = new QMainWindow( this );
@@ -164,13 +164,11 @@ void MainWindow::createTabbedDialog(bool undoable)
         }
     }
 
-    window->setWindowModality( Qt::WindowModal );
-
     window->setWindowTitle( QString(prefix) + QString::number(window_number));
 
     _floating_window.push_back( window );
 
-    TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, this, window);
+    TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, first_tab, this, window);
     _tabbed_plotarea.push_back( tabbed_widget );
 
     connect( tabbed_widget, SIGNAL(undoableChangeHappened()), this, SLOT(on_undoableChange()) );
@@ -468,7 +466,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     // add windows if needed
     while( _floating_window.size() < num_floating )
     {
-        createTabbedDialog( false );
+        createTabbedDialog( NULL, false );
     }
 
     while( _floating_window.size() > num_floating ){
@@ -703,7 +701,7 @@ void MainWindow::onActionLoadDataFile(QString fileName)
         _undo_states.push_back(  xmlSaveState() );
         ui->horizontalSlider->setRange(0, maxSizeX );
 
-        buildPlotMatrixList();
+        updateInternalState();
     }
     else{
         QMessageBox::warning(this, tr("Error"),
@@ -808,7 +806,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
     _undo_states.clear();
     _undo_states.push_back( domDocument );
 
-    buildPlotMatrixList();
+    updateInternalState();
 }
 
 
@@ -830,7 +828,7 @@ void MainWindow::on_UndoInvoked( )
         state_document = _undo_states.back();
         xmlLoadState( state_document );
 
-        buildPlotMatrixList();
+        updateInternalState();
     }
 }
 
@@ -844,7 +842,7 @@ void MainWindow::on_RedoInvoked()
 
         xmlLoadState( state_document );
 
-        buildPlotMatrixList();
+        updateInternalState();
     }
 }
 
@@ -888,6 +886,7 @@ void MainWindow::on_tabbedAreaDestroyed(QObject *object)
             break;
         }
     }
+    updateInternalState();
 }
 
 void MainWindow::on_floatingWindowDestroyed(QObject *object)
@@ -900,16 +899,19 @@ void MainWindow::on_floatingWindowDestroyed(QObject *object)
             break;
         }
     }
-    // on_undoableChange();
+
+    updateInternalState();
 }
 
-void MainWindow::on_createFloatingWindow()
+void MainWindow::on_createFloatingWindow(PlotMatrix* first_tab)
 {
-    createTabbedDialog( true );
+    createTabbedDialog( first_tab, true );
 }
 
-void MainWindow::buildPlotMatrixList()
+
+void MainWindow::updateInternalState()
 {
+    // Update the _plot_matrix_list
     _plot_matrix_list.clear();
 
     for (int i = 0; i < _tabbed_plotarea.size(); i++)
@@ -922,5 +924,19 @@ void MainWindow::buildPlotMatrixList()
                 _plot_matrix_list.push_back( tab );
             }
         }
+    }
+    //-----------------------------------------
+    //
+    std::map<QString,TabbedPlotWidget*> tabbed_map;
+
+    tabbed_map.insert( std::make_pair( QString("Main window"), _tabbed_plotarea[0] ) );
+
+    for (int i = 1; i < _tabbed_plotarea.size(); i++)
+    {
+        tabbed_map.insert( std::make_pair( _floating_window[i-1]->windowTitle(), _tabbed_plotarea[i] ) );
+    }
+    for (int i = 0; i < _tabbed_plotarea.size(); i++)
+    {
+        _tabbed_plotarea[i]->setSiblingsList( tabbed_map );
     }
 }
