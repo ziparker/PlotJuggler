@@ -8,7 +8,7 @@ BusyDialog::BusyDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setWindowFlags(Qt::FramelessWindowHint);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
 
     this->move( (parent->width() )/2,
                 (parent->height()/2 - height())   );

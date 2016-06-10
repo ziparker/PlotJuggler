@@ -6,6 +6,7 @@
 #include "plotwidget.h"
 #include "plotmatrix.h"
 #include "filterablelistwidget.h"
+#include "tabbedplotwidget.h"
 #include "../plugins/dataloader_base.h"
 #include "../plugins/statepublisher_base.h"
 
@@ -22,7 +23,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void undoableChangeHappened();
+    void on_undoableChange();
 
 private slots:
 
@@ -34,17 +35,7 @@ private slots:
 
     void resizeEvent(QResizeEvent *) ;
 
-    void on_pushAddRow_pressed();
-
-    void on_pushAddColumn_pressed();
-
-    void createActions();
-
-    void on_pushremoveEmpty_pressed();
-
     void on_plotAdded(PlotWidget* plot);
-
-    void on_addTabButton_pressed();
 
     void onActionSaveLayout();
 
@@ -52,7 +43,7 @@ private slots:
 
     void onActionLoadDataFile(bool reload_from_settings = false);
 
-     void onActionLoadDataFile(QString filename);
+    void onActionLoadDataFile(QString filename);
 
     void onActionReloadDataFileFromSettings();
 
@@ -60,26 +51,25 @@ private slots:
 
     void onActionReloadLayout();
 
-    void on_pushHorizontalResize_pressed();
-
-    void on_pushVerticalResize_pressed();
-
-    void on_pushLinkHorizontalScale_toggled(bool checked);
-
     void on_pushButtonActivateTracker_toggled(bool checked);
 
-    void on_pushButtonUndo_clicked();
+    void on_UndoInvoked();
 
-    void on_pushButtonRedo_clicked();
-
-    void on_tabWidget_currentChanged(int index);
-
-    void on_tabWidget_tabCloseRequested(int index);
+    void on_RedoInvoked();
 
     void on_horizontalSlider_sliderMoved(int position);
 
+    void on_tabbedAreaDestroyed(QObject*object);
+
+    void on_floatingWindowDestroyed(QObject*object);
+
+    void on_createFloatingWindow(PlotMatrix* first_tab = NULL);
+
 private:
     Ui::MainWindow *ui;
+
+    std::vector<TabbedPlotWidget *> _tabbed_plotarea;
+    std::vector<QMainWindow *>      _floating_window;
 
     QAction* _action_loadRecentFile;
     QAction* _action_reloadFile;
@@ -92,17 +82,19 @@ private:
     QAction* _action_Undo;
     QAction* _action_Redo;
 
+    void createActions();
+
     FilterableListWidget* curvelist_widget;
 
-    PlotMatrix *currentPlotGrid();
+    std::vector<PlotMatrix*> _plot_matrix_list;
+
+    void updateInternalState();
 
     void buildData();
 
     PlotDataMap    _mapped_plot_data;
 
     void rearrangeGridLayout();
-
-    bool _horizontal_link;
 
     QColor colorHint();
 
@@ -121,6 +113,7 @@ private:
 
     QString _loaded_datafile;
 
+    void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
@@ -128,10 +121,6 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event) ;
     void dragMoveEvent(QDragMoveEvent *event) ;
     void dropEvent(QDropEvent *event) ;
-
-    bool eventFilter(QObject *obj, QEvent *event);
-
-
 
     void deleteLoadedData();
 
