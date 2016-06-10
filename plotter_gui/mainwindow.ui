@@ -63,6 +63,9 @@
               <height>40</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="toolTip">
              <string>Add new subwindow</string>
             </property>
@@ -89,6 +92,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="pushButtonActivateTracker">
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="toolTip">
+             <string>Toggle the tracker</string>
+            </property>
             <property name="text">
              <string/>
             </property>
