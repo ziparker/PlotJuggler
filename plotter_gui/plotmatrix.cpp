@@ -126,6 +126,11 @@ void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
 
 void PlotMatrix::removeColumn(int column_to_delete)
 {
+    if(num_rows==1 && num_cols ==1 )
+    {
+        return;
+    }
+
     for(int col = column_to_delete; col< num_cols-1; col++)
     {
         for(int row=0; row< num_rows; row++)
@@ -147,6 +152,11 @@ void PlotMatrix::removeColumn(int column_to_delete)
 
 void PlotMatrix::removeRow(int row_to_delete)
 {
+    if(num_rows==1 && num_cols ==1 )
+    {
+        return;
+    }
+
     for(int row = row_to_delete; row< num_rows-1; row++)
     {
         for(int col = 0; col< num_cols; col++)

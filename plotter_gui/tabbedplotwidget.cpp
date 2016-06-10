@@ -226,22 +226,24 @@ void TabbedPlotWidget::on_pushremoveEmpty_pressed()
 
     for( int row = 0; row< tab->numRows(); row++)
     {
-        while( tab->isRowEmpty( row ) && row < tab->numRows() ){
+        while( tab->numRows() > 1 &&
+               tab->isRowEmpty( row ) &&
+               row < tab->numRows() )
+        {
             tab->removeRow( row );
         }
     }
 
     for( int col = 0; col< tab->numColumns(); col++)
     {
-        while( tab->isColumnEmpty( col ) && col < tab->numColumns() ){
+        while( tab->numColumns() > 1 &&
+               tab->isColumnEmpty( col ) &&
+               col < tab->numColumns() )
+        {
             tab->removeColumn( col );
         }
     }
 
-    if( tab->numColumns() == 0 &&  tab->numRows() == 0 )
-    {
-        on_pushAddColumn_pressed();
-    }
     emit undoableChangeHappened();
 }
 
