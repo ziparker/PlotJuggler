@@ -626,7 +626,6 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
         if( mouse_event->button() == Qt::LeftButton &&
             (mouse_event->modifiers() & Qt::ShiftModifier) )
         {
-            qDebug() << "pressed";
             isPressed = true;
             const QPoint point = mouse_event->pos();
             QPointF pointF ( invTransform( xBottom, point.x()),
@@ -655,8 +654,6 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
             const QPoint point = mouse_event->pos();
             QPointF pointF ( invTransform( xBottom, point.x()),
                              invTransform( yLeft, point.y()) );
-
-            qDebug() << "moved";
 
             emit trackerMoved(pointF);
         }

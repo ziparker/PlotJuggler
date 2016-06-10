@@ -132,7 +132,6 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
 
 void MainWindow::onTrackerPositionUpdated(QPointF pos)
 {
-    qDebug() << "onTrackerPositionUpdated";
     onTrackerTimeUpdated( pos.x() );
 }
 

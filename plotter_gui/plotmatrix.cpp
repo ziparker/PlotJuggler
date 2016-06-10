@@ -67,7 +67,6 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
     layout->addWidget( plot, row, col );
     plot->tracker()->setEnabled( _active_tracker );
 
-    qDebug() << "emit plotAdded(plot)";
     emit plotAdded(plot);
     return plot;
 }
