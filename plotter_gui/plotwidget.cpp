@@ -593,16 +593,6 @@ void PlotWidget::mousePressEvent(QMouseEvent *event)
             drag->setMimeData(mimeData);
             drag->exec();
         }
-        else if (event->modifiers() & Qt::ShiftModifier )
-        {
-            /*  const QPoint point = event->pos();
-
-            qDebug() << point;
-
-            qDebug() << invTransform( xBottom, point.x()) << " "
-                     << invTransform( yLeft, point.y());*/
-
-        }
         else if( event->modifiers() == Qt::NoModifier)
         {
             QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/zoom_in_32px.png")));
@@ -627,6 +617,8 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
     static bool isPressed = true;
 
+   // qDebug() <<  event->type();
+
     if ( event->type() == QEvent::MouseButtonPress)
     {
         QMouseEvent *mouse_event = (QMouseEvent *)event;
@@ -634,6 +626,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
         if( mouse_event->button() == Qt::LeftButton &&
             (mouse_event->modifiers() & Qt::ShiftModifier) )
         {
+            qDebug() << "pressed";
             isPressed = true;
             const QPoint point = mouse_event->pos();
             QPointF pointF ( invTransform( xBottom, point.x()),
@@ -662,6 +655,9 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
             const QPoint point = mouse_event->pos();
             QPointF pointF ( invTransform( xBottom, point.x()),
                              invTransform( yLeft, point.y()) );
+
+            qDebug() << "moved";
+
             emit trackerMoved(pointF);
         }
     }

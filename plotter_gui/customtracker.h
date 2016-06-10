@@ -60,8 +60,6 @@ private:
     QwtPlot* _plot;
     bool _visible;
 
-signals:
-    void timePointMoved(double time);
 };
 
 #endif // CUSTOMTRACKER_H

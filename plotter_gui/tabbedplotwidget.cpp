@@ -72,11 +72,12 @@ void TabbedPlotWidget::addTab( PlotMatrix* tab)
     if( !tab )
     {
         tab = new PlotMatrix("plot", _mapped_data, this);
-        ui->tabWidget->addTab( tab, QString("plot") );
-        tab->addColumn();
 
         connect( tab, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT(on_plotAdded(PlotWidget*)));
         connect( tab, SIGNAL(layoutModified()),       _main_window, SLOT( on_undoableChange()) );
+
+        tab->addColumn();
+        ui->tabWidget->addTab( tab, QString("plot") );
     }
     else{
         ui->tabWidget->addTab( tab, tab->name() );

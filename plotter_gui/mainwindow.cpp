@@ -132,6 +132,7 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
 
 void MainWindow::onTrackerPositionUpdated(QPointF pos)
 {
+    qDebug() << "onTrackerPositionUpdated";
     onTrackerTimeUpdated( pos.x() );
 }
 
@@ -414,9 +415,9 @@ void MainWindow::resizeEvent(QResizeEvent *)
 
 void MainWindow::on_plotAdded(PlotWidget* plot)
 {
-    connect( plot,SIGNAL(plotModified()),                     this, SLOT(on_undoableChange()) );
-    connect( plot->tracker(), SIGNAL(timePointMoved(double)), this, SLOT( onTrackerTimeUpdated( double )) );
-    connect( plot , SIGNAL(trackerMoved(QPointF)),            this, SLOT(onTrackerPositionUpdated(QPointF)));
+    qDebug() << "on_plotAdded";
+    connect( plot, SIGNAL(plotModified()),         this, SLOT(on_undoableChange()) );
+    connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerPositionUpdated(QPointF)));
 }
 
 

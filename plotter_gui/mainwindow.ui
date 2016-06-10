@@ -121,6 +121,9 @@
           </item>
           <item>
            <widget class="QSlider" name="horizontalSlider">
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
