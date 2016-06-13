@@ -24,6 +24,7 @@ SET( PLOTTER_SRC
     plotdata_qwt.cpp
     filterablelistwidget.cpp
     tabbedplotwidget.cpp
+    subwindow.cpp
     )
 
 add_executable(SuperPlotter ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})

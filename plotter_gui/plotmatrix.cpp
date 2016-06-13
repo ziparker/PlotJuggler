@@ -433,31 +433,6 @@ void PlotMatrix::maximizeVerticalScale()
     replot();
 }
 
-/*void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
-{
-    int rowA,colA,  rowB,colB, span;
-
-    for(int i=0; i< layout->count(); i++)
-    {
-        QLayoutItem * item = layout->itemAt(i);
-
-        if(dynamic_cast<QWidgetItem *>(item))   //    <-- Note! QWidgetItem, and not QWidget!
-        {
-            if( QString::compare(item->widget()->windowTitle(), name_a ) == 0){
-                layout->getItemPosition(i, &rowA, &colA, &span, &span);
-            }
-            else if (QString::compare(item->widget()->windowTitle(), name_b ) == 0){
-                layout->getItemPosition(i, &rowB, &colB, &span, &span);
-            }
-        }
-    }
-
-    swapPlots(rowA,colA,  rowB,colB);
-
-    updateLayout();
-
-    emit layoutModified();
-}*/
 
 void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new_range)
 {

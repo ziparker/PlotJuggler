@@ -1,9 +1,6 @@
 #include <functional>
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include <QMouseEvent>
 #include <QDebug>
-#include <QDrag>
 #include <numeric>
 #include <QMimeData>
 #include <QMenu>
@@ -15,18 +12,19 @@
 #include <QMessageBox>
 #include <QStringRef>
 #include <QThread>
+#include <QPluginLoader>
+#include <QSettings>
+#include <QWindow>
+
 #include "../plugins/dataloader_base.h"
 #include "../plugins/statepublisher_base.h"
-#include <QPluginLoader>
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 #include "busydialog.h"
 #include "busytaskdialog.h"
 #include "filterablelistwidget.h"
-#include <QSettings>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QInputDialog>
-#include <QWindow>
 #include "tabbedplotwidget.h"
+#include "subwindow.h"
 
 QStringList  words_list;
 int unique_number = 0;
@@ -137,8 +135,7 @@ void MainWindow::onTrackerPositionUpdated(QPointF pos)
 
 void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 {
-
-    QMainWindow* window = new QMainWindow( this );
+    SubWindow* window = new SubWindow( this );
     Qt::WindowFlags flags = window->windowFlags();
     window->setWindowFlags( flags | Qt::SubWindow );
 
@@ -174,6 +171,7 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
     connect( tabbed_widget, SIGNAL(undoableChangeHappened()), this, SLOT(on_undoableChange()) );
     connect( tabbed_widget, SIGNAL(destroyed(QObject*)), this,  SLOT(on_tabbedAreaDestroyed(QObject*)) );
     connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(on_floatingWindowDestroyed(QObject*)) );
+    connect( window, SIGNAL(closeRequestedByUser()),     this,  SLOT(on_undoableChange()) );
 
     window->setCentralWidget( tabbed_widget );
     window->setAttribute( Qt::WA_DeleteOnClose, true );
@@ -414,7 +412,6 @@ void MainWindow::resizeEvent(QResizeEvent *)
 
 void MainWindow::on_plotAdded(PlotWidget* plot)
 {
-    qDebug() << "on_plotAdded";
     connect( plot, SIGNAL(plotModified()),         this, SLOT(on_undoableChange()) );
     connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerPositionUpdated(QPointF)));
     connect( plot, SIGNAL(swapWidgets(PlotWidget*,PlotWidget*)), this, SLOT(on_swapPlots(PlotWidget*,PlotWidget*)) );
@@ -430,6 +427,8 @@ QDomDocument MainWindow::xmlSaveState()
     doc.appendChild(instr);
 
     QDomElement root = doc.createElement( "root" );
+
+    qDebug() << " xmlSaveState stack "<< _undo_states.size() << " has windows: " << _tabbed_plotarea.size();
 
     for (int i = 0; i < _tabbed_plotarea.size(); i++)
     {
@@ -821,6 +820,8 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
 
 void MainWindow::on_UndoInvoked( )
 {
+   // qDebug() << "on_UndoInvoked "<<_undo_states.size();
+
     if( _undo_states.size() > 1)
     {
         QDomDocument state_document = _undo_states.back();
@@ -888,6 +889,8 @@ void MainWindow::on_tabbedAreaDestroyed(QObject *object)
         }
     }
     updateInternalState();
+
+    this->setFocus();
 }
 
 void MainWindow::on_floatingWindowDestroyed(QObject *object)
