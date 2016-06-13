@@ -176,21 +176,31 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
-             <height>20</height>
+             <width>130</width>
+             <height>40</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>150</width>
-             <height>30</height>
+             <width>130</width>
+             <height>40</height>
             </size>
            </property>
            <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
-            <string>Add column</string>
+            <string> Add column</string>
+           </property>
+           <property name="icon">
+            <iconset resource="resource.qrc">
+             <normaloff>:/icons/resources/add_column.png</normaloff>:/icons/resources/add_column.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -202,33 +212,65 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>40</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
-             <width>150</width>
-             <height>30</height>
+             <width>180</width>
+             <height>40</height>
             </size>
            </property>
            <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
-            <string>Add row</string>
+            <string>  Add row</string>
+           </property>
+           <property name="icon">
+            <iconset resource="resource.qrc">
+             <normaloff>:/icons/resources/add_row.png</normaloff>:/icons/resources/add_row.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>26</width>
+             <height>26</height>
+            </size>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="addTabButton">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>40</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
-             <width>150</width>
-             <height>30</height>
+             <width>180</width>
+             <height>40</height>
             </size>
            </property>
            <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
-            <string>Add Tab</string>
+            <string> Add Tab</string>
+           </property>
+           <property name="icon">
+            <iconset resource="resource.qrc">
+             <normaloff>:/icons/resources/add_tab.png</normaloff>:/icons/resources/add_tab.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -237,17 +279,33 @@
            <property name="enabled">
             <bool>true</bool>
            </property>
+           <property name="minimumSize">
+            <size>
+             <width>180</width>
+             <height>40</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
-             <width>220</width>
-             <height>30</height>
+             <width>180</width>
+             <height>40</height>
             </size>
            </property>
            <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
-            <string>Remove empty plots</string>
+            <string> Remove empty plots</string>
+           </property>
+           <property name="icon">
+            <iconset resource="resource.qrc">
+             <normaloff>:/icons/resources/checkboxalt.png</normaloff>:/icons/resources/checkboxalt.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>18</width>
+             <height>18</height>
+            </size>
            </property>
           </widget>
          </item>

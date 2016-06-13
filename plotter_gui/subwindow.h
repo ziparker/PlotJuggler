@@ -11,10 +11,8 @@ public:
 
 signals:
     void closeRequestedByUser();
-public slots:
 
 protected:
-
     virtual void closeEvent(QCloseEvent *event);
 
 };
