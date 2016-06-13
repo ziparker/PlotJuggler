@@ -22,7 +22,7 @@ include_directories(
     ${Qt5Xml_INCLUDE_DIRS}
     )
 
-include_directories( ./qwt/src ./common ./color_widgets/include)
+include_directories( ./qwt/src ./common ./color_widgets/include ./plotter_gui)
 
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

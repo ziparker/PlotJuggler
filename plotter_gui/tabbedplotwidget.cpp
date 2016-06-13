@@ -268,9 +268,9 @@ void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
     PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
 
     bool ask_confirmation = true;
-    if( tab->widgetList().size() == 1 )
+    if( tab->numItems() == 1 )
     {
-        if( tab->widgetList().at(0)->isEmpty()){
+        if( tab->plotAt(0)->isEmpty()){
             ask_confirmation = false;
         }
     }

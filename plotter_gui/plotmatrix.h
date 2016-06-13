@@ -23,12 +23,16 @@ public:
 
     int numRows() const;
     int numColumns() const;
+    int numItems() const;
 
     bool isRowEmpty(int row );
     bool isColumnEmpty(int row );
 
     PlotWidget* plotAt( int row, int column );
     const PlotWidget* plotAt( int row, int column ) const;
+
+    PlotWidget* plotAt( int index );
+    const PlotWidget* plotAt( int index ) const;
 
     void setAxisScale(int axisId, int row, int col,
         double min, double max, double step = 0 );
@@ -44,18 +48,18 @@ public:
     void setHorizontalLink(bool linked);
     void setActiveTracker(bool active);
 
-    const std::vector<PlotWidget*>& widgetList();
-
     void setName(const QString &new_name) ;
 
     const QString& name() const;
+
+    QGridLayout* gridLayout();
 
 public slots:
     void maximizeHorizontalScale();
     void maximizeVerticalScale();
 
 private slots:
-    void swapWidgetByName(QString name_a, QString name_b);
+  //  void swapWidgetByName(QString name_a, QString name_b);
     void on_singlePlotScaleChanged(PlotWidget* modified_plot, QRectF range);
 
 private:
@@ -67,9 +71,7 @@ private:
     QGridLayout *layout;
     int num_rows;
     int num_cols;
-    int widget_uid;
     bool _horizontal_link;
-    std::vector<PlotWidget*> _widget_list;
 
     PlotDataMap *_mapped_data;
 
@@ -81,8 +83,6 @@ signals:
     void plotAdded(PlotWidget*);
     void layoutModified();
 
-protected:
-    void rebuildWidgetList();
 };
 
 #endif

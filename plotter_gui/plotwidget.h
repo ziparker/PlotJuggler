@@ -56,7 +56,7 @@ protected:
     virtual bool eventFilter(QObject *obj, QEvent *event);
 
 signals:
-    void swapWidgets(QString s, QString to);
+    void swapWidgets(PlotWidget* source, PlotWidget* destination);
     void rectChanged(PlotWidget* self, QRectF rect );
     void plotModified();
     void trackerMoved(QPointF pos);

@@ -272,7 +272,8 @@ void PlotWidget::dropEvent(QDropEvent *event)
         {
             QString source_name;
             stream >> source_name;
-            emit swapWidgets( source_name, windowTitle() );
+            PlotWidget* source_plot = static_cast<PlotWidget*>( event->source() );
+            emit swapWidgets( source_plot, this );
         }
     }
 }

@@ -67,6 +67,8 @@ private slots:
 
     void on_pushButtonAddSubwindow_pressed();
 
+    void on_swapPlots(PlotWidget* source, PlotWidget* destination);
+
 private:
     Ui::MainWindow *ui;
 

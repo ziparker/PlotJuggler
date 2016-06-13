@@ -92,9 +92,9 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     {
         PlotMatrix* matrix = _plot_matrix_list[i];
 
-        for ( unsigned w = 0; w< matrix->widgetList().size(); w++ )
+        for ( unsigned w = 0; w< matrix->numItems(); w++ )
         {
-            PlotWidget *plot =  matrix->widgetList().at(w);
+            PlotWidget *plot =  matrix->plotAt(w);
             QRectF bound_max = plot->maximumBoundingRect();
 
             if( minX > bound_max.left() )    minX = bound_max.left();
@@ -114,9 +114,9 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     {
         PlotMatrix* matrix = _plot_matrix_list[i];
 
-        for ( unsigned w = 0; w< matrix->widgetList().size(); w++ )
+        for ( unsigned w = 0; w< matrix->numItems(); w++ )
         {
-            PlotWidget *plot =  matrix->widgetList().at(w);
+            PlotWidget *plot =  matrix->plotAt(w);
             plot->tracker()->manualMove( QPointF(current_time,0) );
         }
         matrix->replot();
@@ -417,6 +417,7 @@ void MainWindow::on_plotAdded(PlotWidget* plot)
     qDebug() << "on_plotAdded";
     connect( plot, SIGNAL(plotModified()),         this, SLOT(on_undoableChange()) );
     connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerPositionUpdated(QPointF)));
+    connect( plot, SIGNAL(swapWidgets(PlotWidget*,PlotWidget*)), this, SLOT(on_swapPlots(PlotWidget*,PlotWidget*)) );
 }
 
 
@@ -859,9 +860,9 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
     {
         PlotMatrix* matrix = _plot_matrix_list[i];
 
-        for ( unsigned w = 0; w< matrix->widgetList().size(); w++ )
+        for ( unsigned w = 0; w< matrix->numItems(); w++ )
         {
-            PlotWidget *plot =  matrix->widgetList().at(w);
+            PlotWidget *plot =  matrix->plotAt(w);
             if( plot->isEmpty() == false)
             {
                 QRectF bound_max = plot->maximumBoundingRect();
@@ -944,4 +945,51 @@ void MainWindow::updateInternalState()
 void MainWindow::on_pushButtonAddSubwindow_pressed()
 {
     createTabbedDialog( NULL, true );
+}
+
+void MainWindow::on_swapPlots(PlotWidget *source, PlotWidget *destination)
+{
+    PlotMatrix* src_matrix = NULL;
+    PlotMatrix* dst_matrix = NULL;
+    QPoint src_pos;
+    QPoint dst_pos;
+
+    //qDebug() << source->windowTitle() << " -> " << destination->windowTitle();
+
+    for(int w=0; w < _tabbed_plotarea.size(); w++)
+    {
+        QTabWidget * tabs = _tabbed_plotarea[w]->tabWidget();
+
+        for (int t=0; t < tabs->count(); t++)
+        {
+            PlotMatrix* matrix =  static_cast<PlotMatrix*>(tabs->widget(t));
+
+            for(int row=0; row< matrix->numRows(); row++)
+            {
+                for(int col=0; col< matrix->numColumns(); col++)
+                {
+                    PlotWidget* plot = matrix->plotAt(row, col);
+
+                    if( plot == source ) {
+                        src_matrix = matrix;
+                        src_pos.setX( row );
+                        src_pos.setY( col );
+                    }
+                    else if( plot == destination )
+                    {
+                        dst_matrix = matrix;
+                        dst_pos.setX( row );
+                        dst_pos.setY( col );
+                    }
+                }
+            }
+        }
+    }
+
+    src_matrix->gridLayout()->removeWidget( source );
+    dst_matrix->gridLayout()->removeWidget( destination );
+
+    src_matrix->gridLayout()->addWidget( destination, src_pos.x(), src_pos.y() );
+    dst_matrix->gridLayout()->addWidget( source, dst_pos.x(), dst_pos.y() );
+
 }

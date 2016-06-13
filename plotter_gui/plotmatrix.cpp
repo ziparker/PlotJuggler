@@ -7,6 +7,7 @@
 #include "plotmatrix.h"
 #include "customtracker.h"
 
+static int widget_uid = 0;
 
 PlotMatrix::PlotMatrix(QString name, PlotDataMap *datamap, QWidget *parent ):
     QFrame( parent ),
@@ -15,31 +16,15 @@ PlotMatrix::PlotMatrix(QString name, PlotDataMap *datamap, QWidget *parent ):
 {
     num_rows = 0;
     num_cols = 0;
-    widget_uid = 0;
 
     layout = new QGridLayout( this );
 
     _horizontal_link = true;
     updateLayout();
 
-    _active_tracker = false;
+    _active_tracker = true;
 }
 
-
-void PlotMatrix::rebuildWidgetList()
-{
-    _widget_list.clear();
-    _widget_list.reserve( numRows()*numColumns() );
-
-    for ( int row = 0; row < numRows(); row++ )
-    {
-        for ( int col = 0; col < numColumns(); col++ )
-        {
-            PlotWidget *plot = static_cast<PlotWidget*>( plotAt( row, col ) );
-            _widget_list.push_back( plot );
-        }
-    }
-}
 
 PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 {
@@ -47,7 +32,7 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
     plot->setWindowTitle(QString("PlotWidget ") + QString::number(widget_uid++));
 
-    connect( plot, SIGNAL(swapWidgets(QString,QString)),    this, SLOT(swapWidgetByName(QString,QString)) );
+    connect( plot, SIGNAL(swapWidgets(QObject*,QObject*)),  this, SLOT(swapWidgetByName(QString,QString)) );
     connect( plot, SIGNAL(rectChanged(PlotWidget*,QRectF)), this, SLOT(on_singlePlotScaleChanged(PlotWidget*,QRectF)));
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
@@ -86,7 +71,6 @@ void PlotMatrix::addRow()
         }
         num_rows++;
     }
-    rebuildWidgetList();
 
     updateLayout();
 }
@@ -106,9 +90,7 @@ void PlotMatrix::addColumn()
         }
         num_cols++;
     }
-    rebuildWidgetList();
     updateLayout();
-
 }
 
 void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
@@ -121,7 +103,6 @@ void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
 
     layout->addWidget(widgetA, rowB, colB);
     layout->addWidget(widgetB, rowA, colA);
-
 }
 
 void PlotMatrix::removeColumn(int column_to_delete)
@@ -146,7 +127,7 @@ void PlotMatrix::removeColumn(int column_to_delete)
     if( num_cols == 0){
         num_rows = 0;
     }
-    rebuildWidgetList();
+
     updateLayout();
 }
 
@@ -172,7 +153,7 @@ void PlotMatrix::removeRow(int row_to_delete)
     if( num_rows == 0){
         num_cols = 0;
     }
-    rebuildWidgetList();
+
     updateLayout();
 }
 
@@ -188,6 +169,11 @@ int PlotMatrix::numRows() const
 int PlotMatrix::numColumns() const
 {
     return num_cols;
+}
+
+int PlotMatrix::numItems() const
+{
+    return num_rows*num_cols;
 }
 
 bool PlotMatrix::isColumnEmpty( int col )
@@ -226,26 +212,42 @@ bool PlotMatrix::isRowEmpty(int row )
 PlotWidget* PlotMatrix::plotAt( int row, int column )
 {
     QLayoutItem* item = layout->itemAtPosition(row,column);
-    if(item)
-    {
+    if(item) {
         PlotWidget* plot = static_cast<PlotWidget*>( item->widget() );
         return plot;
     }
-
     return NULL;
 }
 
-const PlotWidget *PlotMatrix::plotAt( int row, int column ) const
+const PlotWidget* PlotMatrix::plotAt( int row, int column ) const
 {
     QLayoutItem* item = layout->itemAtPosition(row,column);
-    if(item)
-    {
+    if(item) {
         PlotWidget* plot = static_cast<PlotWidget*>( item->widget() );
         return plot;
     }
     return NULL;
 }
 
+PlotWidget* PlotMatrix::plotAt( int index )
+{
+    QLayoutItem* item = layout->itemAt(index);
+    if(item) {
+        PlotWidget* plot = static_cast<PlotWidget*>( item->widget() );
+        return plot;
+    }
+    return NULL;
+}
+
+const PlotWidget* PlotMatrix::plotAt( int index ) const
+{
+    QLayoutItem* item = layout->itemAt(index);
+    if(item) {
+        PlotWidget* plot = static_cast<PlotWidget*>( item->widget() );
+        return plot;
+    }
+    return NULL;
+}
 
 
 void PlotMatrix::setAxisScale( int axis, int row, int col,
@@ -347,18 +349,18 @@ void PlotMatrix::updateLayout()
 
 void PlotMatrix::replot()
 {
-    for ( unsigned i = 0; i<_widget_list.size(); i++ )
+    for ( unsigned i = 0; i< numItems(); i++ )
     {
-        PlotWidget *plot = _widget_list.at(i);
+        PlotWidget *plot = plotAt(i);
         plot->replot();
     }
 }
 
 void PlotMatrix::removeAllCurves()
 {
-    for (unsigned p = 0; p < this->widgetList().size(); p++)
+    for ( unsigned i = 0; i< numItems(); i++ )
     {
-        PlotWidget* plot = this->widgetList().at(p);
+        PlotWidget *plot = plotAt(i);
         plot->detachAllCurves();
     }
 }
@@ -370,10 +372,9 @@ void PlotMatrix::setHorizontalLink(bool linked)
 
 void PlotMatrix::setActiveTracker(bool active)
 {
-
-    for ( unsigned i = 0; i<_widget_list.size(); i++ )
+    for ( unsigned i = 0; i< numItems(); i++ )
     {
-        PlotWidget *plot = _widget_list.at(i);
+        PlotWidget *plot = plotAt(i);
         plot->tracker()->setEnabled( active );
     }
     if( active != _active_tracker)
@@ -383,10 +384,6 @@ void PlotMatrix::setActiveTracker(bool active)
     _active_tracker = active;
 }
 
-const std::vector<PlotWidget *> &PlotMatrix::widgetList()
-{
-    return _widget_list;
-}
 
 void PlotMatrix::setName(const QString &new_name)
 {
@@ -398,11 +395,16 @@ const QString &PlotMatrix::name() const
     return _name;
 }
 
+QGridLayout *PlotMatrix::gridLayout()
+{
+    return layout;
+}
+
 void PlotMatrix::maximizeHorizontalScale()
 {
-    for ( unsigned i = 0; i<_widget_list.size(); i++ )
+    for ( unsigned i = 0; i< numItems(); i++ )
     {
-        PlotWidget *plot = _widget_list.at(i);
+        PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
             QRectF bound_max = plot->maximumBoundingRect();
@@ -417,9 +419,9 @@ void PlotMatrix::maximizeHorizontalScale()
 
 void PlotMatrix::maximizeVerticalScale()
 {
-    for ( unsigned i = 0; i<_widget_list.size(); i++ )
+    for ( unsigned i = 0; i < numItems(); i++ )
     {
-        PlotWidget *plot = _widget_list.at(i);
+        PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
             QRectF bound_max = plot->maximumBoundingRect();
@@ -432,7 +434,7 @@ void PlotMatrix::maximizeVerticalScale()
     replot();
 }
 
-void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
+/*void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
 {
     int rowA,colA,  rowB,colB, span;
 
@@ -456,13 +458,13 @@ void PlotMatrix::swapWidgetByName(QString name_a, QString name_b)
     updateLayout();
 
     emit layoutModified();
-}
+}*/
 
 void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new_range)
 {
-    for ( unsigned i = 0; i<_widget_list.size(); i++ )
+    for ( unsigned i = 0; i< numItems(); i++ )
     {
-        PlotWidget *plot = _widget_list.at(i);
+        PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false && modified_plot != plot)
         {
             QRectF bound_act = plot->currentBoundingRect();
