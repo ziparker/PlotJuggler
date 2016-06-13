@@ -220,21 +220,21 @@ void TabbedPlotWidget::on_pushremoveEmpty_pressed()
 {
     PlotMatrix *tab = currentTab();
 
-    for( int row = 0; row< tab->numRows(); row++)
+    for( int row = 0; row< tab->rowsCount(); row++)
     {
-        while( tab->numRows() > 1 &&
+        while( tab->rowsCount() > 1 &&
                tab->isRowEmpty( row ) &&
-               row < tab->numRows() )
+               row < tab->rowsCount() )
         {
             tab->removeRow( row );
         }
     }
 
-    for( int col = 0; col< tab->numColumns(); col++)
+    for( int col = 0; col< tab->colsCount(); col++)
     {
-        while( tab->numColumns() > 1 &&
+        while( tab->colsCount() > 1 &&
                tab->isColumnEmpty( col ) &&
-               col < tab->numColumns() )
+               col < tab->colsCount() )
         {
             tab->removeColumn( col );
         }
@@ -268,7 +268,7 @@ void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
     PlotMatrix* tab = static_cast<PlotMatrix*>( ui->tabWidget->widget(index) );
 
     bool ask_confirmation = true;
-    if( tab->numItems() == 1 )
+    if( tab->plotCount() == 1 )
     {
         if( tab->plotAt(0)->isEmpty()){
             ask_confirmation = false;

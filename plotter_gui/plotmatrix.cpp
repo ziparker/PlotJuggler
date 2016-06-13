@@ -65,7 +65,7 @@ void PlotMatrix::addRow()
         num_cols = 1;
     }
     else{
-        for ( int col = 0; col < numColumns(); col++ )
+        for ( int col = 0; col < colsCount(); col++ )
         {
             addPlotWidget( num_rows, col );
         }
@@ -84,7 +84,7 @@ void PlotMatrix::addColumn()
         num_cols = 1;
     }
     else {
-        for ( int row = 0; row < numRows(); row++ )
+        for ( int row = 0; row < rowsCount(); row++ )
         {
             addPlotWidget( row, num_cols );
         }
@@ -161,17 +161,17 @@ void PlotMatrix::removeRow(int row_to_delete)
 
 PlotMatrix::~PlotMatrix(){}
 
-int PlotMatrix::numRows() const
+int PlotMatrix::rowsCount() const
 {
     return num_rows;
 }
 
-int PlotMatrix::numColumns() const
+int PlotMatrix::colsCount() const
 {
     return num_cols;
 }
 
-int PlotMatrix::numItems() const
+int PlotMatrix::plotCount() const
 {
     return num_rows*num_cols;
 }
@@ -328,7 +328,7 @@ bool PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
 
 void PlotMatrix::updateLayout()
 {
-    for ( int row = 0; row < numRows(); row++ )
+    for ( int row = 0; row < rowsCount(); row++ )
     {
         alignAxes( row, QwtPlot::xTop );
         alignAxes( row, QwtPlot::xBottom );
@@ -337,7 +337,7 @@ void PlotMatrix::updateLayout()
         alignScaleBorder( row, QwtPlot::yRight );
     }
 
-    for ( int col = 0; col < numColumns(); col++ )
+    for ( int col = 0; col < colsCount(); col++ )
     {
         alignAxes( col, QwtPlot::yLeft );
         alignAxes( col, QwtPlot::yRight );
@@ -349,7 +349,7 @@ void PlotMatrix::updateLayout()
 
 void PlotMatrix::replot()
 {
-    for ( unsigned i = 0; i< numItems(); i++ )
+    for ( unsigned i = 0; i< plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         plot->replot();
@@ -358,7 +358,7 @@ void PlotMatrix::replot()
 
 void PlotMatrix::removeAllCurves()
 {
-    for ( unsigned i = 0; i< numItems(); i++ )
+    for ( unsigned i = 0; i< plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         plot->detachAllCurves();
@@ -372,7 +372,7 @@ void PlotMatrix::setHorizontalLink(bool linked)
 
 void PlotMatrix::setActiveTracker(bool active)
 {
-    for ( unsigned i = 0; i< numItems(); i++ )
+    for ( unsigned i = 0; i< plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         plot->tracker()->setEnabled( active );
@@ -402,7 +402,7 @@ QGridLayout *PlotMatrix::gridLayout()
 
 void PlotMatrix::maximizeHorizontalScale()
 {
-    for ( unsigned i = 0; i< numItems(); i++ )
+    for ( unsigned i = 0; i< plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
@@ -419,7 +419,7 @@ void PlotMatrix::maximizeHorizontalScale()
 
 void PlotMatrix::maximizeVerticalScale()
 {
-    for ( unsigned i = 0; i < numItems(); i++ )
+    for ( unsigned i = 0; i < plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
@@ -462,7 +462,7 @@ void PlotMatrix::maximizeVerticalScale()
 
 void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new_range)
 {
-    for ( unsigned i = 0; i< numItems(); i++ )
+    for ( unsigned i = 0; i< plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false && modified_plot != plot)
@@ -487,7 +487,7 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
     {
         double maxExtent = 0;
 
-        for ( int row = 0; row < numRows(); row++ )
+        for ( int row = 0; row < rowsCount(); row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )
@@ -503,7 +503,7 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
             }
         }
 
-        for ( int row = 0; row < numRows(); row++ )
+        for ( int row = 0; row < rowsCount(); row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )
@@ -517,7 +517,7 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
     {
         double maxExtent = 0;
 
-        for ( int col = 0; col < numColumns(); col++ )
+        for ( int col = 0; col < colsCount(); col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
@@ -533,7 +533,7 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
             }
         }
 
-        for ( int col = 0; col < numColumns(); col++ )
+        for ( int col = 0; col < colsCount(); col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
@@ -556,7 +556,7 @@ void PlotMatrix::alignScaleBorder( int rowOrColumn, int axis )
         if ( p )
             p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
 
-        for ( int col = 1; col < numColumns(); col++ )
+        for ( int col = 1; col < colsCount(); col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
@@ -565,11 +565,11 @@ void PlotMatrix::alignScaleBorder( int rowOrColumn, int axis )
     }
     else if ( axis == QwtPlot::yRight )
     {
-        QwtPlot *p = plotAt( rowOrColumn, numColumns() - 1 );
+        QwtPlot *p = plotAt( rowOrColumn, colsCount() - 1 );
         if ( p )
             p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
 
-        for ( int col = 0; col < numColumns() - 1; col++ )
+        for ( int col = 0; col < colsCount() - 1; col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
@@ -582,7 +582,7 @@ void PlotMatrix::alignScaleBorder( int rowOrColumn, int axis )
         if ( p )
             p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
 
-        for ( int row = 1; row < numRows(); row++ )
+        for ( int row = 1; row < rowsCount(); row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )
@@ -591,11 +591,11 @@ void PlotMatrix::alignScaleBorder( int rowOrColumn, int axis )
     }
     else if ( axis == QwtPlot::xBottom )
     {
-        QwtPlot *p = plotAt( numRows() - 1, rowOrColumn );
+        QwtPlot *p = plotAt( rowsCount() - 1, rowOrColumn );
         if ( p )
             p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
 
-        for ( int row = 0; row < numRows() - 1; row++ )
+        for ( int row = 0; row < rowsCount() - 1; row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )

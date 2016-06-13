@@ -92,7 +92,7 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     {
         PlotMatrix* matrix = _plot_matrix_list[i];
 
-        for ( unsigned w = 0; w< matrix->numItems(); w++ )
+        for ( unsigned w = 0; w< matrix->plotCount(); w++ )
         {
             PlotWidget *plot =  matrix->plotAt(w);
             QRectF bound_max = plot->maximumBoundingRect();
@@ -114,7 +114,7 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     {
         PlotMatrix* matrix = _plot_matrix_list[i];
 
-        for ( unsigned w = 0; w< matrix->numItems(); w++ )
+        for ( unsigned w = 0; w< matrix->plotCount(); w++ )
         {
             PlotWidget *plot =  matrix->plotAt(w);
             plot->tracker()->manualMove( QPointF(current_time,0) );
@@ -860,7 +860,7 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
     {
         PlotMatrix* matrix = _plot_matrix_list[i];
 
-        for ( unsigned w = 0; w< matrix->numItems(); w++ )
+        for ( unsigned w = 0; w< matrix->plotCount(); w++ )
         {
             PlotWidget *plot =  matrix->plotAt(w);
             if( plot->isEmpty() == false)
@@ -964,9 +964,9 @@ void MainWindow::on_swapPlots(PlotWidget *source, PlotWidget *destination)
         {
             PlotMatrix* matrix =  static_cast<PlotMatrix*>(tabs->widget(t));
 
-            for(int row=0; row< matrix->numRows(); row++)
+            for(int row=0; row< matrix->rowsCount(); row++)
             {
-                for(int col=0; col< matrix->numColumns(); col++)
+                for(int col=0; col< matrix->colsCount(); col++)
                 {
                     PlotWidget* plot = matrix->plotAt(row, col);
 

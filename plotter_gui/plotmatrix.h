@@ -21,9 +21,9 @@ public:
 
     void removeEmpty();
 
-    int numRows() const;
-    int numColumns() const;
-    int numItems() const;
+    int rowsCount() const;
+    int colsCount() const;
+    int plotCount() const;
 
     bool isRowEmpty(int row );
     bool isColumnEmpty(int row );
