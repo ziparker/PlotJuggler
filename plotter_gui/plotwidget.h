@@ -34,7 +34,6 @@ public:
 
     const std::map<QString, QwtPlotCurve*>& curveList();
 
-    void detachAllCurves();
     QDomElement xmlSaveState(QDomDocument &doc);
     bool xmlLoadState(QDomElement &element, QMessageBox::StandardButton* answer);
 
@@ -61,8 +60,10 @@ signals:
     void plotModified();
     void trackerMoved(QPointF pos);
 
-public Q_SLOTS:
+public slots:
     void replot() ;
+
+    void detachAllCurves();
 
 private slots:
     void launchRemoveCurveDialog();
@@ -77,11 +78,13 @@ private slots:
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
 
-    QAction *removeCurveAction;
-    QAction *changeColorsAction;
-    QAction *showPointsAction;
-    QAction *zoomOutHorizontallyAction;
-    QAction *zoomOutVerticallyAction;
+    QAction *_action_removeCurve;
+    QAction *_action_removeAllCurves;
+    QAction *_action_changeColors;
+    QAction *_action_showPoints;
+    QAction *_action_zoomOutHorizontally;
+    QAction *_action_zoomOutVertically;
+
 
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;

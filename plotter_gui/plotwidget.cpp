@@ -77,32 +77,43 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
 
 void PlotWidget::buildActions()
 {
-    removeCurveAction = new QAction(tr("&Remove curves"), this);
-    removeCurveAction->setStatusTip(tr("Remove one or more curves from this plot"));
-    connect(removeCurveAction, SIGNAL(triggered()), this, SLOT(launchRemoveCurveDialog()));
+    _action_removeCurve = new QAction(tr("&Remove curves"), this);
+    _action_removeCurve->setStatusTip(tr("Remove one or more curves from this plot"));
+    connect(_action_removeCurve, SIGNAL(triggered()), this, SLOT(launchRemoveCurveDialog()));
 
-    changeColorsAction = new QAction(tr("&Change colors"), this);
-    changeColorsAction->setStatusTip(tr("Change the color of the curves"));
-    connect(changeColorsAction, SIGNAL(triggered()), this, SLOT(launchChangeColorDialog()));
+    QIcon iconDelete;
+    iconDelete.addFile(QStringLiteral(":/icons/resources/checkboxalt.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
+    _action_removeAllCurves = new QAction(tr("&Remove all curves"), this);
+    _action_removeAllCurves->setIcon(iconDelete);
+    connect(_action_removeAllCurves, SIGNAL(triggered()), this, SLOT(detachAllCurves()));
 
-    showPointsAction = new QAction(tr("&Show lines and points"), this);
-    showPointsAction->setCheckable( true );
-    showPointsAction->setChecked( false );
-    connect(showPointsAction, SIGNAL(triggered(bool)), this, SLOT(on_showPoints(bool)));
+    QIcon iconColors;
+    iconColors.addFile(QStringLiteral(":/icons/resources/office_chart_lines.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
+    _action_changeColors = new QAction(tr("&Change colors"), this);
+    _action_changeColors->setIcon(iconColors);
+    _action_changeColors->setStatusTip(tr("Change the color of the curves"));
+    connect(_action_changeColors, SIGNAL(triggered()), this, SLOT(launchChangeColorDialog()));
 
-    QIcon iconH;
-    iconH.addFile(QStringLiteral(":/icons/resources/resize_horizontal.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
 
-    QIcon iconV;
-    iconV.addFile(QStringLiteral(":/icons/resources/resize_vertical.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
+    QIcon iconPoints;
+    iconPoints.addFile(QStringLiteral(":/icons/resources/line_chart_32px.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
+    _action_showPoints = new QAction(tr("&Show lines and points"), this);
+    _action_showPoints->setIcon(iconPoints);
+    _action_showPoints->setCheckable( true );
+    _action_showPoints->setChecked( false );
+    connect(_action_showPoints, SIGNAL(triggered(bool)), this, SLOT(on_showPoints(bool)));
 
-    zoomOutHorizontallyAction = new QAction(tr("&Zoom Out Horizontally"), this);
-    zoomOutHorizontallyAction->setIcon(iconH);
-    connect(zoomOutHorizontallyAction, SIGNAL(triggered()), this, SLOT(zoomOutHorizontal()));
+    QIcon iconZoomH;
+    iconZoomH.addFile(QStringLiteral(":/icons/resources/resize_horizontal.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
+    _action_zoomOutHorizontally = new QAction(tr("&Zoom Out Horizontally"), this);
+    _action_zoomOutHorizontally->setIcon(iconZoomH);
+    connect(_action_zoomOutHorizontally, SIGNAL(triggered()), this, SLOT(zoomOutHorizontal()));
 
-    zoomOutVerticallyAction = new QAction(tr("&Zoom Out Vertically"), this);
-    zoomOutVerticallyAction->setIcon(iconV);
-    connect(zoomOutVerticallyAction, SIGNAL(triggered()), this, SLOT(zoomOutVertical()));
+    QIcon iconZoomV;
+    iconZoomV.addFile(QStringLiteral(":/icons/resources/resize_vertical.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
+    _action_zoomOutVertically = new QAction(tr("&Zoom Out Vertically"), this);
+    _action_zoomOutVertically->setIcon(iconZoomV);
+    connect(_action_zoomOutVertically, SIGNAL(triggered()), this, SLOT(zoomOutVertical()));
 
 }
 
@@ -563,15 +574,18 @@ void PlotWidget::zoomOutVertical()
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 {
     QMenu menu(this);
-    menu.addAction(removeCurveAction);
-    menu.addAction(changeColorsAction);
-    menu.addAction(showPointsAction);
+    menu.addAction(_action_removeCurve);
+    menu.addAction(_action_removeAllCurves);
+    menu.addSeparator();
+    menu.addAction(_action_changeColors);
+    menu.addAction(_action_showPoints);
+    menu.addSeparator();
+    menu.addAction(_action_zoomOutHorizontally);
+    menu.addAction(_action_zoomOutVertically);
 
-    menu.addAction(zoomOutHorizontallyAction);
-    menu.addAction(zoomOutVerticallyAction);
-
-    removeCurveAction->setEnabled( ! _curve_list.empty() );
-    changeColorsAction->setEnabled(  ! _curve_list.empty() );
+    _action_removeCurve->setEnabled( ! _curve_list.empty() );
+    _action_removeAllCurves->setEnabled( ! _curve_list.empty() );
+    _action_changeColors->setEnabled(  ! _curve_list.empty() );
 
     menu.exec( canvas()->mapToGlobal(pos) );
 }
