@@ -13,10 +13,10 @@ class SelectXAxisDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SelectXAxisDialog(QStringList* fields, QWidget *parent = 0);
+    explicit SelectXAxisDialog(QStringList* fields, bool single_selection = true, QWidget *parent = 0);
     ~SelectXAxisDialog();
 
-    int getSelectedRowNumber() const;
+    std::vector<int> getSelectedRowNumber() const;
 
 private slots:
     void on_buttonBox_accepted();
@@ -25,26 +25,36 @@ private slots:
 
     void on_listFieldsWidget_doubleClicked(const QModelIndex &index);
 
+    void on_pushButtonSelectAll_pressed();
+
 private:
     Ui::SelectXAxisDialog *ui;
-    int _selected_row_number;
+    std::vector<int> _selected_row_number;
+    bool _single_selection;
 };
 
 
 //-----------------------------------------------
-inline SelectXAxisDialog::SelectXAxisDialog(QStringList *fields, QWidget *parent) :
+inline SelectXAxisDialog::SelectXAxisDialog(QStringList *fields, bool single_selection, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::SelectXAxisDialog)
+    ui(new Ui::SelectXAxisDialog),
+    _single_selection( single_selection )
 {
+    auto flags = this->windowFlags();
+    this->setWindowFlags( flags | Qt::WindowStaysOnTopHint);
+
     ui->setupUi(this);
 
-     ui->listFieldsWidget->addItem( new QListWidgetItem("INDEX (auto-generated)" ) );
+    if( ! _single_selection) {
+        ui->listFieldsWidget->setSelectionMode( QAbstractItemView::ExtendedSelection );
+    }
+    else{
+        ui->pushButtonSelectAll->hide();
+    }
 
-    for (int i=0; i< fields->size(); i++)
-    {
+    for (int i=0; i< fields->size(); i++) {
         ui->listFieldsWidget->addItem( new QListWidgetItem( (*fields)[i] ) );
     }
-    _selected_row_number = -1;
 }
 
 inline SelectXAxisDialog::~SelectXAxisDialog()
@@ -52,25 +62,41 @@ inline SelectXAxisDialog::~SelectXAxisDialog()
     delete ui;
 }
 
-inline int SelectXAxisDialog::getSelectedRowNumber() const
+inline std::vector<int> SelectXAxisDialog::getSelectedRowNumber() const
 {
     return _selected_row_number;
 }
 
 inline void SelectXAxisDialog::on_buttonBox_accepted()
 {
-    _selected_row_number = ui->listFieldsWidget->currentRow() - 1;
+    QModelIndexList indexes = ui->listFieldsWidget->selectionModel()->selectedIndexes();
+
+    foreach(QModelIndex index, indexes)
+    {
+        _selected_row_number.push_back(index.row());
+    }
 }
 
 inline void SelectXAxisDialog::on_listFieldsWidget_currentRowChanged(int )
 {
-    ui->buttonBox->setEnabled( true );
-    _selected_row_number  = ui->listFieldsWidget->currentRow() - 1;
+    QModelIndexList indexes = ui->listFieldsWidget->selectionModel()->selectedIndexes();
+    ui->buttonBox->setEnabled( indexes.empty() == false );
 }
 
 inline void SelectXAxisDialog::on_listFieldsWidget_doubleClicked(const QModelIndex &)
 {
-    _selected_row_number  = ui->listFieldsWidget->currentRow() - 1;
+    if( _single_selection ) {
+        _selected_row_number.push_back( ui->listFieldsWidget->currentRow() );
+        this->accept();
+    }
+}
+
+inline void SelectXAxisDialog::on_pushButtonSelectAll_pressed()
+{
+    for (int i=0; i< ui->listFieldsWidget->count(); i++)
+    {
+        _selected_row_number.push_back(i);
+    }
     this->accept();
 }
 

@@ -159,9 +159,13 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
 
             if( time_index == TIME_INDEX_NOT_DEFINED)
             {
-                SelectXAxisDialog* dialog = new SelectXAxisDialog( &valid_field_names );
+                QStringList field_names;
+                field_names.push_back( "INDEX (auto-generated)" );
+                field_names.append( valid_field_names );
+
+                SelectXAxisDialog* dialog = new SelectXAxisDialog( &field_names );
                 dialog->exec();
-                time_index = dialog->getSelectedRowNumber();
+                time_index = dialog->getSelectedRowNumber().at(0) -1; // vector is supposed to have only one element
             }
 
             first_line = false;
