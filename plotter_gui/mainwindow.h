@@ -7,8 +7,10 @@
 #include "plotmatrix.h"
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
+
 #include "../plugins/dataloader_base.h"
 #include "../plugins/statepublisher_base.h"
+#include "../plugins/datastreamer_base.h"
 
 namespace Ui {
 class MainWindow;
@@ -51,6 +53,8 @@ private slots:
 
     void onActionReloadLayout();
 
+    void onActionLoadStreamer();
+
     void on_pushButtonActivateTracker_toggled(bool checked);
 
     void on_UndoInvoked();
@@ -86,6 +90,8 @@ private:
     QAction* _action_Undo;
     QAction* _action_Redo;
 
+    QAction* _action_startDataStream;
+
     void createActions();
 
     FilterableListWidget* curvelist_widget;
@@ -106,6 +112,7 @@ private:
 
     std::map<QString,DataLoader*> data_loader;
     std::vector<StatePublisher*>  state_publisher;
+    std::vector<DataStreamer*>    data_streamer;
 
     QDomDocument xmlSaveState();
     bool xmlLoadState(QDomDocument state_document);

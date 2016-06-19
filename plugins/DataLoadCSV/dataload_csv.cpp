@@ -112,8 +112,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
     file->open(QFile::ReadOnly);
     QTextStream inB( file );
 
-    std::vector<SharedVector> ordered_vectors;
-
+    std::vector<PlotDataPtr> plots_vector;
 
     bool interrupted = false;
 
@@ -121,10 +120,6 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
     linecount = 0;
 
     double prev_time = -1;
-
-    SharedVector time_vector (new boost::circular_buffer<double>() );
-    time_vector->set_capacity( tot_lines );
-
     bool first_line = true;
 
     while (!inB.atEnd())
@@ -144,16 +139,14 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                     QString& qname = ( ordered_names[i].second );
                     std::string name = qname.toStdString();
 
-                    SharedVector data_vector( new boost::circular_buffer<double>());
-                    data_vector->set_capacity(tot_lines);
-
-                    ordered_vectors.push_back( data_vector );
-
                     PlotDataPtr plot( new PlotData );
                     plot->setName( name );
+                    plot->setCapacity( tot_lines );
                     plot_data.insert( std::make_pair( name, plot ) );
 
                     valid_field_names.push_back( qname );
+
+                    plots_vector.push_back( plot );
                 }
             }
 
@@ -167,12 +160,11 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
             first_line = false;
         }
         else{
-            if( time_index < 0)
+            double t = linecount;
+
+            if( time_index >= 0)
             {
-                time_vector->push_back( linecount );
-            }
-            else{
-                double t = string_items[ time_index].toDouble();
+                t = string_items[ time_index].toDouble();
                 if( t <= prev_time)
                 {
                     QMessageBox::StandardButton reply;
@@ -184,7 +176,6 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                     break;
                 }
                 prev_time = t;
-                time_vector->push_back( t );
             }
 
             int index = 0;
@@ -193,10 +184,9 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                 if( ordered_names[i].first )
                 {
                     double y = string_items[i].toDouble();
-                    ordered_vectors[index]->push_back( y );
+                    plots_vector[index]->pushBack( t, y );
                     index++;
                 }
-
             }
 
             if(linecount++ %100 == 0)
@@ -216,20 +206,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
     {
         plot_data.erase( plot_data.begin(), plot_data.end() );
     }
-    else{
 
-        int index = 0;
-        for( unsigned i=0; i < ordered_names.size(); i++)
-        {
-            bool valid = ordered_names[i].first;
-            QString name = ordered_names[i].second;
-            if( valid )
-            {
-                plot_data[ name.toStdString() ]->addData( time_vector, ordered_vectors[index]);
-                index++;
-            }
-        }
-    }
 
     return plot_data;
 }

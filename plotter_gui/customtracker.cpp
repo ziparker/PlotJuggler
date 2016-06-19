@@ -81,7 +81,8 @@ void CurveTracker::refreshPosition()
         QwtPlotCurve *curve = static_cast<QwtPlotCurve *>(curves[i]);
         QColor color = curve->pen().color();
 
-        text_X_offset = curve->boundingRect().width() * 0.02;
+
+        text_X_offset = 0;// curve->boundingRect().width() * 0.02;
 
         if( !_marker[i]->symbol() )
         {
@@ -94,12 +95,18 @@ void CurveTracker::refreshPosition()
         }
 
         const QLineF line = curveLineAt( curve, _prev_trackerpoint.x() );
-        QPointF p1 = line.p1();
+        QPointF point;
+        float middle_X = (line.p1().x() + line.p2().x()) / 2.0;
 
-        tot_Y += p1.y();
-        _marker[i]->setValue( p1 );
+        if(  _prev_trackerpoint.x() < middle_X )
+            point = line.p1();
+        else
+            point = line.p2();
 
-        text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( p1.y() );
+        tot_Y += point.y();
+        _marker[i]->setValue( point );
+
+        text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( point.y() );
 
         if(  i < curves.size()-1 ){
             text_marker_info += "<br>";
@@ -131,24 +138,20 @@ QLineF CurveTracker::curveLineAt(
 
     if ( curve->dataSize() >= 2 )
     {
-        const QRectF br = curve->boundingRect();
-        if ( ( br.width() > 0 ) && ( x >= br.left() ) && ( x <= br.right() ) )
+        int index = qwtUpperSampleIndex<QPointF>(
+                    *curve->data(), x, compareX() );
+
+        if ( index == -1 &&
+             x == curve->sample( curve->dataSize() - 1 ).x() )
         {
-            int index = qwtUpperSampleIndex<QPointF>(
-                        *curve->data(), x, compareX() );
+            // the last sample is excluded from qwtUpperSampleIndex
+            index = curve->dataSize() - 1;
+        }
 
-            if ( index == -1 &&
-                 x == curve->sample( curve->dataSize() - 1 ).x() )
-            {
-                // the last sample is excluded from qwtUpperSampleIndex
-                index = curve->dataSize() - 1;
-            }
-
-            if ( index > 0 )
-            {
-                line.setP1( curve->sample( index - 1 ) );
-                line.setP2( curve->sample( index ) );
-            }
+        if ( index > 0 )
+        {
+            line.setP1( curve->sample( index - 1 ) );
+            line.setP2( curve->sample( index ) );
         }
     }
 

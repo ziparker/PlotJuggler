@@ -1,5 +1,5 @@
-#ifndef DATALOAD_CSV_H
-#define DATALOAD_CSV_H
+#ifndef DATALOAD_FLATBUFFER_H
+#define DATALOAD_FLATBUFFER_H
 
 #include <QObject>
 #include <QtPlugin>
@@ -28,4 +28,4 @@ private:
 
 };
 
-#endif // DATALOAD_CSV_H
+#endif // DATALOAD_FLATBUFFER_H

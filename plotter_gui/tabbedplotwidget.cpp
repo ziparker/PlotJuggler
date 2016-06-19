@@ -196,12 +196,12 @@ void TabbedPlotWidget::on_pushAddColumn_pressed()
 
 void TabbedPlotWidget::on_pushVerticalResize_pressed()
 {
-    currentTab()->maximizeHorizontalScale();
+    currentTab()->maximizeVerticalScale();
 }
 
 void TabbedPlotWidget::on_pushHorizontalResize_pressed()
 {
-    currentTab()->maximizeVerticalScale();
+    currentTab()->maximizeHorizontalScale();
 }
 
 void TabbedPlotWidget::on_pushAddRow_pressed()

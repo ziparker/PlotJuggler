@@ -16,8 +16,6 @@
 #include <QSettings>
 #include <QWindow>
 
-#include "../plugins/dataloader_base.h"
-#include "../plugins/statepublisher_base.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "busydialog.h"
@@ -26,17 +24,16 @@
 #include "tabbedplotwidget.h"
 #include "subwindow.h"
 
-QStringList  words_list;
+
 int unique_number = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+    QLocale::setDefault(QLocale::c()); // set as default
 
-    words_list << "siam" << "tre" << "piccoli" << "porcellin"
-               << "mai" << "nessun" << "ci" << "dividera";
+    ui->setupUi(this);
 
     curvelist_widget = new FilterableListWidget(this);
 
@@ -53,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-    buildData();
+     buildData();
     _undo_timer.start();
 
     // save initial state
@@ -181,6 +178,7 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
     window->addAction( _action_Undo );
     window->addAction( _action_Redo );
 
+
     if( undoable ) on_undoableChange();
 }
 
@@ -219,6 +217,10 @@ void MainWindow::createActions()
     _action_SaveLayout = new QAction(tr("Save current layout"),this);
     _action_LoadLayout = new QAction(tr("Load layout from file"),this);
     _action_LoadData = new QAction(tr("Load datafile"),this);
+
+
+    _action_startDataStream = new  QAction(tr("Start Streaming"),this);
+
     //---------------------------------------------
     _action_Undo->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_Z));
     _action_Redo->setShortcut( QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
@@ -235,7 +237,8 @@ void MainWindow::createActions()
     connect(_action_LoadData,SIGNAL(triggered()),    this, SLOT(onActionLoadDataFile()) );
     connect(_action_loadRecentFile,SIGNAL(triggered()),    this, SLOT(onActionReloadDataFileFromSettings()) );
     connect(_action_loadRecentLayout,SIGNAL(triggered()),  this, SLOT(onActionReloadLayout()) );
-    connect(_action_reloadFile,SIGNAL(triggered()),    this, SLOT(onActionReloadSameDataFile()) );
+    connect(_action_reloadFile,SIGNAL(triggered()),        this, SLOT(onActionReloadSameDataFile()) );
+    connect(_action_startDataStream,SIGNAL(triggered()),   this, SLOT(onActionLoadStreamer()) );
 
     QMenu* menuFile = new QMenu("File", ui->mainToolBar);
     menuFile->addAction(_action_LoadData);
@@ -272,6 +275,11 @@ void MainWindow::createActions()
 
     menuFile->addAction(_action_SaveLayout);
     ui->mainToolBar->addAction( menuFile->menuAction());
+
+    menuFile->addSeparator();
+    menuFile->addAction( _action_startDataStream );
+
+
 }
 
 
@@ -331,6 +339,13 @@ void MainWindow::loadPlugins(QString subdir_name)
                 qDebug() << fileName << ": is a StatePublisher plugin";
                 state_publisher.push_back( publisher );
             }
+
+            DataStreamer *streamer =  qobject_cast<DataStreamer *>(plugin);
+            if (streamer)
+            {
+                qDebug() << fileName << ": is a DataStreamer plugin";
+                data_streamer.push_back( streamer );
+            }
         }
         else{
             if( pluginLoader.errorString().contains("is not an ELF object") == false)
@@ -345,41 +360,37 @@ void MainWindow::buildData()
 {
     long SIZE = 100*1000;
 
-    curvelist_widget->list()->addItems( words_list );
-    SharedVector t_vector ( new boost::circular_buffer<double>());
-    t_vector->set_capacity(SIZE);
+    QStringList  words_list;
+    words_list << "siam" << "tre" << "piccoli" << "porcellin"
+               << "mai" << "nessun" << "ci" << "dividera";
 
-    double t = 0;
-    for (int indx=0; indx<SIZE; indx++)
-    {
-        t_vector->push_back( t );
-        t += 0.001;
-    }
+    curvelist_widget->list()->addItems( words_list );
+
 
     foreach( const QString& name, words_list)
     {
-        SharedVector y_vector( new boost::circular_buffer<double>() );
-        y_vector->set_capacity(SIZE);
 
         float A =  qrand()/(float)RAND_MAX * 6 - 3;
         float B =  qrand()/(float)RAND_MAX *3;
         float C =  qrand()/(float)RAND_MAX *3;
         float D =  qrand()/(float)RAND_MAX *2 -1;
 
+        PlotDataPtr plot ( new PlotData(  ) );
+        plot->setName(  name.toStdString() );
+        plot->setCapacity( SIZE );
+
+        double t = 0;
         for (int indx=0; indx<SIZE; indx++)
         {
-            double x = t_vector->at(indx);
-            y_vector->push_back(  A*sin(B*x + C) +D*x*0.02 ) ;
+            t += 0.001;
+            plot->pushBack( t,  A*sin(B*t + C) +D*t*0.02 ) ;
         }
-
-        PlotDataPtr plot ( new PlotData(t_vector, y_vector, name.toStdString() ) );
 
         QColor color = colorHint();
         plot->setColorHint( color.red(), color.green(), color.blue() );
 
         _mapped_plot_data.insert( std::make_pair( name.toStdString(), plot) );
     }
-
     ui->horizontalSlider->setRange(0, SIZE  );
 
 }
@@ -427,8 +438,6 @@ QDomDocument MainWindow::xmlSaveState()
     doc.appendChild(instr);
 
     QDomElement root = doc.createElement( "root" );
-
-    qDebug() << " xmlSaveState stack "<< _undo_states.size() << " has windows: " << _tabbed_plotarea.size();
 
     for (int i = 0; i < _tabbed_plotarea.size(); i++)
     {
@@ -674,8 +683,8 @@ void MainWindow::onActionLoadDataFile(QString fileName)
             std::string name  = it->first;
             PlotDataPtr plot  = it->second;
 
-            if( maxSizeX <  plot->getVectorX()->size() ){
-                maxSizeX =  plot->getVectorX()->size();
+            if( maxSizeX <  plot->size() ){
+                maxSizeX =  plot->size();
             }
 
             QString qname = QString::fromStdString(name);
@@ -723,6 +732,43 @@ void MainWindow::onActionReloadDataFileFromSettings()
 void MainWindow::onActionReloadLayout()
 {
     onActionLoadLayout( true );
+}
+
+void MainWindow::onActionLoadStreamer()
+{
+    if( data_streamer.empty())
+    {
+        qDebug() << "Error, no streamer loaded";
+        return;
+    }
+    DataStreamer* streamer = data_streamer[0];
+
+    streamer->enableStreaming( true );
+
+    PlotDataMap& plot_data = streamer->getDataMap();
+
+
+    for (auto it = plot_data.begin(); it != plot_data.end(); it++)
+    {
+        std::string name  = it->first;
+        PlotDataPtr plot  = it->second;
+
+        QString qname = QString::fromStdString(name);
+
+        // remap to derived class
+        if( _mapped_plot_data.find(name) == _mapped_plot_data.end() )
+        {
+            _mapped_plot_data.insert( std::make_pair( name, plot) );
+
+            QColor color = colorHint();
+            plot->setColorHint( color.red(), color.green(), color.blue() );
+            curvelist_widget->list()->addItem( new QListWidgetItem( qname ) );
+        }
+        else{
+            // update plot if it was already loaded
+            _mapped_plot_data[name] = plot;
+        }
+    }
 }
 
 void MainWindow::onActionLoadLayout(bool reload_previous)
@@ -820,7 +866,7 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
 
 void MainWindow::on_UndoInvoked( )
 {
-   // qDebug() << "on_UndoInvoked "<<_undo_states.size();
+    // qDebug() << "on_UndoInvoked "<<_undo_states.size();
 
     if( _undo_states.size() > 1)
     {

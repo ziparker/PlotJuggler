@@ -283,7 +283,6 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
     Schema schema = parseSchemaAndGetOffsets( schema_text );
 
 
-
     //--------------------------------------
     // choose the time axis
     if( time_index == TIME_INDEX_NOT_DEFINED)
@@ -294,7 +293,6 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
     }
 
     // allocate vectors
-    std::vector<SharedVector> data_vectors;
 
     for (int i=0; i< schema.names.size(); i++)
     {

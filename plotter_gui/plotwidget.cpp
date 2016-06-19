@@ -169,7 +169,7 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
 
-    PlotDataQwt* plot_qwt = new PlotDataQwt( data->getVectorX(), data->getVectorY(), data->name() );
+    PlotDataQwt* plot_qwt = new PlotDataQwt( *(data.get()) );
 
     curve->setData( plot_qwt );
     curve->attach( this );
@@ -301,10 +301,10 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc)
 
     QDomElement range_el = doc.createElement("range");
     QRectF rect = this->currentBoundingRect();
-    range_el.setAttribute("bottom", rect.bottom());
-    range_el.setAttribute("top", rect.top());
-    range_el.setAttribute("left", rect.left());
-    range_el.setAttribute("right", rect.right());
+    range_el.setAttribute("bottom", QString::number(rect.bottom()) );
+    range_el.setAttribute("top", QString::number(rect.top()) );
+    range_el.setAttribute("left", QString::number(rect.left()) );
+    range_el.setAttribute("right", QString::number(rect.right()) );
     plot_el.appendChild(range_el);
 
     std::map<QString, QwtPlotCurve*>::iterator it;
@@ -381,6 +381,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
     rect.setTop( rectangle.attribute("top").toDouble());
     rect.setLeft( rectangle.attribute("left").toDouble());
     rect.setRight( rectangle.attribute("right").toDouble());
+
     this->setScale( rect, false);
 
     return true;
@@ -395,6 +396,7 @@ QRectF PlotWidget::currentBoundingRect()
 
     rect.setLeft( this->canvasMap( xBottom ).s1() );
     rect.setRight( this->canvasMap( xBottom ).s2() );
+
     return rect;
 }
 
@@ -558,7 +560,6 @@ void PlotWidget::zoomOutHorizontal()
     act.setLeft( max.left() );
     act.setRight( max.right() );
     this->setScale(act);
-    qDebug() << act;
 }
 
 void PlotWidget::zoomOutVertical()
@@ -568,7 +569,6 @@ void PlotWidget::zoomOutVertical()
     act.setTop( max.top() );
     act.setBottom( max.bottom() );
     this->setScale(act);
-    qDebug() << act;
 }
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
@@ -632,14 +632,14 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
     static bool isPressed = true;
 
-   // qDebug() <<  event->type();
+    // qDebug() <<  event->type();
 
     if ( event->type() == QEvent::MouseButtonPress)
     {
         QMouseEvent *mouse_event = (QMouseEvent *)event;
 
         if( mouse_event->button() == Qt::LeftButton &&
-            (mouse_event->modifiers() & Qt::ShiftModifier) )
+                (mouse_event->modifiers() & Qt::ShiftModifier) )
         {
             isPressed = true;
             const QPoint point = mouse_event->pos();
