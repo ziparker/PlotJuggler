@@ -346,8 +346,8 @@ void MainWindow::buildData()
     long SIZE = 100*1000;
 
     curvelist_widget->list()->addItems( words_list );
-    SharedVector t_vector ( new std::vector<double>());
-    t_vector->reserve(SIZE);
+    SharedVector t_vector ( new boost::circular_buffer<double>());
+    t_vector->set_capacity(SIZE);
 
     double t = 0;
     for (int indx=0; indx<SIZE; indx++)
@@ -358,8 +358,8 @@ void MainWindow::buildData()
 
     foreach( const QString& name, words_list)
     {
-        SharedVector y_vector( new std::vector<double>() );
-        y_vector->reserve(SIZE);
+        SharedVector y_vector( new boost::circular_buffer<double>() );
+        y_vector->set_capacity(SIZE);
 
         float A =  qrand()/(float)RAND_MAX * 6 - 3;
         float B =  qrand()/(float)RAND_MAX *3;

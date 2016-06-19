@@ -6,8 +6,9 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <boost/circular_buffer.hpp>
 
-typedef std::shared_ptr<std::vector<double> > SharedVector;
+typedef std::shared_ptr< boost::circular_buffer<double> > SharedVector;
 
 class PlotData
 {
@@ -99,8 +100,7 @@ inline int PlotData::getIndexFromX(double x ) const
     }
     prev_query = x;
 
-    std::vector<double>::iterator lower;
-    lower = std::lower_bound(_x_points->begin(), _x_points->end(), x );
+    auto lower = std::lower_bound(_x_points->begin(), _x_points->end(), x );
     int index =   std::distance( _x_points->begin(), lower);
 
     prev_index = index;

@@ -62,7 +62,7 @@ size_t PlotDataQwt::size() const
 
 void PlotDataQwt::setRangeX(double x_left, double x_right)
 {
-    std::vector<double>::iterator lower, upper;
+    boost::circular_buffer<double>::iterator lower, upper;
 
     lower = std::lower_bound(_x_points->begin(), _x_points->end(), x_left );
     upper = std::upper_bound(_x_points->begin(), _x_points->end(), x_right );

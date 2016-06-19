@@ -122,8 +122,8 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
 
     double prev_time = -1;
 
-    SharedVector time_vector (new std::vector<double>() );
-    time_vector->reserve( tot_lines );
+    SharedVector time_vector (new boost::circular_buffer<double>() );
+    time_vector->set_capacity( tot_lines );
 
     bool first_line = true;
 
@@ -144,8 +144,8 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                     QString& qname = ( ordered_names[i].second );
                     std::string name = qname.toStdString();
 
-                    SharedVector data_vector( new std::vector<double>());
-                    data_vector->reserve(tot_lines);
+                    SharedVector data_vector( new boost::circular_buffer<double>());
+                    data_vector->set_capacity(tot_lines);
 
                     ordered_vectors.push_back( data_vector );
 
