@@ -3,50 +3,68 @@
 
 #include <vector>
 #include <memory>
-#include <memory>
 #include <string>
 #include <map>
+#include <mutex>
+#include <boost/circular_buffer.hpp>
 
-typedef std::shared_ptr<std::vector<double> > SharedVector;
 
 class PlotData
 {
 public:
 
-    PlotData();
-    PlotData(SharedVector x, SharedVector y, std::string name);
-    virtual ~PlotData() {}
+    typedef struct{
+        double min;
+        double max;
+    }Range;
 
-    void addData( SharedVector x, SharedVector y );
+    enum{
+        MAX_CAPACITY = 1024*1024
+    };
+
+    PlotData();
+
+    virtual ~PlotData() {}
 
     void setName(const std::string& name) { _name = name; }
     std::string name() const { return _name; }
 
-    virtual size_t size() const;
+    virtual size_t size();
 
-    virtual int getIndexFromX(double x) const;
+    virtual size_t getIndexFromX(double x) const;
 
-    double getY(double x ) const;
+    double getYfromX(double x );
 
-    SharedVector getVectorX() const;
-    SharedVector getVectorY() const;
+    std::pair<double,double> at(size_t index);
+
+    void setCapacity(size_t capacity);
+
+    void pushBack(double x, double y);
 
     void getColorHint(int *red, int* green, int* blue) const;
+
     void setColorHint(int red, int green, int blue);
+
+    double setMaximumRangeX(double max_range);
+
+    Range getRangeX();
+
+    Range getRangeY();
 
 protected:
 
     std::string _name;
-
-    SharedVector _x_points;
-    SharedVector _y_points;
-
-    double _y_min, _y_max;
-    double _x_min, _x_max;
+    std::shared_ptr< boost::circular_buffer_space_optimized<double> >_x_points;
+    std::shared_ptr< boost::circular_buffer_space_optimized<double> >_y_points;
 
     int _color_hint_red;
     int _color_hint_green;
     int _color_hint_blue;
+
+private:
+    bool _update_bounding_rect;
+    double _max_range_X;
+    std::mutex _mutex;
 
 };
 
@@ -57,76 +75,79 @@ typedef std::map<std::string, PlotDataPtr> PlotDataMap;
 //-----------------------------------
 
 
-inline PlotData::PlotData(){ }
-
-inline PlotData::PlotData(SharedVector x, SharedVector y, std::string name)
+inline PlotData::PlotData():
+    _x_points( new boost::circular_buffer_space_optimized<double>() ),
+    _y_points( new boost::circular_buffer_space_optimized<double>() ),
+    _update_bounding_rect(true),
+    _max_range_X( std::numeric_limits<double>::max() )
 {
-    _name = name;
-    addData(x,y);
+    setCapacity( MAX_CAPACITY );
+}
+
+inline void PlotData::setCapacity(size_t capacity)
+{
+    if( capacity > MAX_CAPACITY)
+        capacity = MAX_CAPACITY;
+
+    if( capacity < 2)
+        capacity = 2;
+
+    _x_points->set_capacity( capacity );
+    _y_points->set_capacity( capacity );
 }
 
 
-inline void PlotData::addData(SharedVector x, SharedVector y)
+inline void PlotData::pushBack(double x, double y)
 {
-    _x_points = x;
-    _y_points = y;
+    //std::lock_guard<std::mutex> lock(_mutex);
+    auto& X = _x_points;
+    auto& Y = _y_points;
 
-    if( x->size() != y->size() ) {
-        throw std::runtime_error("size of x and y vectors must match");
+    if( X->size() > 2)
+    {
+        double rangeX = X->back() - X->front();
+        double delta = rangeX / (double) X->size();
+
+        if( rangeX > _max_range_X + delta )
+        {
+            setCapacity( X->size() );
+        }
     }
 
-    _y_min = std::numeric_limits<double>::max();
-    _y_max = std::numeric_limits<double>::min();
-
-    _x_min = _x_points->front();
-    _x_max = _x_points->back();
-
-    for (unsigned i=0; i< x->size(); i++) {
-        double Y = _y_points->at(i);
-        if( Y < _y_min ) _y_min = Y;
-        if( Y > _y_max ) _y_max = Y;
-    }
+    X->push_back( x );
+    Y->push_back( y );
 }
 
-
-inline int PlotData::getIndexFromX(double x ) const
+inline size_t PlotData::getIndexFromX(double x ) const
 {
-    static double prev_query = std::numeric_limits<double>::min();
-    static int prev_index = 0;
-
-    if( x == prev_query) {
-        return prev_index;
-    }
-    prev_query = x;
-
-    std::vector<double>::iterator lower;
-    lower = std::lower_bound(_x_points->begin(), _x_points->end(), x );
-    int index =   std::distance( _x_points->begin(), lower);
-
-    prev_index = index;
+    auto lower   = std::lower_bound(_x_points->begin(), _x_points->end(), x );
+    size_t index = std::distance( _x_points->begin(), lower);
     return index;
 }
 
 
-inline double PlotData::getY(double x) const
+inline double PlotData::getYfromX(double x)
 {
+    //std::lock_guard<std::mutex> lock(_mutex);
     unsigned index = getIndexFromX(x);
-    if( index >0 && index < size()) {
+
+    if( index >=0 && index < size())
+    {
         return _y_points->at(index);
     }
     return 0;
 }
-
-inline SharedVector PlotData::getVectorX() const {
-    return _x_points;
+inline std::pair<double,double> PlotData::at(size_t index)
+{
+    //std::lock_guard<std::mutex> lock(_mutex);
+    return std::make_pair( _x_points->at(index),  _y_points->at(index) );
 }
 
-inline SharedVector PlotData::getVectorY() const {
-    return _y_points;
-}
 
-inline size_t PlotData::size() const{
-   return _x_points->size();
+inline size_t PlotData::size()
+{
+    //std::lock_guard<std::mutex> lock(_mutex);
+    return _x_points->size();
 }
 
 inline void PlotData::getColorHint(int *red, int* green, int* blue) const
@@ -141,6 +162,43 @@ inline void PlotData::setColorHint(int red, int green, int blue)
     _color_hint_green = green;
     _color_hint_blue = blue;
 }
+
+
+inline double PlotData::setMaximumRangeX(double max_range)
+{
+    //std::lock_guard<std::mutex> lock(_mutex);
+    auto& X = _x_points;
+    if( X->size() > 2)
+    {
+        double rangeX = X->back() - X->front();
+        double delta = rangeX / (double) X->size();
+        this->setCapacity( max_range*delta );
+    }
+    _max_range_X = max_range;
+}
+
+inline PlotData::Range PlotData::getRangeX()
+{
+    //std::lock_guard<std::mutex> lock(_mutex);
+    return  { _x_points->front(), _x_points->back() };
+}
+
+inline PlotData::Range PlotData::getRangeY()
+{
+    //std::lock_guard<std::mutex> lock(_mutex);
+    double y_min = std::numeric_limits<double>::max();
+    double y_max = std::numeric_limits<double>::min();
+
+    for (size_t i=0; i< _y_points->size(); i++)
+    {
+        double Y = _y_points->at(i);
+        if( Y < y_min ) y_min = Y;
+        if( Y > y_max ) y_max = Y;
+    }
+    return  { y_min, y_max };
+}
+
+
 
 
 

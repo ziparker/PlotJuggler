@@ -8,6 +8,7 @@ QT5_WRAP_UI ( UI_SRC
     curvecolorpick.ui
     filterablelistwidget.ui
     tabbedplotwidget.ui
+    ${CMAKE_SOURCE_DIR}/common/selectlistdialog.ui
     )
 
 SET( PLOTTER_SRC
@@ -25,6 +26,7 @@ SET( PLOTTER_SRC
     filterablelistwidget.cpp
     tabbedplotwidget.cpp
     subwindow.cpp
+    ${CMAKE_SOURCE_DIR}/common/selectlistdialog.h
     )
 
 add_executable(SuperPlotter ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})

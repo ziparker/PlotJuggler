@@ -55,8 +55,9 @@ public:
     QGridLayout* gridLayout();
 
 public slots:
-    void maximizeHorizontalScale();
-    void maximizeVerticalScale();
+    void maximumZoomOutHorizontal();
+    void maximumZoomOutVertical();
+    void maximumZoomOut();
 
 private slots:
   //  void swapWidgetByName(QString name_a, QString name_b);

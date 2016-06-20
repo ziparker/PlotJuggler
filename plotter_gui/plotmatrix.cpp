@@ -399,35 +399,40 @@ QGridLayout *PlotMatrix::gridLayout()
     return layout;
 }
 
-void PlotMatrix::maximizeHorizontalScale()
+void PlotMatrix::maximumZoomOutHorizontal()
 {
     for ( unsigned i = 0; i< plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            QRectF bound_max = plot->maximumBoundingRect();
-            QRectF bound_act= plot->currentBoundingRect();
-            bound_act.setLeft( bound_max.left() );
-            bound_act.setRight( bound_max.right() );
-            plot->setScale( bound_act );
+            plot->zoomOutHorizontal();
         }
     }
     replot();
 }
 
-void PlotMatrix::maximizeVerticalScale()
+void PlotMatrix::maximumZoomOutVertical()
 {
     for ( unsigned i = 0; i < plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            QRectF bound_max = plot->maximumBoundingRect();
-            QRectF bound_act= plot->currentBoundingRect();
-            bound_act.setBottom( bound_max.bottom() );
-            bound_act.setTop( bound_max.top() );
-            plot->setScale( bound_act );
+            plot->zoomOutVertical();
+        }
+    }
+    replot();
+}
+
+void PlotMatrix::maximumZoomOut()
+{
+    for ( unsigned i = 0; i < plotCount(); i++ )
+    {
+        PlotWidget *plot = plotAt(i);
+        if( plot->isEmpty() == false)
+        {
+            plot->zoomOut();
         }
     }
     replot();

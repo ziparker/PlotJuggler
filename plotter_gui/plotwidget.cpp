@@ -169,7 +169,7 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
 
-    PlotDataQwt* plot_qwt = new PlotDataQwt( data->getVectorX(), data->getVectorY(), data->name() );
+    PlotDataQwt* plot_qwt = new PlotDataQwt( data );
 
     curve->setData( plot_qwt );
     curve->attach( this );
@@ -301,10 +301,10 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc)
 
     QDomElement range_el = doc.createElement("range");
     QRectF rect = this->currentBoundingRect();
-    range_el.setAttribute("bottom", rect.bottom());
-    range_el.setAttribute("top", rect.top());
-    range_el.setAttribute("left", rect.left());
-    range_el.setAttribute("right", rect.right());
+    range_el.setAttribute("bottom", QString::number(rect.bottom()) );
+    range_el.setAttribute("top", QString::number(rect.top()) );
+    range_el.setAttribute("left", QString::number(rect.left()) );
+    range_el.setAttribute("right", QString::number(rect.right()) );
     plot_el.appendChild(range_el);
 
     std::map<QString, QwtPlotCurve*>::iterator it;
@@ -381,6 +381,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
     rect.setTop( rectangle.attribute("top").toDouble());
     rect.setLeft( rectangle.attribute("left").toDouble());
     rect.setRight( rectangle.attribute("right").toDouble());
+
     this->setScale( rect, false);
 
     return true;
@@ -395,6 +396,7 @@ QRectF PlotWidget::currentBoundingRect()
 
     rect.setLeft( this->canvasMap( xBottom ).s1() );
     rect.setRight( this->canvasMap( xBottom ).s2() );
+
     return rect;
 }
 
@@ -422,9 +424,10 @@ void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
         for(it = _curve_list.begin(); it != _curve_list.end(); ++it)
         {
             PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
-            data->setRangeX( min,max );
+            data->setSubsampleFactor( );
         }
     }
+
 
     QwtPlot::setAxisScale( axisId, min, max, step);
 }
@@ -450,13 +453,20 @@ QRectF PlotWidget::maximumBoundingRect()
         if( right < bounding_rect.right() ) right = bounding_rect.right();
     }
 
+    QRectF max_bounding;
+
     if( fabs(top-bottom) < 1e-10  )
     {
-        return QRectF(left, top+0.01,  right - left, -0.02 ) ;
+        max_bounding = QRectF(left, top+0.01,  right - left, -0.02 ) ;
     }
     else{
-        return QRectF(left, top,  right - left, bottom - top ) ;
+        double height = bottom - top;
+        max_bounding = QRectF(left, top - height*0.05,  right - left, height*1.1 ) ;
     }
+
+    _magnifier->setAxisLimits( yLeft, max_bounding.bottom(), max_bounding.top());
+    _magnifier->setAxisLimits( xBottom, max_bounding.left(), max_bounding.right());
+    return max_bounding;
 }
 
 
@@ -473,9 +483,6 @@ void PlotWidget::replot()
     }
 
     QwtPlot::replot();
-
-
-    //_prev_bounding = canvas_range;
 }
 
 void PlotWidget::launchRemoveCurveDialog()
@@ -551,6 +558,13 @@ void PlotWidget::on_externallyResized(QRectF rect)
     emit rectChanged( this, rect);
 }
 
+
+void PlotWidget::zoomOut()
+{
+    QRectF max = maximumBoundingRect();
+    this->setScale( max );
+}
+
 void PlotWidget::zoomOutHorizontal()
 {
     QRectF act = currentBoundingRect();
@@ -558,17 +572,16 @@ void PlotWidget::zoomOutHorizontal()
     act.setLeft( max.left() );
     act.setRight( max.right() );
     this->setScale(act);
-    qDebug() << act;
 }
 
 void PlotWidget::zoomOutVertical()
 {
     QRectF act = currentBoundingRect();
     QRectF max = maximumBoundingRect();
-    act.setTop( max.top() );
-    act.setBottom( max.bottom() );
+
+    act.setTop( max.top()  );
+    act.setBottom( max.bottom()  );
     this->setScale(act);
-    qDebug() << act;
 }
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
@@ -632,14 +645,14 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
     static bool isPressed = true;
 
-   // qDebug() <<  event->type();
+    // qDebug() <<  event->type();
 
     if ( event->type() == QEvent::MouseButtonPress)
     {
         QMouseEvent *mouse_event = (QMouseEvent *)event;
 
         if( mouse_event->button() == Qt::LeftButton &&
-            (mouse_event->modifiers() & Qt::ShiftModifier) )
+                (mouse_event->modifiers() & Qt::ShiftModifier) )
         {
             isPressed = true;
             const QPoint point = mouse_event->pos();

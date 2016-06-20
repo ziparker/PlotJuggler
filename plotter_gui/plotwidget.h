@@ -61,9 +61,12 @@ signals:
     void trackerMoved(QPointF pos);
 
 public slots:
-    void replot() ;
 
-    void detachAllCurves();
+    void replot() ;
+    void detachAllCurves();  
+    void zoomOut();
+    void zoomOutHorizontal();
+    void zoomOutVertical();
 
 private slots:
     void launchRemoveCurveDialog();
@@ -72,8 +75,6 @@ private slots:
     void on_showPoints(bool checked);
     void on_externallyResized(QRectF new_rect);
 
-    void zoomOutHorizontal();
-    void zoomOutVertical();
 
 private:
     std::map<QString, QwtPlotCurve*> _curve_list;
