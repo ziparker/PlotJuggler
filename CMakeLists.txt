@@ -36,13 +36,9 @@ add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )
 #add_subdirectory( plugins/DataLoadFB )
-<<<<<<< HEAD
 add_subdirectory( plugins/DataStreamSample )
 
-#add_subdirectory( plugins/DataLoadROS )
-=======
-#add_subdirectory( plugins/DataStreamSample )
->>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
+
 
 INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/SuperPlotter )
 INSTALL(FILES plugins/dataloader_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/SuperPlotter )
