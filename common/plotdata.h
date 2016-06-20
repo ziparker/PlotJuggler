@@ -7,7 +7,7 @@
 #include <map>
 #include <mutex>
 #include <boost/circular_buffer.hpp>
-
+#include <QDebug>
 
 class PlotData
 {
@@ -104,14 +104,23 @@ inline void PlotData::pushBack(double x, double y)
     auto& X = _x_points;
     auto& Y = _y_points;
 
-    if( X->size() > 2)
+    size_t sizeX = X->size();
+
+    if( sizeX > 2)
     {
         double rangeX = X->back() - X->front();
-        double delta = rangeX / (double) X->size();
+        double delta = rangeX / (double) sizeX;
+        size_t new_capacity = (size_t)( _max_range_X / delta);
 
-        if( rangeX > _max_range_X + delta )
+        if( abs( new_capacity - sizeX) > 2 )
         {
-            setCapacity( X->size() );
+            while( _x_points->size() > new_capacity)
+            {
+                _x_points->pop_front();
+                _y_points->pop_front();
+            }
+
+            setCapacity( new_capacity );
         }
     }
 
@@ -129,7 +138,7 @@ inline size_t PlotData::getIndexFromX(double x ) const
 
 inline double PlotData::getYfromX(double x)
 {
-    //std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     unsigned index = getIndexFromX(x);
 
     if( index >=0 && index < size())
@@ -169,22 +178,6 @@ inline void PlotData::setColorHint(int red, int green, int blue)
 inline double PlotData::setMaximumRangeX(double max_range)
 {
     std::lock_guard<std::mutex> lock(_mutex);
-    auto& X = _x_points;
-    if( X->size() > 2)
-    {
-        double rangeX = X->back() - X->front();
-        double delta = rangeX / (double) X->size();
-
-        size_t new_capacity = max_range / delta;
-
-        while( _x_points->size() > new_capacity)
-        {
-            _x_points->pop_front();
-            _y_points->pop_front();
-        }
-
-        this->setCapacity( new_capacity );
-    }
     _max_range_X = max_range;
 }
 
