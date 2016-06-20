@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-     buildData();
+    //  buildData();
     _undo_timer.start();
 
     // save initial state
@@ -59,6 +59,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     _replot_timer = new QTimer(this);
     connect(_replot_timer, SIGNAL(timeout()), this, SLOT(on_replotRequested()));
+
+    ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    ui->streamingLabel->setHidden(true);
+    ui->streamingSpinBox->setHidden(true);
+    this->repaint();
+
 }
 
 MainWindow::~MainWindow()
@@ -175,6 +181,7 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 
     TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, first_tab, this, window);
     _tabbed_plotarea.push_back( tabbed_widget );
+    tabbed_widget->setStreamingMode( ui->pushButtonStreaming->isChecked() );
 
     connect( tabbed_widget, SIGNAL(undoableChangeHappened()), this, SLOT(on_undoableChange()) );
     connect( tabbed_widget, SIGNAL(destroyed(QObject*)), this,  SLOT(on_tabbedAreaDestroyed(QObject*)) );
@@ -204,17 +211,6 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
         qDebug() << " mimestuff " << format;
     }
 }
-
-void MainWindow::dragMoveEvent(QDragMoveEvent *)
-{
-
-}
-
-void MainWindow::dropEvent(QDropEvent *)
-{
-
-}
-
 
 void MainWindow::createActions()
 {
@@ -802,7 +798,7 @@ void MainWindow::onActionLoadStreamer()
     }
     DataStreamer* streamer = data_streamer[0];
 
-    //if( data_streamer.size() > 1)
+    if( data_streamer.size() > 1)
     {
         QStringList streamers_name;
         for (int i=0; i< data_streamer.size(); i++)
@@ -1104,10 +1100,33 @@ void MainWindow::on_swapPlots(PlotWidget *source, PlotWidget *destination)
 
 void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 {
+    if( checked )
+        ui->pushButtonStreaming->setText("Streaming ON");
+    else
+        ui->pushButtonStreaming->setText("Streaming OFF");
+
+    //TODO fixme
     auto streamer = this->data_streamer[0];
     streamer->enableStreaming( checked ) ;
     _replot_timer->setSingleShot(true);
     _replot_timer->start( 5 );
+
+    if ( !checked )
+        ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+    else
+        ui->horizontalSpacer->changeSize(1,1, QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    ui->streamingLabel->setHidden( !checked );
+    ui->streamingSpinBox->setHidden( !checked );
+    ui->horizontalSlider->setHidden( checked );
+
+    this->repaint();
+
+    for(unsigned i=0; i< _tabbed_plotarea.size(); i++)
+    {
+        TabbedPlotWidget* area = _tabbed_plotarea[i];
+        area->setStreamingMode( checked );
+    }
 }
 
 void MainWindow::on_replotRequested()

@@ -136,8 +136,6 @@ protected:
     void mousePressEvent(QMouseEvent *event) ;
 
     void dragEnterEvent(QDragEnterEvent *event) ;
-    void dragMoveEvent(QDragMoveEvent *event) ;
-    void dropEvent(QDropEvent *event) ;
 
     void deleteLoadedData();
     void deleteLoadedData(const QString &curve_name);

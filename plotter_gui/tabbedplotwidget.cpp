@@ -164,6 +164,14 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement &tabbed_area)
     return true;
 }
 
+bool TabbedPlotWidget::setStreamingMode(bool streaming_mode)
+{
+    ui->buttonLinkHorizontalScale->setEnabled( !streaming_mode );
+    ui->pushVerticalResize->setEnabled( !streaming_mode );
+    ui->pushHorizontalResize->setEnabled( !streaming_mode );
+
+}
+
 
 TabbedPlotWidget::~TabbedPlotWidget()
 {

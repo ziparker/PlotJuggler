@@ -32,6 +32,7 @@ public:
     QDomElement xmlSaveState(QDomDocument &doc);
     bool xmlLoadState(QDomElement &tabbed_area);
 
+    bool setStreamingMode(bool streaming_mode);
 
     ~TabbedPlotWidget();
 
