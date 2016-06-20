@@ -100,7 +100,7 @@ inline void PlotData::setCapacity(size_t capacity)
 
 inline void PlotData::pushBack(double x, double y)
 {
-    //std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     auto& X = _x_points;
     auto& Y = _y_points;
 
@@ -141,14 +141,14 @@ inline double PlotData::getYfromX(double x)
 
 inline std::pair<double,double> PlotData::at(size_t index)
 {
-    //std::lock_guard<std::mutex> lock(_mutex);
+ //   std::lock_guard<std::mutex> lock(_mutex);
     return std::make_pair( _x_points->at(index),  _y_points->at(index) );
 }
 
 
 inline size_t PlotData::size()
 {
-    //std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     return _x_points->size();
 }
 
@@ -168,26 +168,35 @@ inline void PlotData::setColorHint(int red, int green, int blue)
 
 inline double PlotData::setMaximumRangeX(double max_range)
 {
-    //std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     auto& X = _x_points;
     if( X->size() > 2)
     {
         double rangeX = X->back() - X->front();
         double delta = rangeX / (double) X->size();
-        this->setCapacity( max_range*delta );
+
+        size_t new_capacity = max_range / delta;
+
+        while( _x_points->size() > new_capacity)
+        {
+            _x_points->pop_front();
+            _y_points->pop_front();
+        }
+
+        this->setCapacity( new_capacity );
     }
     _max_range_X = max_range;
 }
 
 inline PlotData::Range PlotData::getRangeX()
 {
-    //std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     return  { _x_points->front(), _x_points->back() };
 }
 
 inline PlotData::Range PlotData::getRangeY()
 {
-    //std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     double y_min = std::numeric_limits<double>::max();
     double y_max = std::numeric_limits<double>::min();
 

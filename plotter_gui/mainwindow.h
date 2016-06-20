@@ -77,6 +77,8 @@ private slots:
 
     void on_replotRequested();
 
+    void on_streamingSpinBox_valueChanged(int value);
+
 private:
     Ui::MainWindow *ui;
 

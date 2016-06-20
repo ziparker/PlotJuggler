@@ -70,7 +70,7 @@ void DataStreamSample::update()
 
             double y =  A*sin(B*t + C) +D*t*0.02;
 
-            if( _enabled)
+            if( _enabled )
                 plot->pushBack( t, y);
         }
         usleep( 1000 );

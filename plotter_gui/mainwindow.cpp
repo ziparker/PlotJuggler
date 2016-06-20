@@ -1146,3 +1146,12 @@ void MainWindow::on_replotRequested()
         _replot_timer->start( 40 );
     }
 }
+
+void MainWindow::on_streamingSpinBox_valueChanged(int value)
+{
+    for (auto it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++ )
+    {
+        auto plot = it->second;
+        plot->setMaximumRangeX( value );
+    }
+}

@@ -401,3 +401,17 @@ bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
     // Standard event processing
     return QObject::eventFilter(obj, event);
 }
+
+void TabbedPlotWidget::on_pushButton_toggled(bool checked)
+{
+    for(int i=0; i< ui->tabWidget->count(); i++)
+    {
+        PlotMatrix* matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
+
+        for(int p=0; p< matrix->plotCount(); p++)
+        {
+            PlotWidget* plot = matrix->plotAt(p);
+            plot->activateLegent( checked );
+        }
+    }
+}

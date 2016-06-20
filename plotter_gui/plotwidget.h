@@ -44,6 +44,8 @@ public:
 
     void setScale( QRectF rect, bool emit_signal = true );
 
+    void activateLegent(bool activate);
+
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) ;
     virtual void dragMoveEvent(QDragMoveEvent *event) ;

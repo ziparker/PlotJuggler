@@ -62,6 +62,8 @@ private slots:
 
     void moveTabIntoNewWindow();
 
+    void on_pushButton_toggled(bool checked);
+
 private:
     Ui::TabbedPlotWidget *ui;
 

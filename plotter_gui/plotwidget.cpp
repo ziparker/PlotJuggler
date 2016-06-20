@@ -142,6 +142,8 @@ void PlotWidget::buildLegend()
     QFont font = _legend->font();
     font.setPointSize( 9 );
     _legend->setFont( font );
+
+    _legend->setVisible( true );
 }
 
 
@@ -342,7 +344,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
 
         if(  _mapped_data->find(curve_name.toStdString()) != _mapped_data->end() )
         {
-            bool added = addCurve(curve_name, false);
+            addCurve(curve_name, false);
             _curve_list[curve_name]->setPen( color, 1.0);
             added_curve_names.insert(curve_name );
         }
@@ -416,6 +418,11 @@ void PlotWidget::setScale(QRectF rect, bool emit_signal)
     }
 }
 
+void PlotWidget::activateLegent(bool activate)
+{
+    _legend->setVisible( activate );
+}
+
 
 void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
 {
@@ -476,10 +483,7 @@ void PlotWidget::replot()
     if( _zoomer )
         _zoomer->setZoomBase( false );
 
-    // QRectF canvas_range = currentBoundingRect();
-
     if(_tracker ) {
-        // _tracker->onExternalZoom( canvas_range );
         _tracker->refreshPosition( );
     }
 
