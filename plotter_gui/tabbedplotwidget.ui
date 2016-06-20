@@ -6,12 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>964</width>
-    <height>650</height>
+    <width>800</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>TabbedPlotWidget</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resource.qrc">
+    <normaloff>:/icons/resources/Line_tracker.png</normaloff>:/icons/resources/Line_tracker.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -52,7 +56,7 @@
           <widget class="QPushButton" name="pushButton">
            <property name="maximumSize">
             <size>
-             <width>50</width>
+             <width>40</width>
              <height>40</height>
             </size>
            </property>
@@ -87,7 +91,7 @@
           <widget class="QPushButton" name="buttonLinkHorizontalScale">
            <property name="maximumSize">
             <size>
-             <width>50</width>
+             <width>40</width>
              <height>40</height>
             </size>
            </property>
@@ -125,7 +129,7 @@
           <widget class="QPushButton" name="pushVerticalResize">
            <property name="maximumSize">
             <size>
-             <width>50</width>
+             <width>40</width>
              <height>40</height>
             </size>
            </property>
@@ -160,7 +164,7 @@
           <widget class="QPushButton" name="pushHorizontalResize">
            <property name="maximumSize">
             <size>
-             <width>50</width>
+             <width>40</width>
              <height>40</height>
             </size>
            </property>
@@ -211,7 +215,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>130</width>
+             <width>0</width>
              <height>40</height>
             </size>
            </property>
@@ -249,7 +253,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>120</width>
+             <width>0</width>
              <height>40</height>
             </size>
            </property>
@@ -281,7 +285,7 @@
           <widget class="QPushButton" name="addTabButton">
            <property name="minimumSize">
             <size>
-             <width>120</width>
+             <width>0</width>
              <height>40</height>
             </size>
            </property>
@@ -316,7 +320,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>180</width>
+             <width>0</width>
              <height>40</height>
             </size>
            </property>
@@ -330,7 +334,7 @@
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
-            <string> Remove empty plots</string>
+            <string> Remove empty</string>
            </property>
            <property name="icon">
             <iconset resource="resource.qrc">

@@ -15,7 +15,6 @@
 #include <QPluginLoader>
 #include <QSettings>
 #include <QWindow>
-#include <QToolButton>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -34,19 +33,23 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
-    ui->setupUi(this);
-
     curvelist_widget = new FilterableListWidget(this);
 
+    ui->setupUi(this);
+
     _tabbed_plotarea.push_back( new TabbedPlotWidget( &_mapped_plot_data, this) );
-    connect( _tabbed_plotarea.back(), SIGNAL(undoableChangeHappened()), this, SLOT(on_undoableChange()) );
+    connect( _tabbed_plotarea.back(), SIGNAL(undoableChangeHappened()), this, SLOT(onUndoableChange()) );
 
     ui->centralLayout->insertWidget(0, _tabbed_plotarea.back());
+    ui->leftLayout->addWidget( curvelist_widget );
 
-    ui->splitter->insertWidget(0, curvelist_widget);
 
-    ui->splitter->setStretchFactor(0,0);
-    ui->splitter->setStretchFactor(1,1);
+    //ui->splitter->insertWidget(0, curvelist_widget);
+
+  //  ui->splitter->setStretchFactor(0,1);
+  //  ui->splitter->setStretchFactor(1,1);
+
+    connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
 
     createActions();
     loadPlugins("plugins");
@@ -55,10 +58,10 @@ MainWindow::MainWindow(QWidget *parent) :
     _undo_timer.start();
 
     // save initial state
-    on_undoableChange();
+    onUndoableChange();
 
     _replot_timer = new QTimer(this);
-    connect(_replot_timer, SIGNAL(timeout()), this, SLOT(on_replotRequested()));
+    connect(_replot_timer, SIGNAL(timeout()), this, SLOT(onReplotRequested()));
 
     ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->streamingLabel->setHidden(true);
@@ -72,7 +75,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_undoableChange()
+void MainWindow::onUndoableChange()
 {
     /* int elapsed_ms = _undo_timer.restart();
 
@@ -183,21 +186,21 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
     _tabbed_plotarea.push_back( tabbed_widget );
     tabbed_widget->setStreamingMode( ui->pushButtonStreaming->isChecked() );
 
-    connect( tabbed_widget, SIGNAL(undoableChangeHappened()), this, SLOT(on_undoableChange()) );
+    connect( tabbed_widget, SIGNAL(undoableChangeHappened()), this, SLOT(onUndoableChange()) );
     connect( tabbed_widget, SIGNAL(destroyed(QObject*)), this,  SLOT(on_tabbedAreaDestroyed(QObject*)) );
-    connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(on_floatingWindowDestroyed(QObject*)) );
-    connect( window, SIGNAL(closeRequestedByUser()),     this,  SLOT(on_undoableChange()) );
+    connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(onFloatingWindowDestroyed(QObject*)) );
+    connect( window, SIGNAL(closeRequestedByUser()),     this,  SLOT(onUndoableChange()) );
 
     window->setCentralWidget( tabbed_widget );
     window->setAttribute( Qt::WA_DeleteOnClose, true );
     window->show();
     window->activateWindow();
 
-    window->addAction( _action_Undo );
-    window->addAction( _action_Redo );
+    window->addAction( _actionUndo );
+    window->addAction( _actionRedo );
 
 
-    if( undoable ) on_undoableChange();
+    if( undoable ) onUndoableChange();
 }
 
 
@@ -214,83 +217,52 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainWindow::createActions()
 {
-    _action_Undo = new QAction(tr("Undo"),this);
-    _action_Redo = new QAction(tr("Redo"),this);
+    _actionUndo = new QAction(tr("Undo"),this);
+    _actionRedo = new QAction(tr("Redo"),this);
+    _actionUndo->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_Z));
+    _actionRedo->setShortcut( QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
 
-    _action_loadRecentFile = new QAction(tr("Load previous file..."),this);
-    _action_loadRecentLayout = new QAction(tr("Load previous layout..."),this);
-    _action_reloadFile = new QAction(tr("Reload data"),this);
-
-    _action_SaveLayout = new QAction(tr("Save current layout"),this);
-    _action_LoadLayout = new QAction(tr("Load layout from file"),this);
-    _action_LoadData = new QAction(tr("Load datafile"),this);
-
-
-    _action_startDataStream = new  QAction(tr("Start Streaming"),this);
-
-    //---------------------------------------------
-    _action_Undo->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_Z));
-    _action_Redo->setShortcut( QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
-
-    this->addAction( _action_Undo );
-    this->addAction( _action_Redo );
-    connect(_action_Undo, SIGNAL(triggered()), this, SLOT(on_UndoInvoked()) );
-    connect(_action_Redo, SIGNAL(triggered()), this, SLOT(on_RedoInvoked()) );
+    this->addAction( _actionUndo );
+    this->addAction( _actionRedo );
+    connect(_actionUndo, SIGNAL(triggered()), this, SLOT(onUndoInvoked()) );
+    connect(_actionRedo, SIGNAL(triggered()), this, SLOT(onRedoInvoked()) );
 
     //---------------------------------------------
 
-    connect(_action_SaveLayout,SIGNAL(triggered()), this, SLOT(onActionSaveLayout()) );
-    connect(_action_LoadLayout,SIGNAL(triggered()), this, SLOT(onActionLoadLayout()) );
-    connect(_action_LoadData,SIGNAL(triggered()),    this, SLOT(onActionLoadDataFile()) );
-    connect(_action_loadRecentFile,SIGNAL(triggered()),    this, SLOT(onActionReloadDataFileFromSettings()) );
-    connect(_action_loadRecentLayout,SIGNAL(triggered()),  this, SLOT(onActionReloadLayout()) );
-    connect(_action_reloadFile,SIGNAL(triggered()),        this, SLOT(onActionReloadSameDataFile()) );
-    connect(_action_startDataStream,SIGNAL(triggered()),   this, SLOT(onActionLoadStreamer()) );
+    connect( ui->actionSaveLayout,SIGNAL(triggered()),        this, SLOT(onActionSaveLayout()) );
+    connect(ui->actionLoadLayout,SIGNAL(triggered()),         this, SLOT(onActionLoadLayout()) );
+    connect(ui->actionLoadData,SIGNAL(triggered()),           this, SLOT(onActionLoadDataFile()) );
+    connect(ui->actionLoadRecentDatafile,SIGNAL(triggered()), this, SLOT(onActionReloadDataFileFromSettings()) );
+    connect(ui->actionLoadRecentLayout,SIGNAL(triggered()),   this, SLOT(onActionReloadRecentLayout()) );
+    connect(ui->actionReloadData,SIGNAL(triggered()),         this, SLOT(onActionReloadSameDataFile()) );
+    connect(ui->actionStartStreaming,SIGNAL(triggered()),     this, SLOT(onActionLoadStreamer()) );
+    connect(ui->actionDeleteAllData,SIGNAL(triggered()),      this, SLOT(onDeleteLoadedData()) );
 
     //---------------------------------------------
-
-    QMenu* menuFile = new QMenu("File", ui->mainToolBar);
-    menuFile->addAction(_action_LoadData);
-    menuFile->addAction(_action_loadRecentFile);
 
     QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
     if( settings.contains("recentlyLoadedDatafile") )
     {
         QString fileName = settings.value("recentlyLoadedDatafile").toString();
-        _action_loadRecentFile->setText( "Load data from: " + fileName);
-        _action_loadRecentFile->setEnabled( true );
+        ui->actionLoadRecentDatafile->setText( "Load data from: " + fileName);
+        ui->actionLoadRecentDatafile->setEnabled( true );
     }
     else{
-        _action_loadRecentFile->setEnabled( false );
+        ui->actionLoadRecentDatafile->setEnabled( false );
     }
 
-    _action_reloadFile->setEnabled( false );
-    menuFile->addAction(_action_reloadFile);
-
-    menuFile->addSeparator();
-    menuFile->addAction(_action_LoadLayout);
+    ui->actionReloadData->setEnabled( false );
+    ui->actionDeleteAllData->setEnabled( false );
 
     if( settings.contains("recentlyLoadedLayout") )
     {
         QString fileName = settings.value("recentlyLoadedLayout").toString();
-        _action_loadRecentLayout->setText( "Load layout from: " + fileName);
-        _action_loadRecentLayout->setEnabled( true );
+        ui->actionLoadRecentLayout->setText( "Load layout from: " + fileName);
+        ui->actionLoadRecentLayout->setEnabled( true );
     }
     else{
-        _action_loadRecentLayout->setEnabled( false );
+        ui->actionLoadRecentLayout->setEnabled( false );
     }
-    menuFile->addAction(_action_loadRecentLayout);
-
-    menuFile->addAction(_action_SaveLayout);
-    ui->mainToolBar->addAction( menuFile->menuAction());
-
-    //---------------------------------------------
-
-    QMenu* menuStreaming = new QMenu("Streaming", ui->mainToolBar);
-    menuStreaming->addAction( _action_startDataStream );
-
-    ui->mainToolBar->addAction( menuStreaming->menuAction());
-
 }
 
 
@@ -412,7 +384,7 @@ void MainWindow::mousePressEvent(QMouseEvent *)
 
 }
 
-void MainWindow::on_splitter_splitterMoved(int , int )
+void MainWindow::onSplitterMoved(int , int )
 {
     QList<int> sizes = ui->splitter->sizes();
     int maxLeftWidth = curvelist_widget->list()->maximumWidth();
@@ -428,15 +400,15 @@ void MainWindow::on_splitter_splitterMoved(int , int )
 
 void MainWindow::resizeEvent(QResizeEvent *)
 {
-    on_splitter_splitterMoved( 0, 0 );
+    onSplitterMoved( 0, 0 );
 }
 
 
-void MainWindow::on_plotAdded(PlotWidget* plot)
+void MainWindow::onPlotAdded(PlotWidget* plot)
 {
-    connect( plot, SIGNAL(plotModified()),         this, SLOT(on_undoableChange()) );
+    connect( plot, SIGNAL(plotModified()),         this, SLOT(onUndoableChange()) );
     connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerPositionUpdated(QPointF)));
-    connect( plot, SIGNAL(swapWidgets(PlotWidget*,PlotWidget*)), this, SLOT(on_swapPlots(PlotWidget*,PlotWidget*)) );
+    connect( plot, SIGNAL(swapWidgets(PlotWidget*,PlotWidget*)), this, SLOT(onSwapPlots(PlotWidget*,PlotWidget*)) );
 }
 
 
@@ -585,11 +557,26 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
         }
     }
     _mapped_plot_data.erase( plot_data );
+
+    if( curvelist_widget->list()->count() == 0)
+    {
+        ui->actionReloadData->setEnabled( false );
+        ui->actionDeleteAllData->setEnabled( false );
+    }
 }
 
 
-void MainWindow::deleteLoadedData()
+void MainWindow::onDeleteLoadedData()
 {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(0, tr("Warning"),
+                                  tr("Do you really want to remove any loaded data?\n"),
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::No );
+    if( reply == QMessageBox::No ) {
+        return;
+    }
+
     _mapped_plot_data.erase( _mapped_plot_data.begin(),
                              _mapped_plot_data.end() );
 
@@ -606,6 +593,8 @@ void MainWindow::deleteLoadedData()
             }
         }
     }
+    ui->actionReloadData->setEnabled( false );
+    ui->actionDeleteAllData->setEnabled( false );
 }
 
 void MainWindow::onActionLoadDataFile(bool reload_from_settings)
@@ -658,7 +647,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
     settings.setValue(SETTINGS_KEY, directory_path);
     settings.setValue("recentlyLoadedDatafile", fileName);
 
-    _action_loadRecentFile->setText("Load data from: " + fileName);
+    ui->actionLoadRecentDatafile->setText("Load data from: " + fileName);
 
     onActionLoadDataFile( fileName );
 }
@@ -680,7 +669,8 @@ void MainWindow::onActionLoadDataFile(QString fileName)
         }
 
         _loaded_datafile = fileName;
-        _action_reloadFile->setEnabled( true );
+        ui->actionReloadData->setEnabled( true );
+        ui->actionDeleteAllData->setEnabled( true );
 
         BusyTaskDialog* busy = new BusyTaskDialog("Loading file");
         busy->show();
@@ -757,8 +747,6 @@ void MainWindow::onActionLoadDataFile(QString fileName)
             }
         }
 
-
-
         _undo_states.clear();
         _redo_states.clear();
 
@@ -784,7 +772,7 @@ void MainWindow::onActionReloadDataFileFromSettings()
     onActionLoadDataFile( true );
 }
 
-void MainWindow::onActionReloadLayout()
+void MainWindow::onActionReloadRecentLayout()
 {
     onActionLoadLayout( true );
 }
@@ -874,7 +862,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
     settings.setValue(SETTINGS_KEY, directory_path);
     settings.setValue("recentlyLoadedLayout", fileName);
 
-    _action_loadRecentLayout->setText("Load layout from: " + fileName);
+    ui->actionLoadRecentLayout->setText("Load layout from: " + fileName);
 
     QFile file(fileName);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
@@ -913,7 +901,6 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 
         if( reload_previous == QMessageBox::Yes )
         {
-            deleteLoadedData();
             onActionLoadDataFile( fileName );
         }
     }
@@ -928,7 +915,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 }
 
 
-void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
+void MainWindow::onPushButtonActivateTracker_toggled(bool checked)
 {
     for (int i = 0; i < _plot_matrix_list.size(); i++)
     {
@@ -936,7 +923,7 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
     }
 }
 
-void MainWindow::on_UndoInvoked( )
+void MainWindow::onUndoInvoked( )
 {
     // qDebug() << "on_UndoInvoked "<<_undo_states.size();
 
@@ -952,7 +939,7 @@ void MainWindow::on_UndoInvoked( )
     }
 }
 
-void MainWindow::on_RedoInvoked()
+void MainWindow::onRedoInvoked()
 {
     if( _redo_states.size() > 0)
     {
@@ -994,7 +981,7 @@ void MainWindow::on_tabbedAreaDestroyed(QObject *object)
     this->setFocus();
 }
 
-void MainWindow::on_floatingWindowDestroyed(QObject *object)
+void MainWindow::onFloatingWindowDestroyed(QObject *object)
 {
     for (int i=0; i< _floating_window.size(); i++)
     {
@@ -1008,7 +995,7 @@ void MainWindow::on_floatingWindowDestroyed(QObject *object)
     updateInternalState();
 }
 
-void MainWindow::on_createFloatingWindow(PlotMatrix* first_tab)
+void MainWindow::onCreateFloatingWindow(PlotMatrix* first_tab)
 {
     createTabbedDialog( first_tab, true );
 }
@@ -1046,12 +1033,12 @@ void MainWindow::updateInternalState()
     }
 }
 
-void MainWindow::on_pushButtonAddSubwindow_pressed()
+void MainWindow::onPushButtonAddSubwindow_pressed()
 {
     createTabbedDialog( NULL, true );
 }
 
-void MainWindow::on_swapPlots(PlotWidget *source, PlotWidget *destination)
+void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 {
     PlotMatrix* src_matrix = NULL;
     PlotMatrix* dst_matrix = NULL;
@@ -1098,7 +1085,7 @@ void MainWindow::on_swapPlots(PlotWidget *source, PlotWidget *destination)
 
 }
 
-void MainWindow::on_pushButtonStreaming_toggled(bool checked)
+void MainWindow::onPushButtonStreaming_toggled(bool checked)
 {
     if( checked )
         ui->pushButtonStreaming->setText("Streaming ON");
@@ -1129,9 +1116,8 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
     }
 }
 
-void MainWindow::on_replotRequested()
+void MainWindow::onReplotRequested()
 {
-    //   qDebug() << "on_replotRequested";
     for(unsigned i=0; i< _tabbed_plotarea.size(); i++)
     {
         TabbedPlotWidget* area = _tabbed_plotarea[i];

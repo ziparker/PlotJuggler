@@ -45,7 +45,7 @@ void TabbedPlotWidget::init()
     _action_renameTab = new QAction(tr("Rename tab"), this);
 
     connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(renameCurrentTab()) );
-    connect( this, SIGNAL(sendTabToNewWindow(PlotMatrix*)), _main_window, SLOT(on_createFloatingWindow(PlotMatrix*)) );
+    connect( this, SIGNAL(sendTabToNewWindow(PlotMatrix*)), _main_window, SLOT(onCreateFloatingWindow(PlotMatrix*)) );
 
     _tab_menu = new QMenu(this);
     _tab_menu->addAction( _action_renameTab );
@@ -73,8 +73,8 @@ void TabbedPlotWidget::addTab( PlotMatrix* tab)
     {
         tab = new PlotMatrix("plot", _mapped_data, this);
 
-        connect( tab, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT(on_plotAdded(PlotWidget*)));
-        connect( tab, SIGNAL(layoutModified()),       _main_window, SLOT( on_undoableChange()) );
+        connect( tab, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT( onPlotAdded(PlotWidget*)));
+        connect( tab, SIGNAL(layoutModified()),       _main_window, SLOT( onUndoableChange()) );
 
         tab->addColumn();
         ui->tabWidget->addTab( tab, QString("plot") );

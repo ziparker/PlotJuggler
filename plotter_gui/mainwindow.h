@@ -25,7 +25,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void on_undoableChange();
+    void onUndoableChange();
 
 private slots:
 
@@ -33,11 +33,11 @@ private slots:
 
     void onTrackerPositionUpdated(QPointF pos );
 
-    void on_splitter_splitterMoved(int, int);
+    void onSplitterMoved(int, int);
 
     void resizeEvent(QResizeEvent *) ;
 
-    void on_plotAdded(PlotWidget* plot);
+    void onPlotAdded(PlotWidget* plot);
 
     void onActionSaveLayout();
 
@@ -51,33 +51,35 @@ private slots:
 
     void onActionReloadSameDataFile();
 
-    void onActionReloadLayout();
+    void onActionReloadRecentLayout();
 
     void onActionLoadStreamer();
 
-    void on_pushButtonActivateTracker_toggled(bool checked);
+    void onPushButtonActivateTracker_toggled(bool checked);
 
-    void on_UndoInvoked();
+    void onUndoInvoked();
 
-    void on_RedoInvoked();
+    void onRedoInvoked();
 
     void on_horizontalSlider_sliderMoved(int position);
 
     void on_tabbedAreaDestroyed(QObject*object);
 
-    void on_floatingWindowDestroyed(QObject*object);
+    void onFloatingWindowDestroyed(QObject*object);
 
-    void on_createFloatingWindow(PlotMatrix* first_tab = NULL);
+    void onCreateFloatingWindow(PlotMatrix* first_tab = NULL);
 
-    void on_pushButtonAddSubwindow_pressed();
+    void onPushButtonAddSubwindow_pressed();
 
-    void on_swapPlots(PlotWidget* source, PlotWidget* destination);
+    void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
-    void on_pushButtonStreaming_toggled(bool checked);
+    void onPushButtonStreaming_toggled(bool checked);
 
-    void on_replotRequested();
+    void onReplotRequested();
 
     void on_streamingSpinBox_valueChanged(int value);
+
+    void onDeleteLoadedData();
 
 private:
     Ui::MainWindow *ui;
@@ -85,18 +87,18 @@ private:
     std::vector<TabbedPlotWidget *> _tabbed_plotarea;
     std::vector<QMainWindow *>      _floating_window;
 
-    QAction* _action_loadRecentFile;
+    /*   QAction* _action_loadRecentFile;
     QAction* _action_reloadFile;
     QAction* _action_loadRecentLayout;
 
     QAction* _action_SaveLayout;
     QAction* _action_LoadLayout;
     QAction* _action_LoadData;
+*/
+    QAction* _actionUndo;
+    QAction* _actionRedo;
 
-    QAction* _action_Undo;
-    QAction* _action_Redo;
-
-    QAction* _action_startDataStream;
+    //   QAction* _action_startDataStream;
 
     void createActions();
 
@@ -139,7 +141,6 @@ protected:
 
     void dragEnterEvent(QDragEnterEvent *event) ;
 
-    void deleteLoadedData();
     void deleteLoadedData(const QString &curve_name);
 
     QTimer *_replot_timer;
