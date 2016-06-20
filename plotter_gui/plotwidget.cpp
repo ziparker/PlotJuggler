@@ -169,7 +169,11 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
     QwtPlotCurve *curve = new QwtPlotCurve(name);
     _curve_list.insert( std::make_pair(name, curve));
 
+<<<<<<< HEAD
     PlotDataQwt* plot_qwt = new PlotDataQwt( data );
+=======
+    PlotDataQwt* plot_qwt = new PlotDataQwt( *(data.get()) );
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
     curve->setData( plot_qwt );
     curve->attach( this );

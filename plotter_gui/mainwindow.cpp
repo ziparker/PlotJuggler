@@ -26,6 +26,10 @@
 #include "subwindow.h"
 #include "selectlistdialog.h"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 int unique_number = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -51,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-    buildData();
+     buildData();
     _undo_timer.start();
 
     // save initial state
@@ -250,7 +254,10 @@ void MainWindow::createActions()
     connect(_action_loadRecentLayout,SIGNAL(triggered()),  this, SLOT(onActionReloadLayout()) );
     connect(_action_reloadFile,SIGNAL(triggered()),        this, SLOT(onActionReloadSameDataFile()) );
     connect(_action_startDataStream,SIGNAL(triggered()),   this, SLOT(onActionLoadStreamer()) );
+<<<<<<< HEAD
     //---------------------------------------------
+=======
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
     QMenu* menuFile = new QMenu("File", ui->mainToolBar);
     menuFile->addAction(_action_LoadData);
@@ -286,12 +293,19 @@ void MainWindow::createActions()
 
     menuFile->addAction(_action_SaveLayout);
     ui->mainToolBar->addAction( menuFile->menuAction());
+<<<<<<< HEAD
     //---------------------------------------------
 
     QMenu* menuStreaming = new QMenu("Streaming", ui->mainToolBar);
     menuStreaming->addAction( _action_startDataStream );
 
     ui->mainToolBar->addAction( menuStreaming->menuAction());
+=======
+
+    menuFile->addSeparator();
+    menuFile->addAction( _action_startDataStream );
+
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
 }
 
@@ -800,6 +814,7 @@ void MainWindow::onActionLoadStreamer()
     }
     DataStreamer* streamer = data_streamer[0];
 
+<<<<<<< HEAD
     //if( data_streamer.size() > 1)
     {
         QStringList streamers_name;
@@ -822,6 +837,13 @@ void MainWindow::onActionLoadStreamer()
 
     PlotDataMap& plot_data = streamer->getDataMap();
 
+=======
+    streamer->enableStreaming( true );
+
+    PlotDataMap& plot_data = streamer->getDataMap();
+
+
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
     for (auto it = plot_data.begin(); it != plot_data.end(); it++)
     {
         std::string name  = it->first;

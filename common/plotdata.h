@@ -5,7 +5,10 @@
 #include <memory>
 #include <string>
 #include <map>
+<<<<<<< HEAD
 #include <mutex>
+=======
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 #include <boost/circular_buffer.hpp>
 
 
@@ -23,8 +26,14 @@ public:
     };
 
     PlotData();
+<<<<<<< HEAD
 
     virtual ~PlotData() {}
+=======
+
+    virtual ~PlotData() {}
+
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
     void setName(const std::string& name) { _name = name; }
     std::string name() const { return _name; }
@@ -33,7 +42,11 @@ public:
 
     virtual size_t getIndexFromX(double x) const;
 
+<<<<<<< HEAD
     double getYfromX(double x );
+=======
+    virtual size_t getIndexFromX(double x) const;
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
     std::pair<double,double> at(size_t index);
 
@@ -45,10 +58,21 @@ public:
 
     void setColorHint(int red, int green, int blue);
 
+<<<<<<< HEAD
     double setMaximumRangeX(double max_range);
+=======
+    double minX();
+    double minY();
+
+    double maxX();
+    double maxT();
+
+protected:
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
     Range getRangeX();
 
+<<<<<<< HEAD
     Range getRangeY();
 
 protected:
@@ -56,6 +80,10 @@ protected:
     std::string _name;
     std::shared_ptr< boost::circular_buffer_space_optimized<double> >_x_points;
     std::shared_ptr< boost::circular_buffer_space_optimized<double> >_y_points;
+=======
+    std::shared_ptr< boost::circular_buffer<double> >_x_points;
+    std::shared_ptr< boost::circular_buffer<double> >_y_points;
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
     int _color_hint_red;
     int _color_hint_green;
@@ -63,8 +91,11 @@ protected:
 
 private:
     bool _update_bounding_rect;
+<<<<<<< HEAD
     double _max_range_X;
     std::mutex _mutex;
+=======
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
 };
 
@@ -76,6 +107,7 @@ typedef std::map<std::string, PlotDataPtr> PlotDataMap;
 
 
 inline PlotData::PlotData():
+<<<<<<< HEAD
     _x_points( new boost::circular_buffer_space_optimized<double>() ),
     _y_points( new boost::circular_buffer_space_optimized<double>() ),
     _update_bounding_rect(true),
@@ -120,6 +152,28 @@ inline void PlotData::pushBack(double x, double y)
 
 inline size_t PlotData::getIndexFromX(double x ) const
 {
+=======
+    _x_points( new boost::circular_buffer<double>() ),
+    _y_points( new boost::circular_buffer<double>() )
+{
+
+}
+
+inline void PlotData::setCapacity(size_t capacity){
+    _x_points->set_capacity( capacity );
+    _y_points->set_capacity( capacity );
+}
+
+
+inline void PlotData::pushBack(double x, double y){
+    _x_points->push_back( x );
+    _y_points->push_back( y );
+
+}
+
+inline size_t PlotData::getIndexFromX(double x ) const
+{
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
     auto lower   = std::lower_bound(_x_points->begin(), _x_points->end(), x );
     size_t index = std::distance( _x_points->begin(), lower);
     return index;
@@ -137,6 +191,7 @@ inline double PlotData::getYfromX(double x)
     }
     return 0;
 }
+<<<<<<< HEAD
 inline std::pair<double,double> PlotData::at(size_t index)
 {
     //std::lock_guard<std::mutex> lock(_mutex);
@@ -147,6 +202,11 @@ inline std::pair<double,double> PlotData::at(size_t index)
 inline size_t PlotData::size()
 {
     //std::lock_guard<std::mutex> lock(_mutex);
+=======
+
+
+inline size_t PlotData::size() const{
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
     return _x_points->size();
 }
 
@@ -197,6 +257,8 @@ inline PlotData::Range PlotData::getRangeY()
     }
     return  { y_min, y_max };
 }
+
+
 
 
 

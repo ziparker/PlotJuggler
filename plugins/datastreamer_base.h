@@ -12,14 +12,22 @@ public:
 
     virtual PlotDataMap& getDataMap() = 0;
 
+<<<<<<< HEAD
+=======
+    virtual std::mutex& mutex() = 0;
+
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
     virtual void enableStreaming(bool enable) = 0;
 
     virtual bool isStreamingEnabled() const = 0;
 
     virtual ~DataStreamer() {}
 
+<<<<<<< HEAD
     virtual const char* name() = 0;
 
+=======
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 };
 
 QT_BEGIN_NAMESPACE

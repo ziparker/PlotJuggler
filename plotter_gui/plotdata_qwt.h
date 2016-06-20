@@ -6,13 +6,21 @@
 #include "plotdata.h"
 
 
+<<<<<<< HEAD
 class PlotDataQwt: public QwtSeriesData<QPointF>
+=======
+class PlotDataQwt: public PlotData, public QwtSeriesData<QPointF>
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 {
 public:
 
    // PlotDataQwt();
 
+<<<<<<< HEAD
     PlotDataQwt(PlotDataPtr base);
+=======
+    PlotDataQwt(const PlotData& other);
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
     virtual ~PlotDataQwt() {}
 
@@ -34,7 +42,11 @@ private:
     PlotDataPtr _plot_data;
     int _preferedColor;
 
+<<<<<<< HEAD
     int _subsample;
+=======
+ //   int _subsample;
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
   //  int _index_first, _index_last;
 };
 

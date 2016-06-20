@@ -82,7 +82,11 @@ void CurveTracker::refreshPosition()
         QColor color = curve->pen().color();
 
 
+<<<<<<< HEAD
         text_X_offset = 0;// TODO curve->boundingRect().width() * 0.02;
+=======
+        text_X_offset = 0;// curve->boundingRect().width() * 0.02;
+>>>>>>> b821eb0b426188e0e1635851b6eb4b29d82b171e
 
         if( !_marker[i]->symbol() )
         {
