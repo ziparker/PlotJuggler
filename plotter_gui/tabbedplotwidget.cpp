@@ -87,8 +87,6 @@ void TabbedPlotWidget::addTab( PlotMatrix* tab)
 
     tab->setHorizontalLink( _horizontal_link );
 
-    //TODO  grid->setActiveTracker( ui->pushButtonActivateTracker->isChecked() );
-
     emit undoableChangeHappened();
 }
 
@@ -169,7 +167,6 @@ bool TabbedPlotWidget::setStreamingMode(bool streaming_mode)
     ui->buttonLinkHorizontalScale->setEnabled( !streaming_mode );
     ui->pushVerticalResize->setEnabled( !streaming_mode );
     ui->pushHorizontalResize->setEnabled( !streaming_mode );
-
 }
 
 

@@ -1110,8 +1110,18 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 
     for(unsigned i=0; i< _tabbed_plotarea.size(); i++)
     {
-        TabbedPlotWidget* area = _tabbed_plotarea[i];
-        area->setStreamingMode( checked );
+        TabbedPlotWidget* tabWidget = _tabbed_plotarea[i];
+        tabWidget->setStreamingMode( checked );
+    }
+
+    for(unsigned i=0; i< _plot_matrix_list.size(); i++)
+    {
+        PlotMatrix* matrix = _plot_matrix_list[i];
+
+        if( checked == false)
+            matrix->setActiveTracker( ui->pushButtonActivateTracker->isChecked());
+        else
+            matrix->setActiveTracker( false );
     }
 }
 
@@ -1121,14 +1131,15 @@ void MainWindow::onReplotRequested()
     {
         TabbedPlotWidget* area = _tabbed_plotarea[i];
         PlotMatrix* matrix =  area->currentTab() ;
-        matrix->maximumZoomOut();
+        matrix->maximumZoomOut(); // includes replot
+        //matrix->replot();
     }
 
     if( ui->pushButtonStreaming->isChecked())
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
-        _replot_timer->start( 20 );
+        _replot_timer->start( 1 );
     }
 }
 

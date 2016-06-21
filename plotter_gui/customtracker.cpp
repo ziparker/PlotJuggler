@@ -101,6 +101,12 @@ void CurveTracker::refreshPosition()
         }
 
         const QLineF line = curveLineAt( curve, _prev_trackerpoint.x() );
+
+        if( line.isNull() )
+        {
+            continue;
+        }
+
         QPointF point;
         float middle_X = (line.p1().x() + line.p2().x()) / 2.0;
 
@@ -158,13 +164,6 @@ QLineF CurveTracker::curveLineAt(
     {
         int index = qwtUpperSampleIndex<QPointF>(
                     *curve->data(), x, compareX() );
-
-        if ( index == -1 &&
-             x == curve->sample( curve->dataSize() - 1 ).x() )
-        {
-            // the last sample is excluded from qwtUpperSampleIndex
-            index = curve->dataSize() - 1;
-        }
 
         if ( index > 0 )
         {

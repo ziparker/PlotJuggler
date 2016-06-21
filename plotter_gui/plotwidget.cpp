@@ -17,6 +17,17 @@
 #include <set>
 #include <memory>
 
+
+#define USE_OPENGL_WIDGET 1
+
+
+#if USE_OPENGL_WIDGET
+#include <qwt_plot_opengl_canvas.h>
+#else
+#include <qwt_plot_glcanvas.h>
+#endif
+
+
 PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     QwtPlot(parent),
     _zoomer( 0 ),
@@ -33,9 +44,17 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     this->sizePolicy().setHorizontalPolicy( QSizePolicy::Expanding);
     this->sizePolicy().setVerticalPolicy( QSizePolicy::Expanding);
 
-    QwtPlotCanvas *canvas = new QwtPlotCanvas(this);
+
+#if USE_OPENGL_WIDGET
+    QwtPlotOpenGLCanvas *canvas = new QwtPlotOpenGLCanvas(this);
+#else
+    QwtPlotGLCanvas *canvas = new QwtPlotGLCanvas(this);
+#endif
+   // QwtPlotCanvas *canvas = new QwtPlotCanvas(this);
+
+    //canvas->setPalette( QColor( "khaki" ) );
     canvas->setFrameStyle( QFrame::NoFrame );
-    canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, true );
+    //canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, true );
 
     this->setCanvas( canvas );
     this->setCanvasBackground( QColor( 250, 250, 250 ) );
@@ -74,8 +93,8 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     this->canvas()->setMouseTracking(true);
     this->canvas()->installEventFilter(this);
 
-    this->axisScaleDraw( QwtPlot::xBottom )->enableComponent( QwtAbstractScaleDraw::Labels, false );
-    this->axisScaleDraw( QwtPlot::yLeft   )->enableComponent( QwtAbstractScaleDraw::Labels, false );
+    // this->axisScaleDraw( QwtPlot::xBottom )->enableComponent( QwtAbstractScaleDraw::Labels, false );
+    //  this->axisScaleDraw( QwtPlot::yLeft   )->enableComponent( QwtAbstractScaleDraw::Labels, false );
 }
 
 void PlotWidget::buildActions()
@@ -138,12 +157,12 @@ void PlotWidget::buildLegend()
     _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
 
     _legend->setBorderRadius( 6 );
-    _legend->setMargin( 4 );
-    _legend->setSpacing( 2 );
+    _legend->setMargin( 3 );
+    _legend->setSpacing( 1 );
     _legend->setItemMargin( 0 );
 
     QFont font = _legend->font();
-    font.setPointSize( 9 );
+    font.setPointSize( 8 );
     _legend->setFont( font );
 
     _legend->setVisible( true );
@@ -177,8 +196,7 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         PlotDataQwt* plot_qwt = new PlotDataQwt( data );
 
         curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
-        curve->setPaintAttribute( QwtPlotCurve::FilterPoints, true );
-        curve->setPaintAttribute( QwtPlotCurve::MinimizeMemory, false );
+        curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
 
         curve->setData( plot_qwt );
         curve->attach( this );
@@ -557,6 +575,7 @@ void PlotWidget::on_showPoints(bool checked)
             curve->setStyle( QwtPlotCurve::Lines);
         }
     }
+    replot();
 }
 
 void PlotWidget::on_externallyResized(QRectF rect)

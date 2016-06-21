@@ -327,23 +327,17 @@ bool PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
 
 void PlotMatrix::updateLayout()
 {
-   /* for ( int row = 0; row < rowsCount(); row++ )
+    for ( int row = 0; row < rowsCount(); row++ )
     {
-        alignAxes( row, QwtPlot::xTop );
         alignAxes( row, QwtPlot::xBottom );
-
         alignScaleBorder( row, QwtPlot::yLeft );
-        alignScaleBorder( row, QwtPlot::yRight );
     }
 
     for ( int col = 0; col < colsCount(); col++ )
     {
         alignAxes( col, QwtPlot::yLeft );
-        alignAxes( col, QwtPlot::yRight );
-
         alignScaleBorder( col, QwtPlot::xBottom );
-        alignScaleBorder( col, QwtPlot::xTop );
-    }*/
+    }
 }
 
 void PlotMatrix::replot()
@@ -492,8 +486,7 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
             }
         }
     }
-    else
-    {
+    else{
         double maxExtent = 0;
 
         for ( int col = 0; col < colsCount(); col++ )
@@ -526,59 +519,22 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
 
 void PlotMatrix::alignScaleBorder( int rowOrColumn, int axis )
 {
-    int startDist = 0;
-    int endDist = 0;
-
-    if ( axis == QwtPlot::yLeft )
+    if ( axis == QwtPlot::yLeft || axis == QwtPlot::yRight )
     {
-        QwtPlot *p = plotAt( rowOrColumn, 0 );
-        if ( p )
-            p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
-
-        for ( int col = 1; col < colsCount(); col++ )
+        for ( int col = 0; col < colsCount(); col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
-                p->axisWidget( axis )->setMinBorderDist( startDist, endDist );
+                p->axisWidget( axis )->setMinBorderDist( 10, 10 );
         }
     }
-    else if ( axis == QwtPlot::yRight )
+    else if ( axis == QwtPlot::xTop | axis == QwtPlot::xBottom )
     {
-        QwtPlot *p = plotAt( rowOrColumn, colsCount() - 1 );
-        if ( p )
-            p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
-
-        for ( int col = 0; col < colsCount() - 1; col++ )
-        {
-            QwtPlot *p = plotAt( rowOrColumn, col );
-            if ( p )
-                p->axisWidget( axis )->setMinBorderDist( startDist, endDist );
-        }
-    }
-    if ( axis == QwtPlot::xTop )
-    {
-        QwtPlot *p = plotAt( rowOrColumn, 0 );
-        if ( p )
-            p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
-
-        for ( int row = 1; row < rowsCount(); row++ )
+        for ( int row = 0; row < rowsCount(); row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )
-                p->axisWidget( axis )->setMinBorderDist( startDist, endDist );
-        }
-    }
-    else if ( axis == QwtPlot::xBottom )
-    {
-        QwtPlot *p = plotAt( rowsCount() - 1, rowOrColumn );
-        if ( p )
-            p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
-
-        for ( int row = 0; row < rowsCount() - 1; row++ )
-        {
-            QwtPlot *p = plotAt( row, rowOrColumn );
-            if ( p )
-                p->axisWidget( axis )->setMinBorderDist( startDist, endDist );
+                p->axisWidget( axis )->setMinBorderDist( 15, 15 );
         }
     }
 }
