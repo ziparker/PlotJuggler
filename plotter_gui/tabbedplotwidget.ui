@@ -60,6 +60,9 @@
              <height>40</height>
             </size>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="toolTip">
             <string>Show/hide legend</string>
            </property>
@@ -80,7 +83,7 @@
             <bool>true</bool>
            </property>
            <property name="checked">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="flat">
             <bool>true</bool>
