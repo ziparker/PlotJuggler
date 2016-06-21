@@ -63,7 +63,14 @@ void CurveTracker::refreshPosition()
 
     _line_marker->setValue( _prev_trackerpoint );
 
+    QRectF rect;
+    rect.setBottom( _plot->canvasMap( QwtPlot::yLeft ).s1() );
+    rect.setTop( _plot->canvasMap( QwtPlot::yLeft ).s2() );
+    rect.setLeft( _plot->canvasMap( QwtPlot::xBottom ).s1() );
+    rect.setRight( _plot->canvasMap( QwtPlot::xBottom ).s2() );
+
     double tot_Y = 0;
+    int visible_points = 0;
 
     for (int i = _marker.size() ; i < curves.size(); i++ )
     {
@@ -81,7 +88,7 @@ void CurveTracker::refreshPosition()
         QwtPlotCurve *curve = static_cast<QwtPlotCurve *>(curves[i]);
         QColor color = curve->pen().color();
 
-        text_X_offset = 0;// TODO curve->boundingRect().width() * 0.02;
+        text_X_offset =  rect.width() * 0.02;
 
         if( !_marker[i]->symbol() )
         {
@@ -102,14 +109,19 @@ void CurveTracker::refreshPosition()
         else
             point = line.p2();
 
-        tot_Y += point.y();
         _marker[i]->setValue( point );
 
-        text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( point.y() );
+        if( rect.contains( point ) )
+        {
+            tot_Y += point.y();
+            visible_points++;
 
-        if(  i < curves.size()-1 ){
-            text_marker_info += "<br>";
+            text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( point.y() );
+            if(  i < curves.size()-1 ){
+                text_marker_info += "<br>";
+            }
         }
+        _marker[i]->setValue( point );
     }
 
     QwtText mark_text;
@@ -119,13 +131,16 @@ void CurveTracker::refreshPosition()
     mark_text.setBorderPen( QPen( c, 2 ) );
     c.setAlpha( 200 );
     mark_text.setBackgroundBrush( c );
-
     mark_text.setText( text_marker_info );
 
     _text_marker->setLabel(mark_text);
     _text_marker->setLabelAlignment( Qt::AlignRight );
     _text_marker->setXValue( _prev_trackerpoint.x() + text_X_offset );
-    _text_marker->setYValue( tot_Y/curves.size() );
+
+    if(visible_points > 0){
+        _text_marker->setYValue( tot_Y/visible_points );
+    }
+    _text_marker->setVisible( visible_points > 0 );
 
 }
 

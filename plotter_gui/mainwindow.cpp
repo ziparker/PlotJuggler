@@ -1123,7 +1123,7 @@ void MainWindow::onReplotRequested()
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
-        _replot_timer->start( 40 );
+        _replot_timer->start( 20 );
     }
 }
 
