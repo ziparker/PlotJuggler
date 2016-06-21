@@ -52,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent) :
     _undo_timer.start();
 
     // save initial state
+    _undo_states.set_capacity( 100 );
+    _redo_states.set_capacity( 100 );
     onUndoableChange();
 
     _replot_timer = new QTimer(this);
@@ -80,9 +82,12 @@ void MainWindow::onUndoableChange()
             _undo_states.pop_back();
     }*/
 
-    _undo_states.push_back( xmlSaveState() );
-    updateInternalState();
-    _redo_states.clear();
+    if( ui->pushButtonStreaming->isChecked() == false)
+    {
+        _undo_states.push_back( xmlSaveState() );
+        updateInternalState();
+        _redo_states.clear();
+    }
 }
 
 void MainWindow::getMaximumRangeX(double* minX, double* maxX)

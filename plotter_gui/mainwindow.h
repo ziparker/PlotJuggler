@@ -128,8 +128,8 @@ private:
     QDomDocument xmlSaveState();
     bool xmlLoadState(QDomDocument state_document);
 
-    std::deque<QDomDocument> _undo_states;
-    std::deque<QDomDocument> _redo_states;
+    boost::circular_buffer<QDomDocument> _undo_states;
+    boost::circular_buffer<QDomDocument> _redo_states;
 
     QElapsedTimer _undo_timer;
 

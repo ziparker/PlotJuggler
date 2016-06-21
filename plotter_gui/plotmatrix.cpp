@@ -327,7 +327,7 @@ bool PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
 
 void PlotMatrix::updateLayout()
 {
-    for ( int row = 0; row < rowsCount(); row++ )
+   /* for ( int row = 0; row < rowsCount(); row++ )
     {
         alignAxes( row, QwtPlot::xTop );
         alignAxes( row, QwtPlot::xBottom );
@@ -343,7 +343,7 @@ void PlotMatrix::updateLayout()
 
         alignScaleBorder( col, QwtPlot::xBottom );
         alignScaleBorder( col, QwtPlot::xTop );
-    }
+    }*/
 }
 
 void PlotMatrix::replot()

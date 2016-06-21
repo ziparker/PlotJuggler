@@ -5,15 +5,14 @@
 #include <QDebug>
 #include <thread>
 #include <mutex>
+#include <chrono>
+#include <thread>
 
 DataStreamSample::DataStreamSample()
 {
-    _enabled = false;
-
     QStringList  words_list;
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
                << "mai" << "nessun" << "ci" << "dividera";
-
 
     foreach( const QString& name, words_list)
     {
@@ -35,7 +34,7 @@ DataStreamSample::DataStreamSample()
     }
 
     _thread = std::thread([this](){ this->update();} );
-    _enabled = true;
+    _enabled = false;
 }
 
 const char*  DataStreamSample::name()
@@ -45,6 +44,7 @@ const char*  DataStreamSample::name()
 
 void DataStreamSample::update()
 {
+    static auto prev_time = std::chrono::high_resolution_clock::now();
 
     _running = true;
     while( _running )
@@ -66,13 +66,15 @@ void DataStreamSample::update()
             auto& plot = it->second;
 
             if( plot->size() > 0)
-                t = plot->getRangeX().max + 0.001;
+                t = plot->getRangeX().max + 0.01;
 
             double y =  A*sin(B*t + C) +D*t*0.02;
 
             if( _enabled )
                 plot->pushBack( t, y);
         }
-        usleep( 1000 );
+
+        prev_time += std::chrono::milliseconds(10);
+        std::this_thread::sleep_until ( prev_time );
     }
 }

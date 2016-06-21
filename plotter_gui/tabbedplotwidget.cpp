@@ -414,4 +414,5 @@ void TabbedPlotWidget::on_pushButtonShowLabel_toggled(bool checked)
             plot->activateLegent( checked );
         }
     }
+    currentTab()->replot();
 }

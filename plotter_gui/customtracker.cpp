@@ -111,7 +111,7 @@ void CurveTracker::refreshPosition()
 
         _marker[i]->setValue( point );
 
-        if( rect.contains( point ) )
+        if( rect.contains( point ) &&  _visible)
         {
             tot_Y += point.y();
             visible_points++;
@@ -120,6 +120,10 @@ void CurveTracker::refreshPosition()
             if(  i < curves.size()-1 ){
                 text_marker_info += "<br>";
             }
+            _marker[i]->setVisible( true );
+        }
+        else{
+            _marker[i]->setVisible( false );
         }
         _marker[i]->setValue( point );
     }
@@ -140,7 +144,7 @@ void CurveTracker::refreshPosition()
     if(visible_points > 0){
         _text_marker->setYValue( tot_Y/visible_points );
     }
-    _text_marker->setVisible( visible_points > 0 );
+    _text_marker->setVisible( visible_points > 0 &&  _visible);
 
 }
 

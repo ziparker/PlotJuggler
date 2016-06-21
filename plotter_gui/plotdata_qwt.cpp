@@ -79,7 +79,7 @@ void PlotDataQwt::setColorHint(QColor color)
 
 void PlotDataQwt::setSubsampleFactor()
 {
-    _subsample = (_plot_data->size() / 2000) + 1;
+  //  _subsample = (_plot_data->size() / 2000) + 1;
 }
 
 

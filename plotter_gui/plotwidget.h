@@ -32,7 +32,7 @@ public:
     void removeCurve(const QString& name);
     bool isEmpty();
 
-    const std::map<QString, QwtPlotCurve*>& curveList();
+    const std::map<QString, std::shared_ptr<QwtPlotCurve> > &curveList();
 
     QDomElement xmlSaveState(QDomDocument &doc);
     bool xmlLoadState(QDomElement &element, QMessageBox::StandardButton* answer);
@@ -79,7 +79,7 @@ private slots:
 
 
 private:
-    std::map<QString, QwtPlotCurve*> _curve_list;
+    std::map<QString, std::shared_ptr<QwtPlotCurve> > _curve_list;
 
     QAction *_action_removeCurve;
     QAction *_action_removeAllCurves;

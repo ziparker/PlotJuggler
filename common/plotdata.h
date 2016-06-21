@@ -54,8 +54,8 @@ public:
 protected:
 
     std::string _name;
-    std::shared_ptr< boost::circular_buffer_space_optimized<double> >_x_points;
-    std::shared_ptr< boost::circular_buffer_space_optimized<double> >_y_points;
+    std::shared_ptr< boost::circular_buffer<double> >_x_points;
+    std::shared_ptr< boost::circular_buffer<double> >_y_points;
 
     int _color_hint_red;
     int _color_hint_green;
@@ -77,12 +77,12 @@ typedef std::map<std::string, PlotDataPtr> PlotDataMap;
 
 
 inline PlotData::PlotData():
-    _x_points( new boost::circular_buffer_space_optimized<double>() ),
-    _y_points( new boost::circular_buffer_space_optimized<double>() ),
+    _x_points( new boost::circular_buffer<double>() ),
+    _y_points( new boost::circular_buffer<double>() ),
     _update_bounding_rect(true),
     _max_range_X( std::numeric_limits<double>::max() )
 {
-    setCapacity( MAX_CAPACITY );
+    setCapacity( 1024 );
 }
 
 inline void PlotData::setCapacity(size_t capacity)
@@ -100,7 +100,7 @@ inline void PlotData::setCapacity(size_t capacity)
 
 inline void PlotData::pushBack(double x, double y)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+   // std::lock_guard<std::mutex> lock(_mutex);
     auto& X = _x_points;
     auto& Y = _y_points;
 
@@ -139,7 +139,7 @@ inline size_t PlotData::getIndexFromX(double x ) const
 
 inline double PlotData::getYfromX(double x)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+   // std::lock_guard<std::mutex> lock(_mutex);
     unsigned index = getIndexFromX(x);
 
     if( index >=0 && index < size())
@@ -151,14 +151,20 @@ inline double PlotData::getYfromX(double x)
 
 inline std::pair<double,double> PlotData::at(size_t index)
 {
- //   std::lock_guard<std::mutex> lock(_mutex);
-    return std::make_pair( _x_points->at(index),  _y_points->at(index) );
-}
+   // std::lock_guard<std::mutex> lock(_mutex);
+    try{
+        return std::make_pair( _x_points->at(index),  _y_points->at(index) );
+    }
+    catch(...)
+    {
+        return std::make_pair( _x_points->back(),  _y_points->back() );
+    }
+}//
 
 
 inline size_t PlotData::size()
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    //std::lock_guard<std::mutex> lock(_mutex);
     return _x_points->size();
 }
 
@@ -178,19 +184,22 @@ inline void PlotData::setColorHint(int red, int green, int blue)
 
 inline double PlotData::setMaximumRangeX(double max_range)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+   // std::lock_guard<std::mutex> lock(_mutex);
     _max_range_X = max_range;
 }
 
 inline PlotData::Range PlotData::getRangeX()
 {
-    std::lock_guard<std::mutex> lock(_mutex);
-    return  { _x_points->front(), _x_points->back() };
+   // std::lock_guard<std::mutex> lock(_mutex);
+    if( _x_points->size() < 2 )
+        return {0,0} ;
+    else
+        return  { _x_points->front(), _x_points->back() };
 }
 
 inline PlotData::Range PlotData::getRangeY()
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+   // std::lock_guard<std::mutex> lock(_mutex);
     double y_min = std::numeric_limits<double>::max();
     double y_max = std::numeric_limits<double>::min();
 
