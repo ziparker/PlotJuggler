@@ -224,7 +224,7 @@ void TabbedPlotWidget::on_addTabButton_pressed()
     emit undoableChangeHappened();
 }
 
-void TabbedPlotWidget::on_pushremoveEmpty_pressed()
+void TabbedPlotWidget::on_pushRemoveEmpty_pressed()
 {
     PlotMatrix *tab = currentTab();
 
@@ -402,8 +402,8 @@ bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
     return QObject::eventFilter(obj, event);
 }
 
-void TabbedPlotWidget::on_pushButton_toggled(bool checked)
-{
+void TabbedPlotWidget::on_pushButtonShowLabel_toggled(bool checked)
+{    
     for(int i=0; i< ui->tabWidget->count(); i++)
     {
         PlotMatrix* matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );

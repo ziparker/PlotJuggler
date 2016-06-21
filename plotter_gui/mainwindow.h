@@ -55,7 +55,7 @@ private slots:
 
     void onActionLoadStreamer();
 
-    void onPushButtonActivateTracker_toggled(bool checked);
+    void on_pushButtonActivateTracker_toggled(bool checked);
 
     void onUndoInvoked();
 
@@ -69,17 +69,18 @@ private slots:
 
     void onCreateFloatingWindow(PlotMatrix* first_tab = NULL);
 
-    void onPushButtonAddSubwindow_pressed();
+    void on_pushButtonAddSubwindow_pressed();
 
     void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
-    void onPushButtonStreaming_toggled(bool checked);
+    void on_pushButtonStreaming_toggled(bool checked);
 
     void onReplotRequested();
 
     void on_streamingSpinBox_valueChanged(int value);
 
     void onDeleteLoadedData();
+
 
 private:
     Ui::MainWindow *ui;

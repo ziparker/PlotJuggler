@@ -14,7 +14,6 @@ QT5_WRAP_UI ( UI_SRC
 SET( PLOTTER_SRC
     main.cpp
     mainwindow.cpp
-    mainwindow.h
     plotwidget.cpp
     plotmatrix.cpp
     removecurvedialog.cpp
@@ -27,6 +26,8 @@ SET( PLOTTER_SRC
     filterablelistwidget.cpp
     tabbedplotwidget.cpp
     subwindow.cpp
+
+    mainwindow.h
     ${CMAKE_SOURCE_DIR}/common/selectlistdialog.h
     ${CMAKE_SOURCE_DIR}/common/plotdata.h
     )

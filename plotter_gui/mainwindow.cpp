@@ -43,12 +43,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->centralLayout->insertWidget(0, _tabbed_plotarea.back());
     ui->leftLayout->addWidget( curvelist_widget );
 
-
-    //ui->splitter->insertWidget(0, curvelist_widget);
-
-  //  ui->splitter->setStretchFactor(0,1);
-  //  ui->splitter->setStretchFactor(1,1);
-
     connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
 
     createActions();
@@ -915,7 +909,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 }
 
 
-void MainWindow::onPushButtonActivateTracker_toggled(bool checked)
+void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
 {
     for (int i = 0; i < _plot_matrix_list.size(); i++)
     {
@@ -1033,7 +1027,7 @@ void MainWindow::updateInternalState()
     }
 }
 
-void MainWindow::onPushButtonAddSubwindow_pressed()
+void MainWindow::on_pushButtonAddSubwindow_pressed()
 {
     createTabbedDialog( NULL, true );
 }
@@ -1085,7 +1079,7 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 
 }
 
-void MainWindow::onPushButtonStreaming_toggled(bool checked)
+void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 {
     if( checked )
         ui->pushButtonStreaming->setText("Streaming ON");
@@ -1141,3 +1135,4 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
         plot->setMaximumRangeX( value );
     }
 }
+

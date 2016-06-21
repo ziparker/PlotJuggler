@@ -106,10 +106,10 @@ inline void PlotData::pushBack(double x, double y)
 
     size_t sizeX = X->size();
 
-    if( sizeX > 2)
+    if( sizeX > 2 && _max_range_X!= std::numeric_limits<double>::max())
     {
         double rangeX = X->back() - X->front();
-        double delta = rangeX / (double) sizeX;
+        double delta = rangeX / (double)(sizeX - 1);
         size_t new_capacity = (size_t)( _max_range_X / delta);
 
         if( abs( new_capacity - sizeX) > 2 )
@@ -119,11 +119,12 @@ inline void PlotData::pushBack(double x, double y)
                 _x_points->pop_front();
                 _y_points->pop_front();
             }
-
+           // qDebug() << "new capcaity " << new_capacity;
             setCapacity( new_capacity );
         }
     }
 
+  //  qDebug() << "push " << x;
     X->push_back( x );
     Y->push_back( y );
 }

@@ -50,7 +50,7 @@ private slots:
 
     void on_addTabButton_pressed();
 
-    void on_pushremoveEmpty_pressed();
+    void on_pushRemoveEmpty_pressed();
 
     void on_tabWidget_currentChanged(int index);
 
@@ -62,7 +62,7 @@ private slots:
 
     void moveTabIntoNewWindow();
 
-    void on_pushButton_toggled(bool checked);
+    void on_pushButtonShowLabel_toggled(bool checked);
 
 private:
     Ui::TabbedPlotWidget *ui;
