@@ -14,7 +14,7 @@ before_install:
  - sudo add-apt-repository ppa:ubuntu-sdk-team/ppa -y
  
  - sudo apt-get update -qq
- - sudo apt-get -y install -f qtbase5-dev qt5-default qttools5-dev-tools li
+ - sudo apt-get -y install -f qtbase5-dev qt5-default qttools5-dev-tools 
  - sudo apt-get -y install libboost-dev
 
 script: 
