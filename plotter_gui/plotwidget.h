@@ -18,7 +18,7 @@
 #include <qwt_plot_legenditem.h>
 #include <deque>
 #include <QMessageBox>
-
+#include <QTime>
 
 class PlotWidget : public QwtPlot
 {
@@ -65,7 +65,7 @@ signals:
 public slots:
 
     void replot() ;
-    void detachAllCurves();  
+    void detachAllCurves();
     void zoomOut();
     void zoomOutHorizontal();
     void zoomOutVertical();
@@ -92,7 +92,7 @@ private:
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
     QwtPlotPanner* _panner;
-   // QRectF _prev_bounding;
+    // QRectF _prev_bounding;
     CurveTracker* _tracker;
     QwtPlotLegendItem* _legend;
 
@@ -104,6 +104,10 @@ private:
 
     void buildActions();
     void buildLegend();
+
+    int   _fps_counter;
+    QTime _fps_timeStamp;
+
 
 };
 

@@ -16,16 +16,10 @@
 #include <QApplication>
 #include <set>
 #include <memory>
+#include <qwt_text.h>
 
-
-#define USE_OPENGL_WIDGET 1
-
-
-#if USE_OPENGL_WIDGET
 #include <qwt_plot_opengl_canvas.h>
-#else
 #include <qwt_plot_glcanvas.h>
-#endif
 
 
 PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
@@ -44,17 +38,13 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     this->sizePolicy().setHorizontalPolicy( QSizePolicy::Expanding);
     this->sizePolicy().setVerticalPolicy( QSizePolicy::Expanding);
 
+    //QwtPlotOpenGLCanvas *canvas = new QwtPlotOpenGLCanvas(this);
+    //QwtPlotGLCanvas *canvas = new QwtPlotGLCanvas(this);
+    QwtPlotCanvas *canvas = new QwtPlotCanvas(this);
 
-#if USE_OPENGL_WIDGET
-    QwtPlotOpenGLCanvas *canvas = new QwtPlotOpenGLCanvas(this);
-#else
-    QwtPlotGLCanvas *canvas = new QwtPlotGLCanvas(this);
-#endif
-   // QwtPlotCanvas *canvas = new QwtPlotCanvas(this);
 
-    //canvas->setPalette( QColor( "khaki" ) );
     canvas->setFrameStyle( QFrame::NoFrame );
-    //canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, true );
+    canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, true );
 
     this->setCanvas( canvas );
     this->setCanvasBackground( QColor( 250, 250, 250 ) );
@@ -62,6 +52,8 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
 
     this->axisScaleEngine(QwtPlot::xBottom)->setAttribute(QwtScaleEngine::Floating,true);
     this->plotLayout()->setAlignCanvasToScales( true );
+
+    this->canvas()->installEventFilter( this );
 
     //--------------------------
     _zoomer = ( new QwtPlotZoomer( this->canvas() ) );
@@ -712,5 +704,34 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
         }
     }
 
+    //------------------------------------------------------
+    if ( obj == this->canvas() && event->type() == QEvent::Paint )
+    {
+        if ( !_fps_timeStamp.isValid() )
+        {
+            _fps_timeStamp.start();
+            _fps_counter = 0;
+        }
+        else{
+            _fps_counter++;
+
+            const double elapsed = _fps_timeStamp.elapsed() / 1000.0;
+            if ( elapsed >= 1 )
+            {
+                QFont font_title;
+                font_title.setPointSize(9);
+                QwtText fps;
+                fps.setText( QString::number( qRound( _fps_counter / elapsed ) ) );
+                fps.setFont(font_title);
+
+                // this->setTitle( fps );
+
+                _fps_counter = 0;
+                _fps_timeStamp.start();
+            }
+        }
+    }
+
+    return QwtPlot::eventFilter( obj, event );
 }
 

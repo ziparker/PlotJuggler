@@ -1139,7 +1139,7 @@ void MainWindow::onReplotRequested()
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
-        _replot_timer->start( 1 );
+        _replot_timer->start( 5 );
     }
 }
 
