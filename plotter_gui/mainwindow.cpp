@@ -239,7 +239,7 @@ void MainWindow::createActions()
 
     //---------------------------------------------
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+    QSettings settings( "IcarusTechnology", "SuperPlotter");
     if( settings.contains("recentlyLoadedDatafile") )
     {
         QString fileName = settings.value("recentlyLoadedDatafile").toString();
@@ -504,7 +504,7 @@ void MainWindow::onActionSaveLayout()
         root.appendChild( previously_loaded_datafile );
     }
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+    QSettings settings( "IcarusTechnology", "SuperPlotter");
 
     QString directory_path = QDir::currentPath();
 
@@ -605,7 +605,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
         return;
     }
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+    QSettings settings( "IcarusTechnology", "SuperPlotter");
 
     std::map<QString,DataLoader*>::iterator it;
 
@@ -832,7 +832,7 @@ void MainWindow::onActionLoadStreamer()
 
 void MainWindow::onActionLoadLayout(bool reload_previous)
 {
-    QSettings settings( "IcarusTechnology", "SuperPlotter-0.1");
+    QSettings settings( "IcarusTechnology", "SuperPlotter");
 
     QString directory_path = QDir::currentPath();
     const QString SETTINGS_KEY( "lastLayoutDirectory");

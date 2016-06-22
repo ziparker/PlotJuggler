@@ -22,7 +22,7 @@ include_directories(
     ${Qt5Concurrent_INCLUDE_DIRS}
     ${Qt5PrintSupport_INCLUDE_DIRS}
     ${Qt5Xml_INCLUDE_DIRS}
-    /opt/Qt/5.6/gcc_64/include/QtOpenGL
+    ${Qt5OpenGl_INCLUDE_DIRS}
     )
 
 include_directories( ./qwt/src ./common ./color_widgets/include ./plotter_gui)
@@ -62,9 +62,9 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SuperPlotter: juggle with data")
 SET(CPACK_PACKAGE_VENDOR "Icarus Technology")
 
 SET(CPACK_PACKAGE_VERSION_MAJOR "0")
-SET(CPACK_PACKAGE_VERSION_MINOR "1")
-SET(CPACK_PACKAGE_VERSION_PATCH "1")
-SET(CPACK_PACKAGE_VERSION "0.1.1")
+SET(CPACK_PACKAGE_VERSION_MINOR "2")
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+SET(CPACK_PACKAGE_VERSION "0.2.0")
 
 SET(CPACK_PACKAGE_NAME "superplotter${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 
