@@ -18,10 +18,9 @@ before_install:
  - sudo apt-get -y install libboost-dev
 
 script: 
+ - git submodule foreach git pull origin master
  - cmake -DCMAKE_INSTALL_PREFIX=/app . 
  - make
- - sudo make install
- - find /app
  
 notifications:
   email:
