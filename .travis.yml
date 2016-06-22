@@ -14,8 +14,8 @@ before_install:
  - sudo add-apt-repository ppa:ubuntu-sdk-team/ppa -y
  
  - sudo apt-get update -qq
- - sudo apt-get -y install -f qtbase5-dev qt5-default qttools5-dev-tools libqt5opengl5-dev
- - sudo apt-get -y install mesa-common-dev libglu1-mesa-dev libboost-dev
+ - sudo apt-get -y install -f qtbase5-dev qt5-default qttools5-dev-tools li
+ - sudo apt-get -y install libboost-dev
 
 script: 
  - git submodule foreach git pull origin master

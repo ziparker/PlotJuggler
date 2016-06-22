@@ -18,8 +18,8 @@
 #include <memory>
 #include <qwt_text.h>
 
-#include <qwt_plot_opengl_canvas.h>
-#include <qwt_plot_glcanvas.h>
+//#include <qwt_plot_opengl_canvas.h>
+//#include <qwt_plot_glcanvas.h>
 
 
 PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
