@@ -183,11 +183,11 @@ inline boost::optional<Value> PlotDataGeneric<Time, Value>::getYfromX(Time x)
     auto lower   = std::lower_bound(_x_points.begin(), _x_points.end(), x );
     size_t index = std::distance( _x_points.begin(), lower);
 
-    if( index >=0 && index < size())
+    if( index >=0 && index < _x_points.size())
     {
         return _y_points.at(index);
     }
-    return boost::optional<Time>();
+    return boost::optional<Value>();
 }
 
 template < typename Time, typename Value>
