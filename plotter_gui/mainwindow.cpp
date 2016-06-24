@@ -365,13 +365,13 @@ void MainWindow::buildData()
         for (int indx=0; indx<SIZE; indx++)
         {
             t += 0.001;
-            plot->pushBack( t,  A*sin(B*t + C) +D*t*0.02 ) ;
+            plot->pushBack( PlotData::Point( t,  A*sin(B*t + C) +D*t*0.02 ) ) ;
         }
 
         QColor color = colorHint();
         plot->setColorHint( color.red(), color.green(), color.blue() );
 
-        _mapped_plot_data.insert( std::make_pair( name.toStdString(), plot) );
+        _mapped_plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
     ui->horizontalSlider->setRange(0, SIZE  );
 
@@ -531,8 +531,8 @@ void MainWindow::onActionSaveLayout()
 
 void MainWindow::deleteLoadedData(const QString& curve_name)
 {
-    auto plot_data = _mapped_plot_data.find( curve_name.toStdString() );
-    if( plot_data == _mapped_plot_data.end())
+    auto plot_data = _mapped_plot_data.numeric.find( curve_name.toStdString() );
+    if( plot_data == _mapped_plot_data.numeric.end())
     {
         return;
     }
@@ -555,7 +555,7 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
             }
         }
     }
-    _mapped_plot_data.erase( plot_data );
+    _mapped_plot_data.numeric.erase( plot_data );
 
     if( curvelist_widget->list()->count() == 0)
     {
@@ -576,8 +576,8 @@ void MainWindow::onDeleteLoadedData()
         return;
     }
 
-    _mapped_plot_data.erase( _mapped_plot_data.begin(),
-                             _mapped_plot_data.end() );
+    _mapped_plot_data.numeric.clear();
+    _mapped_plot_data.user_defined.clear();
 
     curvelist_widget->list()->clear();
 
@@ -651,6 +651,73 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
     onActionLoadDataFileImpl( fileName, false );
 }
 
+void MainWindow::updateMappedData(const PlotDataMap& mapped_data)
+{
+    _mapped_plot_data.user_defined.clear();
+
+    for (auto& it: mapped_data.user_defined)
+    {
+        _mapped_plot_data.user_defined[ it.first ] = it.second;
+    }
+
+    for (auto& it: mapped_data.numeric)
+    {
+        std::string name  = it.first;
+        PlotDataPtr plot  = it.second;
+
+        /*  if( maxSizeX <  plot->size() ){
+            maxSizeX =  plot->size();
+        }*/
+
+        QString qname = QString::fromStdString(name);
+
+        // remap to derived class
+        if( _mapped_plot_data.numeric.find(name) == _mapped_plot_data.numeric.end() )
+        {
+            QColor color = colorHint();
+            plot->setColorHint( color.red(), color.green(), color.blue() );
+            curvelist_widget->list()->addItem( new QListWidgetItem( qname ) );
+        }
+
+        _mapped_plot_data.numeric[name] = plot;
+    }
+
+    if( _mapped_plot_data.numeric.size() > mapped_data.numeric.size() )
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(0, tr("Warning"),
+                                      tr("Do you want to remove the previously loaded data?\n"),
+                                      QMessageBox::Yes | QMessageBox::No,
+                                      QMessageBox::Yes );
+        if( reply == QMessageBox::Yes )
+        {
+            bool repeat = true;
+            while( repeat )
+            {
+                repeat = false;
+
+                for (auto& it: _mapped_plot_data.numeric )
+                {
+                    auto& name = it.first;
+                    if( mapped_data.numeric.find( name ) == mapped_data.numeric.end() )
+                    {
+                        this->deleteLoadedData( QString( name.c_str() ) );
+                        repeat = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    _undo_states.clear();
+    _redo_states.clear();
+    _undo_states.push_back(  xmlSaveState() );
+    // ui->horizontalSlider->setRange(0, maxSizeX );
+
+    updateInternalState();
+}
+
 void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_timeindex )
 {
     DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
@@ -703,71 +770,7 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
         busy->close();
 
         // remap to different type
-        PlotDataMap::iterator it;
-
-        size_t maxSizeX = 0;
-
-        for ( it = mapped_data.begin(); it != mapped_data.end(); it++)
-        {
-            std::string name  = it->first;
-            PlotDataPtr plot  = it->second;
-
-            if( maxSizeX <  plot->size() ){
-                maxSizeX =  plot->size();
-            }
-
-            QString qname = QString::fromStdString(name);
-
-            // remap to derived class
-            if( _mapped_plot_data.find(name) == _mapped_plot_data.end() )
-            {
-                _mapped_plot_data.insert( std::make_pair( name, plot) );
-
-                QColor color = colorHint();
-                plot->setColorHint( color.red(), color.green(), color.blue() );
-                curvelist_widget->list()->addItem( new QListWidgetItem( qname ) );
-            }
-            else{
-                // update plot if it was already loaded
-                _mapped_plot_data[name] = plot;
-            }
-        }
-
-        if( _mapped_plot_data.size() > mapped_data.size() )
-        {
-            QMessageBox::StandardButton reply;
-            reply = QMessageBox::question(0, tr("Warning"),
-                                          tr("Do you want to remove the previously loaded data?\n"),
-                                          QMessageBox::Yes | QMessageBox::No,
-                                          QMessageBox::Yes );
-            if( reply == QMessageBox::Yes )
-            {
-                bool repeat = true;
-                while( repeat )
-                {
-                    repeat = false;
-                    for ( it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++ )
-                    {
-                        auto& name = it->first;
-                        if( mapped_data.find( name ) == mapped_data.end() )
-                        {
-                            qDebug() << " delete "  <<  QString( name.c_str() );
-                            this->deleteLoadedData( QString( name.c_str() ) );
-                            repeat = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        _undo_states.clear();
-        _redo_states.clear();
-
-        _undo_states.push_back(  xmlSaveState() );
-        ui->horizontalSlider->setRange(0, maxSizeX );
-
-        updateInternalState();
+        updateMappedData(mapped_data);
     }
     else{
         QMessageBox::warning(this, tr("Error"),
@@ -817,32 +820,10 @@ void MainWindow::onActionLoadStreamer()
     }
 
     streamer->enableStreaming( false );
-    //  ui->pushButtonStreaming->hide(false);
     ui->pushButtonStreaming->setEnabled(true);
 
-    PlotDataMap& plot_data = streamer->getDataMap();
+    updateMappedData( streamer->getDataMap() );
 
-    for (auto it = plot_data.begin(); it != plot_data.end(); it++)
-    {
-        std::string name  = it->first;
-        PlotDataPtr plot  = it->second;
-
-        QString qname = QString::fromStdString(name);
-
-        // remap to derived class
-        if( _mapped_plot_data.find(name) == _mapped_plot_data.end() )
-        {
-            _mapped_plot_data.insert( std::make_pair( name, plot) );
-
-            QColor color = colorHint();
-            plot->setColorHint( color.red(), color.green(), color.blue() );
-            curvelist_widget->list()->addItem( new QListWidgetItem( qname ) );
-        }
-        else{
-            // update plot if it was already loaded
-            _mapped_plot_data[name] = plot;
-        }
-    }
 }
 
 void MainWindow::onActionLoadLayout(bool reload_previous)
@@ -1160,7 +1141,13 @@ void MainWindow::onReplotRequested()
 
 void MainWindow::on_streamingSpinBox_valueChanged(int value)
 {
-    for (auto it = _mapped_plot_data.begin(); it != _mapped_plot_data.end(); it++ )
+    for (auto it = _mapped_plot_data.numeric.begin(); it != _mapped_plot_data.numeric.end(); it++ )
+    {
+        auto plot = it->second;
+        plot->setMaximumRangeX( value );
+    }
+
+    for (auto it = _mapped_plot_data.user_defined.begin(); it != _mapped_plot_data.user_defined.end(); it++ )
     {
         auto plot = it->second;
         plot->setMaximumRangeX( value );

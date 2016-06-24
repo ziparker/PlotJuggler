@@ -146,7 +146,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
                     PlotDataPtr plot( new PlotData );
                     plot->setName( name );
                     plot->setCapacity( tot_lines );
-                    plot_data.insert( std::make_pair( name, plot ) );
+                    plot_data.numeric.insert( std::make_pair( name, plot ) );
 
                     valid_field_names.push_back( qname );
 
@@ -207,7 +207,8 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
                 if( ordered_names[i].first )
                 {
                     double y = string_items[i].toDouble();
-                    plots_vector[index]->pushBack( t, y );
+                    PlotData::Point point( t,y );
+                    plots_vector[index]->pushBack( point );
                     index++;
                 }
             }
@@ -227,7 +228,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
 
     if(interrupted)
     {
-        plot_data.erase( plot_data.begin(), plot_data.end() );
+        plot_data.numeric.erase( plot_data.numeric.begin(), plot_data.numeric.end() );
     }
 
 

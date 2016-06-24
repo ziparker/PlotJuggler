@@ -19,7 +19,7 @@ QPointF PlotDataQwt::sample(size_t i) const
     //   size_t index = i*_subsample +_index_first;
     //   if( index > _index_last) index =_index_last;
     auto p = _plot_data->at( i*_subsample );
-    QPointF point( p.first, p.second ) ;
+    QPointF point( p.x, p.y ) ;
 
     return point ;
 }

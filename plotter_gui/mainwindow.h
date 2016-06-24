@@ -139,6 +139,8 @@ private:
 
     void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
 
+    void updateMappedData(const PlotDataMap &mapped_data);
+
 protected:
     void mousePressEvent(QMouseEvent *event) ;
 

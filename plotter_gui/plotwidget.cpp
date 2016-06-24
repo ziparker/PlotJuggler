@@ -169,8 +169,8 @@ PlotWidget::~PlotWidget()
 
 bool PlotWidget::addCurve(const QString &name, bool do_replot)
 {
-    PlotDataMap::iterator it = _mapped_data->find( name.toStdString() );
-    if( it == _mapped_data->end())
+    auto it = _mapped_data->numeric.find( name.toStdString() );
+    if( it == _mapped_data->numeric.end())
     {
         return false;
     }
@@ -359,7 +359,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         int B = curve.attribute("B").toInt();
         QColor color(R,G,B);
 
-        if(  _mapped_data->find(curve_name.toStdString()) != _mapped_data->end() )
+        if(  _mapped_data->numeric.find(curve_name.toStdString()) != _mapped_data->numeric.end() )
         {
             addCurve(curve_name, false);
             _curve_list[curve_name]->setPen( color, 1.0);

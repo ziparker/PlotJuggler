@@ -30,7 +30,7 @@ DataStreamSample::DataStreamSample()
         PlotDataPtr plot( new PlotData() );
         plot->setName( name.toStdString() );
         plot->setMaximumRangeX( 4.0 );
-        _plot_data.insert( std::make_pair( name.toStdString(), plot) );
+        _plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
 
     _thread = std::thread([this](){ this->update();} );
@@ -49,21 +49,19 @@ void DataStreamSample::update()
     _running = true;
     while( _running )
     {
-        int i=0;
+        int index=0;
 
-        PlotDataMap::iterator it;
-
-        for ( it =_plot_data.begin(); it != _plot_data.end(); it++)
+        for (auto& it: _plot_data.numeric )
         {
-            float A =  vect_A[i];
-            float B =  vect_A[i];
-            float C =  vect_A[i];
-            float D =  vect_A[i];
-            i++;
+            float A =  vect_A[index];
+            float B =  vect_B[index];
+            float C =  vect_C[index];
+            float D =  vect_D[index];
+            index++;
 
             double t = 0;
 
-            auto& plot = it->second;
+            auto& plot = it.second;
 
             if( plot->size() > 0)
                 t = plot->getRangeX().max + 0.01;
@@ -71,7 +69,7 @@ void DataStreamSample::update()
             double y =  A*sin(B*t + C) +D*t*0.02;
 
             if( _enabled )
-                plot->pushBack( t, y);
+                plot->pushBack( PlotData::Point( t, y ) );
         }
 
         prev_time += std::chrono::milliseconds(10);
