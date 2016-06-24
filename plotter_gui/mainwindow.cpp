@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-    //  buildData();
+    // buildData();
     _undo_timer.start();
 
     // save initial state
@@ -665,10 +665,6 @@ void MainWindow::updateMappedData(const PlotDataMap& mapped_data)
         std::string name  = it.first;
         PlotDataPtr plot  = it.second;
 
-        /*  if( maxSizeX <  plot->size() ){
-            maxSizeX =  plot->size();
-        }*/
-
         QString qname = QString::fromStdString(name);
 
         // remap to derived class
@@ -713,7 +709,6 @@ void MainWindow::updateMappedData(const PlotDataMap& mapped_data)
     _undo_states.clear();
     _redo_states.clear();
     _undo_states.push_back(  xmlSaveState() );
-    // ui->horizontalSlider->setRange(0, maxSizeX );
 
     updateInternalState();
 }
