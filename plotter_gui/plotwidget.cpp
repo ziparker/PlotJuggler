@@ -724,7 +724,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
                 fps.setText( QString::number( qRound( _fps_counter / elapsed ) ) );
                 fps.setFont(font_title);
 
-                // this->setTitle( fps );
+                //this->setTitle( fps );
 
                 _fps_counter = 0;
                 _fps_timeStamp.start();

@@ -45,7 +45,7 @@ private slots:
 
     void onActionLoadDataFile(bool reload_from_settings = false);
 
-    void onActionLoadDataFile(QString filename);
+    void onActionLoadDataFileImpl(QString filename, bool reuse_last_timeindex = false );
 
     void onActionReloadDataFileFromSettings();
 
@@ -134,6 +134,8 @@ private:
     QElapsedTimer _undo_timer;
 
     QString _loaded_datafile;
+
+    std::string _last_time_index_name;
 
     void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
 

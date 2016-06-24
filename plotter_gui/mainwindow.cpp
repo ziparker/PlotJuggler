@@ -648,23 +648,26 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
     ui->actionLoadRecentDatafile->setText("Load data from: " + fileName);
 
-    onActionLoadDataFile( fileName );
+    onActionLoadDataFileImpl( fileName, false );
 }
 
-void MainWindow::onActionLoadDataFile(QString fileName)
+void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_timeindex )
 {
     DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
 
     if( loader )
     {
-        QFile file(fileName);
+        {
+            QFile file(fileName);
 
-        if (!file.open(QFile::ReadOnly | QFile::Text)) {
-            QMessageBox::warning(this, tr("Datafile"),
-                                 tr("Cannot read file %1:\n%2.")
-                                 .arg(fileName)
-                                 .arg(file.errorString()));
-            return;
+            if (!file.open(QFile::ReadOnly | QFile::Text)) {
+                QMessageBox::warning(this, tr("Datafile"),
+                                     tr("Cannot read file %1:\n%2.")
+                                     .arg(fileName)
+                                     .arg(file.errorString()));
+                return;
+            }
+            file.close();
         }
 
         _loaded_datafile = fileName;
@@ -675,16 +678,28 @@ void MainWindow::onActionLoadDataFile(QString fileName)
         busy->show();
         using namespace std::placeholders;
 
-        int last_timeindex = TIME_INDEX_NOT_DEFINED;
 
-        PlotDataMap mapped_data = loader->readDataFromFile( &file,
-                                                            [busy](int value) {
+        auto refresh_pointer =  [busy](int value) {
             busy->setValue(value);
             QApplication::processEvents();
-        },
-        [busy]() { return busy->wasCanceled(); },
-        last_timeindex);
+        };
 
+        auto cancel_pointer = [busy]() { return busy->wasCanceled(); };
+
+        std::string timeindex_name_empty;
+        std::string & timeindex_name = timeindex_name_empty;
+        if( reuse_last_timeindex )
+        {
+            timeindex_name = _last_time_index_name;
+        }
+
+        PlotDataMap mapped_data = loader->readDataFromFile(
+                    fileName.toStdString(),
+                    refresh_pointer,
+                    cancel_pointer,
+                    timeindex_name   );
+
+        _last_time_index_name = timeindex_name;
         busy->close();
 
         // remap to different type
@@ -763,7 +778,7 @@ void MainWindow::onActionLoadDataFile(QString fileName)
 
 void MainWindow::onActionReloadSameDataFile()
 {
-    onActionLoadDataFile(_loaded_datafile);
+    onActionLoadDataFileImpl(_loaded_datafile, true );
 }
 
 void MainWindow::onActionReloadDataFileFromSettings()
@@ -900,7 +915,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 
         if( reload_previous == QMessageBox::Yes )
         {
-            onActionLoadDataFile( fileName );
+            onActionLoadDataFileImpl( fileName );
         }
     }
     ///--------------------------------------------------

@@ -74,7 +74,7 @@ int DataLoadCSV::parseHeader(QFile *file,
                     ordered_names[i].second = prefix + "." + replace_name;
                     if( suffix.size() > 0)
                     {
-                       ordered_names[i].second.append( "." + suffix );
+                        ordered_names[i].second.append( "." + suffix );
                     }
                     i++;
                 }
@@ -96,21 +96,25 @@ int DataLoadCSV::parseHeader(QFile *file,
     return linecount;
 }
 
-PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
+PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
                                           std::function<void(int)> updateCompletion,
                                           std::function<bool()> checkInterruption,
-                                          int time_index )
+                                          std::string& time_index_name )
 {
+    int time_index = TIME_INDEX_NOT_DEFINED;
+
     PlotDataMap plot_data;
 
+    QFile file( file_name.c_str() );
+    file.open(QFile::ReadOnly);
 
     std::vector<std::pair<bool, QString> > ordered_names;
 
-    int linecount = parseHeader(file, ordered_names, updateCompletion);
+    int linecount = parseHeader( &file, ordered_names, updateCompletion);
 
-    file->close();
-    file->open(QFile::ReadOnly);
-    QTextStream inB( file );
+    file.close();
+    file.open(QFile::ReadOnly);
+    QTextStream inB( &file );
 
     std::vector<PlotDataPtr> plots_vector;
 
@@ -147,7 +151,20 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                     valid_field_names.push_back( qname );
 
                     plots_vector.push_back( plot );
+
+                    if (time_index == TIME_INDEX_NOT_DEFINED)
+                    {
+                        if( time_index_name.compare( qname.toStdString()) == 0 )
+                        {
+                            time_index = valid_field_names.size() ;
+                        }
+                    }
                 }
+            }
+
+            if( time_index_name.compare( "INDEX (auto-generated)" ) == 0)
+            {
+                  time_index = -1;
             }
 
             if( time_index == TIME_INDEX_NOT_DEFINED)
@@ -159,6 +176,8 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                 SelectFromListDialog* dialog = new SelectFromListDialog( &field_names );
                 dialog->exec();
                 time_index = dialog->getSelectedRowNumber().at(0) -1; // vector is supposed to have only one element
+
+                time_index_name = field_names.at( time_index + 1 ).toStdString() ;
             }
 
             first_line = false;
@@ -204,7 +223,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
             }
         }
     }
-    file->close();
+    file.close();
 
     if(interrupted)
     {
