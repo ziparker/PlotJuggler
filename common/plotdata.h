@@ -139,8 +139,8 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
 
     if( sizeX > 2 && _max_range_X != std::numeric_limits<Time>::max())
     {
-        double rangeX = _x_points.back() - _x_points.front();
-        double delta = rangeX / (double)(sizeX - 1);
+        Time rangeX = _x_points.back() - _x_points.front();
+        Time delta = rangeX / (Time)(sizeX - 1);
         size_t new_capacity = (size_t)( _max_range_X / delta);
 
         if( abs( new_capacity - sizeX) > 2 )
@@ -187,7 +187,7 @@ inline boost::optional<Value> PlotDataGeneric<Time, Value>::getYfromX(Time x)
     {
         return _y_points.at(index);
     }
-    return boost::optional<double>();
+    return boost::optional<Time>();
 }
 
 template < typename Time, typename Value>
@@ -247,8 +247,10 @@ PlotDataGeneric<Time, Value>::getRangeX()
         return  { _x_points.front(), _x_points.back() };
 }
 
-template < typename Time, typename Value>
-inline typename PlotDataGeneric<Time, Value>::RangeValue PlotDataGeneric<Time, Value>::getRangeY()
+
+
+template< > inline
+typename PlotDataGeneric<float, double>::RangeValue PlotDataGeneric<float, double>::getRangeY()
 {
     std::lock_guard<std::mutex> lock(_mutex);
     double y_min = std::numeric_limits<double>::max();
