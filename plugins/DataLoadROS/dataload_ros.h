@@ -1,7 +1,8 @@
-#ifndef DATALOAD_CSV_H
-#define DATALOAD_CSV_H
+#ifndef DATALOAD_ROS_H
+#define DATALOAD_ROS_H
 
 #include <ros/ros.h>
+#include <rosbag/bag.h>
 
 #include <QObject>
 #include <QtPlugin>
@@ -18,10 +19,10 @@ public:
     DataLoadROS();
     virtual const std::vector<const char*>& compatibleFileExtensions() const ;
 
-    virtual PlotDataMap readDataFromFile(QFile* file,
-                                         std::function<void(int)> updateCompletion,
-                                         std::function<bool()> checkInterruption,
-                                         int time_index = TIME_INDEX_NOT_DEFINED);
+    virtual PlotDataMap readDataFromFile(const std::string& file_name,
+                                          std::function<void(int)> updateCompletion,
+                                          std::function<bool()> checkInterruption,
+                                          std::string &time_index_name  );
 
     virtual ~DataLoadROS();
 

@@ -2,10 +2,10 @@
 #include <QTextStream>
 #include <QFile>
 #include <QMessageBox>
-#include "selectxaxisdialog.h"
+#include "selectlistdialog.h"
 #include <QDebug>
-#include <rosbag/bag.h>
-#include <rosbag/view.h>
+
+#include "rosbag/view.h"
 #include "ros-type-parser.h"
 
 DataLoadROS::DataLoadROS()
@@ -26,30 +26,38 @@ int DataLoadROS::parseHeader(QFile *file,
     return 0;
 }
 
-PlotDataMap DataLoadROS::readDataFromFile(QFile *file,
+PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
                                           std::function<void(int)> updateCompletion,
                                           std::function<bool()> checkInterruption,
-                                          int time_index )
+                                          std::string &time_index_name  )
 {
 
-    using namespace RosFlatTypeParser;
+    using namespace RosTypeParser;
 
     QStringList all_topic_names;
     PlotDataMap plot_data;
 
     rosbag::Bag bag;
-    bag.open( file->fileName().toStdString().c_str(), rosbag::bagmode::Read );
+    bag.open( file_name, rosbag::bagmode::Read );
 
     rosbag::View bag_view ( bag, ros::TIME_MIN, ros::TIME_MAX, true );
 
     std::vector<const rosbag::ConnectionInfo *> connections = bag_view.getConnections();
 
+    // create a list and a type map for each topic
+    RosTypeMap type_map;
+
     for(int i=0;  i<  connections.size(); i++)
     {
         all_topic_names.push_back( QString( connections[i]->topic.c_str() ) );
+        parseRosTypeDescription( connections[i]->datatype,
+                                 connections[i]->msg_def,
+                                 &type_map);
     }
 
-    SelectXAxisDialog* dialog = new SelectXAxisDialog( &all_topic_names, false );
+    printRosTypeMap  (type_map );
+
+    SelectFromListDialog* dialog = new SelectFromListDialog( &all_topic_names, false );
     dialog->exec();
 
     std::vector<int> topic_indexes = dialog->getSelectedRowNumber();
@@ -61,31 +69,58 @@ PlotDataMap DataLoadROS::readDataFromFile(QFile *file,
         topic_names.insert( all_topic_names.at( topic_indexes[i]).toStdString() );
     }
 
-    std::map<std::string, TopicFlatContainer> topic_container;
+    std::vector<uint8_t> buffer ( 65*1024 );
 
-    rosbag::View::iterator msg;
-    for( msg = bag_view.begin(); msg!= bag_view.end(); msg++ )
+    std::vector<SubstitutionRule> rules;
+    rules.push_back( SubstitutionRule("/data.vectors[#].value",      "/data.vectors[#].name",   "#"));
+    rules.push_back( SubstitutionRule("/data.doubles[#].value",      "/data.doubles[#].name",   "#"));
+    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[0]", "/data.vectors3d[#].name", "#.x"));
+    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[1]", "/data.vectors3d[#].name", "#.y"));
+    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[2]", "/data.vectors3d[#].name", "#.z"));
+
+    int count = 0;
+
+    for(rosbag::MessageInstance msg: bag_view )
     {
-        if( topic_names.find( msg->getTopic()) == topic_names.end() ) {
-            continue;
-        }
+        double msg_time = msg.getTime().toSec();
 
-        auto container = topic_container.find( msg->getTopic());
-
-        if(  container == topic_container.end() )
+        if( count++ %100 == 0)
         {
-            topic_container.insert( std::make_pair(
-                        msg->getTopic(),
-                        buildFlatContainer( *msg, 64 ) ) );
-        }
-        else{
-           //container->
+          //  qDebug() << count << " / " << bag_view.size() ;
+            updateCompletion( 100*count / bag_view.size() );
+
+            if( checkInterruption() == true ) return PlotDataMap();
         }
 
-        //  ros::serialization::OStream stream( buffer, sizeof(buffer) );
-        //   m->write( stream );
+        RosTypeFlat flat_container;
 
-        qDebug() << msg->getTopic().c_str();
+        ros::serialization::OStream stream(buffer.data(), buffer.size());
+        msg.write(stream);
+
+        uint8_t* buffer_ptr = buffer.data();
+
+        String datatype( msg.getDataType().data(), msg.getDataType().size() );
+        String topic_name( msg.getTopic().data(), msg.getTopic().size() );
+
+        buildRosFlatType(type_map, datatype, topic_name, &buffer_ptr,  &flat_container);
+        applyNameTransform( rules, &flat_container );
+
+        for(auto& it: flat_container.value_renamed )
+        {
+            std::string field_name ( it.first.data(), it.first.size());
+            auto value = it.second;
+
+            auto plot = plot_data.numeric.find( field_name );
+            if( plot == plot_data.numeric.end() )
+            {
+                auto res = plot_data.numeric.insert( std::make_pair(field_name, PlotDataPtr(new PlotData()) ) );
+                plot = res.first;
+            }
+
+            plot->second->pushBack( PlotData::Point(msg_time, value));
+        }
+
+     //   qDebug() << msg.getTopic().c_str();
     }
 
     return plot_data;

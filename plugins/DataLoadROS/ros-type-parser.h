@@ -1,72 +1,78 @@
 #ifndef ROSTYPEPARSER_H
 #define ROSTYPEPARSER_H
 
-#include <ros/ros.h>
-#include <rosbag/message_instance.h>
 #include <vector>
-#include <string>
-#include <topic_tools/shape_shifter.h>
+#include <string.hpp>
+#include <map>
+#include <boost/utility/string_ref.hpp>
 
-namespace RosFlatTypeParser{
+namespace RosTypeParser{
 
-typedef struct
-{
-    std::string basic_type_name;
-    std::string field_name;
-} FlatField;
+typedef sso23::string String;
+
 
 typedef struct
 {
-    std::string ros_type_name;
-    std::vector<FlatField> fields;
-}FlatRosType;
+    String type_name;
+    String field_name;
 
-class TopicFlatContainer{
+} RosTypeField;
+
+class RosType
+{
 public:
-    FlatRosType type;
-    std::vector< std::pair<std::string, std::int64_t> >  vect_integer;
-    std::vector< std::pair<std::string, double > >       vect_double;
-    std::vector< std::pair<std::string, ros::Time > >    vect_time;
-    std::vector< std::pair<std::string, std::string > >  vect_string;
-    int buffer_size;
+    std::string full_name;
+    std::vector<RosTypeField> fields;
 
-    TopicFlatContainer() {
-        buffer_size = 0;
-    }
+    RosType() {}
+
+    RosType( std::string name):
+        full_name(name) { }
 };
 
+typedef std::map<String, RosType> RosTypeMap;
 
-std::vector<FlatField> buildFlatTypeHierarchy(std::string prefix,
-                                          const std::vector<FlatRosType>& types,
-                                          const std::string& type_name);
+typedef struct{
+    std::map<String, double> value_renamed;
+    std::map<String, double> value;
+    std::map<String, String> name_id;
 
-std::vector<FlatRosType>  parseRosTypeDescription(
+}RosTypeFlat;
+
+//------------------------------
+std::ostream& operator<<(std::ostream& s, const RosTypeFlat& c);
+
+void parseRosTypeDescription(
         const std::string & type_name,
-        const std::string & msg_definition );
+        const std::string & msg_definition,
+        RosTypeMap* type_map);
 
-//--------------------------
-std::ostream& operator<<(std::ostream& s, const TopicFlatContainer& c);
+void printRosTypeMap( const RosTypeMap& type_map );
+void printRosType(const RosTypeMap& type_map, const std::string& type_name, int indent = 0 );
 
-TopicFlatContainer buildFlatContainer(const std::string& msg_dataType,
-                                 const std::string& msg_definition,
-                                 uint8_t* msg_buffer,
-                                 size_t buffer_size,
-                                 const std::string &topic_name,
-                                 int max_vector_size);
+void buildRosFlatType(const RosTypeMap& type_map,
+                       const String &type_name,
+                       String prefix,
+                       uint8_t **buffer_ptr,
+                       RosTypeFlat* flat_container);
 
-TopicFlatContainer buildFlatContainer(const topic_tools::ShapeShifter::ConstPtr& msg,
-                                 const std::string& topic_name,
-                                 int max_vector_size);
 
-TopicFlatContainer buildFlatContainer(const rosbag::MessageInstance& msg,
-                                 int max_vector_size);
+class SubstitutionRule{
+public:
+    SubstitutionRule(const char* pattern, const char* name_location, const char*substitution);
 
-//--------------------------
+    boost::string_ref pattern_suf;
+    boost::string_ref pattern_pre;
 
-void extractFlatContainer(uint8_t* msg_buffer,
-                          TopicFlatContainer* container,
-                          int max_vector_size, bool canAppend = false);
+    boost::string_ref location_suf;
+    boost::string_ref location_pre;
 
+    boost::string_ref substitution_suf;
+    boost::string_ref substitution_pre;
+};
+
+void applyNameTransform(const std::vector<SubstitutionRule> &rules,
+                         RosTypeFlat* container);
 
 }
 
