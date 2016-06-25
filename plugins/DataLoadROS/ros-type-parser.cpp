@@ -376,23 +376,28 @@ std::ostream& operator<<(std::ostream& ss, const RosTypeFlat& container)
     return ss;
 }
 
-SubstitutionRule::SubstitutionRule(const char *pattern, const char *name_location, const char *substitution):
-    pattern_pre(pattern),            pattern_suf(pattern),
-    location_pre(name_location),     location_suf(name_location),
-    substitution_pre(substitution),  substitution_suf(substitution)
+SubstitutionRule::SubstitutionRule( std::string pattern, std::string location, std::string substitution):
+    pattern_pre( pattern),
+    pattern_suf( pattern),
+
+    location_pre( location),
+    location_suf( location),
+
+    substitution_pre(substitution),
+    substitution_suf(substitution)
 {
     int pos;
     pos = pattern_pre.find_first_of('#');
-    pattern_pre.remove_suffix( pattern_pre.length() - pos );
-    pattern_suf.remove_prefix( pos+1 );
+    pattern_pre.erase( pos, pattern_pre.length() - pos );
+    pattern_suf.erase( 0, pos+1 );
 
     pos = location_pre.find_first_of('#');
-    location_pre.remove_suffix( location_pre.length() - pos );
-    location_suf.remove_prefix( pos+1 );
+    location_pre.erase(pos, location_pre.length() - pos );
+    location_suf.erase(0, pos+1 );
 
     pos = substitution_pre.find_first_of('#');
-    substitution_pre.remove_suffix( substitution_pre.length() - pos );
-    substitution_suf.remove_prefix( pos+1 );
+    substitution_pre.erase(pos, substitution_pre.length() - pos );
+    substitution_suf.erase(0, pos+1 );
 }
 
 }

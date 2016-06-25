@@ -7,7 +7,7 @@
 #include <QObject>
 #include <QtPlugin>
 #include "../dataloader_base.h"
-
+#include "ros-type-parser.h"
 
 class  DataLoadROS: public QObject, DataLoader
 {
@@ -27,11 +27,11 @@ public:
     virtual ~DataLoadROS();
 
 protected:
-    int parseHeader(QFile *file,
-                     std::vector<std::pair<bool, QString> > &ordered_names,
-                     std::function<void(int)> updateCompletion);
+    void loadSubstitutionRule(QStringList all_topic_names);
 
 private:
+    std::vector<RosTypeParser::SubstitutionRule>  _rules;
+
     std::vector<const char*> _extensions;
 
 

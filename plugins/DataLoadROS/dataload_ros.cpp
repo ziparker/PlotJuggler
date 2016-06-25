@@ -2,7 +2,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <QMessageBox>
-#include "selectlistdialog.h"
+#include "dialog_select_ros_topics.h"
 #include <QDebug>
 
 #include "rosbag/view.h"
@@ -18,18 +18,11 @@ const std::vector<const char*> &DataLoadROS::compatibleFileExtensions() const
     return _extensions;
 }
 
-int DataLoadROS::parseHeader(QFile *file,
-                             std::vector<std::pair<bool,QString> >& ordered_names,
-                             std::function<void(int)> updateCompletion)
-{
-
-    return 0;
-}
 
 PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
                                           std::function<void(int)> updateCompletion,
                                           std::function<bool()> checkInterruption,
-                                          std::string &time_index_name  )
+                                          std::string &  )
 {
 
     using namespace RosTypeParser;
@@ -57,36 +50,53 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
 
     printRosTypeMap  (type_map );
 
-    SelectFromListDialog* dialog = new SelectFromListDialog( &all_topic_names, false );
-    dialog->exec();
-
-    std::vector<int> topic_indexes = dialog->getSelectedRowNumber();
-
-    std::set<std::string> topic_names;
-
-    for (int i=0; i< topic_indexes.size(); i++)
-    {
-        topic_names.insert( all_topic_names.at( topic_indexes[i]).toStdString() );
-    }
+    int count = 0;
 
     std::vector<uint8_t> buffer ( 65*1024 );
 
-    std::vector<SubstitutionRule> rules;
-    rules.push_back( SubstitutionRule("/data.vectors[#].value",      "/data.vectors[#].name",   "#"));
-    rules.push_back( SubstitutionRule("/data.doubles[#].value",      "/data.doubles[#].name",   "#"));
-    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[0]", "/data.vectors3d[#].name", "#.x"));
-    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[1]", "/data.vectors3d[#].name", "#.y"));
-    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[2]", "/data.vectors3d[#].name", "#.z"));
+    DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topic_names );
 
-    int count = 0;
+    std::set<std::string> topic_selected;
+
+    if( dialog->exec() == QDialog::Accepted)
+    {
+        auto selected_items = dialog->getSelectedItems();
+        for(auto item: selected_items)
+        {
+            topic_selected.insert( item.toStdString() );
+        }
+        // load the rules
+        QStringList rules_by_line = dialog->rules().split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
+        _rules.clear();
+        for (auto line: rules_by_line)
+        {
+            QStringList tags = line.split(QRegExp("[\r\n \t]"),QString::SkipEmptyParts);
+            if( tags.size() == 3)
+            {
+                _rules.push_back( SubstitutionRule(
+                                  tags.at(0).toStdString() ,
+                                  tags.at(1).toStdString() ,
+                                  tags.at(2).toStdString()
+                                  ) );
+            }
+            else{
+                qDebug() << "ERROR parsing this rule: " << line;
+            }
+        }
+    }
 
     for(rosbag::MessageInstance msg: bag_view )
     {
+        if( topic_selected.find( msg.getTopic()) == topic_selected.end() )
+        {
+            continue;
+        }
+
         double msg_time = msg.getTime().toSec();
 
         if( count++ %100 == 0)
         {
-          //  qDebug() << count << " / " << bag_view.size() ;
+            //  qDebug() << count << " / " << bag_view.size() ;
             updateCompletion( 100*count / bag_view.size() );
 
             if( checkInterruption() == true ) return PlotDataMap();
@@ -103,7 +113,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
         String topic_name( msg.getTopic().data(), msg.getTopic().size() );
 
         buildRosFlatType(type_map, datatype, topic_name, &buffer_ptr,  &flat_container);
-        applyNameTransform( rules, &flat_container );
+        applyNameTransform( _rules, &flat_container );
 
         for(auto& it: flat_container.value_renamed )
         {
@@ -122,7 +132,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
             plot->second->pushBack( PlotData::Point(msg_time, value));
         }
 
-     //   qDebug() << msg.getTopic().c_str();
+        //   qDebug() << msg.getTopic().c_str();
     }
 
     return plot_data;
@@ -134,3 +144,5 @@ DataLoadROS::~DataLoadROS()
 {
 
 }
+
+

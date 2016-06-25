@@ -5,16 +5,17 @@ add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 
-QT5_WRAP_UI ( UI_SRC  ${CMAKE_SOURCE_DIR}/common/selectlistdialog.ui  )
+QT5_WRAP_UI ( UI_SRC  dialog_select_ros_topics.ui  )
 
 SET( SRC
     dataload_ros.cpp
     ros-type-parser.h
     ros-type-parser.cpp
-    ${CMAKE_SOURCE_DIR}/common/selectlistdialog.h
+    dialog_select_ros_topics.h
+    dialog_select_ros_topics.cpp
     )
 
-SET ( ROS_DIRECTORY /opt/ros/indigo/)
+SET ( ROS_DIRECTORY /opt/ros/kinetic/)
 
 include_directories( ${ROS_DIRECTORY}/include)
 

@@ -59,16 +59,18 @@ void buildRosFlatType(const RosTypeMap& type_map,
 
 class SubstitutionRule{
 public:
-    SubstitutionRule(const char* pattern, const char* name_location, const char*substitution);
+    SubstitutionRule( std::string pattern, std::string name_location, std::string substitution);
 
-    boost::string_ref pattern_suf;
-    boost::string_ref pattern_pre;
+    std::string pattern_suf;
+    std::string pattern_pre;
 
-    boost::string_ref location_suf;
-    boost::string_ref location_pre;
+    std::string location_suf;
+    std::string location_pre;
 
-    boost::string_ref substitution_suf;
-    boost::string_ref substitution_pre;
+    std::string substitution_suf;
+    std::string substitution_pre;
+private:
+
 };
 
 void applyNameTransform(const std::vector<SubstitutionRule> &rules,
