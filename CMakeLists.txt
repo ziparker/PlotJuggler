@@ -38,7 +38,7 @@ add_subdirectory( qwt/src )
 add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )
-add_subdirectory( plugins/DataLoadROS )
+#add_subdirectory( plugins/DataLoadROS )
 add_subdirectory( plugins/DataStreamSample )
 
 
