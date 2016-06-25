@@ -113,7 +113,9 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
             auto plot = plot_data.numeric.find( field_name );
             if( plot == plot_data.numeric.end() )
             {
-                auto res = plot_data.numeric.insert( std::make_pair(field_name, PlotDataPtr(new PlotData()) ) );
+                PlotDataPtr temp(new PlotData());
+                temp->setCapacity( bag_view.size() );
+                auto res = plot_data.numeric.insert( std::make_pair(field_name, temp ) );
                 plot = res.first;
             }
 

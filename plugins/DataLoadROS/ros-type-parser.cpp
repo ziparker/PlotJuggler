@@ -69,7 +69,7 @@ void parseRosTypeDescription(
 
         if( isSeparator(line) ) // start to store a sub type
         {
-            if( std::getline(messageDescriptor, line, '\n') == 0) {
+            if( ! std::getline(messageDescriptor, line, '\n') ) {
                 break;
             }
 
