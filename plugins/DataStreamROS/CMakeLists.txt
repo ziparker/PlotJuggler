@@ -26,6 +26,7 @@ target_link_libraries(DataStreamROS  RosTypeParser
     ${ROS_DIRECTORY}/lib/librosbag_storage.so
     ${ROS_DIRECTORY}/lib/librostime.so
     ${ROS_DIRECTORY}/lib/libroscpp_serialization.so
+    ${ROS_DIRECTORY}/lib/libtopic_tools.so
     )
 
 INSTALL(TARGETS DataStreamROS DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )

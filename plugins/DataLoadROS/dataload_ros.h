@@ -20,8 +20,6 @@ public:
     virtual const std::vector<const char*>& compatibleFileExtensions() const ;
 
     virtual PlotDataMap readDataFromFile(const std::string& file_name,
-                                          std::function<void(int)> updateCompletion,
-                                          std::function<bool()> checkInterruption,
                                           std::string &time_index_name  );
 
     virtual ~DataLoadROS();

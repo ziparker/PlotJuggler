@@ -37,6 +37,7 @@ DataStreamSample::DataStreamSample()
 
 bool DataStreamSample::launch()
 {
+    _running = true;
     _thread = std::thread([this](){ this->update();} );
     return true;
 }

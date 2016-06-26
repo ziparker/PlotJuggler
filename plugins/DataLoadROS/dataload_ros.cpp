@@ -4,7 +4,7 @@
 #include <QMessageBox>
 #include "selectlistdialog.h"
 #include <QDebug>
-
+#include <QProgressDialog>
 #include "rosbag/view.h"
 #include "ros-type-parser.h"
 
@@ -27,8 +27,6 @@ int DataLoadROS::parseHeader(QFile *file,
 }
 
 PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
-                                          std::function<void(int)> updateCompletion,
-                                          std::function<bool()> checkInterruption,
                                           std::string &time_index_name  )
 {
 
@@ -80,16 +78,26 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
 
     int count = 0;
 
+    QProgressDialog progress_dialog;
+    progress_dialog.setLabelText("Loading... please wait");
+    progress_dialog.setWindowModality( Qt::ApplicationModal );
+    progress_dialog.setRange(0, bag_view.size() -1);
+    progress_dialog.setAutoClose( true );
+    progress_dialog.setAutoReset( true );
+    progress_dialog.show();
+
     for(rosbag::MessageInstance msg: bag_view )
     {
         double msg_time = msg.getTime().toSec();
 
         if( count++ %100 == 0)
         {
-          //  qDebug() << count << " / " << bag_view.size() ;
-            updateCompletion( 100*count / bag_view.size() );
+            progress_dialog.setValue( count );
+            QApplication::processEvents();
 
-            if( checkInterruption() == true ) return PlotDataMap();
+            if( progress_dialog.wasCanceled() ) {
+                return PlotDataMap();
+            }
         }
 
         RosTypeFlat flat_container;

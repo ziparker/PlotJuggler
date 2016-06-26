@@ -736,18 +736,6 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
         ui->actionReloadData->setEnabled( true );
         ui->actionDeleteAllData->setEnabled( true );
 
-        BusyTaskDialog* busy = new BusyTaskDialog("Loading file");
-        busy->show();
-        using namespace std::placeholders;
-
-
-        auto refresh_pointer =  [busy](int value) {
-            busy->setValue(value);
-            QApplication::processEvents();
-        };
-
-        auto cancel_pointer = [busy]() { return busy->wasCanceled(); };
-
         std::string timeindex_name_empty;
         std::string & timeindex_name = timeindex_name_empty;
         if( reuse_last_timeindex )
@@ -757,12 +745,9 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
 
         PlotDataMap mapped_data = loader->readDataFromFile(
                     fileName.toStdString(),
-                    refresh_pointer,
-                    cancel_pointer,
                     timeindex_name   );
 
         _last_time_index_name = timeindex_name;
-        busy->close();
 
         // remap to different type
         updateMappedData(mapped_data);
@@ -813,7 +798,11 @@ void MainWindow::onActionLoadStreamer()
         }
     }
 
-    if( _current_streamer->launch() )
+    if( data_streamer.size() == 1){
+        _current_streamer = data_streamer[0];
+    }
+
+    if( _current_streamer && _current_streamer->launch() )
     {
         _current_streamer->enableStreaming( false );
         ui->pushButtonStreaming->setEnabled(true);
@@ -1119,7 +1108,6 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
         _replot_timer->setSingleShot(true);
         _replot_timer->start( 5 );
     }
-
 }
 
 void MainWindow::onReplotRequested()
@@ -1136,7 +1124,7 @@ void MainWindow::onReplotRequested()
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
-        _replot_timer->start( 5 );
+        _replot_timer->start( 40 );
     }
 }
 

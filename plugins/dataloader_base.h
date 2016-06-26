@@ -18,8 +18,6 @@ public:
 
     virtual const std::vector<const char*>& compatibleFileExtensions() const = 0;
     virtual PlotDataMap readDataFromFile(const std::string& file_name,
-                                      std::function<void(int)> updateCompletion,
-                                      std::function<bool()> checkInterruption,
                                       std::string& time_index ) = 0;
 
     virtual ~DataLoader() {}
