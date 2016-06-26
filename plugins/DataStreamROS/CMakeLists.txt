@@ -9,15 +9,17 @@ QT5_WRAP_UI ( UI_SRC  ${CMAKE_SOURCE_DIR}/common/selectlistdialog.ui  )
 
 
 SET( SRC
-    dataload_ros.cpp
-    dataload_ros.h
+    datastream_ROS.cpp
+    datastream_ROS.h
+    ../datastreamer_base.h
     ${CMAKE_SOURCE_DIR}/common/selectlistdialog.h
     )
 
-add_library(DataLoadROS SHARED ${SRC} ${UI_SRC}  )
+
+add_library(DataStreamROS SHARED ${SRC} ${UI_SRC}  )
 
 
-target_link_libraries(DataLoadROS  RosTypeParser
+target_link_libraries(DataStreamROS  RosTypeParser
     ${Qt5Widgets_LIBRARIES}
     ${ROS_DIRECTORY}/lib/libroscpp.so
     ${ROS_DIRECTORY}/lib/librosbag.so
@@ -26,4 +28,4 @@ target_link_libraries(DataLoadROS  RosTypeParser
     ${ROS_DIRECTORY}/lib/libroscpp_serialization.so
     )
 
-INSTALL(TARGETS DataLoadROS DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
+INSTALL(TARGETS DataStreamROS DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )

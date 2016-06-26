@@ -1,12 +1,12 @@
-#ifndef DATASTREAM_SAMPLE_CSV_H
-#define DATASTREAM_SAMPLE_CSV_H
+#ifndef DATASTREAM_ROS_TOPIC_H
+#define DATASTREAM_ROS_TOPIC_H
 
 #include <QtPlugin>
 #include <thread>
 #include "../datastreamer_base.h"
 
 
-class  DataStreamSample: public QObject, DataStreamer
+class  DataStreamROS: public QObject, DataStreamer
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "com.icarustechnology.Superplotter.DataStreamer" "../datastreamer.json")
@@ -14,9 +14,9 @@ class  DataStreamSample: public QObject, DataStreamer
 
 public:
 
-    DataStreamSample();
+    DataStreamROS();
 
-    virtual PlotDataMap& getDataMap() { return _plot_data; }
+    virtual PlotDataMap &getDataMap();
 
     virtual bool launch();
 
@@ -24,7 +24,7 @@ public:
 
     virtual bool isStreamingEnabled() const;
 
-    virtual ~DataStreamSample();
+    virtual ~DataStreamROS();
 
     virtual const char* name();
 
@@ -33,16 +33,13 @@ private:
     void update();
 
     PlotDataMap _plot_data;
-    bool _enabled;
 
-    std::thread _thread;
+    bool _enabled;
 
     bool _running;
 
-    std::vector<double> vect_A;
-    std::vector<double> vect_B;
-    std::vector<double> vect_C;
-    std::vector<double> vect_D;
+    std::thread _thread;
+
 
 };
 

@@ -125,6 +125,8 @@ private:
     std::vector<StatePublisher*>  state_publisher;
     std::vector<DataStreamer*>    data_streamer;
 
+    DataStreamer* _current_streamer;
+
     QDomDocument xmlSaveState();
     bool xmlLoadState(QDomDocument state_document);
 

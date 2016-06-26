@@ -32,10 +32,20 @@ DataStreamSample::DataStreamSample()
         plot->setMaximumRangeX( 4.0 );
         _plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
-
-    _thread = std::thread([this](){ this->update();} );
     _enabled = false;
 }
+
+bool DataStreamSample::launch()
+{
+    _thread = std::thread([this](){ this->update();} );
+    return true;
+}
+
+void DataStreamSample::enableStreaming(bool enable) { _enabled = enable; }
+
+bool DataStreamSample::isStreamingEnabled() const { return _enabled; }
+
+DataStreamSample::~DataStreamSample() { _running = false; _thread.join(); }
 
 const char*  DataStreamSample::name()
 {
