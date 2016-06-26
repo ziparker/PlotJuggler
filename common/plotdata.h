@@ -145,7 +145,7 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
         Time delta = rangeX / (Time)(sizeX - 1);
         size_t new_capacity = (size_t)( _max_range_X / delta);
 
-        if( abs( new_capacity - capacity) > (capacity*1)/100 )
+        if( abs( new_capacity - capacity) > (capacity*1)/100 ) // apply changes only if new capacity is > 1%
         {
             while( _x_points.size() > new_capacity)
             {

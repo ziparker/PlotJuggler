@@ -27,6 +27,8 @@ private slots:
 
     void on_pushButtonSelectAll_pressed();
 
+    void on_listFieldsWidget_clicked(const QModelIndex &index);
+
 private:
     Ui::SelectXAxisDialog *ui;
     std::vector<int> _selected_row_number;
@@ -65,6 +67,12 @@ inline SelectFromListDialog::~SelectFromListDialog()
 inline std::vector<int> SelectFromListDialog::getSelectedRowNumber() const
 {
     return _selected_row_number;
+}
+
+inline void SelectFromListDialog::on_listFieldsWidget_clicked(const QModelIndex &index)
+{
+    QModelIndexList indexes = ui->listFieldsWidget->selectionModel()->selectedIndexes();
+    ui->buttonBox->setEnabled( indexes.empty() == false );
 }
 
 inline void SelectFromListDialog::on_buttonBox_accepted()
