@@ -57,10 +57,14 @@ void DataStreamSample::update()
 {
     static auto prev_time = std::chrono::high_resolution_clock::now();
 
+    double t = 0;
+
     _running = true;
     while( _running )
     {
         int index=0;
+
+        t+= 0.01;
 
         for (auto& it: _plot_data.numeric )
         {
@@ -70,12 +74,7 @@ void DataStreamSample::update()
             float D =  vect_D[index];
             index++;
 
-            double t = 0;
-
             auto& plot = it.second;
-
-            if( plot->size() > 0)
-                t = plot->getRangeX().max + 0.01;
 
             double y =  A*sin(B*t + C) +D*t*0.02;
 

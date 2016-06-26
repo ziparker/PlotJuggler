@@ -30,6 +30,11 @@ PlotDataMap& DataStreamROS::getDataMap()
 
 void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg, const std::string &topic_name)
 {
+    if( !_running ||  !_enabled)
+    {
+        return;
+    }
+
     using namespace RosTypeParser;
 
     static std::set<std::string> registered_type;
@@ -45,7 +50,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     }
 
     //------------------------------------
-    uint8_t buffer[1024*16];
+    uint8_t buffer[1024*64]; // "64 KB ought to be enough for anybody"
     double msg_time = (ros::Time::now() - _initial_time).toSec();
 
     RosTypeFlat flat_container;
@@ -101,7 +106,7 @@ void DataStreamROS::extractInitialSamples()
     using namespace std::chrono;
     auto start_time = system_clock::now();
 
-
+    _enabled = true;
     while ( system_clock::now() - start_time < seconds(wait_time) )
     {
         ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.1));
@@ -113,6 +118,8 @@ void DataStreamROS::extractInitialSamples()
             break;
         }
     }
+    _enabled = false;
+
     if( progress_dialog.wasCanceled() == false )
     {
         progress_dialog.cancel();
@@ -188,9 +195,10 @@ bool DataStreamROS::launch()
         _subscribers.push_back( _node->subscribe( topic_name, 1000,  callback)  );
     }
 
+    _running = true;
+
     extractInitialSamples();
 
-    _running = true;
     _thread = std::thread([this](){ this->update();} );
 
     return true;
