@@ -104,8 +104,8 @@ void MainWindow::getMaximumRangeX(double* minX, double* maxX)
             PlotWidget *plot =  matrix->plotAt(w);
             auto rangeX = plot->maximumRangeX();
 
-            if( *minX > rangeX.second )  *minX = rangeX.second ;
-            if( *maxX < rangeX.first )   *maxX = rangeX.first;
+            if( *minX > rangeX.first )    *minX = rangeX.first ;
+            if( *maxX < rangeX.second )   *maxX = rangeX.second;
         }
     }
 }
@@ -1117,7 +1117,6 @@ void MainWindow::onReplotRequested()
         TabbedPlotWidget* area = _tabbed_plotarea[i];
         PlotMatrix* matrix =  area->currentTab() ;
         matrix->maximumZoomOut(); // includes replot
-        //matrix->replot();
     }
 
     if( ui->pushButtonStreaming->isChecked())
