@@ -26,30 +26,17 @@ QPointF PlotDataQwt::sample(size_t i) const
 
 QRectF PlotDataQwt::boundingRect() const
 {
-    qDebug() << "boundingRect";
-
+    qDebug() << "boundingRect not implemented";
     return QRectF(0,0,1,1);
-    /*double x_min = _x_points->at( _index_first );
-    double x_max = _x_points->at( _index_last );
-
-    double y_min = std::numeric_limits<double>::max();
-    double y_max = std::numeric_limits<double>::min();
-
-    for (size_t i=_index_first; i<= _index_last; i += _subsample )
-    {
-        double Y = _y_points->at(i);
-        if( Y < y_min ) y_min = Y;
-        if( Y > y_max ) y_max = Y;
-    }
-
-    return QRectF (  x_min,  y_min,  x_max - x_min,  y_max - y_min );*/
 }
 
-QRectF PlotDataQwt::maximumBoundingRect()
+QRectF PlotDataQwt::maximumBoundingRect(double min_X, double max_X)
 {
+    size_t x1 = _plot_data->getIndexFromX( min_X );
+    size_t x2 = _plot_data->getIndexFromX( max_X );
 
     auto range_X = _plot_data->getRangeX();
-    auto range_Y = _plot_data->getRangeY();
+    auto range_Y = _plot_data->getRangeY( x1, x2  );
 
     QRectF rect ( range_X.min, range_Y.min,
                   range_X.max - range_X.min,

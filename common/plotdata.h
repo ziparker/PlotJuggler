@@ -68,7 +68,8 @@ public:
 
     RangeTime getRangeX();
 
-    RangeValue getRangeY();
+    RangeValue getRangeY(size_t first_index = 0,
+                         size_t last_index = std::numeric_limits<size_t>::max() );
 
 protected:
 
@@ -173,7 +174,7 @@ inline size_t PlotDataGeneric<Time, Value>::getIndexFromX(Time x )
     auto lower   = std::lower_bound(_x_points.begin(), _x_points.end(), x );
     size_t index = std::distance( _x_points.begin(), lower);
 
-    if( index <0 || index >= size())
+    if( index <0 || index >= _x_points.size() )
     {
         return -1;
     }
@@ -256,15 +257,20 @@ PlotDataGeneric<Time, Value>::getRangeX()
 
 
 template< > inline
-typename PlotDataGeneric<float, double>::RangeValue PlotDataGeneric<float, double>::getRangeY()
+typename PlotDataGeneric<float, double>::RangeValue PlotDataGeneric<float, double>::getRangeY(size_t first_index , size_t last_index )
 {
     std::lock_guard<std::mutex> lock(_mutex);
+
     double y_min = std::numeric_limits<double>::max();
     double y_max = std::numeric_limits<double>::min();
 
-    for (size_t i=0; i< _y_points.size(); i++)
+    if( first_index < 0 ) first_index=0;
+    if( last_index  < 0 || last_index  > _y_points.size() )  last_index  = _y_points.size() ;
+
+    for (size_t i=first_index; i < std::min(last_index, _y_points.size()); i++)
     {
         double Y = _y_points.at(i);
+
         if( Y < y_min ) y_min = Y;
         if( Y > y_max ) y_max = Y;
     }

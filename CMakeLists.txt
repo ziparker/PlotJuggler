@@ -38,9 +38,14 @@ add_subdirectory( qwt/src )
 add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )
-#add_subdirectory( plugins/DataLoadROS )
 add_subdirectory( plugins/DataStreamSample )
 
+
+SET ( ROS_DIRECTORY /opt/ros/indigo/)
+include_directories( ${ROS_DIRECTORY}/include  plugins/ros-type-parser)
+add_subdirectory( plugins/ros-type-parser )
+add_subdirectory( plugins/DataLoadROS )
+add_subdirectory( plugins/DataStreamROS )
 
 
 INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/SuperPlotter )
