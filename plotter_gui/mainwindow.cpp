@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-    // buildData();
+  //   buildData();
     _undo_timer.start();
 
     // save initial state
@@ -102,10 +102,10 @@ void MainWindow::getMaximumRangeX(double* minX, double* maxX)
         for ( unsigned w = 0; w< matrix->plotCount(); w++ )
         {
             PlotWidget *plot =  matrix->plotAt(w);
-            QRectF bound_max = plot->maximumBoundingRect();
+            auto rangeX = plot->maximumRangeX();
 
-            if( *minX > bound_max.left() )    *minX = bound_max.left();
-            if( *maxX < bound_max.right() )   *maxX = bound_max.right();
+            if( *minX > rangeX.first )    *minX = rangeX.first ;
+            if( *maxX < rangeX.second )   *maxX = rangeX.second;
         }
     }
 }
@@ -352,10 +352,10 @@ void MainWindow::buildData()
     foreach( const QString& name, words_list)
     {
 
-        float A =  qrand()/(float)RAND_MAX * 6 - 3;
-        float B =  qrand()/(float)RAND_MAX *3;
-        float C =  qrand()/(float)RAND_MAX *3;
-        float D =  qrand()/(float)RAND_MAX *2 -1;
+        float A =  6* ((float)qrand()/(float)RAND_MAX)  - 3;
+        float B =  3* ((float)qrand()/(float)RAND_MAX)  ;
+        float C =  3* ((float)qrand()/(float)RAND_MAX)  ;
+        float D =  20* ((float)qrand()/(float)RAND_MAX)  ;
 
         PlotDataPtr plot ( new PlotData(  ) );
         plot->setName(  name.toStdString() );
@@ -365,7 +365,7 @@ void MainWindow::buildData()
         for (int indx=0; indx<SIZE; indx++)
         {
             t += 0.001;
-            plot->pushBack( PlotData::Point( t,  A*sin(B*t + C) +D*t*0.02 ) ) ;
+            plot->pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
         }
 
         QColor color = colorHint();
@@ -651,7 +651,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
     onActionLoadDataFileImpl( fileName, false );
 }
 
-void MainWindow::updateMappedData(const PlotDataMap& mapped_data)
+void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
 {
     _mapped_plot_data.user_defined.clear();
 
@@ -750,7 +750,7 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
         _last_time_index_name = timeindex_name;
 
         // remap to different type
-        updateMappedData(mapped_data);
+        importPlotDataMap(mapped_data);
     }
     else{
         QMessageBox::warning(this, tr("Error"),
@@ -806,7 +806,7 @@ void MainWindow::onActionLoadStreamer()
     {
         _current_streamer->enableStreaming( false );
         ui->pushButtonStreaming->setEnabled(true);
-        updateMappedData( _current_streamer->getDataMap() );
+        importPlotDataMap( _current_streamer->getDataMap() );
     }
 }
 
@@ -1117,7 +1117,6 @@ void MainWindow::onReplotRequested()
         TabbedPlotWidget* area = _tabbed_plotarea[i];
         PlotMatrix* matrix =  area->currentTab() ;
         matrix->maximumZoomOut(); // includes replot
-        //matrix->replot();
     }
 
     if( ui->pushButtonStreaming->isChecked())

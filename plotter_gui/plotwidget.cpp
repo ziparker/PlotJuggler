@@ -203,14 +203,14 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         _curve_list.insert( std::make_pair(name, curve));
     }
 
-    QRectF bounding = maximumBoundingRect();
-    _magnifier->setAxisLimits( yLeft, bounding.bottom(), bounding.top());
-    _magnifier->setAxisLimits( xBottom, bounding.left(), bounding.right());
+    auto rangeX = maximumRangeX();
+    auto rangeY = maximumRangeY();
+
+    this->setAxisScale(xBottom, rangeX.first, rangeX.second );
+    this->setAxisScale(yLeft,   rangeY.first, rangeY.second );
 
     if( do_replot )
     {
-        this->setAxisScale(yLeft,   bounding.bottom(), bounding.top() );
-        this->setAxisScale(xBottom, bounding.left(), bounding.right() );
         replot();
     }
     return true;
@@ -455,41 +455,68 @@ void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
     QwtPlot::setAxisScale( axisId, min, max, step);
 }
 
-QRectF PlotWidget::maximumBoundingRect()
+std::pair<float,float> PlotWidget::maximumRangeX()
 {
-    float left   = std::numeric_limits<float>::max();
-    float right  = std::numeric_limits<float>::min();
-
-    float bottom = std::numeric_limits<float>::max();
-    float top    = std::numeric_limits<float>::min();
+    float left   = std::numeric_limits<double>::max();
+    float right  = std::numeric_limits<double>::min();
 
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
-        QRectF bounding_rect = data->maximumBoundingRect();
+        auto range_X = data->plot()->getRangeX();
 
-        if( bottom > bounding_rect.top() )    bottom = bounding_rect.top();
-        if( top < bounding_rect.bottom() )    top = bounding_rect.bottom();
-
-        if( left > bounding_rect.left() )    left = bounding_rect.left();
-        if( right < bounding_rect.right() ) right = bounding_rect.right();
+        if( left  > range_X.min )    left  = range_X.min;
+        if( right < range_X.max )    right = range_X.max;
     }
 
-    QRectF max_bounding;
-
-    if( fabs(top-bottom) < 1e-10  )
+    /* if( fabs(top-bottom) < 1e-10  )
     {
         max_bounding = QRectF(left, top+0.01,  right - left, -0.02 ) ;
     }
     else{
         double height = bottom - top;
         max_bounding = QRectF(left, top - height*0.05,  right - left, height*1.1 ) ;
+    }*/
+
+    _magnifier->setAxisLimits( xBottom, left, right);
+
+    return std::make_pair( left, right);
+}
+
+std::pair<float,float>  PlotWidget::maximumRangeY(bool current_canvas)
+{
+    float top    = std::numeric_limits<float>::min();
+    float bottom = std::numeric_limits<float>::max();
+
+    for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
+
+        float min_X, max_X;
+        if( current_canvas )
+        {
+            min_X = this->canvasMap( QwtPlot::xBottom ).s1();
+            max_X = this->canvasMap( QwtPlot::xBottom ).s2();
+        }
+        else{
+            auto range_X = maximumRangeX();
+            min_X = range_X.first;
+            max_X = range_X.second;
+        }
+
+        size_t X0 = data->plot()->getIndexFromX( min_X );
+        size_t X1 = data->plot()->getIndexFromX( max_X );
+
+        auto range_Y = data->plot()->getRangeY(X0, X1);
+
+        if( top <    range_Y.max )    top    = range_Y.max;
+        if( bottom > range_Y.min )    bottom = range_Y.min;
     }
 
-    _magnifier->setAxisLimits( yLeft, max_bounding.bottom(), max_bounding.top());
-    _magnifier->setAxisLimits( xBottom, max_bounding.left(), max_bounding.right());
-    return max_bounding;
+    _magnifier->setAxisLimits( yLeft, bottom, top);
+    return std::make_pair( bottom,  top);
 }
+
 
 
 void PlotWidget::replot()
@@ -578,26 +605,27 @@ void PlotWidget::on_externallyResized(QRectF rect)
 
 void PlotWidget::zoomOut()
 {
-    QRectF max = maximumBoundingRect();
-    this->setScale( max );
+    zoomOutHorizontal();
+    zoomOutVertical();
 }
 
 void PlotWidget::zoomOutHorizontal()
 {
     QRectF act = currentBoundingRect();
-    QRectF max = maximumBoundingRect();
-    act.setLeft( max.left() );
-    act.setRight( max.right() );
+    auto rangeX = maximumRangeX();
+
+    act.setLeft( rangeX.first );
+    act.setRight( rangeX.second );
     this->setScale(act);
 }
 
 void PlotWidget::zoomOutVertical()
 {
     QRectF act = currentBoundingRect();
-    QRectF max = maximumBoundingRect();
+    auto rangeY = maximumRangeY( true );
 
-    act.setTop( max.top()  );
-    act.setBottom( max.bottom()  );
+    act.setBottom( rangeY.first );
+    act.setTop( rangeY.second );
     this->setScale(act);
 }
 

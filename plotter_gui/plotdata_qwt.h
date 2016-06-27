@@ -21,7 +21,9 @@ public:
     virtual QPointF sample( size_t i ) const;
     virtual QRectF boundingRect() const;
 
-    QRectF maximumBoundingRect();
+    QRectF maximumBoundingRect(double min_X, double max_X);
+
+    PlotDataPtr plot() { return _plot_data; }
 
     virtual size_t size() const;
 

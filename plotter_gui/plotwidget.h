@@ -37,8 +37,11 @@ public:
     QDomElement xmlSaveState(QDomDocument &doc);
     bool xmlLoadState(QDomElement &element, QMessageBox::StandardButton* answer);
 
-    QRectF maximumBoundingRect();
+    //QRectF maximumBoundingRect();
     QRectF currentBoundingRect();
+
+    std::pair<float,float> maximumRangeX();
+    std::pair<float,float> maximumRangeY(bool current_canvas = false);
 
     CurveTracker* tracker();
 

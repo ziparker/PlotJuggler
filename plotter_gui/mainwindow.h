@@ -81,25 +81,14 @@ private slots:
 
     void onDeleteLoadedData();
 
-
 private:
     Ui::MainWindow *ui;
 
     std::vector<TabbedPlotWidget *> _tabbed_plotarea;
     std::vector<QMainWindow *>      _floating_window;
 
-    /*   QAction* _action_loadRecentFile;
-    QAction* _action_reloadFile;
-    QAction* _action_loadRecentLayout;
-
-    QAction* _action_SaveLayout;
-    QAction* _action_LoadLayout;
-    QAction* _action_LoadData;
-*/
     QAction* _actionUndo;
     QAction* _actionRedo;
-
-    //   QAction* _action_startDataStream;
 
     void createActions();
 
@@ -141,7 +130,7 @@ private:
 
     void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
 
-    void updateMappedData(const PlotDataMap &mapped_data);
+    void importPlotDataMap(const PlotDataMap &mapped_data);
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
