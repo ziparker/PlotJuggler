@@ -4,7 +4,8 @@
 #include <QMessageBox>
 #include "dialog_select_ros_topics.h"
 #include <QDebug>
-
+#include <QApplication>
+#include <QProgressDialog>
 #include "rosbag/view.h"
 #include "ros-type-parser.h"
 
@@ -20,9 +21,7 @@ const std::vector<const char*> &DataLoadROS::compatibleFileExtensions() const
 
 
 PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
-                                          std::function<void(int)> updateCompletion,
-                                          std::function<bool()> checkInterruption,
-                                          std::string &  )
+                                          std::string &time_index_name  )
 {
 
     using namespace RosTypeParser;
@@ -85,6 +84,19 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
         }
     }
 
+    std::vector<SubstitutionRule> rules;
+    rules.push_back( SubstitutionRule("/data.vectors[#].value",      "/data.vectors[#].name",   "#"));
+    rules.push_back( SubstitutionRule("/data.doubles[#].value",      "/data.doubles[#].name",   "#"));
+    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[0]", "/data.vectors3d[#].name", "#.x"));
+    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[1]", "/data.vectors3d[#].name", "#.y"));
+    rules.push_back( SubstitutionRule("/data.vectors3d[#].value[2]", "/data.vectors3d[#].name", "#.z"));
+
+    QProgressDialog progress_dialog;
+    progress_dialog.setLabelText("Loading... please wait");
+    progress_dialog.setWindowModality( Qt::ApplicationModal );
+    progress_dialog.setRange(0, bag_view.size() -1);
+    progress_dialog.show();
+
     for(rosbag::MessageInstance msg: bag_view )
     {
         if( topic_selected.find( msg.getTopic()) == topic_selected.end() )
@@ -96,10 +108,12 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
 
         if( count++ %100 == 0)
         {
-            //  qDebug() << count << " / " << bag_view.size() ;
-            updateCompletion( 100*count / bag_view.size() );
+            progress_dialog.setValue( count );
+            QApplication::processEvents();
 
-            if( checkInterruption() == true ) return PlotDataMap();
+            if( progress_dialog.wasCanceled() ) {
+                return PlotDataMap();
+            }
         }
 
         RosTypeFlat flat_container;

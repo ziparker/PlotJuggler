@@ -33,7 +33,8 @@ public:
     };
 
     enum{
-        MAX_CAPACITY = 1024*1024
+        MAX_CAPACITY = 1024*1024,
+        MIN_CAPACITY = 10
     };
 
     typedef Time    TimeType;
@@ -122,8 +123,8 @@ inline void PlotDataGeneric<Time, Value>::setCapacity(size_t capacity)
     if( capacity > MAX_CAPACITY)
         capacity = MAX_CAPACITY;
 
-    if( capacity < 2)
-        capacity = 2;
+    if( capacity < MIN_CAPACITY)
+        capacity = MIN_CAPACITY;
 
     _x_points.set_capacity( capacity );
     _y_points.set_capacity( capacity );
@@ -135,21 +136,27 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    size_t sizeX = _x_points.size();
+    size_t sizeX    = _x_points.size();
+    size_t capacity = _x_points.capacity();
 
-    if( sizeX > 2 && _max_range_X != std::numeric_limits<Time>::max())
+    if( sizeX >= 2 && capacity >= MIN_CAPACITY && capacity <= MAX_CAPACITY
+          &&  _max_range_X != std::numeric_limits<Time>::max())
     {
         Time rangeX = _x_points.back() - _x_points.front();
         Time delta = rangeX / (Time)(sizeX - 1);
         size_t new_capacity = (size_t)( _max_range_X / delta);
 
-        if( abs( new_capacity - sizeX) > 2 )
+        if( abs( new_capacity - capacity) > (capacity*1)/100 ) // apply changes only if new capacity is > 1%
         {
             while( _x_points.size() > new_capacity)
             {
                 _x_points.pop_front();
                 _y_points.pop_front();
             }
+
+            if( new_capacity > MAX_CAPACITY) new_capacity = MAX_CAPACITY;
+            if( new_capacity < MIN_CAPACITY) new_capacity = MIN_CAPACITY;
+
             _x_points.set_capacity( new_capacity );
             _y_points.set_capacity( new_capacity );
         }

@@ -208,15 +208,61 @@ void buildRosFlatType(const RosTypeMap& type_map,
     if( type.compare( "float64") == 0 )
     {
         deserializeAndStore = [&](const String& key){
-            double value = ReadFromBufferAndMoveForward<double>(buffer_ptr);
-            flat_container->value[key ] = value;
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<double>(buffer_ptr);
+        };
+    }
+    else if( type.compare( "float32") == 0 )
+    {
+        deserializeAndStore = [&](const String& key){
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<float>(buffer_ptr);
+        };
+    }
+    else if( type.compare( "uint64") == 0 )
+    {
+        deserializeAndStore = [&](const String& key){
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<uint64_t>(buffer_ptr);
+        };
+    }
+    else if( type.compare( "int64") == 0 )
+    {
+        deserializeAndStore = [&](const String& key){
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<int64_t>(buffer_ptr);
         };
     }
     else if( type.compare( "uint32") == 0 )
     {
         deserializeAndStore = [&](const String& key){
-            double value = (double)ReadFromBufferAndMoveForward<uint32_t>(buffer_ptr);
-            flat_container->value[key ] = value;
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<uint32_t>(buffer_ptr);
+        };
+    }
+    else if( type.compare( "int32") == 0 )
+    {
+        deserializeAndStore = [&](const String& key){
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<int32_t>(buffer_ptr);
+        };
+    }
+    else if( type.compare( "uint16") == 0 )
+    {
+        deserializeAndStore = [&](const String& key){
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<uint16_t>(buffer_ptr);
+        };
+    }
+    else if( type.compare( "int16") == 0 )
+    {
+        deserializeAndStore = [&](const String& key){
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<int16_t>(buffer_ptr);
+        };
+    }
+    else if( type.compare( "uint8") == 0 )
+    {
+        deserializeAndStore = [&](const String& key){
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<uint8_t>(buffer_ptr);
+        };
+    }
+    else if( type.compare( "int8") == 0 )
+    {
+        deserializeAndStore = [&](const String& key){
+            flat_container->value[key ] = (double) ReadFromBufferAndMoveForward<int8_t>(buffer_ptr);
         };
     }
     else if( type.compare("time") == 0 )

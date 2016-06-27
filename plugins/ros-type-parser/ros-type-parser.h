@@ -73,6 +73,8 @@ private:
 
 };
 
+typedef std::map<std::string, SubstitutionRule> SubstitutionRuleSet;
+
 void applyNameTransform(const std::vector<SubstitutionRule> &rules,
                          RosTypeFlat* container);
 

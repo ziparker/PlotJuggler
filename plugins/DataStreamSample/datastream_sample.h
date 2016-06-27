@@ -18,12 +18,13 @@ public:
 
     virtual PlotDataMap& getDataMap() { return _plot_data; }
 
-    virtual void enableStreaming(bool enable) { _enabled = enable; }
+    virtual bool launch();
 
-    virtual bool isStreamingEnabled() const { return _enabled; }
+    virtual void enableStreaming(bool enable);
 
+    virtual bool isStreamingEnabled() const;
 
-    virtual ~DataStreamSample() { _running = false; _thread.join(); }
+    virtual ~DataStreamSample();
 
     virtual const char* name();
 

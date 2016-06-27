@@ -736,18 +736,6 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
         ui->actionReloadData->setEnabled( true );
         ui->actionDeleteAllData->setEnabled( true );
 
-        BusyTaskDialog* busy = new BusyTaskDialog("Loading file");
-        busy->show();
-        using namespace std::placeholders;
-
-
-        auto refresh_pointer =  [busy](int value) {
-            busy->setValue(value);
-            QApplication::processEvents();
-        };
-
-        auto cancel_pointer = [busy]() { return busy->wasCanceled(); };
-
         std::string timeindex_name_empty;
         std::string & timeindex_name = timeindex_name_empty;
         if( reuse_last_timeindex )
@@ -757,12 +745,9 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
 
         PlotDataMap mapped_data = loader->readDataFromFile(
                     fileName.toStdString(),
-                    refresh_pointer,
-                    cancel_pointer,
                     timeindex_name   );
 
         _last_time_index_name = timeindex_name;
-        busy->close();
 
         // remap to different type
         updateMappedData(mapped_data);
@@ -796,7 +781,6 @@ void MainWindow::onActionLoadStreamer()
         qDebug() << "Error, no streamer loaded";
         return;
     }
-    DataStreamer* streamer = data_streamer[0];
 
     if( data_streamer.size() > 1)
     {
@@ -810,15 +794,20 @@ void MainWindow::onActionLoadStreamer()
         int index = dialog.getSelectedRowNumber().at(0) ;
         if( index >= 0)
         {
-            streamer = data_streamer[index];
+            _current_streamer = data_streamer[index];
         }
     }
 
-    streamer->enableStreaming( false );
-    ui->pushButtonStreaming->setEnabled(true);
+    if( data_streamer.size() == 1){
+        _current_streamer = data_streamer[0];
+    }
 
-    updateMappedData( streamer->getDataMap() );
-
+    if( _current_streamer && _current_streamer->launch() )
+    {
+        _current_streamer->enableStreaming( false );
+        ui->pushButtonStreaming->setEnabled(true);
+        updateMappedData( _current_streamer->getDataMap() );
+    }
 }
 
 void MainWindow::onActionLoadLayout(bool reload_previous)
@@ -1077,27 +1066,23 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 
 void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 {
+    if( ! _current_streamer )
+    {
+        checked = false;
+    }
+
     if( checked )
-        ui->pushButtonStreaming->setText("Streaming ON");
-    else
-        ui->pushButtonStreaming->setText("Streaming OFF");
-
-    //TODO fixme
-    auto streamer = this->data_streamer[0];
-    streamer->enableStreaming( checked ) ;
-    _replot_timer->setSingleShot(true);
-    _replot_timer->start( 5 );
-
-    if ( !checked )
-        ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-    else
+    {
         ui->horizontalSpacer->changeSize(1,1, QSizePolicy::Expanding, QSizePolicy::Fixed);
-
+        ui->pushButtonStreaming->setText("Streaming ON");
+    }
+    else{
+        ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
+        ui->pushButtonStreaming->setText("Streaming OFF");
+    }
     ui->streamingLabel->setHidden( !checked );
     ui->streamingSpinBox->setHidden( !checked );
     ui->horizontalSlider->setHidden( checked );
-
-    this->repaint();
 
     for(unsigned i=0; i< _tabbed_plotarea.size(); i++)
     {
@@ -1109,10 +1094,19 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
     {
         PlotMatrix* matrix = _plot_matrix_list[i];
 
-        if( checked == false)
+        if( !checked )
             matrix->setActiveTracker( ui->pushButtonActivateTracker->isChecked());
         else
             matrix->setActiveTracker( false );
+    }
+
+    this->repaint();
+
+    if( _current_streamer )
+    {
+        _current_streamer->enableStreaming( checked ) ;
+        _replot_timer->setSingleShot(true);
+        _replot_timer->start( 5 );
     }
 }
 
@@ -1130,7 +1124,7 @@ void MainWindow::onReplotRequested()
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
-        _replot_timer->start( 5 );
+        _replot_timer->start( 40 );
     }
 }
 

@@ -17,16 +17,12 @@ public:
     virtual const std::vector<const char*>& compatibleFileExtensions() const ;
 
     virtual PlotDataMap readDataFromFile(const std::string& file_name,
-                                         std::function<void(int)> updateCompletion,
-                                         std::function<bool()> checkInterruption,
                                          std::string &time_index_name  );
 
     virtual ~DataLoadCSV();
 
 protected:
-    int parseHeader(QFile *file,
-                    std::vector<std::pair<bool, QString> > &ordered_names,
-                    std::function<void(int)> updateCompletion);
+    int parseHeader(QFile *file, std::vector<std::pair<bool, QString> > &ordered_names);
 
 private:
     std::vector<const char*> _extensions;

@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include "selectlistdialog.h"
 #include <QDebug>
+#include <QProgressDialog>
 
 DataLoadCSV::DataLoadCSV()
 {
@@ -16,8 +17,7 @@ const std::vector<const char*> &DataLoadCSV::compatibleFileExtensions() const
 }
 
 int DataLoadCSV::parseHeader(QFile *file,
-                             std::vector<std::pair<bool,QString> >& ordered_names,
-                             std::function<void(int)> updateCompletion)
+                             std::vector<std::pair<bool,QString> >& ordered_names)
 {
     QTextStream inA(file);
 
@@ -87,18 +87,12 @@ int DataLoadCSV::parseHeader(QFile *file,
     {
         inA.readLine();
         linecount++;
-        if(linecount%100 == 0)
-        {
-            updateCompletion(0);
-        }
     }
 
     return linecount;
 }
 
 PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
-                                          std::function<void(int)> updateCompletion,
-                                          std::function<bool()> checkInterruption,
                                           std::string& time_index_name )
 {
     int time_index = TIME_INDEX_NOT_DEFINED;
@@ -110,7 +104,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
 
     std::vector<std::pair<bool, QString> > ordered_names;
 
-    int linecount = parseHeader( &file, ordered_names, updateCompletion);
+    int linecount = parseHeader( &file, ordered_names);
 
     file.close();
     file.open(QFile::ReadOnly);
@@ -122,6 +116,14 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
 
     int tot_lines = linecount -1;
     linecount = 0;
+
+    QProgressDialog progress_dialog;
+    progress_dialog.setLabelText("Loading... please wait");
+    progress_dialog.setWindowModality( Qt::ApplicationModal );
+    progress_dialog.setRange(0, tot_lines -1);
+    progress_dialog.setAutoClose( true );
+    progress_dialog.setAutoReset( true );
+    progress_dialog.show();
 
     double prev_time = -1;
     bool first_line = true;
@@ -214,11 +216,11 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
             }
 
             if(linecount++ %100 == 0)
-            {
-                updateCompletion( (100* linecount) / tot_lines );
-                interrupted = checkInterruption();
-                if( interrupted )
-                {
+            { 
+                progress_dialog.setValue( linecount );
+                QApplication::processEvents();
+                if( progress_dialog.wasCanceled() ) {
+                    interrupted = true;
                     break;
                 }
             }
@@ -228,9 +230,9 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
 
     if(interrupted)
     {
+        progress_dialog.cancel();
         plot_data.numeric.erase( plot_data.numeric.begin(), plot_data.numeric.end() );
     }
-
 
     return plot_data;
 }

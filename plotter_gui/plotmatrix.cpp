@@ -355,6 +355,7 @@ void PlotMatrix::removeAllCurves()
     {
         PlotWidget *plot = plotAt(i);
         plot->detachAllCurves();
+        plot->replot();
     }
 }
 
