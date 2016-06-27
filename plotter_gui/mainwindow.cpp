@@ -651,7 +651,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
     onActionLoadDataFileImpl( fileName, false );
 }
 
-void MainWindow::updateMappedData(const PlotDataMap& mapped_data)
+void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
 {
     _mapped_plot_data.user_defined.clear();
 
@@ -750,7 +750,7 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
         _last_time_index_name = timeindex_name;
 
         // remap to different type
-        updateMappedData(mapped_data);
+        importPlotDataMap(mapped_data);
     }
     else{
         QMessageBox::warning(this, tr("Error"),
@@ -806,7 +806,7 @@ void MainWindow::onActionLoadStreamer()
     {
         _current_streamer->enableStreaming( false );
         ui->pushButtonStreaming->setEnabled(true);
-        updateMappedData( _current_streamer->getDataMap() );
+        importPlotDataMap( _current_streamer->getDataMap() );
     }
 }
 
