@@ -88,8 +88,8 @@ void RosTopicSelector::on_buttonDisconnect_pressed()
 
 void RosTopicSelector::on_checkBoxEnvironmentSettings_toggled(bool checked)
 {
-    ui->lineEditMasterURI->setReadOnly( !checked );
-    ui->lineEditHostIP->setReadOnly( !checked );
+    ui->lineEditMasterURI->setEnabled( !checked );
+    ui->lineEditHostIP->setEnabled( !checked );
 }
 
 void RosTopicSelector::on_listTopics_itemSelectionChanged()
