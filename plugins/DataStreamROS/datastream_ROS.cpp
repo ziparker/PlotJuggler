@@ -7,18 +7,16 @@
 #include <mutex>
 #include <chrono>
 #include <thread>
-#include <ros/ros.h>
-#include <ros/master.h>
 #include <QProgressDialog>
 #include <QtGlobal>
-#include "selectlistdialog.h"
+#include "rostopicselector.h"
 #include <ros/callback_queue.h>
-
+#include <QApplication>
 
 DataStreamROS::DataStreamROS()
 {
-    //  _thread = std::thread([this](){ this->update();} );
     _enabled = false;
+    _running = false;
 }
 
 PlotDataMap& DataStreamROS::getDataMap()
@@ -66,7 +64,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     buildRosFlatType( _ros_type_map, datatype, topicname, &buffer_ptr,  &flat_container);
     applyNameTransform( rules, &flat_container );
 
-   // qDebug() << " pushing " << msg_time;
+    // qDebug() << " pushing " << msg_time;
 
     for(auto& it: flat_container.value_renamed )
     {
@@ -124,73 +122,41 @@ void DataStreamROS::extractInitialSamples()
     }
 }
 
-bool DataStreamROS::rosInit()
-{
-    int argc = 0;
-    char **argv = NULL;
-
-    if( qgetenv("ROS_MASTER_URI").isEmpty() )
-    {
-        QMessageBox msgBox;
-        msgBox.setText("ROS_MASTER_URI is not defined in the environment.\n"
-                       "Either type the following or (preferrably) add this to your ~/.bashrc \n"
-                       "file in order set up your local machine as a ROS master:\n\n"
-                       "    export ROS_MASTER_URI=http://localhost:11311\n\n"
-                       "Then, type 'roscore' in another shell to actually launch the master program.");
-        msgBox.exec();
-        return false;
-    }
-
-    try{
-        ros::init(argc, argv, "superplotter_ros_streamer", ros::init_options::NoSigintHandler);
-
-        if( !ros::master::check() )
-        {
-            QMessageBox msgBox;
-            msgBox.setText("ROS master is not running. Aborting.");
-            msgBox.exec();
-            return false;
-        }
-    }
-    catch(...)
-    {
-        return false;
-    }
-    return true;
-}
 
 bool DataStreamROS::launch()
 {
-    if( ! rosInit() ) return false;
-
-    ros::master::V_TopicInfo topic_infos;
-    ros::master::getTopics(topic_infos);
-
-    QStringList topic_advertised;
-
-    for (ros::master::TopicInfo topic_info: topic_infos)
+    if( _running )
     {
-        topic_advertised.append( QString( topic_info.name.c_str() )  );
+        _plot_data.numeric.clear();
+        _running = false;
+        if(ros::isStarted())
+        {
+            ros::shutdown(); // explicitly needed since we use ros::start();
+            ros::waitForShutdown();
+        }
+        _thread.join();
     }
 
-    SelectFromListDialog dialog( &topic_advertised, false, 0 );
+    RosTopicSelector dialog( 0 );
     int res = dialog.exec();
 
-    auto indexes = dialog.getSelectedRowNumber();
+    QStringList topic_selected = dialog.getSelectedTopicsList();
 
-    if( res != QDialog::Accepted )
+    if( res != QDialog::Accepted || topic_selected.empty() )
     {
         return false;
     }
 
-    _node = std::unique_ptr<ros::NodeHandle> ( new  ros::NodeHandle() );
+    ros::start(); // needed because node will go out of scope
+    ros::NodeHandle node;
 
-    for (int i=0; i<indexes.size(); i++ )
+    _subscribers.clear();
+    for (int i=0; i<topic_selected.size(); i++ )
     {
-        std::string topic_name =  topic_advertised.at( indexes[i] ).toStdString();
+        auto topic_name = topic_selected.at(i).toStdString();
         boost::function<void(const topic_tools::ShapeShifter::ConstPtr&) > callback;
         callback = boost::bind( &DataStreamROS::topicCallback, this, _1, topic_name ) ;
-        _subscribers.push_back( _node->subscribe( topic_name, 1000,  callback)  );
+        _subscribers.push_back( node.subscribe( topic_name, 1000,  callback)  );
     }
 
     _running = true;
@@ -206,7 +172,19 @@ void DataStreamROS::enableStreaming(bool enable) { _enabled = enable; }
 
 bool DataStreamROS::isStreamingEnabled() const { return _enabled; }
 
-DataStreamROS::~DataStreamROS() { _running = false; _thread.join(); }
+DataStreamROS::~DataStreamROS()
+{
+    _subscribers.clear();
+    _running = false;
+
+    if(ros::isStarted())
+    {
+        ros::shutdown(); // explicitly needed since we use ros::start();
+        ros::waitForShutdown();
+    }
+
+    _thread.join();
+}
 
 const char*  DataStreamROS::name()
 {

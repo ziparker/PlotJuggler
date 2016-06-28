@@ -5,14 +5,15 @@ add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 
-QT5_WRAP_UI ( UI_SRC  ${CMAKE_SOURCE_DIR}/common/selectlistdialog.ui  )
+QT5_WRAP_UI ( UI_SRC  rostopicselector.ui  )
 
 
 SET( SRC
     datastream_ROS.cpp
     datastream_ROS.h
     ../datastreamer_base.h
-    ${CMAKE_SOURCE_DIR}/common/selectlistdialog.h
+    rostopicselector.h
+    rostopicselector.cpp
     )
 
 

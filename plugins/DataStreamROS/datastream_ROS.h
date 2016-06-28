@@ -31,9 +31,7 @@ public:
 
 private:
 
-    bool rosInit();
-
-    void topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg, const std::string& topic_name);
+    void topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg, const std::string &topic_name);
 
     void update();
 
@@ -53,7 +51,7 @@ private:
 
     std::vector<ros::Subscriber> _subscribers;
 
-    std::unique_ptr<ros::NodeHandle> _node;
+  //  std::unique_ptr<ros::NodeHandle> _node;
 
 };
 
