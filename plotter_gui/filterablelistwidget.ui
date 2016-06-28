@@ -241,6 +241,16 @@
       </layout>
      </item>
      <item>
+      <widget class="QLabel" name="labelNumberDisplayed">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QListWidget" name="listWidget">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">

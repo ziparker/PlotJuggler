@@ -31,6 +31,34 @@ FilterableListWidget::~FilterableListWidget()
     delete ui;
 }
 
+int FilterableListWidget::count() const
+{
+    return ui->listWidget->count();
+}
+
+void FilterableListWidget::clear()
+{
+    list()->clear();
+    ui->labelNumberDisplayed->setText( "0 of 0");
+}
+
+void FilterableListWidget::addItem(QListWidgetItem *item)
+{
+    list()->addItem(item);
+    on_lineEdit_textChanged( ui->lineEdit->text() );
+}
+
+void FilterableListWidget::addItems(const QStringList &index_list)
+{
+    list()->addItems(index_list);
+    on_lineEdit_textChanged( ui->lineEdit->text() );
+}
+
+QList<QListWidgetItem *> FilterableListWidget::findItems(const QString &text)
+{
+    return list()->findItems( text, Qt::MatchExactly);
+}
+
 QListWidget *FilterableListWidget::list()
 {
     return ui->listWidget;
@@ -80,6 +108,9 @@ void FilterableListWidget::on_radioFlatView_toggled(bool checked)
 
 void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
 {
+    int item_count = ui->listWidget->count();
+    int visible_count = 0;
+
     Qt::CaseSensitivity cs = Qt::CaseInsensitive;
     if( ui->checkBoxCaseSensitive->isChecked())
     {
@@ -107,9 +138,11 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
                 }
             }
         }
+        if( !toHide ) visible_count++;
 
         item->setHidden( toHide );
     }
+    ui->labelNumberDisplayed->setText( QString::number( visible_count ) + QString(" of ") + QString::number( item_count ) )   ;
 }
 
 void FilterableListWidget::on_pushButtonSettings_toggled(bool checked)

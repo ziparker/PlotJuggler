@@ -17,8 +17,16 @@ public:
     explicit FilterableListWidget(QWidget *parent = 0);
     ~FilterableListWidget();
 
-    QListWidget* list();
+    //
+    int count() const;
 
+    void clear();
+
+    void addItem(QListWidgetItem* item);
+
+    void addItems(const QStringList& index_list);
+
+     QList<QListWidgetItem*> findItems(const QString& text);
 
 private slots:
 
@@ -38,6 +46,8 @@ private slots:
 
 private:
     Ui::FilterableListWidget *ui;
+
+    QListWidget* list();
 };
 
 #endif // CURVE_SELECTOR_H

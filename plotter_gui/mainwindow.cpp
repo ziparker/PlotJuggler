@@ -346,7 +346,7 @@ void MainWindow::buildData()
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
                << "mai" << "nessun" << "ci" << "dividera";
 
-    curvelist_widget->list()->addItems( words_list );
+    curvelist_widget->addItems( words_list );
 
 
     foreach( const QString& name, words_list)
@@ -386,7 +386,7 @@ void MainWindow::mousePressEvent(QMouseEvent *)
 void MainWindow::onSplitterMoved(int , int )
 {
     QList<int> sizes = ui->splitter->sizes();
-    int maxLeftWidth = curvelist_widget->list()->maximumWidth();
+    int maxLeftWidth = curvelist_widget->maximumWidth();
     int totalWidth = sizes[0] + sizes[1];
 
     if( sizes[0] > maxLeftWidth)
@@ -537,7 +537,7 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
         return;
     }
 
-    auto items_to_remove = curvelist_widget->list()->findItems( curve_name, Qt::MatchExactly );
+    auto items_to_remove = curvelist_widget->findItems( curve_name );
     qDeleteAll( items_to_remove );
 
     for (int i = 0; i < _tabbed_plotarea.size(); i++)
@@ -557,7 +557,7 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
     }
     _mapped_plot_data.numeric.erase( plot_data );
 
-    if( curvelist_widget->list()->count() == 0)
+    if( curvelist_widget->count() == 0)
     {
         ui->actionReloadData->setEnabled( false );
         ui->actionDeleteAllData->setEnabled( false );
@@ -579,7 +579,7 @@ void MainWindow::onDeleteLoadedData()
     _mapped_plot_data.numeric.clear();
     _mapped_plot_data.user_defined.clear();
 
-    curvelist_widget->list()->clear();
+    curvelist_widget->clear();
 
     for (int i = 0; i < _tabbed_plotarea.size(); i++)
     {
@@ -672,7 +672,7 @@ void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
         {
             QColor color = colorHint();
             plot->setColorHint( color.red(), color.green(), color.blue() );
-            curvelist_widget->list()->addItem( new QListWidgetItem( qname ) );
+            curvelist_widget->addItem( new QListWidgetItem( qname ) );
         }
 
         _mapped_plot_data.numeric[name] = plot;
