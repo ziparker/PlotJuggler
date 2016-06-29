@@ -43,7 +43,7 @@ public slots:
 
 private slots:
 
-    void renameCurrentTab();
+    void on_renameCurrentTab();
 
     void on_pushAddColumn_pressed();
 
@@ -65,7 +65,7 @@ private slots:
 
     void on_requestTabMovement(const QString &destination_name);
 
-    void moveTabIntoNewWindow();
+    void on_moveTabIntoNewWindow();
 
     void on_pushButtonShowLabel_toggled(bool checked);
 

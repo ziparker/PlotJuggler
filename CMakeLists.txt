@@ -41,7 +41,7 @@ add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataStreamSample )
 
 
-SET ( ROS_DIRECTORY /opt/ros/indigo/)
+SET ( ROS_DIRECTORY /opt/ros/kinetic/)
 include_directories( ${ROS_DIRECTORY}/include  plugins/ros-type-parser)
 
 add_subdirectory( plugins/ros-type-parser )

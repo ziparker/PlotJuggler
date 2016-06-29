@@ -34,7 +34,7 @@ private:
     std::map<QString, QColor>  _prev_colors;
     std::map<QString, QColor>* _colors_ptr;
 
-    color_widgets::ColorWheel *color_wheel;
+    color_widgets::ColorWheel   *color_wheel;
     color_widgets::ColorPreview *color_preview;
 };
 

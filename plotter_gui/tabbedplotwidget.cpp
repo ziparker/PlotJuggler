@@ -39,7 +39,7 @@ void TabbedPlotWidget::init()
 
     _action_renameTab = new QAction(tr("Rename tab"), this);
 
-    connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(renameCurrentTab()) );
+    connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(on_renameCurrentTab()) );
 
     _tab_menu = new QMenu(this);
     _tab_menu->addAction( _action_renameTab );
@@ -168,7 +168,7 @@ TabbedPlotWidget::~TabbedPlotWidget()
     delete ui;
 }
 
-void TabbedPlotWidget::renameCurrentTab()
+void TabbedPlotWidget::on_renameCurrentTab()
 {
     int idx = ui->tabWidget->tabBar()->currentIndex ();
 
@@ -328,7 +328,7 @@ void TabbedPlotWidget::on_requestTabMovement(const QString & destination_name)
 
 }
 
-void TabbedPlotWidget::moveTabIntoNewWindow()
+void TabbedPlotWidget::on_moveTabIntoNewWindow()
 {
     emit sendTabToNewWindow( currentTab() );
 }
@@ -365,7 +365,7 @@ bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
                 action_new_window->setIcon( icon);
                 submenu->addSeparator();
 
-                connect( action_new_window, SIGNAL(triggered()), this, SLOT(moveTabIntoNewWindow() ));
+                connect( action_new_window, SIGNAL(triggered()), this, SLOT(on_moveTabIntoNewWindow() ));
 
                 //-----------------------------------
                 for ( it = _other_siblings.begin(); it != _other_siblings.end(); it++)

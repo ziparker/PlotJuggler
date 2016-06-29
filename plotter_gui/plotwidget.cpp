@@ -72,6 +72,7 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     // disable right button. keep mouse wheel
     _magnifier->setMouseButton( Qt::NoButton );
     connect(_magnifier, SIGNAL(rescaled(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
+    connect(_magnifier, SIGNAL(rescaled(QRectF)), this, SLOT(replot()) );
 
     _panner->setMouseButton(  Qt::MiddleButton, Qt::NoModifier);
 
@@ -100,14 +101,14 @@ void PlotWidget::buildActions()
     _action_removeAllCurves = new QAction(tr("&Remove all curves"), this);
     _action_removeAllCurves->setIcon(iconDelete);
     connect(_action_removeAllCurves, SIGNAL(triggered()), this, SLOT(detachAllCurves()));
-    connect(_action_removeAllCurves, SIGNAL(triggered()), this, SIGNAL(plotModified()) );
+    connect(_action_removeAllCurves, SIGNAL(triggered()), this, SIGNAL(undoableChange()) );
 
     QIcon iconColors;
     iconColors.addFile(QStringLiteral(":/icons/resources/office_chart_lines.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
     _action_changeColors = new QAction(tr("&Change colors"), this);
     _action_changeColors->setIcon(iconColors);
     _action_changeColors->setStatusTip(tr("Change the color of the curves"));
-    connect(_action_changeColors, SIGNAL(triggered()), this, SLOT(launchChangeColorDialog()));
+    connect(_action_changeColors, SIGNAL(triggered()), this, SLOT(on_changeColor_triggered()));
 
 
     QIcon iconPoints;
@@ -116,19 +117,21 @@ void PlotWidget::buildActions()
     _action_showPoints->setIcon(iconPoints);
     _action_showPoints->setCheckable( true );
     _action_showPoints->setChecked( false );
-    connect(_action_showPoints, SIGNAL(triggered(bool)), this, SLOT(on_showPoints(bool)));
+    connect(_action_showPoints, SIGNAL(triggered(bool)), this, SLOT(on_showPoints_triggered(bool)));
 
     QIcon iconZoomH;
     iconZoomH.addFile(QStringLiteral(":/icons/resources/resize_horizontal.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
     _action_zoomOutHorizontally = new QAction(tr("&Zoom Out Horizontally"), this);
     _action_zoomOutHorizontally->setIcon(iconZoomH);
-    connect(_action_zoomOutHorizontally, SIGNAL(triggered()), this, SLOT(zoomOutHorizontal()));
+    connect(_action_zoomOutHorizontally, SIGNAL(triggered()), this, SLOT(on_zoomOutHorizontal_triggered()));
+    connect(_action_zoomOutHorizontally, SIGNAL(triggered()), this, SIGNAL(undoableChange()) );
 
     QIcon iconZoomV;
     iconZoomV.addFile(QStringLiteral(":/icons/resources/resize_vertical.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
     _action_zoomOutVertically = new QAction(tr("&Zoom Out Vertically"), this);
     _action_zoomOutVertically->setIcon(iconZoomV);
-    connect(_action_zoomOutVertically, SIGNAL(triggered()), this, SLOT(zoomOutVertical()));
+    connect(_action_zoomOutVertically, SIGNAL(triggered()), this, SLOT(on_zoomOutVertical_triggered()));
+    connect(_action_zoomOutVertically, SIGNAL(triggered()), this, SIGNAL(undoableChange()) );
 
 }
 
@@ -300,7 +303,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
             }
             if( plot_added )
             {
-                emit plotModified();
+                emit undoableChange();
             }
         }
         if( format.contains( "plot_area") )
@@ -537,9 +540,9 @@ void PlotWidget::replot()
     if( _zoomer )
         _zoomer->setZoomBase( false );
 
-    if(_tracker ) {
+    /* if(_tracker ) {
         _tracker->refreshPosition( );
-    }
+    }*/
 
     QwtPlot::replot();
 }
@@ -558,11 +561,11 @@ void PlotWidget::launchRemoveCurveDialog()
 
     if( prev_curve_count != _curve_list.size() )
     {
-        emit plotModified();
+        emit undoableChange();
     }
 }
 
-void PlotWidget::launchChangeColorDialog()
+void PlotWidget::on_changeColor_triggered()
 {
     std::map<QString,QColor> color_by_name;
 
@@ -590,11 +593,11 @@ void PlotWidget::launchChangeColorDialog()
         }
     }
     if( modified){
-        emit plotModified();
+        emit undoableChange();
     }
 }
 
-void PlotWidget::on_showPoints(bool checked)
+void PlotWidget::on_showPoints_triggered(bool checked)
 {
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
@@ -618,11 +621,11 @@ void PlotWidget::on_externallyResized(QRectF rect)
 
 void PlotWidget::zoomOut()
 {
-    zoomOutHorizontal();
-    zoomOutVertical();
+    on_zoomOutHorizontal_triggered();
+    on_zoomOutVertical_triggered();
 }
 
-void PlotWidget::zoomOutHorizontal()
+void PlotWidget::on_zoomOutHorizontal_triggered()
 {
     QRectF act = currentBoundingRect();
     auto rangeX = maximumRangeX();
@@ -632,7 +635,7 @@ void PlotWidget::zoomOutHorizontal()
     this->setScale(act);
 }
 
-void PlotWidget::zoomOutVertical()
+void PlotWidget::on_zoomOutVertical_triggered()
 {
     QRectF act = currentBoundingRect();
     auto rangeY = maximumRangeY( true );

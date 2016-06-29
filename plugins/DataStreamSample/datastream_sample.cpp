@@ -46,7 +46,12 @@ void DataStreamSample::enableStreaming(bool enable) { _enabled = enable; }
 
 bool DataStreamSample::isStreamingEnabled() const { return _enabled; }
 
-DataStreamSample::~DataStreamSample() { _running = false; _thread.join(); }
+DataStreamSample::~DataStreamSample()
+{
+    _running = false;
+    if( _thread.joinable())
+        _thread.join();
+}
 
 const char*  DataStreamSample::name()
 {

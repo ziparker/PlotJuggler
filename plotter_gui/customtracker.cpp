@@ -50,18 +50,11 @@ void CurveTracker::setEnabled(bool enable)
     }
 }
 
-void CurveTracker::manualMove(const QPointF& plot_pos)
-{
-    _prev_trackerpoint = plot_pos;
-    refreshPosition();
-
-}
-
-void CurveTracker::refreshPosition()
+void CurveTracker::setPosition(const QPointF& position)
 {
     const QwtPlotItemList curves = _plot->itemList( QwtPlotItem::Rtti_PlotCurve );
 
-    _line_marker->setValue( _prev_trackerpoint );
+    _line_marker->setValue( position );
 
     QRectF rect;
     rect.setBottom( _plot->canvasMap( QwtPlot::yLeft ).s1() );
@@ -100,7 +93,7 @@ void CurveTracker::refreshPosition()
             _marker[i]->setSymbol(sym);
         }
 
-        const QLineF line = curveLineAt( curve, _prev_trackerpoint.x() );
+        const QLineF line = curveLineAt( curve, position.x() );
 
         if( line.isNull() )
         {
@@ -110,7 +103,7 @@ void CurveTracker::refreshPosition()
         QPointF point;
         float middle_X = (line.p1().x() + line.p2().x()) / 2.0;
 
-        if(  _prev_trackerpoint.x() < middle_X )
+        if(  position.x() < middle_X )
             point = line.p1();
         else
             point = line.p2();
@@ -145,12 +138,14 @@ void CurveTracker::refreshPosition()
 
     _text_marker->setLabel(mark_text);
     _text_marker->setLabelAlignment( Qt::AlignRight );
-    _text_marker->setXValue( _prev_trackerpoint.x() + text_X_offset );
+    _text_marker->setXValue( position.x() + text_X_offset );
 
     if(visible_points > 0){
         _text_marker->setYValue( tot_Y/visible_points );
     }
     _text_marker->setVisible( visible_points > 0 &&  _visible);
+
+    _prev_trackerpoint = position;
 
 }
 

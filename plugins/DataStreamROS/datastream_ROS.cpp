@@ -175,14 +175,13 @@ bool DataStreamROS::isStreamingEnabled() const { return _enabled; }
 DataStreamROS::~DataStreamROS()
 {
     _subscribers.clear();
-    _running = false;
 
-    if(ros::isStarted())
+    if(ros::isStarted() && _running)
     {
-        ros::shutdown(); // explicitly needed since we use ros::start();
+        _running = false;
+        ros::shutdown(); // explicitly needed since we use ros::start();;
+        _thread.join();
     }
-
-    _thread.join();
 }
 
 const char*  DataStreamROS::name()

@@ -21,7 +21,6 @@ PlotMatrix::PlotMatrix(QString name, PlotDataMap *datamap, QWidget *parent ):
 
     _horizontal_link = true;
     updateLayout();
-
 }
 
 
@@ -34,18 +33,6 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
     connect( plot, SIGNAL(rectChanged(PlotWidget*,QRectF)), this, SLOT(on_singlePlotScaleChanged(PlotWidget*,QRectF)));
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
-
-    for(int i=0; i< layout->count(); i++)
-    {
-        QLayoutItem * item = layout->itemAt(i);
-        if( item  ){
-            PlotWidget *other_plot = static_cast<PlotWidget *>( item->widget() );
-            if (other_plot )
-            {
-
-            }
-        }
-    }
 
     layout->addWidget( plot, row, col );
 
@@ -105,8 +92,7 @@ void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
 
 void PlotMatrix::removeColumn(int column_to_delete)
 {
-    if(num_rows==1 && num_cols ==1 )
-    {
+    if(num_rows==1 && num_cols ==1 ) {
         return;
     }
 
@@ -132,8 +118,7 @@ void PlotMatrix::removeColumn(int column_to_delete)
 
 void PlotMatrix::removeRow(int row_to_delete)
 {
-    if(num_rows==1 && num_cols ==1 )
-    {
+    if(num_rows==1 && num_cols ==1 ) {
         return;
     }
 
@@ -154,9 +139,7 @@ void PlotMatrix::removeRow(int row_to_delete)
     }
 
     updateLayout();
-
 }
-
 
 
 PlotMatrix::~PlotMatrix(){}
@@ -180,13 +163,9 @@ bool PlotMatrix::isColumnEmpty( int col )
 {
     for (int r=0; r< layout->rowCount(); r++)
     {
-        QLayoutItem *item = layout->itemAtPosition(r, col);
-        if( item  ){
-            PlotWidget *widget = static_cast<PlotWidget *>( item->widget() );
-            if (widget && widget->isEmpty() == false)
-            {
-                return false;
-            }
+        auto plot = plotAt(r, col);
+        if( plot && ! plot->isEmpty() )  {
+            return false;
         }
     }
     return true;
@@ -196,13 +175,9 @@ bool PlotMatrix::isRowEmpty(int row )
 {
     for (int c=0; c< layout->columnCount(); c++)
     {
-        QLayoutItem *item = layout->itemAtPosition(row, c);
-        if( item  ){
-            PlotWidget *widget = static_cast<PlotWidget *>( item->widget() );
-            if (widget && widget->isEmpty() == false)
-            {
-                return false;
-            }
+        auto plot = plotAt(row, c);
+        if( plot && ! plot->isEmpty() )  {
+            return false;
         }
     }
     return true;
@@ -350,14 +325,6 @@ void PlotMatrix::replot()
     }
 }
 
-void PlotMatrix::removeAllCurves()
-{
-    for ( unsigned i = 0; i< plotCount(); i++ )
-    {
-        PlotWidget *plot = plotAt(i);
-        plot->detachAllCurves();
-    }
-}
 
 void PlotMatrix::setHorizontalLink(bool linked)
 {
@@ -387,7 +354,7 @@ void PlotMatrix::maximumZoomOutHorizontal()
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            plot->zoomOutHorizontal();
+            plot->on_zoomOutHorizontal_triggered();
         }
     }
     replot();
@@ -400,7 +367,7 @@ void PlotMatrix::maximumZoomOutVertical()
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            plot->zoomOutVertical();
+            plot->on_zoomOutVertical_triggered();
         }
     }
     replot();
@@ -422,23 +389,23 @@ void PlotMatrix::maximumZoomOut()
 
 void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new_range)
 {
-    for ( unsigned i = 0; i< plotCount(); i++ )
+    if( _horizontal_link )
     {
-        PlotWidget *plot = plotAt(i);
-        if( plot->isEmpty() == false && modified_plot != plot)
+        for ( unsigned i = 0; i< plotCount(); i++ )
         {
-            QRectF bound_act = plot->currentBoundingRect();
-
-            if( _horizontal_link )
+            PlotWidget *plot = plotAt(i);
+            if( plot->isEmpty() == false && modified_plot != plot)
             {
+                QRectF bound_act = plot->currentBoundingRect();
                 bound_act.setLeft( new_range.left() );
                 bound_act.setRight( new_range.right() );
+                plot->setScale( bound_act, false );
+                plot->replot();
             }
-            plot->setScale( bound_act, false );
         }
     }
-    replot();
-    emit undoableChangeHappened();
+
+    emit undoableChange();
 }
 
 void PlotMatrix::alignAxes( int rowOrColumn, int axis )

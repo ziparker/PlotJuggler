@@ -99,25 +99,14 @@ void MainWindow::getMaximumRangeX(double* minX, double* maxX)
     *minX = std::numeric_limits<double>::max();
     *maxX = std::numeric_limits<double>::min();
 
-    // THIS SUCKS.
-    for ( unsigned i = 0; i< _tabbed_plotarea.size(); i++ )
-    {
-        QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
-        for (int t = 0; t < tab_widget->count(); t++)
-        {
-            PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(t) );
-            if (matrix)
-            {
-                for ( unsigned w = 0; w< matrix->plotCount(); w++ )
-                {
-                    PlotWidget *plot =  matrix->plotAt(w);
-                    auto rangeX = plot->maximumRangeX();
+    auto plots = getAllPlots();
 
-                    if( *minX > rangeX.first )    *minX = rangeX.first ;
-                    if( *maxX < rangeX.second )   *maxX = rangeX.second;
-                }
-            }
-        }
+    for ( unsigned i = 0; i< plots.size(); i++ )
+    {
+        auto rangeX = plots[i]->maximumRangeX();
+
+        if( *minX > rangeX.first )    *minX = rangeX.first ;
+        if( *maxX < rangeX.second )   *maxX = rangeX.second;
     }
 }
 
@@ -241,9 +230,9 @@ void MainWindow::createActions()
     //---------------------------------------------
 
     QSettings settings( "IcarusTechnology", "SuperPlotter");
-    if( settings.contains("recentlyLoadedDatafile") )
+    if( settings.contains("MainWindow.recentlyLoadedDatafile") )
     {
-        QString fileName = settings.value("recentlyLoadedDatafile").toString();
+        QString fileName = settings.value("MainWindow.recentlyLoadedDatafile").toString();
         ui->actionLoadRecentDatafile->setText( "Load data from: " + fileName);
         ui->actionLoadRecentDatafile->setEnabled( true );
     }
@@ -254,9 +243,9 @@ void MainWindow::createActions()
     ui->actionReloadData->setEnabled( false );
     ui->actionDeleteAllData->setEnabled( false );
 
-    if( settings.contains("recentlyLoadedLayout") )
+    if( settings.contains("MainWindow.recentlyLoadedLayout") )
     {
-        QString fileName = settings.value("recentlyLoadedLayout").toString();
+        QString fileName = settings.value("MainWindow.recentlyLoadedLayout").toString();
         ui->actionLoadRecentLayout->setText( "Load layout from: " + fileName);
         ui->actionLoadRecentLayout->setEnabled( true );
     }
@@ -407,13 +396,13 @@ void MainWindow::resizeEvent(QResizeEvent *)
 void MainWindow::onPlotAdded(PlotWidget* plot)
 {
     qDebug() << "onPlotAdded";
-    connect( plot, SIGNAL(plotModified()),         this, SLOT(onUndoableChange()) );
+    connect( plot, SIGNAL(undoableChange()),       this, SLOT(onUndoableChange()) );
     connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerPositionUpdated(QPointF)));
     connect( plot, SIGNAL(swapWidgetsRequested(PlotWidget*,PlotWidget*)), this, SLOT(onSwapPlots(PlotWidget*,PlotWidget*)) );
 
     connect( this, SIGNAL(requestRemoveCurveByName(const QString&)), plot, SLOT(removeCurve(const QString&))) ;
 
-    connect( this, SIGNAL(trackerTimeUpdated(QPointF)), plot->tracker(), SLOT(manualMove(QPointF)));
+    connect( this, SIGNAL(trackerTimeUpdated(QPointF)), plot->tracker(), SLOT(setPosition(QPointF)));
     connect( this, SIGNAL(trackerTimeUpdated(QPointF)), plot, SLOT( replot() ));
 
     connect( this, SIGNAL(activateTracker(bool)),  plot->tracker(), SLOT(setEnabled(bool)) );
@@ -426,8 +415,8 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
 {
     qDebug() << "onPlotMatrixAdded";
-    connect( matrix, SIGNAL(plotAdded(PlotWidget*)),   this, SLOT( onPlotAdded(PlotWidget*)));
-    connect( matrix, SIGNAL(undoableChangeHappened()), this, SLOT( onUndoableChange()) );
+    connect( matrix, SIGNAL(plotAdded(PlotWidget*)), this, SLOT( onPlotAdded(PlotWidget*)));
+    connect( matrix, SIGNAL(undoableChange()),       this, SLOT( onUndoableChange()) );
 }
 
 void MainWindow::onTabAreaAdded(TabbedPlotWidget* tabbed_widget)
@@ -571,6 +560,31 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
     }
 }
 
+std::vector<PlotWidget*> MainWindow::getAllPlots()
+{
+    std::vector<PlotWidget*> output;
+
+    for (int i = 0; i < _tabbed_plotarea.size(); i++)
+    {
+        QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
+        for (int t = 0; t < tab_widget->count(); t++)
+        {
+            PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(t) );
+            if (matrix)
+            {
+                for ( unsigned w = 0; w< matrix->plotCount(); w++ )
+                {
+                    PlotWidget *plot =  matrix->plotAt(w);
+                    if( plot )
+                    {
+                        output.push_back( plot );
+                    }
+                }
+            }
+        }
+    }
+    return output;
+}
 
 void MainWindow::onDeleteLoadedData()
 {
@@ -588,17 +602,11 @@ void MainWindow::onDeleteLoadedData()
 
     curvelist_widget->clear();
 
-    //TODO
-    for (int i = 0; i < _tabbed_plotarea.size(); i++)
+    auto plots = getAllPlots();
+
+    for (int i = 0; i < plots.size(); i++)
     {
-        QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
-        for (int t = 0; t < tab_widget->count(); t++)
-        {
-            PlotMatrix* tab = static_cast<PlotMatrix*>( tab_widget->widget(t) );
-            if (tab){
-                tab->removeAllCurves();
-            }
-        }
+        plots[i]->detachAllCurves();
     }
     ui->actionReloadData->setEnabled( false );
     ui->actionDeleteAllData->setEnabled( false );
@@ -625,7 +633,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
         file_extension_filter.append( QString(" *.") + extension );
     }
 
-    QString directory_path = directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
+    QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
 
     QString fileName;
     if( reload_from_settings && settings.contains("MainWindow.recentlyLoadedDatafile") )
@@ -989,6 +997,11 @@ void MainWindow::updateInternalState()
     {
         _tabbed_plotarea[i]->setSiblingsList( tabbed_map );
     }
+
+    if( !ui->pushButtonStreaming->isChecked())
+        emit activateTracker(  ui->pushButtonActivateTracker->isChecked() );
+    else
+        emit activateTracker( false );
 }
 
 void MainWindow::on_pushButtonAddSubwindow_pressed()

@@ -99,7 +99,6 @@ void PlotMagnifier::rescale( double factor )
     plt->setAutoReplot( autoReplot );
 
     if ( doReplot ){
-        plt->replot();
         emit rescaled( new_rect );
     }
 }

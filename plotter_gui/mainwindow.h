@@ -96,6 +96,8 @@ private:
 
     void createActions();
 
+    std::vector<PlotWidget *> getAllPlots();
+
     FilterableListWidget* curvelist_widget;
 
    // std::vector<PlotMatrix*> _plot_matrix_list;

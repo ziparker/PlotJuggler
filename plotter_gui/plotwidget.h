@@ -35,12 +35,13 @@ public:
     const std::map<QString, std::shared_ptr<QwtPlotCurve> > &curveList();
 
     QDomElement xmlSaveState(QDomDocument &doc);
+
     bool xmlLoadState(QDomElement &element, QMessageBox::StandardButton* answer);
 
-    //QRectF maximumBoundingRect();
     QRectF currentBoundingRect();
 
     std::pair<float,float> maximumRangeX();
+
     std::pair<float,float> maximumRangeY(bool current_canvas = false);
 
     CurveTracker* tracker();
@@ -62,7 +63,7 @@ protected:
 signals:
     void swapWidgetsRequested(PlotWidget* source, PlotWidget* destination);
     void rectChanged(PlotWidget* self, QRectF rect );
-    void plotModified();
+    void undoableChange();
     void trackerMoved(QPointF pos);
 
 public slots:
@@ -73,17 +74,17 @@ public slots:
 
     void zoomOut();
 
-    void zoomOutHorizontal();
+    void on_zoomOutHorizontal_triggered();
 
-    void zoomOutVertical();
+    void on_zoomOutVertical_triggered();
 
     void removeCurve(const QString& name);
 
 private slots:
     void launchRemoveCurveDialog();
     void canvasContextMenuTriggered(const QPoint &pos);
-    void launchChangeColorDialog();
-    void on_showPoints(bool checked);
+    void on_changeColor_triggered();
+    void on_showPoints_triggered(bool checked);
     void on_externallyResized(QRectF new_rect);
 
 
@@ -104,8 +105,6 @@ private:
     // QRectF _prev_bounding;
     CurveTracker* _tracker;
     QwtPlotLegendItem* _legend;
-
-private:
 
     void setAxisScale( int axisId, double min, double max, double step = 0 );
 

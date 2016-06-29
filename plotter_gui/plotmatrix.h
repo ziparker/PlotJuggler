@@ -60,7 +60,6 @@ public slots:
 
     void maximumZoomOut();
 
-    void removeAllCurves();
 
 private slots:
     //  void swapWidgetByName(QString name_a, QString name_b);
@@ -84,7 +83,7 @@ private:
 
 signals:
     void plotAdded(PlotWidget*);
-    void undoableChangeHappened();
+    void undoableChange();
 
 };
 
