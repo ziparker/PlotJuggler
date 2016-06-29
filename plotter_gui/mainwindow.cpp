@@ -935,7 +935,9 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
     getMaximumRangeX( &minX, &maxX);
 
     double posX = (maxX-minX) * ratio + minX;
+
     onTrackerTimeUpdated( posX );
+    emit  trackerTimeUpdated( QPointF(posX,0 ) );
 }
 
 void MainWindow::on_tabbedAreaDestroyed(QObject *object)
