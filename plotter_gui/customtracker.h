@@ -40,11 +40,13 @@ public:
 
     QPointF actualPosition() const;
 
-    void setEnabled(bool enable);
-
 public slots:
+
     void manualMove(const QPointF & );
+
     void refreshPosition( );
+
+    void setEnabled(bool enable);
 
 
 private:

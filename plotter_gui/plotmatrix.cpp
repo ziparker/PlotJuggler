@@ -22,7 +22,6 @@ PlotMatrix::PlotMatrix(QString name, PlotDataMap *datamap, QWidget *parent ):
     _horizontal_link = true;
     updateLayout();
 
-    _active_tracker = true;
 }
 
 
@@ -49,9 +48,9 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
     }
 
     layout->addWidget( plot, row, col );
-    plot->tracker()->setEnabled( _active_tracker );
 
     emit plotAdded(plot);
+
     return plot;
 }
 
@@ -128,6 +127,7 @@ void PlotMatrix::removeColumn(int column_to_delete)
     }
 
     updateLayout();
+
 }
 
 void PlotMatrix::removeRow(int row_to_delete)
@@ -154,6 +154,7 @@ void PlotMatrix::removeRow(int row_to_delete)
     }
 
     updateLayout();
+
 }
 
 
@@ -355,27 +356,12 @@ void PlotMatrix::removeAllCurves()
     {
         PlotWidget *plot = plotAt(i);
         plot->detachAllCurves();
-        plot->replot();
     }
 }
 
 void PlotMatrix::setHorizontalLink(bool linked)
 {
     _horizontal_link = linked;
-}
-
-void PlotMatrix::setActiveTracker(bool active)
-{
-    for ( unsigned i = 0; i< plotCount(); i++ )
-    {
-        PlotWidget *plot = plotAt(i);
-        plot->tracker()->setEnabled( active );
-    }
-    if( active != _active_tracker)
-    {
-        replot();
-    }
-    _active_tracker = active;
 }
 
 
@@ -452,7 +438,7 @@ void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new
         }
     }
     replot();
-    emit layoutModified();
+    emit undoableChangeHappened();
 }
 
 void PlotMatrix::alignAxes( int rowOrColumn, int axis )

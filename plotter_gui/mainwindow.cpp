@@ -37,8 +37,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
-    _tabbed_plotarea.push_back( new TabbedPlotWidget( &_mapped_plot_data, this) );
-    connect( _tabbed_plotarea.back(), SIGNAL(undoableChangeHappened()), this, SLOT(onUndoableChange()) );
+    auto tabbed_widget = new TabbedPlotWidget( TabbedPlotWidget::MainWindoArea(),  &_mapped_plot_data, this);
+
+    _tabbed_plotarea.push_back(tabbed_widget );
+
+    onTabAreaAdded( tabbed_widget );
+    tabbed_widget->addTab(); // this MUST be done after onTabAreaAdded
 
     ui->centralLayout->insertWidget(0, _tabbed_plotarea.back());
     ui->leftLayout->addWidget( curvelist_widget );
@@ -48,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-  //   buildData();
+    buildData();
     _undo_timer.start();
 
     // save initial state
@@ -73,6 +77,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::onUndoableChange()
 {
+    qDebug() << "undoable change " << _undo_states.size();
     /* int elapsed_ms = _undo_timer.restart();
 
     // overwrite the previous
@@ -95,17 +100,24 @@ void MainWindow::getMaximumRangeX(double* minX, double* maxX)
     *minX = std::numeric_limits<double>::max();
     *maxX = std::numeric_limits<double>::min();
 
-    for ( unsigned i = 0; i< _plot_matrix_list.size(); i++ )
+    // THIS SUCKS.
+    for ( unsigned i = 0; i< _tabbed_plotarea.size(); i++ )
     {
-        PlotMatrix* matrix = _plot_matrix_list[i];
-
-        for ( unsigned w = 0; w< matrix->plotCount(); w++ )
+        QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
+        for (int t = 0; t < tab_widget->count(); t++)
         {
-            PlotWidget *plot =  matrix->plotAt(w);
-            auto rangeX = plot->maximumRangeX();
+            PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(t) );
+            if (matrix)
+            {
+                for ( unsigned w = 0; w< matrix->plotCount(); w++ )
+                {
+                    PlotWidget *plot =  matrix->plotAt(w);
+                    auto rangeX = plot->maximumRangeX();
 
-            if( *minX > rangeX.first )    *minX = rangeX.first ;
-            if( *maxX < rangeX.second )   *maxX = rangeX.second;
+                    if( *minX > rangeX.first )    *minX = rangeX.first ;
+                    if( *maxX < rangeX.second )   *maxX = rangeX.second;
+                }
+            }
         }
     }
 }
@@ -124,20 +136,7 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
 
     ui->horizontalSlider->setValue(slider_value);
 
-    for(unsigned i=0; i< _plot_matrix_list.size(); i++)
-    {
-        PlotMatrix* matrix = _plot_matrix_list[i];
-
-        for ( unsigned w = 0; w< matrix->plotCount(); w++ )
-        {
-            PlotWidget *plot =  matrix->plotAt(w);
-            plot->tracker()->manualMove( QPointF(current_time,0) );
-        }
-        matrix->replot();
-    }
-
     //------------------------
-
     for ( int i=0; i<state_publisher.size(); i++)
     {
         state_publisher[i]->updateState( &_mapped_plot_data, current_time);
@@ -147,6 +146,8 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
 void MainWindow::onTrackerPositionUpdated(QPointF pos)
 {
     onTrackerTimeUpdated( pos.x() );
+    emit  trackerTimeUpdated( QPointF(pos ) );
+
 }
 
 void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
@@ -179,16 +180,18 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 
     window->setWindowTitle( QString(prefix) + QString::number(window_number));
 
+    connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(onFloatingWindowDestroyed(QObject*)) );
+    connect( window, SIGNAL(closeRequestedByUser()),     this,  SLOT(onUndoableChange()) );
+
     _floating_window.push_back( window );
 
-    TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, first_tab, this, window);
+    TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, window);
+
     _tabbed_plotarea.push_back( tabbed_widget );
     tabbed_widget->setStreamingMode( ui->pushButtonStreaming->isChecked() );
 
-    connect( tabbed_widget, SIGNAL(undoableChangeHappened()), this, SLOT(onUndoableChange()) );
-    connect( tabbed_widget, SIGNAL(destroyed(QObject*)), this,  SLOT(on_tabbedAreaDestroyed(QObject*)) );
-    connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(onFloatingWindowDestroyed(QObject*)) );
-    connect( window, SIGNAL(closeRequestedByUser()),     this,  SLOT(onUndoableChange()) );
+    onTabAreaAdded( tabbed_widget );
+    tabbed_widget->addTab( first_tab ); // this MUSt be done after onTabAreaAdded
 
     window->setCentralWidget( tabbed_widget );
     window->setAttribute( Qt::WA_DeleteOnClose, true );
@@ -197,7 +200,6 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 
     window->addAction( _actionUndo );
     window->addAction( _actionRedo );
-
 
     if( undoable ) onUndoableChange();
 }
@@ -405,9 +407,37 @@ void MainWindow::resizeEvent(QResizeEvent *)
 
 void MainWindow::onPlotAdded(PlotWidget* plot)
 {
+    qDebug() << "onPlotAdded";
     connect( plot, SIGNAL(plotModified()),         this, SLOT(onUndoableChange()) );
     connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerPositionUpdated(QPointF)));
-    connect( plot, SIGNAL(swapWidgets(PlotWidget*,PlotWidget*)), this, SLOT(onSwapPlots(PlotWidget*,PlotWidget*)) );
+    connect( plot, SIGNAL(swapWidgetsRequested(PlotWidget*,PlotWidget*)), this, SLOT(onSwapPlots(PlotWidget*,PlotWidget*)) );
+
+    connect( this, SIGNAL(requestRemoveCurveByName(const QString&)), plot, SLOT(removeCurve(const QString&))) ;
+
+    connect( this, SIGNAL(trackerTimeUpdated(QPointF)), plot->tracker(), SLOT(manualMove(QPointF)));
+    connect( this, SIGNAL(trackerTimeUpdated(QPointF)), plot, SLOT( replot() ));
+
+    connect( this, SIGNAL(activateTracker(bool)),  plot->tracker(), SLOT(setEnabled(bool)) );
+    connect( this, SIGNAL(activateTracker(bool)),  plot, SLOT( replot() ));
+
+    plot->tracker()->setEnabled(  ui->pushButtonActivateTracker->isChecked() );
+
+}
+
+void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
+{
+    qDebug() << "onPlotMatrixAdded";
+    connect( matrix, SIGNAL(plotAdded(PlotWidget*)),   this, SLOT( onPlotAdded(PlotWidget*)));
+    connect( matrix, SIGNAL(undoableChangeHappened()), this, SLOT( onUndoableChange()) );
+}
+
+void MainWindow::onTabAreaAdded(TabbedPlotWidget* tabbed_widget)
+{
+    qDebug() << "onTabAreaAdded";
+    connect( tabbed_widget, SIGNAL(undoableChangeHappened()),        this, SLOT(onUndoableChange()) );
+    connect( tabbed_widget, SIGNAL(destroyed(QObject*)),             this, SLOT(on_tabbedAreaDestroyed(QObject*)) );
+    connect( tabbed_widget, SIGNAL(sendTabToNewWindow(PlotMatrix*)), this, SLOT(onCreateFloatingWindow(PlotMatrix*)) );
+    connect( tabbed_widget, SIGNAL(matrixAdded(PlotMatrix*)),        this, SLOT(onPlotMatrixAdded(PlotMatrix*)) );
 }
 
 
@@ -467,26 +497,21 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     }
 
     //-----------------------------------------------------
-
     int index = 1;
 
     for (  tabbed_area = root.firstChildElement(  "tabbed_widget" )  ;
            tabbed_area.isNull() == false;
            tabbed_area = tabbed_area.nextSiblingElement( "tabbed_widget" ) )
     {
-
-
         if( tabbed_area.attribute("parent").compare("main_window") == 0)
         {
             _tabbed_plotarea.front()->xmlLoadState( tabbed_area );
         }
         else{
-
             TabbedPlotWidget* tabbed_widget = _tabbed_plotarea.at( index++ );
             tabbed_widget->xmlLoadState( tabbed_area );
         }
     }
-
     return true;
 }
 
@@ -506,12 +531,8 @@ void MainWindow::onActionSaveLayout()
 
     QSettings settings( "IcarusTechnology", "SuperPlotter");
 
-    QString directory_path = QDir::currentPath();
-
-    if( settings.contains("lastLayoutDirectory") )
-    {
-        directory_path = settings.value("lastLayoutDirectory").toString();
-    }
+    QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
+                                             QDir::currentPath() ). toString();
 
     QString filename = QFileDialog::getSaveFileName(this, "Save Layout", directory_path, "*.xml");
     if (filename.isEmpty())
@@ -531,8 +552,8 @@ void MainWindow::onActionSaveLayout()
 
 void MainWindow::deleteLoadedData(const QString& curve_name)
 {
-    auto plot_data = _mapped_plot_data.numeric.find( curve_name.toStdString() );
-    if( plot_data == _mapped_plot_data.numeric.end())
+    auto plot_curve = _mapped_plot_data.numeric.find( curve_name.toStdString() );
+    if( plot_curve == _mapped_plot_data.numeric.end())
     {
         return;
     }
@@ -540,22 +561,9 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
     auto items_to_remove = curvelist_widget->findItems( curve_name );
     qDeleteAll( items_to_remove );
 
-    for (int i = 0; i < _tabbed_plotarea.size(); i++)
-    {
-        QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
-        for (int t = 0; t < tab_widget->count(); t++)
-        {
-            PlotMatrix* tab = static_cast<PlotMatrix*>( tab_widget->widget(t) );
-            if (tab){
-                for (int p=0; p < tab->plotCount(); p++)
-                {
-                    PlotWidget* plot = tab->plotAt(p);
-                    plot->removeCurve( curve_name );
-                }
-            }
-        }
-    }
-    _mapped_plot_data.numeric.erase( plot_data );
+    emit requestRemoveCurveByName( curve_name );
+
+    _mapped_plot_data.numeric.erase( plot_curve );
 
     if( curvelist_widget->count() == 0)
     {
@@ -581,6 +589,7 @@ void MainWindow::onDeleteLoadedData()
 
     curvelist_widget->clear();
 
+    //TODO
     for (int i = 0; i < _tabbed_plotarea.size(); i++)
     {
         QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
@@ -617,19 +626,12 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
         file_extension_filter.append( QString(" *.") + extension );
     }
 
-    QString directory_path = QDir::currentPath();
-
-    const QString SETTINGS_KEY( "lastDatafileDirectory");
-
-    if( settings.contains(SETTINGS_KEY) )
-    {
-        directory_path = settings.value(SETTINGS_KEY).toString();
-    }
+    QString directory_path = directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
 
     QString fileName;
-    if( reload_from_settings && settings.contains("recentlyLoadedDatafile") )
+    if( reload_from_settings && settings.contains("MainWindow.recentlyLoadedDatafile") )
     {
-        fileName = settings.value("recentlyLoadedDatafile").toString();
+        fileName = settings.value("MainWindow.recentlyLoadedDatafile").toString();
     }
     else{
         fileName = QFileDialog::getOpenFileName(this,
@@ -643,8 +645,8 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
     directory_path = QFileInfo(fileName).absolutePath();
 
-    settings.setValue(SETTINGS_KEY, directory_path);
-    settings.setValue("recentlyLoadedDatafile", fileName);
+    settings.setValue("MainWindow.lastDatafileDirectory", directory_path);
+    settings.setValue("MainWindow.recentlyLoadedDatafile", fileName);
 
     ui->actionLoadRecentDatafile->setText("Load data from: " + fileName);
 
@@ -815,17 +817,16 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
     QSettings settings( "IcarusTechnology", "SuperPlotter");
 
     QString directory_path = QDir::currentPath();
-    const QString SETTINGS_KEY( "lastLayoutDirectory");
 
-    if( settings.contains(SETTINGS_KEY) )
+    if( settings.contains("MainWindow.lastLayoutDirectory") )
     {
-        directory_path = settings.value(SETTINGS_KEY).toString();
+        directory_path = settings.value("MainWindow.lastLayoutDirectory").toString();
     }
 
     QString fileName;
-    if( reload_previous && settings.contains("recentlyLoadedLayout") )
+    if( reload_previous && settings.contains("MainWindow.recentlyLoadedLayout") )
     {
-        fileName = settings.value("recentlyLoadedLayout").toString();
+        fileName = settings.value("MainWindow.recentlyLoadedLayout").toString();
     }
     else{
         fileName = QFileDialog::getOpenFileName(this,
@@ -838,8 +839,8 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
         return;
 
     directory_path = QFileInfo(fileName).absolutePath();
-    settings.setValue(SETTINGS_KEY, directory_path);
-    settings.setValue("recentlyLoadedLayout", fileName);
+    settings.setValue("MainWindow.lastLayoutDirectory",  directory_path);
+    settings.setValue("MainWindow.recentlyLoadedLayout", fileName);
 
     ui->actionLoadRecentLayout->setText("Load layout from: " + fileName);
 
@@ -893,14 +894,6 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
     updateInternalState();
 }
 
-
-void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
-{
-    for (int i = 0; i < _plot_matrix_list.size(); i++)
-    {
-        _plot_matrix_list[i]->setActiveTracker( checked );
-    }
-}
 
 void MainWindow::onUndoInvoked( )
 {
@@ -982,22 +975,7 @@ void MainWindow::onCreateFloatingWindow(PlotMatrix* first_tab)
 
 void MainWindow::updateInternalState()
 {
-    // Update the _plot_matrix_list
-    _plot_matrix_list.clear();
-
-    for (int i = 0; i < _tabbed_plotarea.size(); i++)
-    {
-        QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
-        for (int t = 0; t < tab_widget->count(); t++)
-        {
-            PlotMatrix* tab = static_cast<PlotMatrix*>( tab_widget->widget(t) );
-            if (tab){
-                _plot_matrix_list.push_back( tab );
-            }
-        }
-    }
-    //-----------------------------------------
-    //
+    //TODO. implement this with SIGNAl SLOTS
     std::map<QString,TabbedPlotWidget*> tabbed_map;
 
     tabbed_map.insert( std::make_pair( QString("Main window"), _tabbed_plotarea[0] ) );
@@ -1062,6 +1040,7 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
     src_matrix->gridLayout()->addWidget( destination, src_pos.x(), src_pos.y() );
     dst_matrix->gridLayout()->addWidget( source, dst_pos.x(), dst_pos.y() );
 
+    onUndoableChange();
 }
 
 void MainWindow::on_pushButtonStreaming_toggled(bool checked)
@@ -1084,21 +1063,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
     ui->streamingSpinBox->setHidden( !checked );
     ui->horizontalSlider->setHidden( checked );
 
-    for(unsigned i=0; i< _tabbed_plotarea.size(); i++)
-    {
-        TabbedPlotWidget* tabWidget = _tabbed_plotarea[i];
-        tabWidget->setStreamingMode( checked );
-    }
-
-    for(unsigned i=0; i< _plot_matrix_list.size(); i++)
-    {
-        PlotMatrix* matrix = _plot_matrix_list[i];
-
-        if( !checked )
-            matrix->setActiveTracker( ui->pushButtonActivateTracker->isChecked());
-        else
-            matrix->setActiveTracker( false );
-    }
+    emit activateStreamingMode( checked );
 
     this->repaint();
 
@@ -1108,6 +1073,11 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
         _replot_timer->setSingleShot(true);
         _replot_timer->start( 5 );
     }
+
+    if( !checked )
+        emit activateTracker(  ui->pushButtonActivateTracker->isChecked() );
+    else
+        emit activateTracker( false );
 }
 
 void MainWindow::onReplotRequested()
@@ -1142,3 +1112,9 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
     }
 }
 
+
+void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
+{
+    emit  activateTracker( checked );
+
+}

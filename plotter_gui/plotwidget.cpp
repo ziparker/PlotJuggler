@@ -100,6 +100,7 @@ void PlotWidget::buildActions()
     _action_removeAllCurves = new QAction(tr("&Remove all curves"), this);
     _action_removeAllCurves->setIcon(iconDelete);
     connect(_action_removeAllCurves, SIGNAL(triggered()), this, SLOT(detachAllCurves()));
+    connect(_action_removeAllCurves, SIGNAL(triggered()), this, SIGNAL(plotModified()) );
 
     QIcon iconColors;
     iconColors.addFile(QStringLiteral(":/icons/resources/office_chart_lines.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
@@ -164,7 +165,7 @@ void PlotWidget::buildLegend()
 
 PlotWidget::~PlotWidget()
 {
-    detachAllCurves();
+
 }
 
 bool PlotWidget::addCurve(const QString &name, bool do_replot)
@@ -213,6 +214,7 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
     {
         replot();
     }
+
     return true;
 }
 
@@ -306,7 +308,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
             QString source_name;
             stream >> source_name;
             PlotWidget* source_plot = static_cast<PlotWidget*>( event->source() );
-            emit swapWidgets( source_plot, this );
+            emit swapWidgetsRequested( source_plot, this );
         }
     }
 }
@@ -315,6 +317,7 @@ void PlotWidget::detachAllCurves()
 {
     this->detachItems(QwtPlotItem::Rtti_PlotCurve, false);
     _curve_list.erase(_curve_list.begin(), _curve_list.end());
+    replot();
 }
 
 QDomElement PlotWidget::xmlSaveState( QDomDocument &doc)
@@ -347,6 +350,7 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc)
 bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardButton* answer)
 {
     QDomElement curve;
+
     std::set<QString> added_curve_names;
 
     for (  curve = plot_widget.firstChildElement( "curve" )  ;
@@ -385,14 +389,23 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         }
     }
 
-    for(auto it = _curve_list.begin(); it != _curve_list.end(); it++)
+    bool curve_removed = true;
+
+    while( curve_removed)
     {
-        QString curve_name = it->first;
-        if( added_curve_names.find( curve_name ) == added_curve_names.end())
+        curve_removed = false;
+        for(auto& it: _curve_list)
         {
-            removeCurve( curve_name );
+            QString curve_name = it.first;
+            if( added_curve_names.find( curve_name ) == added_curve_names.end())
+            {
+                removeCurve( curve_name );
+                curve_removed = true;
+                break;
+            }
         }
     }
+
 
     QDomElement rectangle =  plot_widget.firstChildElement( "range" );
     QRectF rect;

@@ -7,33 +7,28 @@
 #include "ui_tabbedplotwidget.h"
 
 
-TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, PlotMatrix *first_tab,  MainWindow* main_window, QWidget *parent ) :
+TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, QWidget *parent ) :
     QWidget(parent),
     ui(new Ui::TabbedPlotWidget)
 {
-    _main_window = (QWidget*)main_window;
     _mapped_data = mapped_data;
     _parent_type = QString("floating_window");
 
     ui->setupUi(this);
 
     _horizontal_link = true;
-    addTab( first_tab );
-
     init();
 }
 
-TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, QWidget* main_window_parent ) :
-    QWidget( main_window_parent ),
+TabbedPlotWidget::TabbedPlotWidget(MainWindoArea, PlotDataMap *mapped_data, QWidget* parent ) :
+    QWidget( parent ),
     ui(new Ui::TabbedPlotWidget)
 {
-    _main_window = main_window_parent;
     _mapped_data = mapped_data;
     _parent_type = QString("main_window");
     ui->setupUi(this);
 
     _horizontal_link = true;
-    addTab( NULL );
 
     init();
 }
@@ -45,7 +40,6 @@ void TabbedPlotWidget::init()
     _action_renameTab = new QAction(tr("Rename tab"), this);
 
     connect( _action_renameTab, SIGNAL(triggered()), this, SLOT(renameCurrentTab()) );
-    connect( this, SIGNAL(sendTabToNewWindow(PlotMatrix*)), _main_window, SLOT(onCreateFloatingWindow(PlotMatrix*)) );
 
     _tab_menu = new QMenu(this);
     _tab_menu->addAction( _action_renameTab );
@@ -72,12 +66,11 @@ void TabbedPlotWidget::addTab( PlotMatrix* tab)
     if( !tab )
     {
         tab = new PlotMatrix("plot", _mapped_data, this);
-
-        connect( tab, SIGNAL(plotAdded(PlotWidget*)), _main_window, SLOT( onPlotAdded(PlotWidget*)));
-        connect( tab, SIGNAL(layoutModified()),       _main_window, SLOT( onUndoableChange()) );
-
-        tab->addColumn();
         ui->tabWidget->addTab( tab, QString("plot") );
+
+        QApplication::processEvents();
+        emit matrixAdded( tab );
+        tab->addColumn();
     }
     else{
         ui->tabWidget->addTab( tab, tab->name() );
@@ -162,7 +155,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement &tabbed_area)
     return true;
 }
 
-bool TabbedPlotWidget::setStreamingMode(bool streaming_mode)
+void TabbedPlotWidget::setStreamingMode(bool streaming_mode)
 {
     ui->buttonLinkHorizontalScale->setEnabled( !streaming_mode );
     ui->pushVerticalResize->setEnabled( !streaming_mode );
@@ -202,11 +195,13 @@ void TabbedPlotWidget::on_pushAddColumn_pressed()
 void TabbedPlotWidget::on_pushVerticalResize_pressed()
 {
     currentTab()->maximumZoomOutVertical();
+    emit undoableChangeHappened();
 }
 
 void TabbedPlotWidget::on_pushHorizontalResize_pressed()
 {
     currentTab()->maximumZoomOutHorizontal();
+    emit undoableChangeHappened();
 }
 
 void TabbedPlotWidget::on_pushAddRow_pressed()
@@ -329,6 +324,7 @@ void TabbedPlotWidget::on_requestTabMovement(const QString & destination_name)
     // tab_to_move->setParent( destination_widget );
 
     qDebug() << "move "<< tab_name<< " into " << destination_name;
+    emit undoableChangeHappened();
 
 }
 
@@ -413,3 +409,5 @@ void TabbedPlotWidget::on_pushButtonShowLabel_toggled(bool checked)
     }
     currentTab()->replot();
 }
+
+

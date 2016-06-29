@@ -29,7 +29,7 @@ public:
     virtual ~PlotWidget();
 
     bool addCurve(const QString&  name, bool do_replot = true);
-    void removeCurve(const QString& name);
+
     bool isEmpty();
 
     const std::map<QString, std::shared_ptr<QwtPlotCurve> > &curveList();
@@ -60,7 +60,7 @@ protected:
     virtual bool eventFilter(QObject *obj, QEvent *event);
 
 signals:
-    void swapWidgets(PlotWidget* source, PlotWidget* destination);
+    void swapWidgetsRequested(PlotWidget* source, PlotWidget* destination);
     void rectChanged(PlotWidget* self, QRectF rect );
     void plotModified();
     void trackerMoved(QPointF pos);
@@ -68,10 +68,16 @@ signals:
 public slots:
 
     void replot() ;
+
     void detachAllCurves();
+
     void zoomOut();
+
     void zoomOutHorizontal();
+
     void zoomOutVertical();
+
+    void removeCurve(const QString& name);
 
 private slots:
     void launchRemoveCurveDialog();

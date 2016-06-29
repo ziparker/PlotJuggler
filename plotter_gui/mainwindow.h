@@ -39,6 +39,10 @@ private slots:
 
     void onPlotAdded(PlotWidget* plot);
 
+    void onPlotMatrixAdded(PlotMatrix* matrix);
+
+    void onTabAreaAdded(TabbedPlotWidget* tabbed_widget);
+
     void onActionSaveLayout();
 
     void onActionLoadLayout(bool reload_previous = false);
@@ -54,8 +58,6 @@ private slots:
     void onActionReloadRecentLayout();
 
     void onActionLoadStreamer();
-
-    void on_pushButtonActivateTracker_toggled(bool checked);
 
     void onUndoInvoked();
 
@@ -81,6 +83,8 @@ private slots:
 
     void onDeleteLoadedData();
 
+    void on_pushButtonActivateTracker_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
 
@@ -94,7 +98,7 @@ private:
 
     FilterableListWidget* curvelist_widget;
 
-    std::vector<PlotMatrix*> _plot_matrix_list;
+   // std::vector<PlotMatrix*> _plot_matrix_list;
 
     void updateInternalState();
 
@@ -140,7 +144,14 @@ protected:
     void deleteLoadedData(const QString &curve_name);
 
     QTimer *_replot_timer;
+signals:
+    void requestRemoveCurveByName(const QString& name);
 
+    void activateStreamingMode( bool active);
+
+    void trackerTimeUpdated(QPointF point);
+
+    void activateTracker(bool active);
 };
 
 #endif // MAINWINDOW_H
