@@ -180,7 +180,6 @@ DataStreamROS::~DataStreamROS()
     if(ros::isStarted())
     {
         ros::shutdown(); // explicitly needed since we use ros::start();
-        ros::waitForShutdown();
     }
 
     _thread.join();

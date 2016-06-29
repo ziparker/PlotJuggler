@@ -1,6 +1,7 @@
 #include <QMessageBox>
 #include <QModelIndexList>
 #include <QListWidget>
+#include <QSettings>
 #include <ros/ros.h>
 #include <ros/master.h>
 #include "rostopicselector.h"
@@ -11,10 +12,24 @@ RosTopicSelector::RosTopicSelector(QWidget *parent) :
     ui(new Ui::RosTopicSelector)
 {
     ui->setupUi(this);
+
+    QSettings settings( "IcarusTechnology", "SuperPlotter");
+
+    auto master_ui = settings.value("DataStreamRos.master_uri", tr("http://localhost:11311")).toString();
+    auto host_ip   = settings.value("DataStreamRos.host_ip", tr("localhost")).toString();
+
+    ui->lineEditMasterURI->setText( master_ui );
+    ui->lineEditHostIP->setText( host_ip );
+
 }
 
 RosTopicSelector::~RosTopicSelector()
 {
+    QSettings settings( "IcarusTechnology", "SuperPlotter");
+
+    settings.setValue ("DataStreamRos.master_uri",  ui->lineEditMasterURI->text() );
+    settings.setValue("DataStreamRos.host_ip",      ui->lineEditHostIP->text() );
+
     delete ui;
 }
 
@@ -106,7 +121,7 @@ void RosTopicSelector::on_buttonBox_accepted()
     _selected_topics.clear();
     foreach(QModelIndex index, indexes)
     {
-         _selected_topics .append(  index.data(Qt::DisplayRole ).toString() );
+        _selected_topics .append(  index.data(Qt::DisplayRole ).toString() );
     }
     this->accept();
 }
