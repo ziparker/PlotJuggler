@@ -59,10 +59,9 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     String datatype( data_type.data(), data_type.size() );
     String topicname( topic_name.data(), topic_name.length() );
 
-    std::vector<SubstitutionRule> rules;
 
     buildRosFlatType( _ros_type_map, datatype, topicname, &buffer_ptr,  &flat_container);
-    applyNameTransform( rules, &flat_container );
+    applyNameTransform( _rules, &flat_container );
 
     // qDebug() << " pushing " << msg_time;
 
@@ -146,6 +145,26 @@ bool DataStreamROS::launch()
     {
         return false;
     }
+
+    // load the rules
+    QStringList rules_by_line = dialog.getLoadedRules().split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
+    _rules.clear();
+    for (auto line: rules_by_line)
+    {
+        QStringList tags = line.split(QRegExp("[\r\n \t]"),QString::SkipEmptyParts);
+        if( tags.size() == 3)
+        {
+            _rules.push_back( RosTypeParser::SubstitutionRule(
+                              tags.at(0).toStdString() ,
+                              tags.at(1).toStdString() ,
+                              tags.at(2).toStdString()
+                              ) );
+        }
+        else{
+            qDebug() << "ERROR parsing this rule: " << line;
+        }
+    }
+    //-------------------------
 
     ros::start(); // needed because node will go out of scope
     ros::NodeHandle node;

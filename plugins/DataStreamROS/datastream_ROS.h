@@ -52,7 +52,7 @@ private:
 
     std::vector<ros::Subscriber> _subscribers;
 
-
+    std::vector<RosTypeParser::SubstitutionRule> _rules;
 };
 
 #endif // DATALOAD_CSV_H
