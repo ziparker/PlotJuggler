@@ -65,7 +65,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
             topic_selected.insert( item.toStdString() );
         }
         // load the rules
-        QStringList rules_by_line = dialog->rules().split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
+        QStringList rules_by_line = dialog->getLoadedRules().split(QRegExp("[\r\n]"),QString::SkipEmptyParts);
         _rules.clear();
         for (auto line: rules_by_line)
         {

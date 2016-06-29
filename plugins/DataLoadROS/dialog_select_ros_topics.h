@@ -20,7 +20,7 @@ public:
 
     QStringList getSelectedItems();
 
-    QString rules() const { return _loaded_rules; }
+    QString getLoadedRules() const;
 
 private slots:
 
@@ -30,6 +30,8 @@ private slots:
     void on_buttonBox_accepted();
 
     void on_listRosTopics_itemSelectionChanged();
+
+    void on_checkBoxEnableSubstitution_toggled(bool checked);
 
 private:
 

@@ -9,7 +9,7 @@
 #include "dialog_select_ros_topics.h"
 #include "ui_dialog_select_ros_topics.h"
 
-const char* PREVIOUS_FILE = "previouslyLoadedSubstitutionRules";
+
 
 DialogSelectRosTopics::DialogSelectRosTopics(QStringList topic_list, QWidget *parent) :
     QDialog(parent),
@@ -26,9 +26,9 @@ DialogSelectRosTopics::DialogSelectRosTopics(QStringList topic_list, QWidget *pa
 
     QSettings settings( "IcarusTechnology", "SuperPlotter");
 
-    if( settings.contains( PREVIOUS_FILE ) )
+    if( settings.contains( "DialogSelectRosTopics.previouslyLoadedRules" ) )
     {
-        QString fileName = settings.value( PREVIOUS_FILE ).toString();
+        QString fileName = settings.value( "DialogSelectRosTopics.previouslyLoadedRules" ).toString();
         // check if it exist
         QFile file(fileName);
 
@@ -37,16 +37,30 @@ DialogSelectRosTopics::DialogSelectRosTopics(QStringList topic_list, QWidget *pa
             readRuleFile( file );
         }
     }
+
+     ui->checkBoxEnableSubstitution->setChecked( settings.value( "DialogSelectRosTopics.enableRules" , true ).toBool() );
+
 }
 
 DialogSelectRosTopics::~DialogSelectRosTopics()
 {
+    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    settings.setValue( "DialogSelectRosTopics.enableRules" , ui->checkBoxEnableSubstitution->isChecked() );
+
     delete ui;
 }
 
 QStringList DialogSelectRosTopics::getSelectedItems()
 {
     return _topic_list;
+}
+
+QString DialogSelectRosTopics::getLoadedRules() const
+{
+    if( ui->checkBoxEnableSubstitution->isChecked())
+        return _loaded_rules;
+    else
+        return QString();
 }
 
 void DialogSelectRosTopics::readRuleFile(QFile &file)
@@ -57,7 +71,7 @@ void DialogSelectRosTopics::readRuleFile(QFile &file)
         this->_loaded_rules = in.readAll();
 
         QSettings settings( "IcarusTechnology", "SuperPlotter");
-        settings.setValue( PREVIOUS_FILE, file.fileName() );
+        settings.setValue( "DialogSelectRosTopics.previouslyLoadedRules", file.fileName() );
 
         ui->labelLoadedRules->setText( file.fileName() );
         file.close();
@@ -71,9 +85,9 @@ void DialogSelectRosTopics::on_pushButtonLoadRules_pressed()
     QString directory_path = QDir::currentPath();
     QString fileName;
 
-    if( settings.contains( PREVIOUS_FILE ) )
+    if( settings.contains( "DialogSelectRosTopics.previouslyLoadedRules" ) )
     {
-        fileName = settings.value( PREVIOUS_FILE ).toString();
+        fileName = settings.value( "DialogSelectRosTopics.previouslyLoadedRules" ).toString();
         QFileInfo info( fileName );
         directory_path = info.absoluteFilePath();
     }
@@ -102,4 +116,9 @@ void DialogSelectRosTopics::on_listRosTopics_itemSelectionChanged()
     QModelIndexList indexes = ui->listRosTopics->selectionModel()->selectedIndexes();
 
     ui->buttonBox->setEnabled( indexes.size() > 0) ;
+}
+
+void DialogSelectRosTopics::on_checkBoxEnableSubstitution_toggled(bool checked)
+{
+    ui->pushButtonLoadRules->setEnabled( checked );
 }
