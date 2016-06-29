@@ -1,11 +1,12 @@
 
-include_directories( ./ ../  ../../common )
 
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 
-QT5_WRAP_UI ( UI_SRC  rostopicselector.ui  )
+QT5_WRAP_UI ( UI_SRC
+    rostopicselector.ui
+    ../ruleloaderwidget.ui )
 
 
 SET( SRC
@@ -14,6 +15,9 @@ SET( SRC
     ../datastreamer_base.h
     rostopicselector.h
     rostopicselector.cpp
+
+    ../ruleloaderwidget.h
+    ../ruleloaderwidget.cpp
     )
 
 

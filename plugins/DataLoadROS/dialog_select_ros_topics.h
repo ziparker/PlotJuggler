@@ -5,6 +5,7 @@
 #include <QString>
 #include <QFile>
 #include <QStringList>
+#include "../ruleloaderwidget.h"
 
 namespace Ui {
 class dialogSelectRosTopics;
@@ -24,24 +25,18 @@ public:
 
 private slots:
 
-    void on_pushButtonLoadRules_pressed();
-
-
     void on_buttonBox_accepted();
 
     void on_listRosTopics_itemSelectionChanged();
 
-    void on_checkBoxEnableSubstitution_toggled(bool checked);
 
 private:
-
-    void readRuleFile(QFile& file);
-
-    QString _loaded_rules;
 
     QStringList _topic_list;
 
     Ui::dialogSelectRosTopics *ui;
+
+    RuleLoaderWidget* _rule_widget;
 };
 
 #endif // DIALOG_SELECT_ROS_TOPICS_H

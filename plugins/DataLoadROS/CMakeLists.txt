@@ -5,13 +5,19 @@ add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 
-QT5_WRAP_UI ( UI_SRC  dialog_select_ros_topics.ui  )
+QT5_WRAP_UI ( UI_SRC
+    dialog_select_ros_topics.ui
+    ../ruleloaderwidget.ui
+    )
 
 
 SET( SRC
     dataload_ros.cpp
     dialog_select_ros_topics.h
     dialog_select_ros_topics.cpp
+
+    ../ruleloaderwidget.h
+    ../ruleloaderwidget.cpp
     )
 
 

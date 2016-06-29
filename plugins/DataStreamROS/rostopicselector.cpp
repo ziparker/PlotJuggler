@@ -21,6 +21,9 @@ RosTopicSelector::RosTopicSelector(QWidget *parent) :
     ui->lineEditMasterURI->setText( master_ui );
     ui->lineEditHostIP->setText( host_ip );
 
+    _rule_widget = new RuleLoaderWidget(this);
+    ui->frame_2->layout()->addWidget( _rule_widget );
+
 }
 
 RosTopicSelector::~RosTopicSelector()
@@ -124,4 +127,11 @@ void RosTopicSelector::on_buttonBox_accepted()
         _selected_topics .append(  index.data(Qt::DisplayRole ).toString() );
     }
     this->accept();
+}
+
+
+
+QString RosTopicSelector::getLoadedRules() const
+{
+    return _rule_widget->getLoadedRules();
 }

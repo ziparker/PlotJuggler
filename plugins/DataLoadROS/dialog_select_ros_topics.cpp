@@ -24,29 +24,14 @@ DialogSelectRosTopics::DialogSelectRosTopics(QStringList topic_list, QWidget *pa
         ui->listRosTopics->addItem( new QListWidgetItem( topic_list[i] ) );
     }
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    _rule_widget = new RuleLoaderWidget(this);
 
-    if( settings.contains( "DialogSelectRosTopics.previouslyLoadedRules" ) )
-    {
-        QString fileName = settings.value( "DialogSelectRosTopics.previouslyLoadedRules" ).toString();
-        // check if it exist
-        QFile file(fileName);
-
-        if( file.exists() )
-        {
-            readRuleFile( file );
-        }
-    }
-
-     ui->checkBoxEnableSubstitution->setChecked( settings.value( "DialogSelectRosTopics.enableRules" , true ).toBool() );
+    ui->frame->layout()->addWidget( _rule_widget );
 
 }
 
 DialogSelectRosTopics::~DialogSelectRosTopics()
 {
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
-    settings.setValue( "DialogSelectRosTopics.enableRules" , ui->checkBoxEnableSubstitution->isChecked() );
-
     delete ui;
 }
 
@@ -57,49 +42,9 @@ QStringList DialogSelectRosTopics::getSelectedItems()
 
 QString DialogSelectRosTopics::getLoadedRules() const
 {
-    if( ui->checkBoxEnableSubstitution->isChecked())
-        return _loaded_rules;
-    else
-        return QString();
+    return _rule_widget->getLoadedRules();
 }
 
-void DialogSelectRosTopics::readRuleFile(QFile &file)
-{
-    if ( file.open(QFile::ReadOnly | QFile::Text))
-    {
-        QTextStream in(&file);
-        this->_loaded_rules = in.readAll();
-
-        QSettings settings( "IcarusTechnology", "SuperPlotter");
-        settings.setValue( "DialogSelectRosTopics.previouslyLoadedRules", file.fileName() );
-
-        ui->labelLoadedRules->setText( file.fileName() );
-        file.close();
-    }
-}
-
-void DialogSelectRosTopics::on_pushButtonLoadRules_pressed()
-{
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
-
-    QString directory_path = QDir::currentPath();
-    QString fileName;
-
-    if( settings.contains( "DialogSelectRosTopics.previouslyLoadedRules" ) )
-    {
-        fileName = settings.value( "DialogSelectRosTopics.previouslyLoadedRules" ).toString();
-        QFileInfo info( fileName );
-        directory_path = info.absoluteFilePath();
-    }
-
-    fileName = QFileDialog::getOpenFileName(this, "Open Layout", directory_path, "*.txt");
-
-    if (fileName.isEmpty())
-        return;
-
-    QFile file(fileName);
-    readRuleFile( file );
-}
 
 void DialogSelectRosTopics::on_buttonBox_accepted()
 {
@@ -118,7 +63,3 @@ void DialogSelectRosTopics::on_listRosTopics_itemSelectionChanged()
     ui->buttonBox->setEnabled( indexes.size() > 0) ;
 }
 
-void DialogSelectRosTopics::on_checkBoxEnableSubstitution_toggled(bool checked)
-{
-    ui->pushButtonLoadRules->setEnabled( checked );
-}

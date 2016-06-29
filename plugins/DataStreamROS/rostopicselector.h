@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QStringList>
+#include "../ruleloaderwidget.h"
 
 namespace Ui {
 class RosTopicSelector;
@@ -20,6 +21,8 @@ public:
 
     QStringList getSelectedTopicsList();
 
+    QString getLoadedRules() const;
+
 private slots:
     void on_buttonConnect_pressed();
 
@@ -33,10 +36,15 @@ private slots:
 
     void on_buttonBox_accepted();
 
+    void on_checkBoxEnableSubstitution_toggled(bool checked);
+
 private:
+
     Ui::RosTopicSelector *ui;
 
     QStringList _selected_topics;
+
+    RuleLoaderWidget* _rule_widget;
 };
 
 #endif // ROSTOPICSELECTOR_H

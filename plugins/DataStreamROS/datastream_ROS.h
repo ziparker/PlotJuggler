@@ -6,6 +6,7 @@
 #include "topic_tools/shape_shifter.h"
 #include "../datastreamer_base.h"
 #include "ros-type-parser.h"
+#include "../ruleloaderwidget.h"
 
 class  DataStreamROS: public QObject, DataStreamer
 {
@@ -51,7 +52,6 @@ private:
 
     std::vector<ros::Subscriber> _subscribers;
 
-  //  std::unique_ptr<ros::NodeHandle> _node;
 
 };
 
