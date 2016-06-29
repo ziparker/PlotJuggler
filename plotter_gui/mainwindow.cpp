@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-    buildData();
+    //buildData();
     _undo_timer.start();
 
     // save initial state
@@ -77,7 +77,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::onUndoableChange()
 {
-    qDebug() << "undoable change " << _undo_states.size();
     /* int elapsed_ms = _undo_timer.restart();
 
     // overwrite the previous
