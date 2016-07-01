@@ -192,10 +192,9 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         PlotDataQwt* plot_qwt = new PlotDataQwt( data );
 
         curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
-        curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
+        //  curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
 
         curve->setData( plot_qwt );
-        curve->attach( this );
         curve->setStyle( QwtPlotCurve::Lines);
 
         int red, green,blue;
@@ -203,6 +202,8 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         curve->setPen( QColor( red, green, blue), 1.0 );
 
         curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
+
+        curve->attach( this );
 
         _curve_list.insert( std::make_pair(name, curve));
     }
@@ -621,8 +622,17 @@ void PlotWidget::on_externallyResized(QRectF rect)
 
 void PlotWidget::zoomOut()
 {
-    on_zoomOutHorizontal_triggered();
-    on_zoomOutVertical_triggered();
+    QRectF rect = currentBoundingRect();
+    auto rangeX = maximumRangeX();
+
+    rect.setLeft( rangeX.first );
+    rect.setRight( rangeX.second );
+
+    auto rangeY = maximumRangeY( false );
+
+    rect.setBottom( rangeY.first );
+    rect.setTop( rangeY.second );
+    this->setScale(rect);
 }
 
 void PlotWidget::on_zoomOutHorizontal_triggered()
