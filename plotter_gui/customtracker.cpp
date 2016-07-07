@@ -44,10 +44,6 @@ void CurveTracker::setEnabled(bool enable)
     _line_marker->setVisible( enable );
     _text_marker->setVisible( enable );
 
-    for (int i=0; i<  _marker.size(); i++)
-    {
-        _marker[i]->setVisible(enable);
-    }
 }
 
 void CurveTracker::manualMove(const QPointF& plot_pos)
@@ -65,13 +61,18 @@ void CurveTracker::refreshPosition()
 
     double tot_Y = 0;
 
+    while( _marker.size() >  curves.size())
+    {
+        _marker.back()->detach();
+        _marker.pop_back();
+    }
+
     for (int i = _marker.size() ; i < curves.size(); i++ )
     {
         _marker.push_back( new QwtPlotMarker );
         _marker[i]->attach( _plot );
         _marker[i]->setVisible( _visible );
     }
-    _marker.resize( curves.size() );
 
     QString text_marker_info;
     double text_X_offset = 0;

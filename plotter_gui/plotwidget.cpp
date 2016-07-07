@@ -293,6 +293,8 @@ void PlotWidget::detachAllCurves()
 {
     this->detachItems(QwtPlotItem::Rtti_PlotCurve, false);
     _curve_list.erase(_curve_list.begin(), _curve_list.end());
+
+    _tracker->refreshPosition();
 }
 
 QDomElement PlotWidget::xmlSaveState( QDomDocument &doc)
