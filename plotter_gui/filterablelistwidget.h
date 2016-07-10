@@ -36,10 +36,6 @@ private slots:
 
     void on_checkBoxCaseSensitive_toggled(bool checked);
 
-    void on_radioTreeView_toggled(bool checked);
-
-    void on_radioFlatView_toggled(bool checked);
-
     void on_lineEdit_textChanged(const QString &search_string);
 
     void on_pushButtonSettings_toggled(bool checked);

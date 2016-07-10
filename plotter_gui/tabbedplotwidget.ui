@@ -34,10 +34,19 @@
           </sizepolicy>
          </property>
          <property name="autoFillBackground">
-          <bool>true</bool>
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
          </property>
          <property name="currentIndex">
           <number>-1</number>
+         </property>
+         <property name="elideMode">
+          <enum>Qt::ElideNone</enum>
+         </property>
+         <property name="documentMode">
+          <bool>false</bool>
          </property>
          <property name="tabsClosable">
           <bool>true</bool>
@@ -231,6 +240,12 @@
            <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
            </property>
+           <property name="styleSheet">
+            <string notr="true">border: 1px solid black;
+border-radius: 6px;
+background: white;
+</string>
+           </property>
            <property name="text">
             <string> Add column</string>
            </property>
@@ -244,6 +259,9 @@
              <height>26</height>
             </size>
            </property>
+           <property name="flat">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -256,7 +274,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>100</width>
              <height>40</height>
             </size>
            </property>
@@ -268,6 +286,12 @@
            </property>
            <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border: 1px solid black;
+border-radius: 6px;
+background: white;
+</string>
            </property>
            <property name="text">
             <string>  Add row</string>
@@ -288,7 +312,7 @@
           <widget class="QPushButton" name="addTabButton">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>110</width>
              <height>40</height>
             </size>
            </property>
@@ -300,6 +324,12 @@
            </property>
            <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border: 1px solid black;
+border-radius: 6px;
+background: white;
+</string>
            </property>
            <property name="text">
             <string> Add Tab</string>
@@ -323,7 +353,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>130</width>
              <height>40</height>
             </size>
            </property>
@@ -335,6 +365,12 @@
            </property>
            <property name="focusPolicy">
             <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border: 1px solid black;
+border-radius: 6px;
+background: white;
+</string>
            </property>
            <property name="text">
             <string> Remove empty</string>

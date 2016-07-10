@@ -229,7 +229,7 @@ void MainWindow::createActions()
 
     //---------------------------------------------
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
     if( settings.contains("MainWindow.recentlyLoadedDatafile") )
     {
         QString fileName = settings.value("MainWindow.recentlyLoadedDatafile").toString();
@@ -517,7 +517,7 @@ void MainWindow::onActionSaveLayout()
         root.appendChild( previously_loaded_datafile );
     }
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
 
     QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
                                              QDir::currentPath() ). toString();
@@ -621,7 +621,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
         return;
     }
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
 
     std::map<QString,DataLoader*>::iterator it;
 
@@ -821,7 +821,7 @@ void MainWindow::onActionLoadStreamer()
 
 void MainWindow::onActionLoadLayout(bool reload_previous)
 {
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
 
     QString directory_path = QDir::currentPath();
 
@@ -1107,7 +1107,7 @@ void MainWindow::onReplotRequested()
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
-        _replot_timer->start( 1 );
+        _replot_timer->start( 10 );
     }
 }
 

@@ -176,6 +176,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
                 field_names.append( valid_field_names );
 
                 SelectFromListDialog* dialog = new SelectFromListDialog( &field_names );
+                dialog->setWindowTitle("Select the time axis");
                 dialog->exec();
                 time_index = dialog->getSelectedRowNumber().at(0) -1; // vector is supposed to have only one element
 

@@ -88,23 +88,6 @@ void FilterableListWidget::on_checkBoxCaseSensitive_toggled(bool checked)
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
-void FilterableListWidget::on_radioTreeView_toggled(bool checked)
-{
-    if(checked)
-    {
-        ui->radioFlatView->setChecked( false);
-        on_lineEdit_textChanged( ui->lineEdit->text() );
-    }
-}
-
-void FilterableListWidget::on_radioFlatView_toggled(bool checked)
-{
-    if(checked)
-    {
-        ui->radioTreeView->setChecked( false);
-        on_lineEdit_textChanged( ui->lineEdit->text() );
-    }
-}
 
 void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
 {

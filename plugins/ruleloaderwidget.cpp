@@ -14,7 +14,7 @@ RuleLoaderWidget::RuleLoaderWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
 
     if( settings.contains( "RuleLoaderWidget.previouslyLoadedRules" ) )
     {
@@ -35,7 +35,7 @@ RuleLoaderWidget::RuleLoaderWidget(QWidget *parent) :
 
 RuleLoaderWidget::~RuleLoaderWidget()
 {
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
     settings.setValue(  "RuleLoaderWidget.enableRules" , ui->checkBoxEnableSubstitution->isChecked() );
 
     delete ui;
@@ -51,7 +51,7 @@ QString RuleLoaderWidget::getLoadedRules() const
 
 void RuleLoaderWidget::on_pushButtonLoadOther_pressed()
 {
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
 
     QString directory_path = QDir::currentPath();
     QString fileName;
@@ -84,7 +84,7 @@ void RuleLoaderWidget::readRuleFile(QFile &file)
         QTextStream in(&file);
         this->_loaded_rules = in.readAll();
 
-        QSettings settings( "IcarusTechnology", "SuperPlotter");
+        QSettings settings( "IcarusTechnology", "PlotJuggler");
         settings.setValue( "RuleLoaderWidget.previouslyLoadedRules", file.fileName() );
 
         ui->labelLoadedRules->setText( file.fileName() );

@@ -13,7 +13,7 @@ RosTopicSelector::RosTopicSelector(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
 
     auto master_ui = settings.value("DataStreamRos.master_uri", tr("http://localhost:11311")).toString();
     auto host_ip   = settings.value("DataStreamRos.host_ip", tr("localhost")).toString();
@@ -28,7 +28,7 @@ RosTopicSelector::RosTopicSelector(QWidget *parent) :
 
 RosTopicSelector::~RosTopicSelector()
 {
-    QSettings settings( "IcarusTechnology", "SuperPlotter");
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
 
     settings.setValue ("DataStreamRos.master_uri",  ui->lineEditMasterURI->text() );
     settings.setValue("DataStreamRos.host_ip",      ui->lineEditHostIP->text() );
@@ -66,7 +66,7 @@ void RosTopicSelector::on_buttonConnect_pressed()
 
     if( ui->checkBoxEnvironmentSettings->isChecked() )
     {
-        ros::init(init_argc,init_argv,"SuperPlotterStreamingListener");
+        ros::init(init_argc,init_argv,"PlotJugglerStreamingListener");
         if ( ! ros::master::check() ) {
             showNoMasterMessage();
             return;
@@ -77,7 +77,7 @@ void RosTopicSelector::on_buttonConnect_pressed()
         remappings["__master"]   = ui->lineEditMasterURI->text().toStdString();
         remappings["__hostname"] = ui->lineEditHostIP->text().toStdString();
 
-        ros::init(remappings, "SuperPlotterStreamingListener");
+        ros::init(remappings, "PlotJugglerStreamingListener");
         if ( ! ros::master::check() ) {
             showNoMasterMessage();
             return;
