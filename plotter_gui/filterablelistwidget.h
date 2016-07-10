@@ -17,8 +17,16 @@ public:
     explicit FilterableListWidget(QWidget *parent = 0);
     ~FilterableListWidget();
 
-    QListWidget* list();
+    //
+    int count() const;
 
+    void clear();
+
+    void addItem(QListWidgetItem* item);
+
+    void addItems(const QStringList& index_list);
+
+     QList<QListWidgetItem*> findItems(const QString& text);
 
 private slots:
 
@@ -28,16 +36,14 @@ private slots:
 
     void on_checkBoxCaseSensitive_toggled(bool checked);
 
-    void on_radioTreeView_toggled(bool checked);
-
-    void on_radioFlatView_toggled(bool checked);
-
     void on_lineEdit_textChanged(const QString &search_string);
 
     void on_pushButtonSettings_toggled(bool checked);
 
 private:
     Ui::FilterableListWidget *ui;
+
+    QListWidget* list();
 };
 
 #endif // CURVE_SELECTOR_H

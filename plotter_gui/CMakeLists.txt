@@ -8,6 +8,7 @@ QT5_WRAP_UI ( UI_SRC
     curvecolorpick.ui
     filterablelistwidget.ui
     tabbedplotwidget.ui
+    ${CMAKE_SOURCE_DIR}/common/selectlistdialog.ui
     )
 
 SET( PLOTTER_SRC
@@ -25,11 +26,15 @@ SET( PLOTTER_SRC
     filterablelistwidget.cpp
     tabbedplotwidget.cpp
     subwindow.cpp
+
+    mainwindow.h
+    ${CMAKE_SOURCE_DIR}/common/selectlistdialog.h
+    ${CMAKE_SOURCE_DIR}/common/plotdata.h
     )
 
-add_executable(SuperPlotter ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})
+add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})
 
-target_link_libraries(SuperPlotter
+target_link_libraries(PlotJuggler
     ${Qt5Widgets_LIBRARIES}
     ${Qt5PrintSupport_LIBRARIES}
     ${Qt5Xml_LIBRARIES}
@@ -39,5 +44,5 @@ target_link_libraries(SuperPlotter
     qwt_static
     )
 
-INSTALL(TARGETS SuperPlotter DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
+INSTALL(TARGETS PlotJuggler DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
 

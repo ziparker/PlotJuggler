@@ -21,8 +21,6 @@ PlotMatrix::PlotMatrix(QString name, PlotDataMap *datamap, QWidget *parent ):
 
     _horizontal_link = true;
     updateLayout();
-
-    _active_tracker = true;
 }
 
 
@@ -36,22 +34,10 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
 
-    for(int i=0; i< layout->count(); i++)
-    {
-        QLayoutItem * item = layout->itemAt(i);
-        if( item  ){
-            PlotWidget *other_plot = static_cast<PlotWidget *>( item->widget() );
-            if (other_plot )
-            {
-
-            }
-        }
-    }
-
     layout->addWidget( plot, row, col );
-    plot->tracker()->setEnabled( _active_tracker );
 
     emit plotAdded(plot);
+
     return plot;
 }
 
@@ -106,8 +92,7 @@ void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
 
 void PlotMatrix::removeColumn(int column_to_delete)
 {
-    if(num_rows==1 && num_cols ==1 )
-    {
+    if(num_rows==1 && num_cols ==1 ) {
         return;
     }
 
@@ -128,12 +113,12 @@ void PlotMatrix::removeColumn(int column_to_delete)
     }
 
     updateLayout();
+
 }
 
 void PlotMatrix::removeRow(int row_to_delete)
 {
-    if(num_rows==1 && num_cols ==1 )
-    {
+    if(num_rows==1 && num_cols ==1 ) {
         return;
     }
 
@@ -157,7 +142,6 @@ void PlotMatrix::removeRow(int row_to_delete)
 }
 
 
-
 PlotMatrix::~PlotMatrix(){}
 
 int PlotMatrix::rowsCount() const
@@ -179,13 +163,9 @@ bool PlotMatrix::isColumnEmpty( int col )
 {
     for (int r=0; r< layout->rowCount(); r++)
     {
-        QLayoutItem *item = layout->itemAtPosition(r, col);
-        if( item  ){
-            PlotWidget *widget = static_cast<PlotWidget *>( item->widget() );
-            if (widget && widget->isEmpty() == false)
-            {
-                return false;
-            }
+        auto plot = plotAt(r, col);
+        if( plot && ! plot->isEmpty() )  {
+            return false;
         }
     }
     return true;
@@ -195,13 +175,9 @@ bool PlotMatrix::isRowEmpty(int row )
 {
     for (int c=0; c< layout->columnCount(); c++)
     {
-        QLayoutItem *item = layout->itemAtPosition(row, c);
-        if( item  ){
-            PlotWidget *widget = static_cast<PlotWidget *>( item->widget() );
-            if (widget && widget->isEmpty() == false)
-            {
-                return false;
-            }
+        auto plot = plotAt(row, c);
+        if( plot && ! plot->isEmpty() )  {
+            return false;
         }
     }
     return true;
@@ -329,20 +305,14 @@ void PlotMatrix::updateLayout()
 {
     for ( int row = 0; row < rowsCount(); row++ )
     {
-        alignAxes( row, QwtPlot::xTop );
         alignAxes( row, QwtPlot::xBottom );
-
         alignScaleBorder( row, QwtPlot::yLeft );
-        alignScaleBorder( row, QwtPlot::yRight );
     }
 
     for ( int col = 0; col < colsCount(); col++ )
     {
         alignAxes( col, QwtPlot::yLeft );
-        alignAxes( col, QwtPlot::yRight );
-
         alignScaleBorder( col, QwtPlot::xBottom );
-        alignScaleBorder( col, QwtPlot::xTop );
     }
 }
 
@@ -355,32 +325,10 @@ void PlotMatrix::replot()
     }
 }
 
-void PlotMatrix::removeAllCurves()
-{
-    for ( unsigned i = 0; i< plotCount(); i++ )
-    {
-        PlotWidget *plot = plotAt(i);
-        plot->detachAllCurves();
-    }
-}
 
 void PlotMatrix::setHorizontalLink(bool linked)
 {
     _horizontal_link = linked;
-}
-
-void PlotMatrix::setActiveTracker(bool active)
-{
-    for ( unsigned i = 0; i< plotCount(); i++ )
-    {
-        PlotWidget *plot = plotAt(i);
-        plot->tracker()->setEnabled( active );
-    }
-    if( active != _active_tracker)
-    {
-        replot();
-    }
-    _active_tracker = active;
 }
 
 
@@ -399,35 +347,40 @@ QGridLayout *PlotMatrix::gridLayout()
     return layout;
 }
 
-void PlotMatrix::maximizeHorizontalScale()
+void PlotMatrix::maximumZoomOutHorizontal()
 {
     for ( unsigned i = 0; i< plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            QRectF bound_max = plot->maximumBoundingRect();
-            QRectF bound_act= plot->currentBoundingRect();
-            bound_act.setLeft( bound_max.left() );
-            bound_act.setRight( bound_max.right() );
-            plot->setScale( bound_act );
+            plot->on_zoomOutHorizontal_triggered();
         }
     }
     replot();
 }
 
-void PlotMatrix::maximizeVerticalScale()
+void PlotMatrix::maximumZoomOutVertical()
 {
     for ( unsigned i = 0; i < plotCount(); i++ )
     {
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            QRectF bound_max = plot->maximumBoundingRect();
-            QRectF bound_act= plot->currentBoundingRect();
-            bound_act.setBottom( bound_max.bottom() );
-            bound_act.setTop( bound_max.top() );
-            plot->setScale( bound_act );
+            plot->on_zoomOutVertical_triggered();
+        }
+    }
+    replot();
+}
+
+void PlotMatrix::maximumZoomOut()
+{
+    for ( unsigned i = 0; i < plotCount(); i++ )
+    {
+        PlotWidget *plot = plotAt(i);
+        if( plot->isEmpty() == false)
+        {
+            plot->zoomOut();
         }
     }
     replot();
@@ -436,23 +389,23 @@ void PlotMatrix::maximizeVerticalScale()
 
 void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new_range)
 {
-    for ( unsigned i = 0; i< plotCount(); i++ )
+    if( _horizontal_link )
     {
-        PlotWidget *plot = plotAt(i);
-        if( plot->isEmpty() == false && modified_plot != plot)
+        for ( unsigned i = 0; i< plotCount(); i++ )
         {
-            QRectF bound_act = plot->currentBoundingRect();
-
-            if( _horizontal_link )
+            PlotWidget *plot = plotAt(i);
+            if( plot->isEmpty() == false && modified_plot != plot)
             {
+                QRectF bound_act = plot->currentBoundingRect();
                 bound_act.setLeft( new_range.left() );
                 bound_act.setRight( new_range.right() );
+                plot->setScale( bound_act, false );
+                plot->replot();
             }
-            plot->setScale( bound_act, false );
         }
     }
-    replot();
-    emit layoutModified();
+
+    emit undoableChange();
 }
 
 void PlotMatrix::alignAxes( int rowOrColumn, int axis )
@@ -487,8 +440,7 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
             }
         }
     }
-    else
-    {
+    else{
         double maxExtent = 0;
 
         for ( int col = 0; col < colsCount(); col++ )
@@ -521,59 +473,22 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
 
 void PlotMatrix::alignScaleBorder( int rowOrColumn, int axis )
 {
-    int startDist = 0;
-    int endDist = 0;
-
-    if ( axis == QwtPlot::yLeft )
+    if ( axis == QwtPlot::yLeft || axis == QwtPlot::yRight )
     {
-        QwtPlot *p = plotAt( rowOrColumn, 0 );
-        if ( p )
-            p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
-
-        for ( int col = 1; col < colsCount(); col++ )
+        for ( int col = 0; col < colsCount(); col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
-                p->axisWidget( axis )->setMinBorderDist( startDist, endDist );
+                p->axisWidget( axis )->setMinBorderDist( 10, 10 );
         }
     }
-    else if ( axis == QwtPlot::yRight )
+    else if ( axis == QwtPlot::xTop | axis == QwtPlot::xBottom )
     {
-        QwtPlot *p = plotAt( rowOrColumn, colsCount() - 1 );
-        if ( p )
-            p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
-
-        for ( int col = 0; col < colsCount() - 1; col++ )
-        {
-            QwtPlot *p = plotAt( rowOrColumn, col );
-            if ( p )
-                p->axisWidget( axis )->setMinBorderDist( startDist, endDist );
-        }
-    }
-    if ( axis == QwtPlot::xTop )
-    {
-        QwtPlot *p = plotAt( rowOrColumn, 0 );
-        if ( p )
-            p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
-
-        for ( int row = 1; row < rowsCount(); row++ )
+        for ( int row = 0; row < rowsCount(); row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )
-                p->axisWidget( axis )->setMinBorderDist( startDist, endDist );
-        }
-    }
-    else if ( axis == QwtPlot::xBottom )
-    {
-        QwtPlot *p = plotAt( rowsCount() - 1, rowOrColumn );
-        if ( p )
-            p->axisWidget( axis )->getBorderDistHint( startDist, endDist );
-
-        for ( int row = 0; row < rowsCount() - 1; row++ )
-        {
-            QwtPlot *p = plotAt( row, rowOrColumn );
-            if ( p )
-                p->axisWidget( axis )->setMinBorderDist( startDist, endDist );
+                p->axisWidget( axis )->setMinBorderDist( 15, 15 );
         }
     }
 }

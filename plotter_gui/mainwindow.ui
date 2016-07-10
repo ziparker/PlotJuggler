@@ -9,42 +9,30 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>964</width>
-    <height>650</height>
+    <width>1000</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>SuperPlotter</string>
+   <string>PlotJuggler</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resource.qrc">
     <normaloff>:/icons/resources/Line_tracker.png</normaloff>:/icons/resources/Line_tracker.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QSplitter" name="splitter">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
-      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <layout class="QVBoxLayout" name="leftLayout"/>
+      </widget>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="centralLayout" stretch="0">
         <property name="sizeConstraint">
@@ -98,6 +86,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="pushButtonActivateTracker">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
             </property>
@@ -138,6 +132,70 @@
             </property>
            </widget>
           </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="streamingLabel">
+            <property name="text">
+             <string>   Buffer size:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="streamingSpinBox">
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="buttonSymbols">
+             <enum>QAbstractSpinBox::PlusMinus</enum>
+            </property>
+            <property name="accelerated">
+             <bool>false</bool>
+            </property>
+            <property name="correctionMode">
+             <enum>QAbstractSpinBox::CorrectToPreviousValue</enum>
+            </property>
+            <property name="suffix">
+             <string> sec</string>
+            </property>
+            <property name="minimum">
+             <number>4</number>
+            </property>
+            <property name="maximum">
+             <number>20</number>
+            </property>
+            <property name="value">
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonStreaming">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="text">
+             <string>Streaming</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -146,27 +204,92 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QToolBar" name="mainToolBar">
+  <widget class="QStatusBar" name="statusBar">
    <property name="minimumSize">
     <size>
      <width>0</width>
-     <height>20</height>
+     <height>0</height>
     </size>
    </property>
-   <property name="movable">
-    <bool>false</bool>
-   </property>
-   <property name="floatable">
-    <bool>false</bool>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1000</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoadData"/>
+    <addaction name="actionLoadRecentDatafile"/>
+    <addaction name="actionReloadData"/>
+    <addaction name="actionDeleteAllData"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadLayout"/>
+    <addaction name="actionLoadRecentLayout"/>
+    <addaction name="actionSaveLayout"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveAsCSV"/>
+   </widget>
+   <widget class="QMenu" name="menuStreaming">
+    <property name="title">
+     <string>Streaming</string>
+    </property>
+    <addaction name="actionStartStreaming"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuStreaming"/>
+  </widget>
+  <action name="actionLoadData">
+   <property name="text">
+    <string>Load Data</string>
+   </property>
+  </action>
+  <action name="actionLoadRecentDatafile">
+   <property name="text">
+    <string>Load recent datafile...</string>
+   </property>
+  </action>
+  <action name="actionReloadData">
+   <property name="text">
+    <string>Reload data</string>
+   </property>
+  </action>
+  <action name="actionDeleteAllData">
+   <property name="text">
+    <string>Delete all data</string>
+   </property>
+  </action>
+  <action name="actionLoadLayout">
+   <property name="text">
+    <string>Load layout</string>
+   </property>
+  </action>
+  <action name="actionLoadRecentLayout">
+   <property name="text">
+    <string>Load recent layout...</string>
+   </property>
+  </action>
+  <action name="actionSaveLayout">
+   <property name="text">
+    <string>Save layout</string>
+   </property>
+  </action>
+  <action name="actionSaveAsCSV">
+   <property name="text">
+    <string>Save data as CSV</string>
+   </property>
+  </action>
+  <action name="actionStartStreaming">
+   <property name="text">
+    <string>Start streaming</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

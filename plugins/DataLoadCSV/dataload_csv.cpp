@@ -2,8 +2,9 @@
 #include <QTextStream>
 #include <QFile>
 #include <QMessageBox>
-#include "selectxaxisdialog.h"
+#include "selectlistdialog.h"
 #include <QDebug>
+#include <QProgressDialog>
 
 DataLoadCSV::DataLoadCSV()
 {
@@ -16,8 +17,7 @@ const std::vector<const char*> &DataLoadCSV::compatibleFileExtensions() const
 }
 
 int DataLoadCSV::parseHeader(QFile *file,
-                             std::vector<std::pair<bool,QString> >& ordered_names,
-                             std::function<void(int)> updateCompletion)
+                             std::vector<std::pair<bool,QString> >& ordered_names)
 {
     QTextStream inA(file);
 
@@ -74,7 +74,7 @@ int DataLoadCSV::parseHeader(QFile *file,
                     ordered_names[i].second = prefix + "." + replace_name;
                     if( suffix.size() > 0)
                     {
-                       ordered_names[i].second.append( "." + suffix );
+                        ordered_names[i].second.append( "." + suffix );
                     }
                     i++;
                 }
@@ -87,44 +87,45 @@ int DataLoadCSV::parseHeader(QFile *file,
     {
         inA.readLine();
         linecount++;
-        if(linecount%100 == 0)
-        {
-            updateCompletion(0);
-        }
     }
 
     return linecount;
 }
 
-PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
-                                          std::function<void(int)> updateCompletion,
-                                          std::function<bool()> checkInterruption,
-                                          int time_index )
+PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
+                                          std::string& time_index_name )
 {
+    int time_index = TIME_INDEX_NOT_DEFINED;
+
     PlotDataMap plot_data;
 
+    QFile file( file_name.c_str() );
+    file.open(QFile::ReadOnly);
 
     std::vector<std::pair<bool, QString> > ordered_names;
 
-    int linecount = parseHeader(file, ordered_names, updateCompletion);
+    int linecount = parseHeader( &file, ordered_names);
 
-    file->close();
-    file->open(QFile::ReadOnly);
-    QTextStream inB( file );
+    file.close();
+    file.open(QFile::ReadOnly);
+    QTextStream inB( &file );
 
-    std::vector<SharedVector> ordered_vectors;
-
+    std::vector<PlotDataPtr> plots_vector;
 
     bool interrupted = false;
 
     int tot_lines = linecount -1;
     linecount = 0;
 
+    QProgressDialog progress_dialog;
+    progress_dialog.setLabelText("Loading... please wait");
+    progress_dialog.setWindowModality( Qt::ApplicationModal );
+    progress_dialog.setRange(0, tot_lines -1);
+    progress_dialog.setAutoClose( true );
+    progress_dialog.setAutoReset( true );
+    progress_dialog.show();
+
     double prev_time = -1;
-
-    SharedVector time_vector (new std::vector<double>() );
-    time_vector->reserve( tot_lines );
-
     bool first_line = true;
 
     while (!inB.atEnd())
@@ -144,35 +145,57 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                     QString& qname = ( ordered_names[i].second );
                     std::string name = qname.toStdString();
 
-                    SharedVector data_vector( new std::vector<double>());
-                    data_vector->reserve(tot_lines);
-
-                    ordered_vectors.push_back( data_vector );
-
                     PlotDataPtr plot( new PlotData );
                     plot->setName( name );
-                    plot_data.insert( std::make_pair( name, plot ) );
+                    plot->setCapacity( tot_lines );
+                    plot_data.numeric.insert( std::make_pair( name, plot ) );
 
                     valid_field_names.push_back( qname );
+
+                    plots_vector.push_back( plot );
+
+                    if (time_index == TIME_INDEX_NOT_DEFINED)
+                    {
+                        if( time_index_name.compare( qname.toStdString()) == 0 )
+                        {
+                            time_index = valid_field_names.size() ;
+                        }
+                    }
                 }
+            }
+
+            if( time_index_name.compare( "INDEX (auto-generated)" ) == 0)
+            {
+                  time_index = -1;
             }
 
             if( time_index == TIME_INDEX_NOT_DEFINED)
             {
-                SelectXAxisDialog* dialog = new SelectXAxisDialog( &valid_field_names );
-                dialog->exec();
-                time_index = dialog->getSelectedRowNumber();
+                QStringList field_names;
+                field_names.push_back( "INDEX (auto-generated)" );
+                field_names.append( valid_field_names );
+
+                SelectFromListDialog* dialog = new SelectFromListDialog( &field_names );
+                dialog->setWindowTitle("Select the time axis");
+                int res = dialog->exec();
+
+                if (res == QDialog::Rejected )
+                {
+                    return PlotDataMap();
+                }
+
+                time_index = dialog->getSelectedRowNumber().at(0) -1; // vector is supposed to have only one element
+                time_index_name = field_names.at( time_index + 1 ).toStdString() ;
             }
 
             first_line = false;
         }
         else{
-            if( time_index < 0)
+            double t = linecount;
+
+            if( time_index >= 0)
             {
-                time_vector->push_back( linecount );
-            }
-            else{
-                double t = string_items[ time_index].toDouble();
+                t = string_items[ time_index].toDouble();
                 if( t <= prev_time)
                 {
                     QMessageBox::StandardButton reply;
@@ -184,7 +207,6 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                     break;
                 }
                 prev_time = t;
-                time_vector->push_back( t );
             }
 
             int index = 0;
@@ -193,42 +215,29 @@ PlotDataMap DataLoadCSV::readDataFromFile(QFile *file,
                 if( ordered_names[i].first )
                 {
                     double y = string_items[i].toDouble();
-                    ordered_vectors[index]->push_back( y );
+                    PlotData::Point point( t,y );
+                    plots_vector[index]->pushBack( point );
                     index++;
                 }
-
             }
 
             if(linecount++ %100 == 0)
-            {
-                updateCompletion( (100* linecount) / tot_lines );
-                interrupted = checkInterruption();
-                if( interrupted )
-                {
+            { 
+                progress_dialog.setValue( linecount );
+                QApplication::processEvents();
+                if( progress_dialog.wasCanceled() ) {
+                    interrupted = true;
                     break;
                 }
             }
         }
     }
-    file->close();
+    file.close();
 
     if(interrupted)
     {
-        plot_data.erase( plot_data.begin(), plot_data.end() );
-    }
-    else{
-
-        int index = 0;
-        for( unsigned i=0; i < ordered_names.size(); i++)
-        {
-            bool valid = ordered_names[i].first;
-            QString name = ordered_names[i].second;
-            if( valid )
-            {
-                plot_data[ name.toStdString() ]->addData( time_vector, ordered_vectors[index]);
-                index++;
-            }
-        }
+        progress_dialog.cancel();
+        plot_data.numeric.erase( plot_data.numeric.begin(), plot_data.numeric.end() );
     }
 
     return plot_data;

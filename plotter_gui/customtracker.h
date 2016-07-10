@@ -9,28 +9,6 @@
 
 class QwtPlotCurve;
 
-/*
- *
-    QwtPlotMarker *mark=new QwtPlotMarker;
-    mark->setLinePen(QPen(Qt::red));
-    mark->setLineStyle(QwtPlotMarker::VLine);
-
-    QwtText mark_text;
-
-    mark_text.setColor( Qt::black );
-
-    QColor c( "#FFFFFF" );
-    mark_text.setBorderPen( QPen( c, 2 ) );
-    c.setAlpha( 200 );
-    mark_text.setBackgroundBrush( c );
-
-    QString info("default");
-    mark_text.setText( info );
-
-    mark->setLabel(mark_text);
-    mark->setValue(50,0);//here you have to set the coordinate axis i.e. where the axis are meeting.
-    mark->attach(this);
-*/
 
 class CurveTracker: public QObject
 {
@@ -40,11 +18,11 @@ public:
 
     QPointF actualPosition() const;
 
-    void setEnabled(bool enable);
-
 public slots:
-    void manualMove(const QPointF & );
-    void refreshPosition( );
+
+    void setPosition(const QPointF & );
+
+    void setEnabled(bool enable);
 
 
 private:

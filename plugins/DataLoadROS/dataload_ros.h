@@ -1,30 +1,35 @@
-#ifndef DATALOAD_CSV_H
-#define DATALOAD_CSV_H
+#ifndef DATALOAD_ROS_H
+#define DATALOAD_ROS_H
+
+#include <ros/ros.h>
+#include <rosbag/bag.h>
 
 #include <QObject>
 #include <QtPlugin>
 #include "../dataloader_base.h"
+#include "ros-type-parser.h"
 
-
-class  DataLoadCSV: public QObject, DataLoader
+class  DataLoadROS: public QObject, DataLoader
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "com.icarustechnology.Superplotter.DataLoader" "../dataloader.json")
     Q_INTERFACES(DataLoader)
 
 public:
-    DataLoadCSV();
+    DataLoadROS();
     virtual const std::vector<const char*>& compatibleFileExtensions() const ;
 
     virtual PlotDataMap readDataFromFile(const std::string& file_name,
-                                         std::string &time_index_name  );
+                                          std::string &time_index_name  );
 
-    virtual ~DataLoadCSV();
+    virtual ~DataLoadROS();
 
 protected:
-    int parseHeader(QFile *file, std::vector<std::pair<bool, QString> > &ordered_names);
+    void loadSubstitutionRule(QStringList all_topic_names);
 
 private:
+    std::vector<RosTypeParser::SubstitutionRule>  _rules;
+
     std::vector<const char*> _extensions;
 
 

@@ -1,12 +1,14 @@
-project(SuperPlotterCmake)
+project(PlotJuggler)
 cmake_minimum_required(VERSION 2.8)
 
+#SET(QT_USE_QTOPENGL TRUE)
 
 find_package(Qt5Core)
 find_package(Qt5Widgets)
 find_package(Qt5PrintSupport)
 find_package(Qt5Concurrent)
 find_package(Qt5Xml)
+#find_package(Qt5OpenGL)
 
 set(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTOUIC ON)
@@ -20,6 +22,7 @@ include_directories(
     ${Qt5Concurrent_INCLUDE_DIRS}
     ${Qt5PrintSupport_INCLUDE_DIRS}
     ${Qt5Xml_INCLUDE_DIRS}
+    #${Qt5OpenGl_INCLUDE_DIRS}
     )
 
 include_directories( ./qwt/src ./common ./color_widgets/include ./plotter_gui)
@@ -35,10 +38,19 @@ add_subdirectory( qwt/src )
 add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )
-add_subdirectory( plugins/DataLoadFB )
+add_subdirectory( plugins/DataStreamSample )
 
-INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/SuperPlotter )
-INSTALL(FILES plugins/dataloader_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/SuperPlotter )
+
+SET ( ROS_DIRECTORY /opt/ros/kinetic/)
+include_directories( ${ROS_DIRECTORY}/include  plugins/ros-type-parser)
+
+add_subdirectory( plugins/ros-type-parser )
+add_subdirectory( plugins/DataLoadROS )
+add_subdirectory( plugins/DataStreamROS )
+
+
+INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
+INSTALL(FILES plugins/dataloader_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
 
 SET(CMAKE_INSTALL_PREFIX  ${CMAKE_BINARY_DIR} )
 
@@ -52,18 +64,18 @@ SET(CPACK_PACKAGE_CONTACT "faconti@icarustechnology.com")
 SET(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local/")
 SET(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0)
 
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SuperPlotter: juggle with data")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "PlotJuggler: juggle with data")
 SET(CPACK_PACKAGE_VENDOR "Icarus Technology")
 
 SET(CPACK_PACKAGE_VERSION_MAJOR "0")
-SET(CPACK_PACKAGE_VERSION_MINOR "1")
-SET(CPACK_PACKAGE_VERSION_PATCH "1")
-SET(CPACK_PACKAGE_VERSION "0.1.1")
+SET(CPACK_PACKAGE_VERSION_MINOR "2")
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+SET(CPACK_PACKAGE_VERSION "0.2.0")
 
-SET(CPACK_PACKAGE_NAME "superplotter${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+SET(CPACK_PACKAGE_NAME "plotjuggler${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default libqt5core5a libqt5concurrent5 libqt5gui5 libqt5opengl5 libqt5printsupport5 libqt5xml5")
 
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "SuperPlotter")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "PlotJuggler")
 
 INCLUDE(CPack)

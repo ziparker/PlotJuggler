@@ -16,10 +16,9 @@ public:
 
     void setAxisLimits(int axis,float lower, float upper);
 
-
 protected:
     virtual void rescale( double factor ) ;
-   // virtual void widgetMouseMoveEvent( QMouseEvent *event );
+
     virtual void widgetWheelEvent( QWheelEvent *event );
 
     float _lower_bounds[QwtPlot::axisCnt];

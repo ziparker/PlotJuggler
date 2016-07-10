@@ -46,20 +46,20 @@ void CurveTracker::setEnabled(bool enable)
 
 }
 
-void CurveTracker::manualMove(const QPointF& plot_pos)
-{
-    _prev_trackerpoint = plot_pos;
-    refreshPosition();
-
-}
-
-void CurveTracker::refreshPosition()
+void CurveTracker::setPosition(const QPointF& position)
 {
     const QwtPlotItemList curves = _plot->itemList( QwtPlotItem::Rtti_PlotCurve );
 
-    _line_marker->setValue( _prev_trackerpoint );
+    _line_marker->setValue( position );
+
+    QRectF rect;
+    rect.setBottom( _plot->canvasMap( QwtPlot::yLeft ).s1() );
+    rect.setTop( _plot->canvasMap( QwtPlot::yLeft ).s2() );
+    rect.setLeft( _plot->canvasMap( QwtPlot::xBottom ).s1() );
+    rect.setRight( _plot->canvasMap( QwtPlot::xBottom ).s2() );
 
     double tot_Y = 0;
+    int visible_points = 0;
 
     while( _marker.size() >  curves.size())
     {
@@ -82,7 +82,7 @@ void CurveTracker::refreshPosition()
         QwtPlotCurve *curve = static_cast<QwtPlotCurve *>(curves[i]);
         QColor color = curve->pen().color();
 
-        text_X_offset = curve->boundingRect().width() * 0.02;
+        text_X_offset =  rect.width() * 0.02;
 
         if( !_marker[i]->symbol() )
         {
@@ -94,17 +94,38 @@ void CurveTracker::refreshPosition()
             _marker[i]->setSymbol(sym);
         }
 
-        const QLineF line = curveLineAt( curve, _prev_trackerpoint.x() );
-        QPointF p1 = line.p1();
+        const QLineF line = curveLineAt( curve, position.x() );
 
-        tot_Y += p1.y();
-        _marker[i]->setValue( p1 );
-
-        text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( p1.y() );
-
-        if(  i < curves.size()-1 ){
-            text_marker_info += "<br>";
+        if( line.isNull() )
+        {
+            continue;
         }
+
+        QPointF point;
+        float middle_X = (line.p1().x() + line.p2().x()) / 2.0;
+
+        if(  position.x() < middle_X )
+            point = line.p1();
+        else
+            point = line.p2();
+
+        _marker[i]->setValue( point );
+
+        if( rect.contains( point ) &&  _visible)
+        {
+            tot_Y += point.y();
+            visible_points++;
+
+            text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( point.y() );
+            if(  i < curves.size()-1 ){
+                text_marker_info += "<br>";
+            }
+            _marker[i]->setVisible( true );
+        }
+        else{
+            _marker[i]->setVisible( false );
+        }
+        _marker[i]->setValue( point );
     }
 
     QwtText mark_text;
@@ -114,13 +135,18 @@ void CurveTracker::refreshPosition()
     mark_text.setBorderPen( QPen( c, 2 ) );
     c.setAlpha( 200 );
     mark_text.setBackgroundBrush( c );
-
     mark_text.setText( text_marker_info );
 
     _text_marker->setLabel(mark_text);
     _text_marker->setLabelAlignment( Qt::AlignRight );
-    _text_marker->setXValue( _prev_trackerpoint.x() + text_X_offset );
-    _text_marker->setYValue( tot_Y/curves.size() );
+    _text_marker->setXValue( position.x() + text_X_offset );
+
+    if(visible_points > 0){
+        _text_marker->setYValue( tot_Y/visible_points );
+    }
+    _text_marker->setVisible( visible_points > 0 &&  _visible);
+
+    _prev_trackerpoint = position;
 
 }
 
@@ -132,24 +158,13 @@ QLineF CurveTracker::curveLineAt(
 
     if ( curve->dataSize() >= 2 )
     {
-        const QRectF br = curve->boundingRect();
-        if ( ( br.width() > 0 ) && ( x >= br.left() ) && ( x <= br.right() ) )
+        int index = qwtUpperSampleIndex<QPointF>(
+                    *curve->data(), x, compareX() );
+
+        if ( index > 0 )
         {
-            int index = qwtUpperSampleIndex<QPointF>(
-                        *curve->data(), x, compareX() );
-
-            if ( index == -1 &&
-                 x == curve->sample( curve->dataSize() - 1 ).x() )
-            {
-                // the last sample is excluded from qwtUpperSampleIndex
-                index = curve->dataSize() - 1;
-            }
-
-            if ( index > 0 )
-            {
-                line.setP1( curve->sample( index - 1 ) );
-                line.setP2( curve->sample( index ) );
-            }
+            line.setP1( curve->sample( index - 1 ) );
+            line.setP2( curve->sample( index ) );
         }
     }
 

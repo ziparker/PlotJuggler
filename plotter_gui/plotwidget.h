@@ -18,7 +18,7 @@
 #include <qwt_plot_legenditem.h>
 #include <deque>
 #include <QMessageBox>
-
+#include <QTime>
 
 class PlotWidget : public QwtPlot
 {
@@ -29,20 +29,26 @@ public:
     virtual ~PlotWidget();
 
     bool addCurve(const QString&  name, bool do_replot = true);
-    void removeCurve(const QString& name);
+
     bool isEmpty();
 
-    const std::map<QString, QwtPlotCurve*>& curveList();
+    const std::map<QString, std::shared_ptr<QwtPlotCurve> > &curveList();
 
     QDomElement xmlSaveState(QDomDocument &doc);
+
     bool xmlLoadState(QDomElement &element, QMessageBox::StandardButton* answer);
 
-    QRectF maximumBoundingRect();
     QRectF currentBoundingRect();
+
+    std::pair<float,float> maximumRangeX();
+
+    std::pair<float,float> maximumRangeY(bool current_canvas = false);
 
     CurveTracker* tracker();
 
     void setScale( QRectF rect, bool emit_signal = true );
+
+    void activateLegent(bool activate);
 
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) ;
@@ -55,28 +61,35 @@ protected:
     virtual bool eventFilter(QObject *obj, QEvent *event);
 
 signals:
-    void swapWidgets(PlotWidget* source, PlotWidget* destination);
+    void swapWidgetsRequested(PlotWidget* source, PlotWidget* destination);
     void rectChanged(PlotWidget* self, QRectF rect );
-    void plotModified();
+    void undoableChange();
     void trackerMoved(QPointF pos);
 
 public slots:
+
     void replot() ;
 
     void detachAllCurves();
 
+    void zoomOut();
+
+    void on_zoomOutHorizontal_triggered();
+
+    void on_zoomOutVertical_triggered();
+
+    void removeCurve(const QString& name);
+
 private slots:
     void launchRemoveCurveDialog();
     void canvasContextMenuTriggered(const QPoint &pos);
-    void launchChangeColorDialog();
-    void on_showPoints(bool checked);
+    void on_changeColor_triggered();
+    void on_showPoints_triggered(bool checked);
     void on_externallyResized(QRectF new_rect);
 
-    void zoomOutHorizontal();
-    void zoomOutVertical();
 
 private:
-    std::map<QString, QwtPlotCurve*> _curve_list;
+    std::map<QString, std::shared_ptr<QwtPlotCurve> > _curve_list;
 
     QAction *_action_removeCurve;
     QAction *_action_removeAllCurves;
@@ -89,11 +102,9 @@ private:
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
     QwtPlotPanner* _panner;
-   // QRectF _prev_bounding;
+    // QRectF _prev_bounding;
     CurveTracker* _tracker;
     QwtPlotLegendItem* _legend;
-
-private:
 
     void setAxisScale( int axisId, double min, double max, double step = 0 );
 
@@ -101,6 +112,10 @@ private:
 
     void buildActions();
     void buildLegend();
+
+    int   _fps_counter;
+    QTime _fps_timeStamp;
+
 
 };
 

@@ -35,18 +35,17 @@ public:
     const PlotWidget* plotAt( int index ) const;
 
     void setAxisScale(int axisId, int row, int col,
-        double min, double max, double step = 0 );
+                      double min, double max, double step = 0 );
 
     QDomElement xmlSaveState(QDomDocument &doc);
+
     bool xmlLoadState(QDomElement &plotmatrix_element );
 
     void updateLayout();
+
     void replot();
 
-    void removeAllCurves();
-
     void setHorizontalLink(bool linked);
-    void setActiveTracker(bool active);
 
     void setName(const QString &new_name) ;
 
@@ -55,11 +54,15 @@ public:
     QGridLayout* gridLayout();
 
 public slots:
-    void maximizeHorizontalScale();
-    void maximizeVerticalScale();
+    void maximumZoomOutHorizontal();
+
+    void maximumZoomOutVertical();
+
+    void maximumZoomOut();
+
 
 private slots:
-  //  void swapWidgetByName(QString name_a, QString name_b);
+    //  void swapWidgetByName(QString name_a, QString name_b);
     void on_singlePlotScaleChanged(PlotWidget* modified_plot, QRectF range);
 
 private:
@@ -75,13 +78,12 @@ private:
 
     PlotDataMap *_mapped_data;
 
-    bool _active_tracker;
 
     QString _name;
 
 signals:
     void plotAdded(PlotWidget*);
-    void layoutModified();
+    void undoableChange();
 
 };
 

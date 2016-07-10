@@ -283,22 +283,24 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
     Schema schema = parseSchemaAndGetOffsets( schema_text );
 
 
-
     //--------------------------------------
     // choose the time axis
     if( time_index == TIME_INDEX_NOT_DEFINED)
     {
-        SelectXAxisDialog* dialog = new SelectXAxisDialog( &schema.names );
+        QStringList field_names;
+        field_names.push_back( "INDEX (auto-generated)" );
+        field_names.append( schema.names);
+
+        SelectXAxisDialog* dialog = new SelectXAxisDialog( &field_names );
         dialog->exec();
-        time_index = dialog->getSelectedRowNumber();
+        time_index = dialog->getSelectedRowNumber().at(0) -1; // vector is supposed to have only one element
     }
 
     // allocate vectors
-    std::vector<SharedVector> data_vectors;
 
     for (int i=0; i< schema.names.size(); i++)
     {
-        data_vectors.push_back( SharedVector(new std::vector<double>()) );
+        data_vectors.push_back( SharedVector(new boost::circular_buffer<double>()) );
 
         PlotDataPtr plot( new PlotData );
         std::string name = schema.names.at(i).toStdString();
@@ -310,7 +312,7 @@ PlotDataMap DataLoadFlatbuffer::readDataFromFile(QFile *file,
 
     size_t msg_count = 0;
 
-    SharedVector time_vector (new std::vector<double>() );
+    SharedVector time_vector (new boost::circular_buffer<double>() );
 
     bool interrupted = false;
 

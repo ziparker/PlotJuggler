@@ -7,8 +7,10 @@
 #include "plotmatrix.h"
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
+
 #include "../plugins/dataloader_base.h"
 #include "../plugins/statepublisher_base.h"
+#include "../plugins/datastreamer_base.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,7 +25,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void on_undoableChange();
+    void onUndoableChange();
 
 private slots:
 
@@ -31,11 +33,15 @@ private slots:
 
     void onTrackerPositionUpdated(QPointF pos );
 
-    void on_splitter_splitterMoved(int, int);
+    void onSplitterMoved(int, int);
 
     void resizeEvent(QResizeEvent *) ;
 
-    void on_plotAdded(PlotWidget* plot);
+    void onPlotAdded(PlotWidget* plot);
+
+    void onPlotMatrixAdded(PlotMatrix* matrix);
+
+    void onTabAreaAdded(TabbedPlotWidget* tabbed_widget);
 
     void onActionSaveLayout();
 
@@ -43,31 +49,41 @@ private slots:
 
     void onActionLoadDataFile(bool reload_from_settings = false);
 
-    void onActionLoadDataFile(QString filename);
+    void onActionLoadDataFileImpl(QString filename, bool reuse_last_timeindex = false );
 
     void onActionReloadDataFileFromSettings();
 
     void onActionReloadSameDataFile();
 
-    void onActionReloadLayout();
+    void onActionReloadRecentLayout();
 
-    void on_pushButtonActivateTracker_toggled(bool checked);
+    void onActionLoadStreamer();
 
-    void on_UndoInvoked();
+    void onUndoInvoked();
 
-    void on_RedoInvoked();
+    void onRedoInvoked();
 
     void on_horizontalSlider_sliderMoved(int position);
 
     void on_tabbedAreaDestroyed(QObject*object);
 
-    void on_floatingWindowDestroyed(QObject*object);
+    void onFloatingWindowDestroyed(QObject*object);
 
-    void on_createFloatingWindow(PlotMatrix* first_tab = NULL);
+    void onCreateFloatingWindow(PlotMatrix* first_tab = NULL);
 
     void on_pushButtonAddSubwindow_pressed();
 
-    void on_swapPlots(PlotWidget* source, PlotWidget* destination);
+    void onSwapPlots(PlotWidget* source, PlotWidget* destination);
+
+    void on_pushButtonStreaming_toggled(bool checked);
+
+    void onReplotRequested();
+
+    void on_streamingSpinBox_valueChanged(int value);
+
+    void onDeleteLoadedData();
+
+    void on_pushButtonActivateTracker_toggled(bool checked);
 
 private:
     Ui::MainWindow *ui;
@@ -75,24 +91,20 @@ private:
     std::vector<TabbedPlotWidget *> _tabbed_plotarea;
     std::vector<QMainWindow *>      _floating_window;
 
-    QAction* _action_loadRecentFile;
-    QAction* _action_reloadFile;
-    QAction* _action_loadRecentLayout;
-
-    QAction* _action_SaveLayout;
-    QAction* _action_LoadLayout;
-    QAction* _action_LoadData;
-
-    QAction* _action_Undo;
-    QAction* _action_Redo;
+    QAction* _actionUndo;
+    QAction* _actionRedo;
 
     void createActions();
 
+    std::vector<PlotWidget *> getAllPlots();
+
     FilterableListWidget* curvelist_widget;
 
-    std::vector<PlotMatrix*> _plot_matrix_list;
+   // std::vector<PlotMatrix*> _plot_matrix_list;
 
     void updateInternalState();
+
+    void getMaximumRangeX(double* minX, double* maxX);
 
     void buildData();
 
@@ -106,29 +118,42 @@ private:
 
     std::map<QString,DataLoader*> data_loader;
     std::vector<StatePublisher*>  state_publisher;
+    std::vector<DataStreamer*>    data_streamer;
+
+    DataStreamer* _current_streamer;
 
     QDomDocument xmlSaveState();
     bool xmlLoadState(QDomDocument state_document);
 
-    std::deque<QDomDocument> _undo_states;
-    std::deque<QDomDocument> _redo_states;
+    boost::circular_buffer<QDomDocument> _undo_states;
+    boost::circular_buffer<QDomDocument> _redo_states;
 
     QElapsedTimer _undo_timer;
 
     QString _loaded_datafile;
 
+    std::string _last_time_index_name;
+
     void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
+
+    void importPlotDataMap(const PlotDataMap &mapped_data);
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
 
     void dragEnterEvent(QDragEnterEvent *event) ;
-    void dragMoveEvent(QDragMoveEvent *event) ;
-    void dropEvent(QDropEvent *event) ;
 
-    void deleteLoadedData();
+    void deleteLoadedData(const QString &curve_name);
 
+    QTimer *_replot_timer;
+signals:
+    void requestRemoveCurveByName(const QString& name);
 
+    void activateStreamingMode( bool active);
+
+    void trackerTimeUpdated(QPointF point);
+
+    void activateTracker(bool active);
 };
 
 #endif // MAINWINDOW_H

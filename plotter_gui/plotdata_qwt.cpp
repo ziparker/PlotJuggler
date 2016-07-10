@@ -2,90 +2,71 @@
 #include <limits>
 #include <stdexcept>
 
-/*PlotDataQwt::PlotDataQwt(PlotData& base)
-{
-   //TODO FIXME *this = base;
-}*/
 
-
-PlotDataQwt::PlotDataQwt(SharedVector x, SharedVector y, std::string name):
-    PlotData( x, y, name),
-    _subsample(1),
-    _index_first( 0 ),
-    _index_last ( x->size() -1 )
+PlotDataQwt::PlotDataQwt(PlotDataPtr base):
+    _plot_data(base),
+    _subsample(1)
+  //   _index_first( 0 ),
+  //   _index_last ( _x_points->size() -1 )
 {
 
 }
 
-PlotDataQwt::PlotDataQwt(const PlotDataQwt & other):
-    PlotData( other.getVectorX(), other.getVectorY(),  other.name() ),
-    _subsample(1),
-    _index_first( 0 ),
-    _index_last ( PlotData::size() -1 )
-{
 
-}
 
 QPointF PlotDataQwt::sample(size_t i) const
 {
-    int index = i*_subsample +_index_first;
-    QPointF point( (*_x_points)[index], (*_y_points)[index] ) ;
+    //   size_t index = i*_subsample +_index_first;
+    //   if( index > _index_last) index =_index_last;
+    auto p = _plot_data->at( i*_subsample );
+    QPointF point( p.x, p.y ) ;
+
     return point ;
 }
 
 QRectF PlotDataQwt::boundingRect() const
 {
-    double x_min = (*_x_points)[ _index_first ];
-    double x_max = (*_x_points)[ _index_last ];
-
-    QRectF rect(  x_min,
-                  _y_min,
-                  x_max - x_min,
-                  _y_max - _y_min );
-    return rect ;
+    qDebug() << "boundingRect not implemented";
+    return QRectF(0,0,1,1);
 }
 
-QRectF PlotDataQwt::maximumBoundingRect() const
+QRectF PlotDataQwt::maximumBoundingRect(double min_X, double max_X)
 {
-    QRectF rect(  _x_min,
-                  _y_min,
-                  _x_max - _x_min,
-                  _y_max - _y_min );
-    return rect ;
+    size_t x1 = _plot_data->getIndexFromX( min_X );
+    size_t x2 = _plot_data->getIndexFromX( max_X );
+
+    auto range_X = _plot_data->getRangeX();
+    auto range_Y = _plot_data->getRangeY( x1, x2  );
+
+    QRectF rect ( range_X.min, range_Y.min,
+                  range_X.max - range_X.min,
+                  range_Y.max - range_Y.min );
+    return rect;
 }
 
 size_t PlotDataQwt::size() const
 {
-    return (_index_last - _index_first +1) / _subsample;
-}
-
-
-void PlotDataQwt::setRangeX(double x_left, double x_right)
-{
-    std::vector<double>::iterator lower, upper;
-
-    lower = std::lower_bound(_x_points->begin(), _x_points->end(), x_left );
-    upper = std::upper_bound(_x_points->begin(), _x_points->end(), x_right );
-
-    _index_first = std::distance( _x_points->begin(), lower);
-    _index_last  = std::distance( _x_points->begin(), upper) -1;
-
-    _subsample = (_index_last-_index_first)  / 5000;
-    if( _subsample < 1) _subsample = 1;
-
-   // qDebug() << "new range " << _index_first << " " << _index_last <<" " << _subsample;
+    //return (_index_last - _index_first +1) / _subsample;
+    return _plot_data->size() /  _subsample ;
 }
 
 QColor PlotDataQwt::colorHint() const
 {
-    return QColor( _color_hint_red, _color_hint_green, _color_hint_blue);
+    int red, green, blue;
+     _plot_data->getColorHint(&red, &green, &blue) ;
+
+    return QColor( red, green, blue);
 }
 
 void PlotDataQwt::setColorHint(QColor color)
 {
-    _color_hint_red   = color.red();
-    _color_hint_green = color.green();
-    _color_hint_blue  = color.blue();
+     _plot_data->setColorHint(
+                 color.red(), color.green(), color.blue()) ;
+}
+
+void PlotDataQwt::setSubsampleFactor()
+{
+  //  _subsample = (_plot_data->size() / 2000) + 1;
 }
 
 
