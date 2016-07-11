@@ -44,8 +44,8 @@ add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataStreamSample )
 
 INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
-INSTALL(FILES plugins/dataloader_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
-
+INSTALL(FILES plugins/dataloader_base.h DESTINATION     ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
+INSTALL(FILES plugins/datastreamer_base.h DESTINATION   ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
 
 #########################  create a package ####################################
 
