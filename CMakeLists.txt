@@ -41,14 +41,6 @@ add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataStreamSample )
 
 
-SET ( ROS_DIRECTORY /opt/ros/kinetic/)
-include_directories( ${ROS_DIRECTORY}/include  plugins/ros-type-parser)
-
-add_subdirectory( plugins/ros-type-parser )
-add_subdirectory( plugins/DataLoadROS )
-add_subdirectory( plugins/DataStreamROS )
-
-
 INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
 INSTALL(FILES plugins/dataloader_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
 
