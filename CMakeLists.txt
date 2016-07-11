@@ -1,14 +1,13 @@
 project(PlotJuggler)
 cmake_minimum_required(VERSION 2.8)
 
-#SET(QT_USE_QTOPENGL TRUE)
 
 find_package(Qt5Core)
 find_package(Qt5Widgets)
 find_package(Qt5PrintSupport)
 find_package(Qt5Concurrent)
 find_package(Qt5Xml)
-#find_package(Qt5OpenGL)
+
 
 set(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTOUIC ON)
@@ -32,6 +31,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+
+
+SET(CMAKE_INSTALL_PREFIX  "/usr/local" )
+
 add_subdirectory( common)
 add_subdirectory( color_widgets )
 add_subdirectory( qwt/src )
@@ -40,11 +43,9 @@ add_subdirectory( plotter_gui )
 add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataStreamSample )
 
-
 INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
 INSTALL(FILES plugins/dataloader_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
 
-SET(CMAKE_INSTALL_PREFIX  ${CMAKE_BINARY_DIR} )
 
 #########################  create a package ####################################
 

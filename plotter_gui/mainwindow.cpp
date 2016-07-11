@@ -277,7 +277,10 @@ QColor MainWindow::colorHint()
 
 void MainWindow::loadPlugins(QString subdir_name)
 {
-    QDir pluginsDir(qApp->applicationDirPath());
+
+    //TODO. Provide a way to modify this at runtime
+
+    QDir pluginsDir( "/usr/local/lib/PlotJuggler" );
 
 #if defined(Q_OS_WIN)
     if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
@@ -395,7 +398,6 @@ void MainWindow::resizeEvent(QResizeEvent *)
 
 void MainWindow::onPlotAdded(PlotWidget* plot)
 {
-    qDebug() << "onPlotAdded";
     connect( plot, SIGNAL(undoableChange()),       this, SLOT(onUndoableChange()) );
     connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerPositionUpdated(QPointF)));
     connect( plot, SIGNAL(swapWidgetsRequested(PlotWidget*,PlotWidget*)), this, SLOT(onSwapPlots(PlotWidget*,PlotWidget*)) );
@@ -414,14 +416,12 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
 void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
 {
-    qDebug() << "onPlotMatrixAdded";
     connect( matrix, SIGNAL(plotAdded(PlotWidget*)), this, SLOT( onPlotAdded(PlotWidget*)));
     connect( matrix, SIGNAL(undoableChange()),       this, SLOT( onUndoableChange()) );
 }
 
 void MainWindow::onTabAreaAdded(TabbedPlotWidget* tabbed_widget)
 {
-    qDebug() << "onTabAreaAdded";
     connect( tabbed_widget, SIGNAL(undoableChangeHappened()),        this, SLOT(onUndoableChange()) );
     connect( tabbed_widget, SIGNAL(destroyed(QObject*)),             this, SLOT(on_tabbedAreaDestroyed(QObject*)) );
     connect( tabbed_widget, SIGNAL(sendTabToNewWindow(PlotMatrix*)), this, SLOT(onCreateFloatingWindow(PlotMatrix*)) );
@@ -432,8 +432,8 @@ void MainWindow::onTabAreaAdded(TabbedPlotWidget* tabbed_widget)
 QDomDocument MainWindow::xmlSaveState()
 {
     QDomDocument doc;
-    QDomProcessingInstruction instr = doc.createProcessingInstruction(
-                "xml", "version='1.0' encoding='UTF-8'");
+    QDomProcessingInstruction instr =
+            doc.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
 
     doc.appendChild(instr);
 
