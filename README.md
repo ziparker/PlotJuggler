@@ -26,6 +26,10 @@ The only binary dependencies that you need installed on your system are Boost an
     
 The proceed as you would do with any cmake based project
 
-    mkdir build; cd build
-    cmake ..
-    make
+     mkdir build; cd build
+     cmake ..
+     make
+     sudo make install
+ 
+ Note: you should not skip the last installation step. Currently the plugins need to be installed in the folder __/usr/local/lib/PlotJuggler/__ otherwise PlotJuggle will not find them.
+ 
