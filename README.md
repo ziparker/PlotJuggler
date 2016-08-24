@@ -33,3 +33,6 @@ The proceed as you would do with any cmake based project
  
  Note: you should not skip the last installation step. Currently the plugins need to be installed in the folder __/usr/local/lib/PlotJuggler/__ otherwise PlotJuggle will not find them.
  
+ # Note for ROS users
+ If you want to load __Rosbags__ or display a streaming of data from a ROS __topics__, you should compile and install [PlotJuggler-plugins-ros](https://github.com/facontidavide/PlotJuggler-plugins-ros).
+ 
