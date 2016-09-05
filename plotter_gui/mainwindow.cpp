@@ -29,11 +29,13 @@ int unique_number = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
+    _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this)
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
-    curvelist_widget = new FilterableListWidget(this);
+    _curvelist_widget = new FilterableListWidget(this);
 
     ui->setupUi(this);
 
@@ -45,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     tabbed_widget->addTab(); // this MUST be done after onTabAreaAdded
 
     ui->centralLayout->insertWidget(0, _tabbed_plotarea.back());
-    ui->leftLayout->addWidget( curvelist_widget );
+    ui->leftLayout->addWidget( _curvelist_widget );
 
     connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
 
@@ -125,9 +127,9 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     ui->horizontalSlider->setValue(slider_value);
 
     //------------------------
-    for ( int i=0; i<state_publisher.size(); i++)
+    for ( int i=0; i<_state_publisher.size(); i++)
     {
-        state_publisher[i]->updateState( &_mapped_plot_data, current_time);
+        _state_publisher[i]->updateState( &_mapped_plot_data, current_time);
     }
 }
 
@@ -186,9 +188,6 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
     window->show();
     window->activateWindow();
 
-    window->addAction( _actionUndo );
-    window->addAction( _actionRedo );
-
     if( undoable ) onUndoableChange();
 }
 
@@ -206,15 +205,12 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainWindow::createActions()
 {
-    _actionUndo = new QAction(tr("Undo"),this);
-    _actionRedo = new QAction(tr("Redo"),this);
-    _actionUndo->setShortcut( QKeySequence(Qt::CTRL + Qt::Key_Z));
-    _actionRedo->setShortcut( QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z));
 
-    this->addAction( _actionUndo );
-    this->addAction( _actionRedo );
-    connect(_actionUndo, SIGNAL(triggered()), this, SLOT(onUndoInvoked()) );
-    connect(_actionRedo, SIGNAL(triggered()), this, SLOT(onRedoInvoked()) );
+    _undo_shortcut.setContext(Qt::ApplicationShortcut);
+    _redo_shortcut.setContext(Qt::ApplicationShortcut);
+
+    connect( &_undo_shortcut, SIGNAL(activated()), this, SLOT(onUndoInvoked()) );
+    connect( &_redo_shortcut, SIGNAL(activated()), this, SLOT(onRedoInvoked()) );
 
     //---------------------------------------------
 
@@ -304,7 +300,7 @@ void MainWindow::loadPlugins(QString subdir_name)
 
                 for(unsigned i = 0; i < extensions.size(); i++)
                 {
-                    data_loader.insert( std::make_pair( QString(extensions[i]), loader) );
+                    _data_loader.insert( std::make_pair( QString(extensions[i]), loader) );
                 }
             }
 
@@ -312,14 +308,14 @@ void MainWindow::loadPlugins(QString subdir_name)
             if (publisher)
             {
                 qDebug() << fileName << ": is a StatePublisher plugin";
-                state_publisher.push_back( publisher );
+                _state_publisher.push_back( publisher );
             }
 
             DataStreamer *streamer =  qobject_cast<DataStreamer *>(plugin);
             if (streamer)
             {
                 qDebug() << fileName << ": is a DataStreamer plugin";
-                data_streamer.push_back( streamer );
+                _data_streamer.push_back( streamer );
             }
         }
         else{
@@ -339,7 +335,7 @@ void MainWindow::buildData()
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
                << "mai" << "nessun" << "ci" << "dividera";
 
-    curvelist_widget->addItems( words_list );
+    _curvelist_widget->addItems( words_list );
 
 
     foreach( const QString& name, words_list)
@@ -379,7 +375,7 @@ void MainWindow::mousePressEvent(QMouseEvent *)
 void MainWindow::onSplitterMoved(int , int )
 {
     QList<int> sizes = ui->splitter->sizes();
-    int maxLeftWidth = curvelist_widget->maximumWidth();
+    int maxLeftWidth = _curvelist_widget->maximumWidth();
     int totalWidth = sizes[0] + sizes[1];
 
     if( sizes[0] > maxLeftWidth)
@@ -546,14 +542,14 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
         return;
     }
 
-    auto items_to_remove = curvelist_widget->findItems( curve_name );
+    auto items_to_remove = _curvelist_widget->findItems( curve_name );
     qDeleteAll( items_to_remove );
 
     emit requestRemoveCurveByName( curve_name );
 
     _mapped_plot_data.numeric.erase( plot_curve );
 
-    if( curvelist_widget->count() == 0)
+    if( _curvelist_widget->count() == 0)
     {
         ui->actionReloadData->setEnabled( false );
         ui->actionDeleteAllData->setEnabled( false );
@@ -600,7 +596,7 @@ void MainWindow::onDeleteLoadedData()
     _mapped_plot_data.numeric.clear();
     _mapped_plot_data.user_defined.clear();
 
-    curvelist_widget->clear();
+    _curvelist_widget->clear();
 
     auto plots = getAllPlots();
 
@@ -614,7 +610,7 @@ void MainWindow::onDeleteLoadedData()
 
 void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 {
-    if( data_loader.empty())
+    if( _data_loader.empty())
     {
         QMessageBox::warning(0, tr("Warning"),
                              tr("No plugin was loaded to process a data file\n") );
@@ -627,7 +623,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
     QString file_extension_filter;
 
-    for (it = data_loader.begin(); it != data_loader.end(); it++)
+    for (it = _data_loader.begin(); it != _data_loader.end(); it++)
     {
         QString extension = it->first.toLower();
         file_extension_filter.append( QString(" *.") + extension );
@@ -681,7 +677,7 @@ void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
         {
             QColor color = colorHint();
             plot->setColorHint( color.red(), color.green(), color.blue() );
-            curvelist_widget->addItem( new QListWidgetItem( qname ) );
+            _curvelist_widget->addItem( new QListWidgetItem( qname ) );
         }
 
         _mapped_plot_data.numeric[name] = plot;
@@ -724,7 +720,7 @@ void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
 
 void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_timeindex )
 {
-    DataLoader* loader = data_loader[ QFileInfo(fileName).suffix() ];
+    DataLoader* loader = _data_loader[ QFileInfo(fileName).suffix() ];
 
     if( loader )
     {
@@ -785,30 +781,30 @@ void MainWindow::onActionReloadRecentLayout()
 
 void MainWindow::onActionLoadStreamer()
 {
-    if( data_streamer.empty())
+    if( _data_streamer.empty())
     {
         qDebug() << "Error, no streamer loaded";
         return;
     }
 
-    if( data_streamer.size() > 1)
+    if( _data_streamer.size() > 1)
     {
         QStringList streamers_name;
-        for (int i=0; i< data_streamer.size(); i++)
+        for (int i=0; i< _data_streamer.size(); i++)
         {
-            streamers_name.push_back( QString( data_streamer[i]->name()) );
+            streamers_name.push_back( QString( _data_streamer[i]->name()) );
         }
         SelectFromListDialog dialog( &streamers_name, true, this );
         dialog.exec();
         int index = dialog.getSelectedRowNumber().at(0) ;
         if( index >= 0)
         {
-            _current_streamer = data_streamer[index];
+            _current_streamer = _data_streamer[index];
         }
     }
 
-    if( data_streamer.size() == 1){
-        _current_streamer = data_streamer[0];
+    if( _data_streamer.size() == 1){
+        _current_streamer = _data_streamer[0];
     }
 
     if( _current_streamer && _current_streamer->launch() )
@@ -904,7 +900,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 
 void MainWindow::onUndoInvoked( )
 {
-    // qDebug() << "on_UndoInvoked "<<_undo_states.size();
+    //qDebug() << "on_UndoInvoked "<<_undo_states.size();
 
     if( _undo_states.size() > 1)
     {
@@ -1132,3 +1128,4 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
     emit  activateTracker( checked );
 
 }
+

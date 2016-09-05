@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QElapsedTimer>
+#include <QShortcut>
 #include "plotwidget.h"
 #include "plotmatrix.h"
 #include "filterablelistwidget.h"
@@ -91,14 +92,17 @@ private:
     std::vector<TabbedPlotWidget *> _tabbed_plotarea;
     std::vector<QMainWindow *>      _floating_window;
 
-    QAction* _actionUndo;
-    QAction* _actionRedo;
+    //QAction* _actionUndo;
+    //QAction* _actionRedo;
+
+    QShortcut _undo_shortcut;
+    QShortcut _redo_shortcut;
 
     void createActions();
 
     std::vector<PlotWidget *> getAllPlots();
 
-    FilterableListWidget* curvelist_widget;
+    FilterableListWidget* _curvelist_widget;
 
    // std::vector<PlotMatrix*> _plot_matrix_list;
 
@@ -116,9 +120,9 @@ private:
 
     void loadPlugins(QString subdir_name);
 
-    std::map<QString,DataLoader*> data_loader;
-    std::vector<StatePublisher*>  state_publisher;
-    std::vector<DataStreamer*>    data_streamer;
+    std::map<QString,DataLoader*> _data_loader;
+    std::vector<StatePublisher*>  _state_publisher;
+    std::vector<DataStreamer*>    _data_streamer;
 
     DataStreamer* _current_streamer;
 
