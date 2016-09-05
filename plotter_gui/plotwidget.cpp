@@ -29,7 +29,8 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     _panner( 0 ),
     _tracker ( 0 ),
     _legend( 0 ),
-    _mapped_data( datamap )
+    _mapped_data( datamap ),
+    _show_line_and_points(false)
 {
     this->setAcceptDrops( true );
     this->setMinimumWidth( 100 );
@@ -195,7 +196,13 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         //  curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
 
         curve->setData( plot_qwt );
-        curve->setStyle( QwtPlotCurve::Lines);
+
+        if( _show_line_and_points ) {
+            curve->setStyle( QwtPlotCurve::LinesAndDots);
+        }
+        else{
+            curve->setStyle( QwtPlotCurve::Lines);
+        }
 
         int red, green,blue;
         data->getColorHint(& red, &green, &blue);
@@ -376,11 +383,12 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         else{
             if( *answer !=  QMessageBox::YesToAll)
             {
-                *answer = QMessageBox::question(0,
-                                                tr("Warning"),
-                                                tr("Can't find the curve with name %1.\n Do you want to ignore it? ").arg(curve_name),
-                                                QMessageBox::Yes | QMessageBox::YesToAll | QMessageBox::Abort ,
-                                                QMessageBox::Abort );
+                *answer = QMessageBox::question(
+                            0,
+                            tr("Warning"),
+                            tr("Can't find the curve with name %1.\n Do you want to ignore it? ").arg(curve_name),
+                            QMessageBox::Yes | QMessageBox::YesToAll | QMessageBox::Abort ,
+                            QMessageBox::Abort );
             }
 
             if( *answer ==  QMessageBox::Yes || *answer ==  QMessageBox::YesToAll) {
@@ -530,6 +538,12 @@ std::pair<float,float>  PlotWidget::maximumRangeY(bool current_canvas)
         if( bottom > range_Y.min )    bottom = range_Y.min;
     }
 
+    if( fabs(top - bottom) <= std::numeric_limits<double>::epsilon() )
+    {
+        top    += 0.1;
+        bottom -= 0.1;
+    }
+
     _magnifier->setAxisLimits( yLeft, bottom, top);
     return std::make_pair( bottom,  top);
 }
@@ -600,10 +614,11 @@ void PlotWidget::on_changeColor_triggered()
 
 void PlotWidget::on_showPoints_triggered(bool checked)
 {
+    _show_line_and_points = checked;
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         auto curve = it->second;
-        if( checked )
+        if( _show_line_and_points )
         {
             curve->setStyle( QwtPlotCurve::LinesAndDots);
         }
