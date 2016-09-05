@@ -1,12 +1,9 @@
 project(PlotJuggler)
 cmake_minimum_required(VERSION 2.8)
 
+link_directories( /usr/lib/x86_64-linux-gnu )
 
-find_package(Qt5Core)
-find_package(Qt5Widgets)
-find_package(Qt5PrintSupport)
-find_package(Qt5Concurrent)
-find_package(Qt5Xml)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml)
 
 
 set(CMAKE_AUTOMOC ON)
@@ -23,6 +20,7 @@ include_directories(
     ${Qt5Xml_INCLUDE_DIRS}
     #${Qt5OpenGl_INCLUDE_DIRS}
     )
+
 
 include_directories( ./qwt/src ./common ./color_widgets/include ./plotter_gui)
 
