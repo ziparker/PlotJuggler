@@ -50,7 +50,7 @@ public:
 
     virtual size_t size();
 
-    size_t getIndexFromX(Time x);
+    int getIndexFromX(Time x);
 
     boost::optional<Value> getYfromX(Time x );
 
@@ -137,17 +137,17 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    size_t sizeX    = _x_points.size();
-    size_t capacity = _x_points.capacity();
+    size_t sizeX  = _x_points.size();
+    long capacity = _x_points.capacity();
 
     if( sizeX >= 2 && capacity >= MIN_CAPACITY && capacity <= MAX_CAPACITY
           &&  _max_range_X != std::numeric_limits<Time>::max())
     {
         Time rangeX = _x_points.back() - _x_points.front();
         Time delta = rangeX / (Time)(sizeX - 1);
-        size_t new_capacity = (size_t)( _max_range_X / delta);
+        long new_capacity = ( _max_range_X / delta);
 
-        if( abs( new_capacity - capacity) > (capacity*1)/100 ) // apply changes only if new capacity is > 1%
+        if( labs( new_capacity - capacity) > (capacity*2)/100 ) // apply changes only if new capacity is > 2%
         {
             while( _x_points.size() > new_capacity)
             {
@@ -169,11 +169,11 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
 }
 
 template < typename Time, typename Value>
-inline size_t PlotDataGeneric<Time, Value>::getIndexFromX(Time x )
+inline int PlotDataGeneric<Time, Value>::getIndexFromX(Time x )
 {
     std::lock_guard<std::mutex> lock(_mutex);
     auto lower   = std::lower_bound(_x_points.begin(), _x_points.end(), x );
-    size_t index = std::distance( _x_points.begin(), lower);
+    int  index = std::distance( _x_points.begin(), lower);
 
     if( index <0 || index >= _x_points.size() )
     {
