@@ -172,10 +172,10 @@ template < typename Time, typename Value>
 inline int PlotDataGeneric<Time, Value>::getIndexFromX(Time x )
 {
     std::lock_guard<std::mutex> lock(_mutex);
-    auto lower   = std::lower_bound(_x_points.begin(), _x_points.end(), x );
-    int  index = std::distance( _x_points.begin(), lower);
+    auto lower = std::lower_bound(_x_points.begin(), _x_points.end(), x );
+    auto index = std::distance( _x_points.begin(), lower);
 
-    if( index <0 || index >= _x_points.size() )
+    if( index >= _x_points.size() || index <0 )
     {
         return -1;
     }
@@ -188,14 +188,14 @@ inline boost::optional<Value> PlotDataGeneric<Time, Value>::getYfromX(Time x)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    auto lower   = std::lower_bound(_x_points.begin(), _x_points.end(), x );
-    size_t index = std::distance( _x_points.begin(), lower);
+    auto lower = std::lower_bound(_x_points.begin(), _x_points.end(), x );
+    auto index = std::distance( _x_points.begin(), lower);
 
-    if( index >=0 && index < _x_points.size())
+    if( index >= _x_points.size() || index < 0 )
     {
-        return _y_points.at(index);
+        boost::optional<Value>();
     }
-    return boost::optional<Value>();
+    return _y_points.at(index);
 }
 
 template < typename Time, typename Value>
@@ -273,11 +273,6 @@ typename PlotDataGeneric<float, double>::RangeValue PlotDataGeneric<float, doubl
         if( Y < y_min )      y_min = Y;
         else if( Y > y_max ) y_max = Y;
     }
-    if( fabs(y_min - y_max) <= std::numeric_limits<double>::epsilon() )
-    {
-        return { y_min -0.1, y_max + 0.1 };
-    }
-
     return  { y_min, y_max };
 }
 
