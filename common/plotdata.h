@@ -141,7 +141,7 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
     long capacity = _x_points.capacity();
 
     if( sizeX >= 2 && capacity >= MIN_CAPACITY && capacity <= MAX_CAPACITY
-          &&  _max_range_X != std::numeric_limits<Time>::max())
+            &&  _max_range_X != std::numeric_limits<Time>::max())
     {
         Time rangeX = _x_points.back() - _x_points.front();
         Time delta = rangeX / (Time)(sizeX - 1);
@@ -262,19 +262,22 @@ typename PlotDataGeneric<float, double>::RangeValue PlotDataGeneric<float, doubl
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    double y_min = std::numeric_limits<double>::max();
-    double y_max = std::numeric_limits<double>::min();
+    const double first_Y = _y_points.at(first_index);
+    double y_min = first_Y;
+    double y_max = first_Y;
 
-    if( first_index < 0 ) first_index=0;
-    if( last_index  < 0 || last_index  > _y_points.size() )  last_index  = _y_points.size() ;
-
-    for (size_t i=first_index; i < std::min(last_index, _y_points.size()); i++)
+    for (size_t i=first_index; i < last_index; i++)
     {
-        double Y = _y_points.at(i);
+        const double Y = _y_points.at(i);
 
-        if( Y < y_min ) y_min = Y;
-        if( Y > y_max ) y_max = Y;
+        if( Y < y_min )      y_min = Y;
+        else if( Y > y_max ) y_max = Y;
     }
+    if( fabs(y_min - y_max) <= std::numeric_limits<double>::epsilon() )
+    {
+        return { y_min -0.1, y_max + 0.1 };
+    }
+
     return  { y_min, y_max };
 }
 
