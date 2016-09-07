@@ -25,7 +25,6 @@
 #include "subwindow.h"
 #include "selectlistdialog.h"
 
-int unique_number = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -127,7 +126,7 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     ui->horizontalSlider->setValue(slider_value);
 
     //------------------------
-    for ( int i=0; i<_state_publisher.size(); i++)
+    for ( size_t i=0; i<_state_publisher.size(); i++)
     {
         _state_publisher[i]->updateState( &_mapped_plot_data, current_time);
     }
@@ -153,9 +152,9 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
     while( number_taken )
     {
         number_taken = false;
-        for (int i=0; i< _floating_window.size(); i++ )
+        for (const auto& floating_window: _floating_window )
         {
-            QString win_title = _floating_window.at(i)->windowTitle();
+            QString win_title = floating_window->windowTitle();
             win_title.remove(0, sizeof(prefix)-1 );
             int num = win_title.toInt();
 
@@ -170,7 +169,7 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 
     window->setWindowTitle( QString(prefix) + QString::number(window_number));
 
-    connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(onFloatingWindowDestroyed(QObject*)) );
+    connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(ondoubleingWindowDestroyed(QObject*)) );
     connect( window, SIGNAL(closeRequestedByUser()),     this,  SLOT(onUndoableChange()) );
 
     _floating_window.push_back( window );
@@ -329,7 +328,7 @@ void MainWindow::loadPlugins(QString subdir_name)
 
 void MainWindow::buildData()
 {
-    long SIZE = 100*1000;
+    size_t SIZE = 100*1000;
 
     QStringList  words_list;
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
@@ -341,10 +340,10 @@ void MainWindow::buildData()
     foreach( const QString& name, words_list)
     {
 
-        float A =  6* ((float)qrand()/(float)RAND_MAX)  - 3;
-        float B =  3* ((float)qrand()/(float)RAND_MAX)  ;
-        float C =  3* ((float)qrand()/(float)RAND_MAX)  ;
-        float D =  20* ((float)qrand()/(float)RAND_MAX)  ;
+        double A =  6* ((double)qrand()/(double)RAND_MAX)  - 3;
+        double B =  3* ((double)qrand()/(double)RAND_MAX)  ;
+        double C =  3* ((double)qrand()/(double)RAND_MAX)  ;
+        double D =  20* ((double)qrand()/(double)RAND_MAX)  ;
 
         PlotDataPtr plot ( new PlotData(  ) );
         plot->setName(  name.toStdString() );
@@ -435,7 +434,7 @@ QDomDocument MainWindow::xmlSaveState()
 
     QDomElement root = doc.createElement( "root" );
 
-    for (int i = 0; i < _tabbed_plotarea.size(); i++)
+    for (size_t i = 0; i < _tabbed_plotarea.size(); i++)
     {
         QDomElement tabbed_area = _tabbed_plotarea[i]->xmlSaveState(doc);
         root.appendChild( tabbed_area );
@@ -456,7 +455,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
 
     QDomElement tabbed_area;
 
-    int num_floating = 0;
+    size_t num_floating = 0;
 
     for (  tabbed_area = root.firstChildElement(  "tabbed_widget" )  ;
            tabbed_area.isNull() == false;
@@ -481,7 +480,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     }
 
     //-----------------------------------------------------
-    int index = 1;
+    size_t index = 1;
 
     for (  tabbed_area = root.firstChildElement(  "tabbed_widget" )  ;
            tabbed_area.isNull() == false;
@@ -560,7 +559,7 @@ std::vector<PlotWidget*> MainWindow::getAllPlots()
 {
     std::vector<PlotWidget*> output;
 
-    for (int i = 0; i < _tabbed_plotarea.size(); i++)
+    for (size_t i = 0; i < _tabbed_plotarea.size(); i++)
     {
         QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
         for (int t = 0; t < tab_widget->count(); t++)
@@ -568,7 +567,7 @@ std::vector<PlotWidget*> MainWindow::getAllPlots()
             PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(t) );
             if (matrix)
             {
-                for ( unsigned w = 0; w< matrix->plotCount(); w++ )
+                for ( int w = 0; w< matrix->plotCount(); w++ )
                 {
                     PlotWidget *plot =  matrix->plotAt(w);
                     if( plot )
@@ -600,7 +599,7 @@ void MainWindow::onDeleteLoadedData()
 
     auto plots = getAllPlots();
 
-    for (int i = 0; i < plots.size(); i++)
+    for (size_t i = 0; i < plots.size(); i++)
     {
         plots[i]->detachAllCurves();
     }
@@ -790,12 +789,13 @@ void MainWindow::onActionLoadStreamer()
     if( _data_streamer.size() > 1)
     {
         QStringList streamers_name;
-        for (int i=0; i< _data_streamer.size(); i++)
+        for (size_t i=0; i< _data_streamer.size(); i++)
         {
             streamers_name.push_back( QString( _data_streamer[i]->name()) );
         }
         SelectFromListDialog dialog( &streamers_name, true, this );
         dialog.exec();
+
         int index = dialog.getSelectedRowNumber().at(0) ;
         if( index >= 0)
         {
@@ -945,7 +945,7 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
 
 void MainWindow::on_tabbedAreaDestroyed(QObject *object)
 {
-    for (int i=0; i< _tabbed_plotarea.size(); i++)
+    for (size_t i=0; i< _tabbed_plotarea.size(); i++)
     {
         if( _tabbed_plotarea[i] == object)
         {
@@ -960,7 +960,7 @@ void MainWindow::on_tabbedAreaDestroyed(QObject *object)
 
 void MainWindow::onFloatingWindowDestroyed(QObject *object)
 {
-    for (int i=0; i< _floating_window.size(); i++)
+    for (size_t i=0; i< _floating_window.size(); i++)
     {
         if( _floating_window[i] == object)
         {
@@ -989,7 +989,7 @@ void MainWindow::updateInternalState()
     {
         tabbed_map.insert( std::make_pair( _floating_window[i-1]->windowTitle(), _tabbed_plotarea[i] ) );
     }
-    for (int i = 0; i < _tabbed_plotarea.size(); i++)
+    for (size_t i = 0; i < _tabbed_plotarea.size(); i++)
     {
         _tabbed_plotarea[i]->setSiblingsList( tabbed_map );
     }

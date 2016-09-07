@@ -38,7 +38,7 @@ QRectF PlotDataQwt::maximumBoundingRect(double min_X, double max_X)
     auto range_X = _plot_data->getRangeX();
     auto range_Y = _plot_data->getRangeY( x1, x2  );
 
-    QRectF rect ( range_X.min, range_Y.min,
+    QRectF rect ( range_X.min,  range_Y.min,
                   range_X.max - range_X.min,
                   range_Y.max - range_Y.min );
     return rect;

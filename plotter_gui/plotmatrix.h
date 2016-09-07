@@ -16,25 +16,25 @@ public:
 
     void addRow();
     void addColumn();
-    void removeColumn(int column_to_delete);
-    void removeRow(int row_to_delete);
+    void removeColumn(unsigned column_to_delete);
+    void removeRow(unsigned row_to_delete);
 
     void removeEmpty();
 
-    int rowsCount() const;
-    int colsCount() const;
-    int plotCount() const;
+    unsigned rowsCount() const;
+    unsigned colsCount() const;
+    unsigned plotCount() const;
 
-    bool isRowEmpty(int row );
-    bool isColumnEmpty(int row );
+    bool isRowEmpty(unsigned row );
+    bool isColumnEmpty(unsigned row );
 
-    PlotWidget* plotAt( int row, int column );
-    const PlotWidget* plotAt( int row, int column ) const;
+    PlotWidget* plotAt( unsigned row, unsigned column );
+    const PlotWidget* plotAt( unsigned row, unsigned column ) const;
 
-    PlotWidget* plotAt( int index );
-    const PlotWidget* plotAt( int index ) const;
+    PlotWidget* plotAt( unsigned index );
+    const PlotWidget* plotAt( unsigned index ) const;
 
-    void setAxisScale(int axisId, int row, int col,
+    void setAxisScale(QwtPlot::Axis axisId, unsigned row, unsigned col,
                       double min, double max, double step = 0 );
 
     QDomElement xmlSaveState(QDomDocument &doc);
@@ -66,14 +66,14 @@ private slots:
     void on_singlePlotScaleChanged(PlotWidget* modified_plot, QRectF range);
 
 private:
-    void alignAxes( int rowOrColumn, int axis );
-    void alignScaleBorder( int rowOrColumn, int axis );
-    PlotWidget *addPlotWidget( int row, int col);
-    void swapPlots( int rowA, int colA, int rowB, int colB);
+    void alignAxes(unsigned rowOrColumn, QwtPlot::Axis axisId );
+    void alignScaleBorder( unsigned rowOrColumn, QwtPlot::Axis axisId );
+    PlotWidget *addPlotWidget( unsigned row, unsigned col);
+    void swapPlots( unsigned rowA, unsigned colA, unsigned rowB, unsigned colB);
 
-    QGridLayout *layout;
-    int num_rows;
-    int num_cols;
+    QGridLayout *_layout;
+    unsigned _num_rows;
+    unsigned _num_cols;
     bool _horizontal_link;
 
     PlotDataMap *_mapped_data;

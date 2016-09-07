@@ -342,7 +342,7 @@ bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
     {
         if( event->type() == QEvent::MouseButtonPress)
         {
-            QMouseEvent *mouse_event = (QMouseEvent *)event;
+            QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
             int index = tab_bar->tabAt( mouse_event->pos() );
             tab_bar->setCurrentIndex( index );

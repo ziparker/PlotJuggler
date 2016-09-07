@@ -14,17 +14,17 @@ PlotMatrix::PlotMatrix(QString name, PlotDataMap *datamap, QWidget *parent ):
     _mapped_data(datamap),
     _name(name)
 {
-    num_rows = 0;
-    num_cols = 0;
+    _num_rows = 0;
+    _num_cols = 0;
 
-    layout = new QGridLayout( this );
+    _layout = new QGridLayout( this );
 
     _horizontal_link = true;
     updateLayout();
 }
 
 
-PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
+PlotWidget* PlotMatrix::addPlotWidget(unsigned row, unsigned col)
 {
     PlotWidget *plot = new PlotWidget( _mapped_data, this );
 
@@ -34,7 +34,7 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
     plot->setAttribute(Qt::WA_DeleteOnClose);
 
-    layout->addWidget( plot, row, col );
+    _layout->addWidget( plot, row, col );
 
     emit plotAdded(plot);
 
@@ -43,18 +43,17 @@ PlotWidget* PlotMatrix::addPlotWidget(int row, int col)
 
 void PlotMatrix::addRow()
 {
-    if( num_rows==0 && num_cols==0 )
+    if( _num_rows==0 && _num_cols==0 )
     {
         addPlotWidget( 0, 0 );
-        num_rows = 1;
-        num_cols = 1;
+        _num_rows = 1;
+        _num_cols = 1;
     }
     else{
-        for ( int col = 0; col < colsCount(); col++ )
-        {
-            addPlotWidget( num_rows, col );
+        for ( unsigned col = 0; col < colsCount(); col++ ) {
+            addPlotWidget( _num_rows, col );
         }
-        num_rows++;
+        _num_rows++;
     }
 
     updateLayout();
@@ -62,80 +61,80 @@ void PlotMatrix::addRow()
 
 void PlotMatrix::addColumn()
 {
-    if( num_rows==0 && num_cols==0 )
+    if( _num_rows==0 && _num_cols==0 )
     {
         addPlotWidget( 0, 0 );
-        num_rows = 1;
-        num_cols = 1;
+        _num_rows = 1;
+        _num_cols = 1;
     }
     else {
-        for ( int row = 0; row < rowsCount(); row++ )
+        for ( unsigned row = 0; row < rowsCount(); row++ )
         {
-            addPlotWidget( row, num_cols );
+            addPlotWidget( row, _num_cols );
         }
-        num_cols++;
+        _num_cols++;
     }
     updateLayout();
 }
 
-void PlotMatrix::swapPlots( int rowA, int colA, int rowB, int colB)
+void PlotMatrix::swapPlots( unsigned rowA, unsigned colA, unsigned rowB, unsigned colB)
 {
-    QWidget *widgetA = layout->itemAtPosition(rowA, colA)->widget();
-    QWidget *widgetB = layout->itemAtPosition(rowB, colB)->widget();
+    QWidget *widgetA = _layout->itemAtPosition(rowA, colA)->widget();
+    QWidget *widgetB = _layout->itemAtPosition(rowB, colB)->widget();
 
-    layout->removeItem( layout->itemAtPosition(rowA, colA) );
-    layout->removeItem( layout->itemAtPosition(rowB, colB) );
+    _layout->removeItem( _layout->itemAtPosition(rowA, colA) );
+    _layout->removeItem( _layout->itemAtPosition(rowB, colB) );
 
-    layout->addWidget(widgetA, rowB, colB);
-    layout->addWidget(widgetB, rowA, colA);
+    _layout->addWidget(widgetA, rowB, colB);
+    _layout->addWidget(widgetB, rowA, colA);
 }
 
-void PlotMatrix::removeColumn(int column_to_delete)
+void PlotMatrix::removeColumn(unsigned column_to_delete)
 {
-    if(num_rows==1 && num_cols ==1 ) {
+    if(_num_rows==1 && _num_cols ==1 ) {
         return;
     }
 
-    for(int col = column_to_delete; col< num_cols-1; col++)
+    for(unsigned col = column_to_delete; col< _num_cols-1; col++)
     {
-        for(int row=0; row< num_rows; row++)
+        for(int row=0; row< _num_rows; row++)
         {
             this->swapPlots( row, col, row, col+1);
         }
     }
-    for(int row=0; row< num_rows; row++)
+    for(unsigned row=0; row< _num_rows; row++)
     {
-        plotAt( row, num_cols -1)->close();
+        plotAt( row, _num_cols -1)->close();
     }
-    num_cols--;
-    if( num_cols == 0){
-        num_rows = 0;
+    _num_cols--;
+    if( _num_cols == 0){
+        _num_rows = 0;
     }
 
     updateLayout();
 
 }
 
-void PlotMatrix::removeRow(int row_to_delete)
+void PlotMatrix::removeRow(unsigned row_to_delete)
 {
-    if(num_rows==1 && num_cols ==1 ) {
+    if(_num_rows==1 && _num_cols ==1 ) {
         return;
     }
 
-    for(int row = row_to_delete; row< num_rows-1; row++)
+    for(int row = row_to_delete; row< _num_rows-1; row++)
     {
-        for(int col = 0; col< num_cols; col++)
+        for(int col = 0; col< _num_cols; col++)
         {
             this->swapPlots( row, col, row+1, col);
         }
     }
-    for(int col=0; col< num_cols; col++)
+    for(int col=0; col< _num_cols; col++)
     {
-        plotAt( num_rows-1, col)->close();
+        plotAt( _num_rows-1, col)->close();
     }
-    num_rows--;
-    if( num_rows == 0){
-        num_cols = 0;
+    _num_rows--;
+    if( _num_rows == 0){
+        _num_cols = 0;
     }
 
     updateLayout();
@@ -144,24 +143,24 @@ void PlotMatrix::removeRow(int row_to_delete)
 
 PlotMatrix::~PlotMatrix(){}
 
-int PlotMatrix::rowsCount() const
+unsigned PlotMatrix::rowsCount() const
 {
-    return num_rows;
+    return _num_rows;
 }
 
-int PlotMatrix::colsCount() const
+unsigned PlotMatrix::colsCount() const
 {
-    return num_cols;
+    return _num_cols;
 }
 
-int PlotMatrix::plotCount() const
+unsigned PlotMatrix::plotCount() const
 {
-    return num_rows*num_cols;
+    return _num_rows*_num_cols;
 }
 
-bool PlotMatrix::isColumnEmpty( int col )
+bool PlotMatrix::isColumnEmpty( unsigned col )
 {
-    for (int r=0; r< layout->rowCount(); r++)
+    for (unsigned r=0; r < _layout->rowCount(); r++)
     {
         auto plot = plotAt(r, col);
         if( plot && ! plot->isEmpty() )  {
@@ -171,9 +170,9 @@ bool PlotMatrix::isColumnEmpty( int col )
     return true;
 }
 
-bool PlotMatrix::isRowEmpty(int row )
+bool PlotMatrix::isRowEmpty(unsigned row )
 {
-    for (int c=0; c< layout->columnCount(); c++)
+    for (int c=0; c< _layout->columnCount(); c++)
     {
         auto plot = plotAt(row, c);
         if( plot && ! plot->isEmpty() )  {
@@ -184,9 +183,9 @@ bool PlotMatrix::isRowEmpty(int row )
 }
 
 
-PlotWidget* PlotMatrix::plotAt( int row, int column )
+PlotWidget* PlotMatrix::plotAt( unsigned row, unsigned column )
 {
-    QLayoutItem* item = layout->itemAtPosition(row,column);
+    QLayoutItem* item = _layout->itemAtPosition(row,column);
     if(item) {
         PlotWidget* plot = static_cast<PlotWidget*>( item->widget() );
         return plot;
@@ -194,9 +193,9 @@ PlotWidget* PlotMatrix::plotAt( int row, int column )
     return NULL;
 }
 
-const PlotWidget* PlotMatrix::plotAt( int row, int column ) const
+const PlotWidget* PlotMatrix::plotAt( unsigned row, unsigned column ) const
 {
-    QLayoutItem* item = layout->itemAtPosition(row,column);
+    QLayoutItem* item = _layout->itemAtPosition(row,column);
     if(item) {
         PlotWidget* plot = static_cast<PlotWidget*>( item->widget() );
         return plot;
@@ -204,9 +203,9 @@ const PlotWidget* PlotMatrix::plotAt( int row, int column ) const
     return NULL;
 }
 
-PlotWidget* PlotMatrix::plotAt( int index )
+PlotWidget* PlotMatrix::plotAt( unsigned index )
 {
-    QLayoutItem* item = layout->itemAt(index);
+    QLayoutItem* item = _layout->itemAt(index);
     if(item) {
         PlotWidget* plot = static_cast<PlotWidget*>( item->widget() );
         return plot;
@@ -214,9 +213,9 @@ PlotWidget* PlotMatrix::plotAt( int index )
     return NULL;
 }
 
-const PlotWidget* PlotMatrix::plotAt( int index ) const
+const PlotWidget* PlotMatrix::plotAt( unsigned index ) const
 {
-    QLayoutItem* item = layout->itemAt(index);
+    QLayoutItem* item = _layout->itemAt(index);
     if(item) {
         PlotWidget* plot = static_cast<PlotWidget*>( item->widget() );
         return plot;
@@ -225,13 +224,13 @@ const PlotWidget* PlotMatrix::plotAt( int index ) const
 }
 
 
-void PlotMatrix::setAxisScale( int axis, int row, int col,
+void PlotMatrix::setAxisScale(QwtPlot::Axis axisId, unsigned row, unsigned col,
                                double min, double max, double step )
 {
     QwtPlot *plt = plotAt( row, col );
     if ( plt )
     {
-        plt->setAxisScale( axis, min, max, step );
+        plt->setAxisScale( axisId, min, max, step );
         plt->updateAxes();
     }
 }
@@ -240,12 +239,12 @@ QDomElement PlotMatrix::xmlSaveState( QDomDocument &doc )
 {
     QDomElement element = doc.createElement("plotmatrix");
 
-    element.setAttribute("rows", num_rows );
-    element.setAttribute("columns", num_cols );
+    element.setAttribute("rows", _num_rows );
+    element.setAttribute("columns", _num_cols );
 
-    for(int col = 0; col< num_cols; col++)
+    for(unsigned col = 0; col< _num_cols; col++)
     {
-        for(int row=0; row< num_rows; row++)
+        for(unsigned row = 0; row< _num_rows; row++)
         {
             PlotWidget* plot = plotAt(row,col);
             QDomElement child = plot->xmlSaveState(doc);
@@ -266,14 +265,14 @@ bool PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
         qWarning() << "No [rows] or [columns] attribute in <plotmatrix> XML file!";
         return false;
     }
-    int rows = plotmatrix.attribute("rows").toInt();
-    int cols = plotmatrix.attribute("columns" ).toInt();
+    unsigned rows = plotmatrix.attribute("rows").toUInt();
+    unsigned cols = plotmatrix.attribute("columns" ).toUInt();
 
-    while( rows > num_rows){ addRow(); }
-    while( rows < num_rows){ removeRow( num_rows-1 );  }
+    while( rows > _num_rows){ addRow(); }
+    while( rows < _num_rows){ removeRow( _num_rows-1 );  }
 
-    while( cols > num_cols){ addColumn();  }
-    while( cols < num_cols){ removeColumn( num_cols-1 ); }
+    while( cols > _num_cols){ addColumn();  }
+    while( cols < _num_cols){ removeColumn( _num_cols-1 ); }
 
     QMessageBox::StandardButton load_answer = QMessageBox::Ok;
 
@@ -287,8 +286,8 @@ bool PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
             qWarning() << "No [row] or [col] attribute in <plot> XML file!";
             return false;
         }
-        int row = plot_element.attribute("row").toInt();
-        int col = plot_element.attribute("col").toInt();
+        unsigned row = plot_element.attribute("row").toUInt();
+        unsigned col = plot_element.attribute("col").toUInt();
 
         bool success = plotAt(row,col)->xmlLoadState( plot_element, &load_answer ) ;
         if( !success )
@@ -303,13 +302,13 @@ bool PlotMatrix::xmlLoadState( QDomElement &plotmatrix )
 
 void PlotMatrix::updateLayout()
 {
-    for ( int row = 0; row < rowsCount(); row++ )
+    for ( unsigned row = 0; row < rowsCount(); row++ )
     {
         alignAxes( row, QwtPlot::xBottom );
         alignScaleBorder( row, QwtPlot::yLeft );
     }
 
-    for ( int col = 0; col < colsCount(); col++ )
+    for ( unsigned col = 0; col < colsCount(); col++ )
     {
         alignAxes( col, QwtPlot::yLeft );
         alignScaleBorder( col, QwtPlot::xBottom );
@@ -344,7 +343,7 @@ const QString &PlotMatrix::name() const
 
 QGridLayout *PlotMatrix::gridLayout()
 {
-    return layout;
+    return _layout;
 }
 
 void PlotMatrix::maximumZoomOutHorizontal()
@@ -408,18 +407,18 @@ void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new
     emit undoableChange();
 }
 
-void PlotMatrix::alignAxes( int rowOrColumn, int axis )
+void PlotMatrix::alignAxes( unsigned rowOrColumn, QwtPlot::Axis axisId )
 {
-    if ( axis == QwtPlot::yLeft || axis == QwtPlot::yRight )
+    if ( axisId == QwtPlot::yLeft || axisId == QwtPlot::yRight )
     {
         double maxExtent = 0;
 
-        for ( int row = 0; row < rowsCount(); row++ )
+        for ( unsigned row = 0; row < rowsCount(); row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )
             {
-                QwtScaleWidget *scaleWidget = p->axisWidget( axis );
+                QwtScaleWidget *scaleWidget = p->axisWidget( axisId );
 
                 QwtScaleDraw *sd = scaleWidget->scaleDraw();
                 sd->setMinimumExtent( 0.0 );
@@ -430,12 +429,12 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
             }
         }
 
-        for ( int row = 0; row < rowsCount(); row++ )
+        for ( unsigned row = 0; row < rowsCount(); row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )
             {
-                QwtScaleWidget *scaleWidget = p->axisWidget( axis );
+                QwtScaleWidget *scaleWidget = p->axisWidget( axisId );
                 scaleWidget->scaleDraw()->setMinimumExtent( maxExtent );
             }
         }
@@ -443,12 +442,12 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
     else{
         double maxExtent = 0;
 
-        for ( int col = 0; col < colsCount(); col++ )
+        for ( unsigned col = 0; col < colsCount(); col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
             {
-                QwtScaleWidget *scaleWidget = p->axisWidget( axis );
+                QwtScaleWidget *scaleWidget = p->axisWidget( axisId );
 
                 QwtScaleDraw *sd = scaleWidget->scaleDraw();
                 sd->setMinimumExtent( 0.0 );
@@ -459,36 +458,36 @@ void PlotMatrix::alignAxes( int rowOrColumn, int axis )
             }
         }
 
-        for ( int col = 0; col < colsCount(); col++ )
+        for ( unsigned col = 0; col < colsCount(); col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
             {
-                QwtScaleWidget *scaleWidget = p->axisWidget( axis );
+                QwtScaleWidget *scaleWidget = p->axisWidget( axisId );
                 scaleWidget->scaleDraw()->setMinimumExtent( maxExtent );
             }
         }
     }
 }
 
-void PlotMatrix::alignScaleBorder( int rowOrColumn, int axis )
+void PlotMatrix::alignScaleBorder(unsigned rowOrColumn, QwtPlot::Axis axisId )
 {
-    if ( axis == QwtPlot::yLeft || axis == QwtPlot::yRight )
+    if ( axisId == QwtPlot::yLeft || axisId == QwtPlot::yRight )
     {
-        for ( int col = 0; col < colsCount(); col++ )
+        for ( unsigned col = 0; col < colsCount(); col++ )
         {
             QwtPlot *p = plotAt( rowOrColumn, col );
             if ( p )
-                p->axisWidget( axis )->setMinBorderDist( 10, 10 );
+                p->axisWidget( axisId )->setMinBorderDist( 10, 10 );
         }
     }
-    else if ( axis == QwtPlot::xTop | axis == QwtPlot::xBottom )
+    else if ( axisId == QwtPlot::xTop | axisId == QwtPlot::xBottom )
     {
-        for ( int row = 0; row < rowsCount(); row++ )
+        for ( unsigned row = 0; row < rowsCount(); row++ )
         {
             QwtPlot *p = plotAt( row, rowOrColumn );
             if ( p )
-                p->axisWidget( axis )->setMinBorderDist( 15, 15 );
+                p->axisWidget( axisId )->setMinBorderDist( 15, 15 );
         }
     }
 }

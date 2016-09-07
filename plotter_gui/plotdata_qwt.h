@@ -36,8 +36,8 @@ public:
 
 private:
     PlotDataPtr _plot_data;
-    int _preferedColor;
-    int _subsample;
+    int      _preferedColor;
+    unsigned _subsample;
 };
 
 

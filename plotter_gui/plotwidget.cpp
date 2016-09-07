@@ -766,7 +766,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     if ( event->type() == QEvent::MouseMove )
     {
         // special processing for mouse move
-        QMouseEvent *mouse_event = (QMouseEvent *)event;
+        QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
         if ( isPressed && mouse_event->modifiers() & Qt::ShiftModifier )
         {
