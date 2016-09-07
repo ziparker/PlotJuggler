@@ -543,6 +543,11 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas)
         top    += 0.1;
         bottom -= 0.1;
     }
+    else{
+        auto margin = (top-bottom) * 0.05;
+        top    += margin;
+        bottom -= margin;
+    }
 
     _magnifier->setAxisLimits( yLeft, bottom, top);
     return std::make_pair( bottom,  top);
