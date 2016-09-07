@@ -480,10 +480,10 @@ void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
     QwtPlot::setAxisScale( axisId, min, max, step);
 }
 
-std::pair<float,float> PlotWidget::maximumRangeX()
+std::pair<double,double> PlotWidget::maximumRangeX()
 {
-    float left   = std::numeric_limits<double>::max();
-    float right  = std::numeric_limits<double>::min();
+    double left   = std::numeric_limits<double>::max();
+    double right  = std::numeric_limits<double>::min();
 
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
@@ -508,16 +508,16 @@ std::pair<float,float> PlotWidget::maximumRangeX()
     return std::make_pair( left, right);
 }
 
-std::pair<float,float>  PlotWidget::maximumRangeY(bool current_canvas)
+std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas)
 {
-    float top    = std::numeric_limits<float>::min();
-    float bottom = std::numeric_limits<float>::max();
+    double top    = std::numeric_limits<double>::min();
+    double bottom = std::numeric_limits<double>::max();
 
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
 
-        float min_X, max_X;
+        double min_X, max_X;
         if( current_canvas )
         {
             min_X = this->canvasMap( QwtPlot::xBottom ).s1();
@@ -529,8 +529,8 @@ std::pair<float,float>  PlotWidget::maximumRangeY(bool current_canvas)
             max_X = range_X.second;
         }
 
-        size_t X0 = data->plot()->getIndexFromX( min_X );
-        size_t X1 = data->plot()->getIndexFromX( max_X );
+        int X0 = data->plot()->getIndexFromX( min_X );
+        int X1 = data->plot()->getIndexFromX( max_X );
 
         auto range_Y = data->plot()->getRangeY(X0, X1);
 
@@ -565,7 +565,7 @@ void PlotWidget::replot()
 void PlotWidget::launchRemoveCurveDialog()
 {
     RemoveCurveDialog* dialog = new RemoveCurveDialog(this);
-    unsigned prev_curve_count = _curve_list.size();
+    auto prev_curve_count = _curve_list.size();
 
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
@@ -735,7 +735,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 
     if ( event->type() == QEvent::MouseButtonPress)
     {
-        QMouseEvent *mouse_event = (QMouseEvent *)event;
+        QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
         if( mouse_event->button() == Qt::LeftButton &&
                 (mouse_event->modifiers() & Qt::ShiftModifier) )
@@ -750,7 +750,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 
     if ( event->type() == QEvent::MouseButtonRelease)
     {
-        QMouseEvent *mouse_event = (QMouseEvent *)event;
+        QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
         if( mouse_event->button() == Qt::LeftButton )
         {

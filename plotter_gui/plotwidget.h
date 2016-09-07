@@ -40,9 +40,9 @@ public:
 
     QRectF currentBoundingRect();
 
-    std::pair<float,float> maximumRangeX();
+    std::pair<double,double> maximumRangeX();
 
-    std::pair<float,float> maximumRangeY(bool current_canvas = false);
+    std::pair<double,double> maximumRangeY(bool current_canvas = false);
 
     CurveTracker* tracker();
 

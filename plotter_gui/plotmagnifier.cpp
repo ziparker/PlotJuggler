@@ -8,14 +8,14 @@ PlotMagnifier::PlotMagnifier( QWidget *canvas) : QwtPlotMagnifier(canvas)
 {
     for ( int axisId = 0; axisId < QwtPlot::axisCnt; axisId++ )
     {
-        _lower_bounds[axisId] = std::numeric_limits<float>::min();
-        _upper_bounds[axisId] = std::numeric_limits<float>::max();
+        _lower_bounds[axisId] = std::numeric_limits<double>::min();
+        _upper_bounds[axisId] = std::numeric_limits<double>::max();
     }
 }
 
 PlotMagnifier::~PlotMagnifier() {}
 
-void PlotMagnifier::setAxisLimits(int axis, float lower, float upper)
+void PlotMagnifier::setAxisLimits(int axis, double lower, double upper)
 {
     if ( axis >= 0 && axis < QwtPlot::axisCnt )
     {

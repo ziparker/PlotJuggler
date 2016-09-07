@@ -14,15 +14,15 @@ public:
     explicit PlotMagnifier( QWidget *canvas);
     virtual ~PlotMagnifier();
 
-    void setAxisLimits(int axis,float lower, float upper);
+    void setAxisLimits(int axis,double lower, double upper);
 
 protected:
     virtual void rescale( double factor ) ;
 
     virtual void widgetWheelEvent( QWheelEvent *event );
 
-    float _lower_bounds[QwtPlot::axisCnt];
-    float _upper_bounds[QwtPlot::axisCnt];
+    double _lower_bounds[QwtPlot::axisCnt];
+    double _upper_bounds[QwtPlot::axisCnt];
 
     QPointF _mouse_position;
 

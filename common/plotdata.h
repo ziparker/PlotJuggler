@@ -68,8 +68,8 @@ public:
 
     RangeTime getRangeX();
 
-    RangeValue getRangeY(size_t first_index = 0,
-                         size_t last_index = std::numeric_limits<size_t>::max() );
+    RangeValue getRangeY(int first_index = 0,
+                         int last_index = std::numeric_limits<int>::max() );
 
 protected:
 
@@ -90,8 +90,8 @@ private:
 };
 
 
-typedef PlotDataGeneric<float,double>  PlotData;
-typedef PlotDataGeneric<float,void*>   PlotDataVoid;
+typedef PlotDataGeneric<double,double>  PlotData;
+typedef PlotDataGeneric<double,void*>   PlotDataVoid;
 
 
 typedef std::shared_ptr<PlotData>     PlotDataPtr;
@@ -137,7 +137,7 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    size_t sizeX  = _x_points.size();
+    long sizeX    = _x_points.size();
     long capacity = _x_points.capacity();
 
     if( sizeX >= 2 && capacity >= MIN_CAPACITY && capacity <= MAX_CAPACITY
@@ -193,7 +193,7 @@ inline boost::optional<Value> PlotDataGeneric<Time, Value>::getYfromX(Time x)
 
     if( index >= _x_points.size() || index < 0 )
     {
-        boost::optional<Value>();
+        return boost::optional<Value>();
     }
     return _y_points.at(index);
 }
@@ -257,18 +257,19 @@ PlotDataGeneric<Time, Value>::getRangeX()
 
 
 
-template< > inline
-typename PlotDataGeneric<float, double>::RangeValue PlotDataGeneric<float, double>::getRangeY(size_t first_index , size_t last_index )
+template< typename Time, typename Value > inline typename
+PlotDataGeneric<Time, Value>::RangeValue
+PlotDataGeneric<Time, Value>::getRangeY(int first_index, int last_index )
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    const double first_Y = _y_points.at(first_index);
-    double y_min = first_Y;
-    double y_max = first_Y;
+    const Value first_Y = _y_points.at(first_index);
+    Value y_min = first_Y;
+    Value y_max = first_Y;
 
-    for (size_t i=first_index; i < last_index; i++)
+    for (int i = first_index+1; i < last_index; i++)
     {
-        const double Y = _y_points.at(i);
+        const Value Y = _y_points.at(i);
 
         if( Y < y_min )      y_min = Y;
         else if( Y > y_max ) y_max = Y;

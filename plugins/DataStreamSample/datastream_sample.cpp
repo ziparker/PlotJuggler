@@ -16,10 +16,10 @@ DataStreamSample::DataStreamSample()
 
     foreach( const QString& name, words_list)
     {
-        float A =  qrand()/(float)RAND_MAX * 6 - 3;
-        float B =  qrand()/(float)RAND_MAX *3;
-        float C =  qrand()/(float)RAND_MAX *3;
-        float D =  qrand()/(float)RAND_MAX *2 -1;
+        double A =  qrand()/(double)RAND_MAX * 6 - 3;
+        double B =  qrand()/(double)RAND_MAX *3;
+        double C =  qrand()/(double)RAND_MAX *3;
+        double D =  qrand()/(double)RAND_MAX *2 -1;
 
         vect_A.push_back(A);
         vect_B.push_back(B);
@@ -67,16 +67,16 @@ void DataStreamSample::update()
     _running = true;
     while( _running )
     {
-        int index=0;
+        size_t index=0;
 
         t+= 0.01;
 
         for (auto& it: _plot_data.numeric )
         {
-            float A =  vect_A[index];
-            float B =  vect_B[index];
-            float C =  vect_C[index];
-            float D =  vect_D[index];
+            double A =  vect_A[index];
+            double B =  vect_B[index];
+            double C =  vect_C[index];
+            double D =  vect_D[index];
             index++;
 
             auto& plot = it.second;

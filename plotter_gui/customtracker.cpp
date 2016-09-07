@@ -77,7 +77,7 @@ void CurveTracker::setPosition(const QPointF& position)
     QString text_marker_info;
     double text_X_offset = 0;
 
-    for ( int i = 0; i < curves.size(); i++ )
+    for ( size_t i = 0; i < curves.size(); i++ )
     {
         QwtPlotCurve *curve = static_cast<QwtPlotCurve *>(curves[i]);
         QColor color = curve->pen().color();
@@ -102,7 +102,7 @@ void CurveTracker::setPosition(const QPointF& position)
         }
 
         QPointF point;
-        float middle_X = (line.p1().x() + line.p2().x()) / 2.0;
+        double middle_X = (line.p1().x() + line.p2().x()) / 2.0;
 
         if(  position.x() < middle_X )
             point = line.p1();
@@ -117,7 +117,7 @@ void CurveTracker::setPosition(const QPointF& position)
             visible_points++;
 
             text_marker_info += QString( "<font color=""%1"">%2</font>" ).arg( color.name() ).arg( point.y() );
-            if(  i < curves.size()-1 ){
+            if(  (i+1) < curves.size() ){
                 text_marker_info += "<br>";
             }
             _marker[i]->setVisible( true );
