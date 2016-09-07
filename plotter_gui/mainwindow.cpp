@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-        buildData();
+    //buildData();
     _undo_timer.start();
 
     // save initial state
