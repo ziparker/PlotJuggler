@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     loadPlugins("plugins");
 
-    //buildData();
+        buildData();
     _undo_timer.start();
 
     // save initial state
@@ -1007,6 +1007,8 @@ void MainWindow::on_pushButtonAddSubwindow_pressed()
 
 void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 {
+    if( !source || !destination ) return;
+
     PlotMatrix* src_matrix = NULL;
     PlotMatrix* dst_matrix = NULL;
     QPoint src_pos;
@@ -1014,7 +1016,7 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 
     //qDebug() << source->windowTitle() << " -> " << destination->windowTitle();
 
-    for(int w=0; w < _tabbed_plotarea.size(); w++)
+    for(size_t w=0; w < _tabbed_plotarea.size(); w++)
     {
         QTabWidget * tabs = _tabbed_plotarea[w]->tabWidget();
 
@@ -1043,13 +1045,15 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
             }
         }
     }
+    if(src_matrix) {
+       src_matrix->gridLayout()->removeWidget( source );
+        src_matrix->gridLayout()->addWidget( destination, src_pos.x(), src_pos.y() );
+    }
 
-    src_matrix->gridLayout()->removeWidget( source );
-    dst_matrix->gridLayout()->removeWidget( destination );
-
-    src_matrix->gridLayout()->addWidget( destination, src_pos.x(), src_pos.y() );
-    dst_matrix->gridLayout()->addWidget( source, dst_pos.x(), dst_pos.y() );
-
+    if(dst_matrix) {
+        dst_matrix->gridLayout()->removeWidget( destination );
+        dst_matrix->gridLayout()->addWidget( source, dst_pos.x(), dst_pos.y() );
+    }
     onUndoableChange();
 }
 
