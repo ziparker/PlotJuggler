@@ -26,13 +26,12 @@ void PlotMagnifier::setAxisLimits(int axis, double lower, double upper)
 
 void PlotMagnifier::rescale( double factor )
 {
-    QwtPlot* plt = plot();
-    if ( plt == NULL )
-        return;
-
     factor = qAbs( factor );
-    if ( factor == 1.0 || factor == 0.0 )
+
+    QwtPlot* plt = plot();
+    if ( plt == NULL || factor == 1.0 ){
         return;
+    }
 
     bool doReplot = false;
 
@@ -71,6 +70,8 @@ void PlotMagnifier::rescale( double factor )
             v1 = center - width*factor*(1-ratio);
             v2 = center + width*factor*(ratio);
 
+            if( v1 > v2 ) std::swap( v1, v2 );
+
             if ( scaleMap.transformation() )
             {
                 v1 = scaleMap.invTransform( v1 );
@@ -88,7 +89,7 @@ void PlotMagnifier::rescale( double factor )
                 new_rect.setRight( v2 );
             }
             else{
-                new_rect.setBottom(  v1 );
+                new_rect.setBottom( v1 );
                 new_rect.setTop( v2 );
             }
 
