@@ -15,6 +15,7 @@
 #include <QPluginLoader>
 #include <QSettings>
 #include <QWindow>
+#include <set>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -51,9 +52,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
 
     createActions();
-    loadPlugins("plugins");
 
-    //buildData();
+    loadPlugins( QCoreApplication::applicationDirPath() );
+    loadPlugins("/usr/local/PlotJuggler/plugins");
+
+   // buildData();
     _undo_timer.start();
 
     // save initial state
@@ -227,8 +230,8 @@ void MainWindow::createActions()
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     if( settings.contains("MainWindow.recentlyLoadedDatafile") )
     {
-        QString fileName = settings.value("MainWindow.recentlyLoadedDatafile").toString();
-        ui->actionLoadRecentDatafile->setText( "Load data from: " + fileName);
+        QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
+        ui->actionLoadRecentDatafile->setText( "Load data from: " + filename);
         ui->actionLoadRecentDatafile->setEnabled( true );
     }
     else{
@@ -240,8 +243,8 @@ void MainWindow::createActions()
 
     if( settings.contains("MainWindow.recentlyLoadedLayout") )
     {
-        QString fileName = settings.value("MainWindow.recentlyLoadedLayout").toString();
-        ui->actionLoadRecentLayout->setText( "Load layout from: " + fileName);
+        QString filename = settings.value("MainWindow.recentlyLoadedLayout").toString();
+        ui->actionLoadRecentLayout->setText( "Load layout from: " + filename);
         ui->actionLoadRecentLayout->setEnabled( true );
     }
     else{
@@ -270,23 +273,20 @@ QColor MainWindow::colorHint()
     return color;
 }
 
-void MainWindow::loadPlugins(QString subdir_name)
+void MainWindow::loadPlugins(QString directory_name)
 {
+    static std::set<QString> loaded_plugins;
 
-    //TODO. Provide a way to modify this at runtime
+    QDir pluginsDir( directory_name );
 
-    QDir pluginsDir( "/usr/local/lib/PlotJuggler" );
-
-#if defined(Q_OS_WIN)
-    if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
-        pluginsDir.cdUp();
-#endif
-
-    pluginsDir.cd( subdir_name );
-
-    foreach (QString fileName, pluginsDir.entryList(QDir::Files))
+    foreach (QString filename, pluginsDir.entryList(QDir::Files))
     {
-        QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
+        if( loaded_plugins.find( filename ) != loaded_plugins.end())
+        {
+            continue;
+        }
+
+        QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(filename));
 
         QObject *plugin = pluginLoader.instance();
         if (plugin)
@@ -295,7 +295,8 @@ void MainWindow::loadPlugins(QString subdir_name)
             if (loader)
             {
                 std::vector<const char*> extensions = loader->compatibleFileExtensions();
-                qDebug() << fileName << ": is a DataLoader plugin";
+                qDebug() << filename << ": is a DataLoader plugin";
+                loaded_plugins.insert( filename );
 
                 for(unsigned i = 0; i < extensions.size(); i++)
                 {
@@ -306,21 +307,23 @@ void MainWindow::loadPlugins(QString subdir_name)
             StatePublisher *publisher = qobject_cast<StatePublisher *>(plugin);
             if (publisher)
             {
-                qDebug() << fileName << ": is a StatePublisher plugin";
+                qDebug() << filename << ": is a StatePublisher plugin";
+                loaded_plugins.insert( filename );
                 _state_publisher.push_back( publisher );
             }
 
             DataStreamer *streamer =  qobject_cast<DataStreamer *>(plugin);
             if (streamer)
             {
-                qDebug() << fileName << ": is a DataStreamer plugin";
+                qDebug() << filename << ": is a DataStreamer plugin";
+                loaded_plugins.insert( filename );
                 _data_streamer.push_back( streamer );
             }
         }
         else{
             if( pluginLoader.errorString().contains("is not an ELF object") == false)
             {
-                qDebug() << fileName << ": " << pluginLoader.errorString();
+                qDebug() << filename << ": " << pluginLoader.errorString();
             }
         }
     }
@@ -630,29 +633,29 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
     QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
 
-    QString fileName;
+    QString filename;
     if( reload_from_settings && settings.contains("MainWindow.recentlyLoadedDatafile") )
     {
-        fileName = settings.value("MainWindow.recentlyLoadedDatafile").toString();
+        filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
     }
     else{
-        fileName = QFileDialog::getOpenFileName(this,
+        filename = QFileDialog::getOpenFileName(this,
                                                 "Open Datafile",
                                                 directory_path,
                                                 file_extension_filter);
     }
 
-    if (fileName.isEmpty())
+    if (filename.isEmpty())
         return;
 
-    directory_path = QFileInfo(fileName).absolutePath();
+    directory_path = QFileInfo(filename).absolutePath();
 
     settings.setValue("MainWindow.lastDatafileDirectory", directory_path);
-    settings.setValue("MainWindow.recentlyLoadedDatafile", fileName);
+    settings.setValue("MainWindow.recentlyLoadedDatafile", filename);
 
-    ui->actionLoadRecentDatafile->setText("Load data from: " + fileName);
+    ui->actionLoadRecentDatafile->setText("Load data from: " + filename);
 
-    onActionLoadDataFileImpl( fileName, false );
+    onActionLoadDataFileImpl( filename, false );
 }
 
 void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
@@ -717,26 +720,26 @@ void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
     updateInternalState();
 }
 
-void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_timeindex )
+void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_timeindex )
 {
-    DataLoader* loader = _data_loader[ QFileInfo(fileName).suffix() ];
+    DataLoader* loader = _data_loader[ QFileInfo(filename).suffix() ];
 
     if( loader )
     {
         {
-            QFile file(fileName);
+            QFile file(filename);
 
             if (!file.open(QFile::ReadOnly | QFile::Text)) {
                 QMessageBox::warning(this, tr("Datafile"),
                                      tr("Cannot read file %1:\n%2.")
-                                     .arg(fileName)
+                                     .arg(filename)
                                      .arg(file.errorString()));
                 return;
             }
             file.close();
         }
 
-        _loaded_datafile = fileName;
+        _loaded_datafile = filename;
         ui->actionReloadData->setEnabled( true );
         ui->actionDeleteAllData->setEnabled( true );
 
@@ -748,7 +751,7 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
         }
 
         PlotDataMap mapped_data = loader->readDataFromFile(
-                    fileName.toStdString(),
+                    filename.toStdString(),
                     timeindex_name   );
 
         _last_time_index_name = timeindex_name;
@@ -759,7 +762,7 @@ void MainWindow::onActionLoadDataFileImpl(QString fileName, bool reuse_last_time
     else{
         QMessageBox::warning(this, tr("Error"),
                              tr("Cannot read files with extension %1.\n No plugin can handle that!\n")
-                             .arg(fileName) );
+                             .arg(filename) );
     }
 }
 
@@ -826,32 +829,32 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
         directory_path = settings.value("MainWindow.lastLayoutDirectory").toString();
     }
 
-    QString fileName;
+    QString filename;
     if( reload_previous && settings.contains("MainWindow.recentlyLoadedLayout") )
     {
-        fileName = settings.value("MainWindow.recentlyLoadedLayout").toString();
+        filename = settings.value("MainWindow.recentlyLoadedLayout").toString();
     }
     else{
-        fileName = QFileDialog::getOpenFileName(this,
+        filename = QFileDialog::getOpenFileName(this,
                                                 "Open Layout",
                                                 directory_path,
                                                 "*.xml");
     }
 
-    if (fileName.isEmpty())
+    if (filename.isEmpty())
         return;
 
-    directory_path = QFileInfo(fileName).absolutePath();
+    directory_path = QFileInfo(filename).absolutePath();
     settings.setValue("MainWindow.lastLayoutDirectory",  directory_path);
-    settings.setValue("MainWindow.recentlyLoadedLayout", fileName);
+    settings.setValue("MainWindow.recentlyLoadedLayout", filename);
 
-    ui->actionLoadRecentLayout->setText("Load layout from: " + fileName);
+    ui->actionLoadRecentLayout->setText("Load layout from: " + filename);
 
-    QFile file(fileName);
+    QFile file(filename);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, tr("Layout"),
                              tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
+                             .arg(filename)
                              .arg(file.errorString()));
         return;
     }
@@ -874,17 +877,17 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 
     if( previously_loaded_datafile.isNull() == false)
     {
-        QString fileName = previously_loaded_datafile.text();
+        QString filename = previously_loaded_datafile.text();
 
         QMessageBox::StandardButton reload_previous;
         reload_previous = QMessageBox::question(0, tr("Wait!"),
-                                                tr("Do you want to reload the datafile?\n\n[%1]\n").arg(fileName),
+                                                tr("Do you want to reload the datafile?\n\n[%1]\n").arg(filename),
                                                 QMessageBox::Yes | QMessageBox::No,
                                                 QMessageBox::Yes );
 
         if( reload_previous == QMessageBox::Yes )
         {
-            onActionLoadDataFileImpl( fileName );
+            onActionLoadDataFileImpl( filename );
         }
     }
     ///--------------------------------------------------
