@@ -21,15 +21,12 @@ include_directories(
     #${Qt5OpenGl_INCLUDE_DIRS}
     )
 
-
 include_directories( ./qwt/src ./common ./color_widgets/include ./plotter_gui)
 
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-
 
 SET(CMAKE_INSTALL_PREFIX  "/usr/local" )
 
@@ -65,7 +62,7 @@ SET(CPACK_PACKAGE_VERSION "0.2.0")
 
 SET(CPACK_PACKAGE_NAME "plotjuggler${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default libqt5core5a libqt5concurrent5 libqt5gui5 libqt5opengl5 libqt5printsupport5 libqt5xml5")
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default")
 
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "PlotJuggler")
 
