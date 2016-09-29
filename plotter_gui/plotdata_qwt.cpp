@@ -6,8 +6,6 @@
 PlotDataQwt::PlotDataQwt(PlotDataPtr base):
     _plot_data(base),
     _subsample(1)
-  //   _index_first( 0 ),
-  //   _index_last ( _x_points->size() -1 )
 {
 
 }
@@ -35,8 +33,23 @@ QRectF PlotDataQwt::maximumBoundingRect(double min_X, double max_X)
     int x1 = _plot_data->getIndexFromX( min_X );
     int x2 = _plot_data->getIndexFromX( max_X );
 
-    auto range_X = _plot_data->getRangeX();
-    auto range_Y = _plot_data->getRangeY( x1, x2  );
+    if( x1 <0 || x2 <0){
+      return QRectF();
+    }
+
+    auto range_X_opt = _plot_data->getRangeX();
+
+    if( !range_X_opt ){
+      return QRectF();
+    }
+
+    auto range_Y_opt = _plot_data->getRangeY( x1, x2  );
+    if( !range_Y_opt){
+      return QRectF();
+    }
+
+    auto range_X = range_X_opt.get();
+    auto range_Y = range_Y_opt.get();
 
     QRectF rect ( range_X.min,  range_Y.min,
                   range_X.max - range_X.min,

@@ -480,39 +480,53 @@ void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
     QwtPlot::setAxisScale( axisId, min, max, step);
 }
 
+
 std::pair<double,double> PlotWidget::maximumRangeX()
 {
-    double left   = std::numeric_limits<double>::max();
-    double right  = std::numeric_limits<double>::min();
+    double left   = 0;
+    double right  = 0;
 
+    if( _curve_list.size() == 0){
+      return std::make_pair( double(0), double(0) );
+    }
+
+    bool first = true;
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
         auto range_X = data->plot()->getRangeX();
 
-        if( left  > range_X.min )    left  = range_X.min;
-        if( right < range_X.max )    right = range_X.max;
+        if( !range_X ) continue;
+
+        if( first ){
+          first = false;
+          left  = range_X.get().min;
+          right = range_X.get().max;
+        }
+        else{
+          if( left  > range_X.get().min )    left  = range_X.get().min;
+          if( right < range_X.get().max )    right = range_X.get().max;
+        }
     }
 
-    /* if( fabs(top-bottom) < 1e-10  )
+    if( fabs(right - left) <= std::numeric_limits<double>::epsilon() )
     {
-        max_bounding = QRectF(left, top+0.01,  right - left, -0.02 ) ;
+        right += 0.1;
+        left  -= 0.1;
     }
-    else{
-        double height = bottom - top;
-        max_bounding = QRectF(left, top - height*0.05,  right - left, height*1.1 ) ;
-    }*/
 
     _magnifier->setAxisLimits( xBottom, left, right);
 
     return std::make_pair( left, right);
 }
 
+//TODO report failure for empty dataset
 std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas)
 {
-    double top    = std::numeric_limits<double>::min();
-    double bottom = std::numeric_limits<double>::max();
+    double top    = 0;
+    double bottom = 0;
 
+    bool first = true;
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
@@ -532,10 +546,30 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas)
         int X0 = data->plot()->getIndexFromX( min_X );
         int X1 = data->plot()->getIndexFromX( max_X );
 
-        auto range_Y = data->plot()->getRangeY(X0, X1);
+        if( X0<0 || X1 <0)
+        {
+          qDebug() << " invalid X0/X1 range in PlotWidget::maximumRangeY";
+          continue;
+        }
+        else{
+           auto range_Y = data->plot()->getRangeY(X0, X1);
+           if( !range_Y )
+           {
+             qDebug() << " invalid range_Y in PlotWidget::maximumRangeY";
+             continue;
+           }
 
-        if( top <    range_Y.max )    top    = range_Y.max;
-        if( bottom > range_Y.min )    bottom = range_Y.min;
+           if( first ){
+             first = true;
+             top    = range_Y.get().max;
+             bottom = range_Y.get().min;
+             first = false;
+           }
+           else{
+             if( top <    range_Y.get().max )    top    = range_Y.get().max;
+             if( bottom > range_Y.get().min )    bottom = range_Y.get().min;
+           }
+        }
     }
 
     if( fabs(top - bottom) <= std::numeric_limits<double>::epsilon() )
@@ -640,7 +674,7 @@ void PlotWidget::on_externallyResized(QRectF rect)
 }
 
 
-void PlotWidget::zoomOut()
+void PlotWidget::zoomOut(bool emit_signal)
 {
     QRectF rect = currentBoundingRect();
     auto rangeX = maximumRangeX();
@@ -655,14 +689,14 @@ void PlotWidget::zoomOut()
     this->setScale(rect);
 }
 
-void PlotWidget::on_zoomOutHorizontal_triggered()
+void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
 {
     QRectF act = currentBoundingRect();
     auto rangeX = maximumRangeX();
 
     act.setLeft( rangeX.first );
     act.setRight( rangeX.second );
-    this->setScale(act);
+    this->setScale(act, emit_signal);
 }
 
 void PlotWidget::on_zoomOutVertical_triggered()

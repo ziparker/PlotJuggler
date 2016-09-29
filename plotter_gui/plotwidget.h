@@ -72,9 +72,9 @@ public slots:
 
     void detachAllCurves();
 
-    void zoomOut();
+    void zoomOut(bool emit_signal = true);
 
-    void on_zoomOutHorizontal_triggered();
+    void on_zoomOutHorizontal_triggered(bool emit_signal = true);
 
     void on_zoomOutVertical_triggered();
 

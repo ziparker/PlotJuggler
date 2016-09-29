@@ -353,7 +353,7 @@ void PlotMatrix::maximumZoomOutHorizontal()
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            plot->on_zoomOutHorizontal_triggered();
+            plot->on_zoomOutHorizontal_triggered( false );
         }
     }
     replot();
