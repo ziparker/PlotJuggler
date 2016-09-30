@@ -34,5 +34,6 @@ The proceed as you would do with any cmake based project
  Note: you should not skip the last installation step. Currently the plugins need to be installed in the folder __/usr/local/lib/PlotJuggler/__ otherwise PlotJuggle will not find them.
  
  # Note for ROS users
+ 
 If you use CATKIN to build this project, the ROS related plugins will be automatically included into the compilation.
  
