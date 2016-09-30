@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/facontidavide/SuperPlotter.svg?branch=master)](https://travis-ci.org/facontidavide/SuperPlotter)
+[![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler)
 
 # PlotJuggler
 
@@ -33,6 +33,7 @@ The proceed as you would do with any cmake based project
  
  Note: you should not skip the last installation step. Currently the plugins need to be installed in the folder __/usr/local/lib/PlotJuggler/__ otherwise PlotJuggle will not find them.
  
- # Note for ROS users
- If you want to load __Rosbags__ or display a streaming of data from a ROS __topics__, you should compile and install [PlotJuggler-plugins-ros](https://github.com/facontidavide/PlotJuggler-plugins-ros).
+# Note for ROS users
+ 
+If you use CATKIN to build this project, the ROS related plugins will be automatically included into the compilation.
  
