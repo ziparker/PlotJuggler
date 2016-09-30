@@ -1,17 +1,13 @@
 <?xml version="1.0"?>
 <package>
 <name>plotjuggler</name>
-<version>0.1.0</version>
-<description>A set of plugins for PlotJuggler</description>
+<version>0.5.0</version>
+<description>PlotJuggler: juggle with data</description>
 
 <maintainer email="faconti@icarustechnology.com">Davide Faconti</maintainer>
 <license>LGPLv3</license>
 
-
-<!-- Url tags are optional, but mutiple are allowed, one per tag -->
-<!-- Optional attribute type can be: website, bugtracker, or repository -->
-<!-- Example: -->
-<!-- <url type="website">http://wiki.ros.org/plotjuggler-ros-plugins</url> -->
+<url type="website">https://github.com/facontidavide/PlotJuggler</url>
 
 <author email="faconti@icarustechnology.com">Davide Faconti</author>
 
