@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/facontidavide/SuperPlotter.svg?branch=master)](https://travis-ci.org/facontidavide/SuperPlotter)
+[![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler)
 
 # PlotJuggler
 
