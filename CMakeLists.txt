@@ -1,9 +1,13 @@
-project(PlotJuggler)
+project(plotjuggler)
 cmake_minimum_required(VERSION 2.8)
 
-link_directories( /usr/lib/x86_64-linux-gnu )
-
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml)
+
+if(catkin_FOUND)
+    message("--------------------------------------------------------------------")
+    message("PlotJuggler is being built using CATKIN. ROS plugin will be compiled")
+    message("--------------------------------------------------------------------")
+endif()
 
 
 set(CMAKE_AUTOMOC ON)
@@ -37,6 +41,25 @@ add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataStreamSample )
+
+if(catkin_FOUND)
+
+    find_package(catkin REQUIRED COMPONENTS
+        rosbag
+        rosbag_storage
+        roscpp
+        roscpp_serialization
+        ros_type_introspection
+        rostime
+        topic_tools
+        )
+    catkin_package(
+        CATKIN_DEPENDS ros_type_introspection
+        DEPENDS system_lib
+        )
+
+    add_subdirectory( plugins/ROS )
+endif()
 
 INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
 INSTALL(FILES plugins/dataloader_base.h DESTINATION     ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
