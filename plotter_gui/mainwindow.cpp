@@ -747,14 +747,14 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
         std::string & timeindex_name = timeindex_name_empty;
         if( reuse_last_timeindex )
         {
-            timeindex_name = _last_time_index_name;
+            timeindex_name = _last_load_configuration;
         }
 
         PlotDataMap mapped_data = loader->readDataFromFile(
                     filename.toStdString(),
                     timeindex_name   );
 
-        _last_time_index_name = timeindex_name;
+        _last_load_configuration = timeindex_name;
 
         // remap to different type
         importPlotDataMap(mapped_data);

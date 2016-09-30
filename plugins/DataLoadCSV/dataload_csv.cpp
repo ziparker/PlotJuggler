@@ -93,7 +93,7 @@ int DataLoadCSV::parseHeader(QFile *file,
 }
 
 PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
-                                          std::string& time_index_name )
+                                          std::string& load_configuration )
 {
     int time_index = TIME_INDEX_NOT_DEFINED;
 
@@ -156,7 +156,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
 
                     if (time_index == TIME_INDEX_NOT_DEFINED)
                     {
-                        if( time_index_name.compare( qname.toStdString()) == 0 )
+                        if( load_configuration.compare( qname.toStdString()) == 0 )
                         {
                             time_index = valid_field_names.size() ;
                         }
@@ -164,7 +164,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
                 }
             }
 
-            if( time_index_name.compare( "INDEX (auto-generated)" ) == 0)
+            if( load_configuration.compare( "INDEX (auto-generated)" ) == 0)
             {
                   time_index = -1;
             }
@@ -185,7 +185,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
                 }
 
                 time_index = dialog->getSelectedRowNumber().at(0) -1; // vector is supposed to have only one element
-                time_index_name = field_names.at( time_index + 1 ).toStdString() ;
+                load_configuration = field_names.at( time_index + 1 ).toStdString() ;
             }
 
             first_line = false;

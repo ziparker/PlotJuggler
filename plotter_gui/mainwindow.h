@@ -136,7 +136,7 @@ private:
 
     QString _loaded_datafile;
 
-    std::string _last_time_index_name;
+    std::string _last_load_configuration;
 
     void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
 
