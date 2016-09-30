@@ -19,4 +19,11 @@ add_library(DataStreamSample SHARED ${SRC} ${UI_SRC}  )
 
 target_link_libraries(DataStreamSample  ${Qt5Widgets_LIBRARIES} )
 
-INSTALL(TARGETS DataStreamSample DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/PlotJuggler )
+if(catkin_FOUND)
+    install(TARGETS DataStreamSample
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} )
+elseif()
+    install(TARGETS DataStreamSample DESTINATION ${CMAKE_INSTALL_PREFIX}/bin  )
+endif()

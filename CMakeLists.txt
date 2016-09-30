@@ -7,42 +7,6 @@ if(catkin_FOUND)
     message("--------------------------------------------------------------------")
     message("PlotJuggler is being built using CATKIN. ROS plugin will be compiled")
     message("--------------------------------------------------------------------")
-endif()
-
-
-set(CMAKE_AUTOMOC ON)
-SET(CMAKE_AUTOUIC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
-
-include_directories(
-    ${Qt5Widgets_INCLUDE_DIRS}
-    ${Qt5Concurrent_INCLUDE_DIRS}
-    ${Qt5PrintSupport_INCLUDE_DIRS}
-    ${Qt5Xml_INCLUDE_DIRS}
-    #${Qt5OpenGl_INCLUDE_DIRS}
-    )
-
-include_directories( ./qwt/src ./common ./color_widgets/include ./plotter_gui)
-
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-SET(CMAKE_INSTALL_PREFIX  "/usr/local" )
-
-add_subdirectory( common)
-add_subdirectory( color_widgets )
-add_subdirectory( qwt/src )
-add_subdirectory( plotter_gui )
-
-add_subdirectory( plugins/DataLoadCSV )
-add_subdirectory( plugins/DataStreamSample )
-
-if(catkin_FOUND)
 
     find_package(catkin REQUIRED COMPONENTS
         rosbag
@@ -58,12 +22,50 @@ if(catkin_FOUND)
         DEPENDS system_lib
         )
 
+endif()
+
+
+set(CMAKE_AUTOMOC ON)
+SET(CMAKE_AUTOUIC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
+
+include_directories(
+    ${Qt5Widgets_INCLUDE_DIRS}
+    ${Qt5Concurrent_INCLUDE_DIRS}
+    ${Qt5PrintSupport_INCLUDE_DIRS}
+    ${Qt5Xml_INCLUDE_DIRS}
+    #${Qt5OpenGl_INCLUDE_DIRS}
+    )
+
+include_directories( ./qwt/src ./common ./color_widgets/include ./plotter_gui)
+
+
+if(catkin_FOUND)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/lib/${PROJECT_NAME})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/lib/${PROJECT_NAME})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/lib/${PROJECT_NAME})
+elseif()
+    set(CMAKE_INSTALL_PREFIX "/usr/local")
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif()
+
+
+add_subdirectory( common)
+add_subdirectory( color_widgets )
+add_subdirectory( qwt/src )
+add_subdirectory( plotter_gui )
+
+add_subdirectory( plugins/DataLoadCSV )
+add_subdirectory( plugins/DataStreamSample )
+
+if(catkin_FOUND)
     add_subdirectory( plugins/ROS )
 endif()
 
-INSTALL(FILES plugins/statepublisher_base.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
-INSTALL(FILES plugins/dataloader_base.h DESTINATION     ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
-INSTALL(FILES plugins/datastreamer_base.h DESTINATION   ${CMAKE_INSTALL_PREFIX}/include/PlotJuggler )
 
 #########################  create a package ####################################
 
@@ -84,9 +86,7 @@ SET(CPACK_PACKAGE_VERSION_PATCH "0")
 SET(CPACK_PACKAGE_VERSION "0.5.0")
 
 SET(CPACK_PACKAGE_NAME "plotjuggler${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
-
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default")
-
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "PlotJuggler")
 
 INCLUDE(CPack)

@@ -35,7 +35,6 @@ SET( PLOTTER_SRC
 add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})
 
 
-
 target_link_libraries(PlotJuggler
     ${Qt5Core_QTMAIN_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
@@ -46,5 +45,12 @@ target_link_libraries(PlotJuggler
     qwt_static
     )
 
-INSTALL(TARGETS PlotJuggler DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
-
+if(catkin_FOUND)
+    install(TARGETS PlotJuggler
+       ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+       LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+       RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+     )
+elseif()
+    install(TARGETS PlotJuggler DESTINATION ${CMAKE_INSTALL_PREFIX}/bin  )
+endif()

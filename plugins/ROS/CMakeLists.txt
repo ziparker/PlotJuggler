@@ -13,11 +13,11 @@ add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 
 SET( DATALOAD_SRC
-	 DataLoadROS/dataload_ros.cpp
-     DataLoadROS/dialog_select_ros_topics.h
-     DataLoadROS/dialog_select_ros_topics.cpp
-     ruleloaderwidget.h
-     ruleloaderwidget.cpp
+    DataLoadROS/dataload_ros.cpp
+    DataLoadROS/dialog_select_ros_topics.h
+    DataLoadROS/dialog_select_ros_topics.cpp
+    ruleloaderwidget.h
+    ruleloaderwidget.cpp
     )
 
 QT5_WRAP_UI ( DATALOAD_UI_SRC
@@ -33,33 +33,28 @@ SET( DATASTREAM_SRC
     ruleloaderwidget.h
     ruleloaderwidget.cpp
     )
-    
+
 QT5_WRAP_UI ( DATASTREAM_UI_SRC
     DataStreamROS/rostopicselector.ui
-    ruleloaderwidget.ui )   
+    ruleloaderwidget.ui )
 #############  
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 
 ## Declare a C++ library
 add_library( DataLoadROS SHARED ${DATALOAD_SRC} ${DATALOAD_UI_SRC} )
 target_link_libraries( DataLoadROS  ${catkin_LIBRARIES} )
 
 add_dependencies(DataLoadROS 
-	${${PROJECT_NAME}_EXPORTED_TARGETS} 
-	${catkin_EXPORTED_TARGETS}
-	)
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    ${catkin_EXPORTED_TARGETS}
+    )
 
 add_library( DataStreamROS SHARED ${DATASTREAM_SRC} ${DATASTREAM_UI_SRC} )
 target_link_libraries( DataStreamROS  ${catkin_LIBRARIES} )
 
 add_dependencies(DataStreamROS 
-	${${PROJECT_NAME}_EXPORTED_TARGETS} 
-	${catkin_EXPORTED_TARGETS}
-	)
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    ${catkin_EXPORTED_TARGETS}
+    )
 
 
 #############
@@ -70,7 +65,13 @@ add_dependencies(DataStreamROS
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 
 ## Mark executables and/or libraries for installation
-install(TARGETS DataLoadROS DataStreamROS 
-        LIBRARY DESTINATION /usr/local/lib/PlotJuggler )
 
-
+if(catkin_FOUND)
+    install(TARGETS DataLoadROS DataStreamROS
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
+elseif()
+    install(TARGETS DataLoadROS DataStreamROS  DESTINATION ${CMAKE_INSTALL_PREFIX}/bin  )
+endif()
