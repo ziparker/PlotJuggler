@@ -117,9 +117,9 @@ inline PlotDataGeneric <Time, Value>::PlotDataGeneric():
   _update_bounding_rect(true),
   _max_range_X( std::numeric_limits<Time>::max() ),
   _x_points( 1024 ),
-  _y_points( 1024 )
+  _y_points( 1024 ),
+  _capacity(1024 )
 {
-
   static_assert( std::is_arithmetic<Time>::value ,"Only numbers can be used as time");
 }
 
