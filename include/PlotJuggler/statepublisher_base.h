@@ -3,7 +3,7 @@
 
 #include <QtPlugin>
 #include <functional>
-#include "plotdata.h"
+#include "PlotJuggler/plotdata.h"
 
 
 class StatePublisher{

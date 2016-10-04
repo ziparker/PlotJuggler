@@ -1,5 +1,5 @@
 
-include_directories( ./ ../  ../../common )
+include_directories( ./ ../  ../../include  ../../common)
 
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)

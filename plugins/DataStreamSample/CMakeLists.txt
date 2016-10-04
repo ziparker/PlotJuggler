@@ -1,5 +1,5 @@
 
-include_directories( ./ ../  ../../common )
+include_directories( ./ ../  ../../include  ../../common)
 
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
@@ -11,7 +11,7 @@ add_definitions(-DQT_SHARED)
 
 SET( SRC
     datastream_sample.cpp
-    ../datastreamer_base.h
+    ../../include/PlotJuggler/datastreamer_base.h
     )
 
 add_library(DataStreamSample SHARED ${SRC} ${UI_SRC}  )

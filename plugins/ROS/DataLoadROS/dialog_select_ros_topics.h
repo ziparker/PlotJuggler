@@ -21,7 +21,7 @@ public:
 
     QStringList getSelectedItems();
 
-    QString getLoadedRules() const;
+    const RosIntrospection::SubstitutionRuleMap& getLoadedRules() const;
 
 private slots:
 

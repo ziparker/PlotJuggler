@@ -3,7 +3,7 @@
 
 #include <QtPlugin>
 #include <mutex>
-#include "plotdata.h"
+#include "PlotJuggler/plotdata.h"
 
 
 class DataStreamer{

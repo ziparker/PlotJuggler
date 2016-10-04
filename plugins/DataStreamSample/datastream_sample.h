@@ -3,7 +3,7 @@
 
 #include <QtPlugin>
 #include <thread>
-#include "../datastreamer_base.h"
+#include "PlotJuggler/datastreamer_base.h"
 
 
 class  DataStreamSample: public QObject, DataStreamer

@@ -3,7 +3,7 @@
 
 #include <QColor>
 #include <qwt_series_data.h>
-#include "plotdata.h"
+#include "PlotJuggler/plotdata.h"
 
 
 

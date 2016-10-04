@@ -18,6 +18,7 @@ if(catkin_FOUND)
         topic_tools
         )
     catkin_package(
+        INCLUDE_DIRS include
         CATKIN_DEPENDS ros_type_introspection
         DEPENDS system_lib
         )
@@ -39,7 +40,7 @@ include_directories(
     #${Qt5OpenGl_INCLUDE_DIRS}
     )
 
-include_directories( ./qwt/src ./common ./color_widgets/include ./plotter_gui)
+include_directories( ./qwt/src ./include ./color_widgets/include )
 
 
 if(catkin_FOUND)

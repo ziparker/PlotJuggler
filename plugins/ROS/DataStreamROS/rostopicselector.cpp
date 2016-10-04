@@ -131,7 +131,7 @@ void RosTopicSelector::on_buttonBox_accepted()
 
 
 
-QString RosTopicSelector::getLoadedRules() const
+const RosIntrospection::SubstitutionRuleMap &RosTopicSelector::getLoadedRules() const
 {
     return _rule_widget->getLoadedRules();
 }

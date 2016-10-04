@@ -40,7 +40,7 @@ QStringList DialogSelectRosTopics::getSelectedItems()
     return _topic_list;
 }
 
-QString DialogSelectRosTopics::getLoadedRules() const
+const RosIntrospection::SubstitutionRuleMap& DialogSelectRosTopics::getLoadedRules() const
 {
     return _rule_widget->getLoadedRules();
 }

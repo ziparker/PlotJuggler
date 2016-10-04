@@ -9,9 +9,9 @@
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
 
-#include "../plugins/dataloader_base.h"
-#include "../plugins/statepublisher_base.h"
-#include "../plugins/datastreamer_base.h"
+#include "PlotJuggler/dataloader_base.h"
+#include "PlotJuggler/statepublisher_base.h"
+#include "PlotJuggler/datastreamer_base.h"
 
 namespace Ui {
 class MainWindow;

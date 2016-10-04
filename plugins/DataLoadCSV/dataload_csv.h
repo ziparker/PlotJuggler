@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QtPlugin>
-#include "../dataloader_base.h"
+#include "PlotJuggler/dataloader_base.h"
 
 
 class  DataLoadCSV: public QObject, DataLoader

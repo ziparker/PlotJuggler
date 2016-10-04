@@ -4,14 +4,14 @@
 #include <QtPlugin>
 #include <thread>
 #include <topic_tools/shape_shifter.h>
-#include "datastreamer_base.h"
+#include "PlotJuggler/datastreamer_base.h"
 #include <ros_type_introspection/ros_introspection.hpp>
 
 
 class  DataStreamROS: public QObject, DataStreamer
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "com.icarustechnology.Superplotter.DataStreamer" "../../datastreamer.json")
+    Q_PLUGIN_METADATA(IID "com.icarustechnology.Superplotter.DataStreamer" "../datastreamer.json")
     Q_INTERFACES(DataStreamer)
 
 public:
@@ -52,7 +52,7 @@ private:
 
     std::vector<ros::Subscriber> _subscribers;
 
-    std::vector<RosIntrospection::SubstitutionRule> _rules;
+    RosIntrospection::SubstitutionRuleMap _rules;
 };
 
 #endif // DATALOAD_CSV_H

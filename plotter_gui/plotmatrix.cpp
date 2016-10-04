@@ -481,7 +481,7 @@ void PlotMatrix::alignScaleBorder(unsigned rowOrColumn, QwtPlot::Axis axisId )
                 p->axisWidget( axisId )->setMinBorderDist( 10, 10 );
         }
     }
-    else if ( axisId == QwtPlot::xTop | axisId == QwtPlot::xBottom )
+    else if ( axisId == QwtPlot::xTop || axisId == QwtPlot::xBottom )
     {
         for ( unsigned row = 0; row < rowsCount(); row++ )
         {

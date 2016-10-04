@@ -21,7 +21,7 @@ public:
 
     QStringList getSelectedTopicsList();
 
-    QString getLoadedRules() const;
+    const RosIntrospection::SubstitutionRuleMap& getLoadedRules() const;
 
 private slots:
     void on_buttonConnect_pressed();
