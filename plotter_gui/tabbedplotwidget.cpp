@@ -220,7 +220,7 @@ void TabbedPlotWidget::on_pushRemoveEmpty_pressed()
 {
     PlotMatrix *tab = currentTab();
 
-    for( int row = 0; row< tab->rowsCount(); row++)
+    for( unsigned row = 0; row< tab->rowsCount(); row++)
     {
         while( tab->rowsCount() > 1 &&
                tab->isRowEmpty( row ) &&
@@ -230,7 +230,7 @@ void TabbedPlotWidget::on_pushRemoveEmpty_pressed()
         }
     }
 
-    for( int col = 0; col< tab->colsCount(); col++)
+    for( unsigned col = 0; col< tab->colsCount(); col++)
     {
         while( tab->colsCount() > 1 &&
                tab->isColumnEmpty( col ) &&
@@ -401,7 +401,7 @@ void TabbedPlotWidget::on_pushButtonShowLabel_toggled(bool checked)
     {
         PlotMatrix* matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
 
-        for(int p=0; p< matrix->plotCount(); p++)
+        for(unsigned p=0; p< matrix->plotCount(); p++)
         {
             PlotWidget* plot = matrix->plotAt(p);
             plot->activateLegent( checked );

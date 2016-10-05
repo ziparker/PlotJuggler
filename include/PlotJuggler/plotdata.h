@@ -114,10 +114,10 @@ typedef struct{
 
 template < typename Time, typename Value>
 inline PlotDataGeneric <Time, Value>::PlotDataGeneric():
-  _update_bounding_rect(true),
-  _max_range_X( std::numeric_limits<Time>::max() ),
   _x_points( 1024 ),
   _y_points( 1024 ),
+  _update_bounding_rect(true),
+  _max_range_X( std::numeric_limits<Time>::max() ),
   _capacity(1024 )
 {
   static_assert( std::is_arithmetic<Time>::value ,"Only numbers can be used as time");
@@ -153,7 +153,7 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
   {
     Time rangeX = _x_points.back() - _x_points.front();
     Time delta = rangeX / (Time)(sizeX - 1);
-    long new_capacity = ( _max_range_X / delta);
+    unsigned new_capacity = ( _max_range_X / delta);
 
     if( labs( new_capacity - capacity) > (capacity*2)/100 ) // apply changes only if new capacity is > 2%
     {

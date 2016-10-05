@@ -77,7 +77,7 @@ void CurveTracker::setPosition(const QPointF& position)
     QString text_marker_info;
     double text_X_offset = 0;
 
-    for ( size_t i = 0; i < curves.size(); i++ )
+    for ( int i = 0; i < curves.size(); i++ )
     {
         QwtPlotCurve *curve = static_cast<QwtPlotCurve *>(curves[i]);
         QColor color = curve->pen().color();

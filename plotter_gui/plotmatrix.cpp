@@ -97,7 +97,7 @@ void PlotMatrix::removeColumn(unsigned column_to_delete)
 
     for(unsigned col = column_to_delete; col< _num_cols-1; col++)
     {
-        for(int row=0; row< _num_rows; row++)
+        for(unsigned row=0; row< _num_rows; row++)
         {
             this->swapPlots( row, col, row, col+1);
         }
@@ -121,14 +121,14 @@ void PlotMatrix::removeRow(unsigned row_to_delete)
         return;
     }
 
-    for(int row = row_to_delete; row< _num_rows-1; row++)
+    for(unsigned row = row_to_delete; row< _num_rows-1; row++)
     {
-        for(int col = 0; col< _num_cols; col++)
+        for(unsigned col = 0; col< _num_cols; col++)
         {
             this->swapPlots( row, col, row+1, col);
         }
     }
-    for(int col=0; col< _num_cols; col++)
+    for(unsigned col=0; col< _num_cols; col++)
     {
         plotAt( _num_rows-1, col)->close();
     }
@@ -160,7 +160,7 @@ unsigned PlotMatrix::plotCount() const
 
 bool PlotMatrix::isColumnEmpty( unsigned col )
 {
-    for (unsigned r=0; r < _layout->rowCount(); r++)
+    for (int r=0; r < _layout->rowCount(); r++)
     {
         auto plot = plotAt(r, col);
         if( plot && ! plot->isEmpty() )  {
