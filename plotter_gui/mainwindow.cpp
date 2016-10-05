@@ -16,6 +16,7 @@
 #include <QSettings>
 #include <QWindow>
 #include <set>
+#include <QInputDialog>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -129,9 +130,9 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     ui->horizontalSlider->setValue(slider_value);
 
     //------------------------
-    for ( size_t i=0; i<_state_publisher.size(); i++)
+    for ( auto it = _state_publisher.begin(); it != _state_publisher.end(); it++)
     {
-        _state_publisher[i]->updateState( &_mapped_plot_data, current_time);
+        it->second->updateState( &_mapped_plot_data, current_time);
     }
 }
 
@@ -300,7 +301,7 @@ void MainWindow::loadPlugins(QString directory_name)
 
                 for(unsigned i = 0; i < extensions.size(); i++)
                 {
-                    _data_loader.insert( std::make_pair( QString(extensions[i]), loader) );
+                    _data_loader.insert( std::make_pair( filename, loader) );
                 }
             }
 
@@ -309,7 +310,7 @@ void MainWindow::loadPlugins(QString directory_name)
             {
                 qDebug() << filename << ": is a StatePublisher plugin";
                 loaded_plugins.insert( filename );
-                _state_publisher.push_back( publisher );
+                _state_publisher.insert( std::make_pair(filename, publisher) );
             }
 
             DataStreamer *streamer =  qobject_cast<DataStreamer *>(plugin);
@@ -317,7 +318,7 @@ void MainWindow::loadPlugins(QString directory_name)
             {
                 qDebug() << filename << ": is a DataStreamer plugin";
                 loaded_plugins.insert( filename );
-                _data_streamer.push_back( streamer );
+                _data_streamer.insert( std::make_pair(filename, streamer ) );
             }
         }
         else{
@@ -353,7 +354,7 @@ void MainWindow::buildData()
         plot->setCapacity( SIZE );
 
         double t = 0;
-        for (int indx=0; indx<SIZE; indx++)
+        for (unsigned indx=0; indx<SIZE; indx++)
         {
             t += 0.001;
             plot->pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
@@ -570,7 +571,7 @@ std::vector<PlotWidget*> MainWindow::getAllPlots()
             PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(t) );
             if (matrix)
             {
-                for ( int w = 0; w< matrix->plotCount(); w++ )
+                for ( unsigned w = 0; w< matrix->plotCount(); w++ )
                 {
                     PlotWidget *plot =  matrix->plotAt(w);
                     if( plot )
@@ -621,14 +622,22 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
     QSettings settings( "IcarusTechnology", "PlotJuggler");
 
-    std::map<QString,DataLoader*>::iterator it;
-
     QString file_extension_filter;
 
-    for (it = _data_loader.begin(); it != _data_loader.end(); it++)
+    std::set<QString> extensions;
+
+    for (auto& it: _data_loader)
     {
-        QString extension = it->first.toLower();
-        file_extension_filter.append( QString(" *.") + extension );
+       DataLoader* loader = it.second;
+       for (QString extension: loader->compatibleFileExtensions() )
+       {
+          extensions.insert( extension.toLower() );
+       }
+    }
+
+    for (auto it = extensions.begin(); it != extensions.end(); it++)
+    {
+        file_extension_filter.append( QString(" *.") + *it );
     }
 
     QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
@@ -645,8 +654,9 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
                                                 file_extension_filter);
     }
 
-    if (filename.isEmpty())
+    if (filename.isEmpty()) {
         return;
+    }
 
     directory_path = QFileInfo(filename).absolutePath();
 
@@ -655,7 +665,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
     ui->actionLoadRecentDatafile->setText("Load data from: " + filename);
 
-    onActionLoadDataFileImpl( filename, false );
+    onActionLoadDataFileImpl(filename, false );
 }
 
 void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
@@ -722,7 +732,46 @@ void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
 
 void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_timeindex )
 {
-    DataLoader* loader = _data_loader[ QFileInfo(filename).suffix() ];
+    const QString extension = QFileInfo(filename).suffix().toLower();
+
+    DataLoader* loader = nullptr;
+
+    typedef std::map<QString,DataLoader*>::iterator MapIterator;
+    std::vector<MapIterator> compatible_loaders;
+
+    for (MapIterator it = _data_loader.begin(); it != _data_loader.end(); it++)
+    {
+       DataLoader* data_loader = it->second;
+       std::vector<const char*> extensions = data_loader->compatibleFileExtensions();
+
+       for(auto& ext: extensions){
+
+         if( extension == QString(ext).toLower()){
+           compatible_loaders.push_back( it );
+           break;
+         }
+       }
+    }
+
+    if( compatible_loaders.size() == 1)
+    {
+       loader = compatible_loaders.front()->second;
+    }
+    else{
+
+      QStringList names;
+      for (auto cl: compatible_loaders)
+      {
+        names << cl->first;
+      }
+
+       bool ok;
+       QString plugin_name = QInputDialog::getItem(this, tr("QInputDialog::getItem()"), tr("Select the loader to use:"), names, 0, false, &ok);
+       if (ok && !plugin_name.isEmpty()){
+             loader = _data_loader[ plugin_name ];
+       }
+    }
+
 
     if( loader )
     {
@@ -783,31 +832,43 @@ void MainWindow::onActionReloadRecentLayout()
 
 void MainWindow::onActionLoadStreamer()
 {
+    typedef std::map<QString,DataStreamer*>::iterator StreamerIterator;
     if( _data_streamer.empty())
     {
         qDebug() << "Error, no streamer loaded";
         return;
     }
 
-    if( _data_streamer.size() > 1)
+    if( _data_streamer.size() == 1)
+    {
+        _current_streamer = _data_streamer[0];
+    }
+    else if( _data_streamer.size() > 1)
     {
         QStringList streamers_name;
-        for (size_t i=0; i< _data_streamer.size(); i++)
+
+        for (auto& streamer_it: _data_streamer)
         {
-            streamers_name.push_back( QString( _data_streamer[i]->name()) );
+            streamers_name.push_back( QString( streamer_it.second->name()) );
         }
+
         SelectFromListDialog dialog( &streamers_name, true, this );
         dialog.exec();
 
         int index = dialog.getSelectedRowNumber().at(0) ;
         if( index >= 0)
         {
-            _current_streamer = _data_streamer[index];
+          for (auto& streamer_it: _data_streamer)
+          {
+            auto& streamer = streamer_it.second;
+            QString streamer_name(streamer->name() );
+            if( streamer_name == streamers_name[index] )
+            {
+              _current_streamer = streamer;
+              break;
+            }
+          }
         }
-    }
-
-    if( _data_streamer.size() == 1){
-        _current_streamer = _data_streamer[0];
     }
 
     if( _current_streamer && _current_streamer->launch() )
@@ -988,7 +1049,7 @@ void MainWindow::updateInternalState()
 
     tabbed_map.insert( std::make_pair( QString("Main window"), _tabbed_plotarea[0] ) );
 
-    for (int i = 1; i < _tabbed_plotarea.size(); i++)
+    for (unsigned i = 1; i < _tabbed_plotarea.size(); i++)
     {
         tabbed_map.insert( std::make_pair( _floating_window[i-1]->windowTitle(), _tabbed_plotarea[i] ) );
     }
@@ -1027,9 +1088,9 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
         {
             PlotMatrix* matrix =  static_cast<PlotMatrix*>(tabs->widget(t));
 
-            for(int row=0; row< matrix->rowsCount(); row++)
+            for(unsigned row=0; row< matrix->rowsCount(); row++)
             {
-                for(int col=0; col< matrix->colsCount(); col++)
+                for(unsigned col=0; col< matrix->colsCount(); col++)
                 {
                     PlotWidget* plot = matrix->plotAt(row, col);
 

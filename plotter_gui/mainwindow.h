@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QElapsedTimer>
 #include <QShortcut>
+#include <set>
 #include "plotwidget.h"
 #include "plotmatrix.h"
 #include "filterablelistwidget.h"
@@ -120,9 +121,9 @@ private:
 
     void loadPlugins(QString subdir_name);
 
-    std::map<QString,DataLoader*> _data_loader;
-    std::vector<StatePublisher*>  _state_publisher;
-    std::vector<DataStreamer*>    _data_streamer;
+    std::map<QString,DataLoader*>      _data_loader;
+    std::map<QString,StatePublisher*>  _state_publisher;
+    std::map<QString,DataStreamer*>    _data_streamer;
 
     DataStreamer* _current_streamer;
 
