@@ -20,7 +20,7 @@ public:
 
     virtual ~DataStreamer() {}
 
-    virtual const char* name() = 0;
+    virtual const char* name() const = 0;
 
 };
 

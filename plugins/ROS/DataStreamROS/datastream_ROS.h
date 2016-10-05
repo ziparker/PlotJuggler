@@ -28,7 +28,7 @@ public:
 
     virtual ~DataStreamROS() override;
 
-    virtual const char* name() override;
+    virtual const char* name() const override { return "ROS Topic Streamer";  }
 
 private:
 

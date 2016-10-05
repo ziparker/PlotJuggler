@@ -16,17 +16,17 @@ public:
 
     DataStreamSample();
 
-    virtual PlotDataMap& getDataMap() { return _plot_data; }
+    virtual PlotDataMap& getDataMap() override { return _plot_data; }
 
-    virtual bool launch();
+    virtual bool launch() override;
 
-    virtual void enableStreaming(bool enable);
+    virtual void enableStreaming(bool enable) override;
 
-    virtual bool isStreamingEnabled() const;
+    virtual bool isStreamingEnabled() const override;
 
     virtual ~DataStreamSample();
 
-    virtual const char* name();
+    virtual const char* name() const override { return "DataStreamer Dummy"; }
 
 private:
 

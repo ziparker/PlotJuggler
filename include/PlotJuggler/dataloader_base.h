@@ -20,6 +20,8 @@ public:
     virtual PlotDataMap readDataFromFile(const std::string& file_name,
                                       std::string& time_index ) = 0;
 
+    virtual const char* name() const = 0;
+
     virtual ~DataLoader() {}
 };
 

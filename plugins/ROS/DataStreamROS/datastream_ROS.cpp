@@ -191,10 +191,6 @@ DataStreamROS::~DataStreamROS()
   }
 }
 
-const char*  DataStreamROS::name()
-{
-  return "ROS Topic Streamer";
-}
 
 void DataStreamROS::update()
 {

@@ -53,10 +53,7 @@ DataStreamSample::~DataStreamSample()
         _thread.join();
 }
 
-const char*  DataStreamSample::name()
-{
-    return "DataStreamerDummy";
-}
+
 
 void DataStreamSample::update()
 {

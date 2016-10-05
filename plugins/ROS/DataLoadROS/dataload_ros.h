@@ -17,10 +17,12 @@ class  DataLoadROS: public QObject, DataLoader
 
 public:
     DataLoadROS();
-    virtual const std::vector<const char*>& compatibleFileExtensions() const ;
+    virtual const std::vector<const char*>& compatibleFileExtensions() const override;
 
     virtual PlotDataMap readDataFromFile(const std::string& file_name,
-                                          std::string &load_configuration  );
+                                          std::string &load_configuration  ) override;
+
+    virtual const char* name() const override { return "DataLoad ROS bags"; }
 
     virtual ~DataLoadROS();
 

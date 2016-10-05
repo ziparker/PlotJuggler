@@ -14,12 +14,14 @@ class  DataLoadCSV: public QObject, DataLoader
 
 public:
     DataLoadCSV();
-    virtual const std::vector<const char*>& compatibleFileExtensions() const ;
+    virtual const std::vector<const char*>& compatibleFileExtensions() const override;
 
     virtual PlotDataMap readDataFromFile(const std::string& file_name,
-                                         std::string &load_configuration  );
+                                         std::string &load_configuration  ) override;
 
     virtual ~DataLoadCSV();
+
+    virtual const char* name() const override { return "DataLoad CSV"; }
 
 protected:
     int parseHeader(QFile *file, std::vector<std::pair<bool, QString> > &ordered_names);
