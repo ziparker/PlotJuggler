@@ -295,30 +295,25 @@ void MainWindow::loadPlugins(QString directory_name)
             DataLoader *loader = qobject_cast<DataLoader *>(plugin);
             if (loader)
             {
-                std::vector<const char*> extensions = loader->compatibleFileExtensions();
                 qDebug() << filename << ": is a DataLoader plugin";
-                loaded_plugins.insert( filename );
-
-                for(unsigned i = 0; i < extensions.size(); i++)
-                {
-                    _data_loader.insert( std::make_pair( filename, loader) );
-                }
+                loaded_plugins.insert( loader->name() );
+                _data_loader.insert( std::make_pair( loader->name(), loader) );
             }
 
             StatePublisher *publisher = qobject_cast<StatePublisher *>(plugin);
             if (publisher)
             {
                 qDebug() << filename << ": is a StatePublisher plugin";
-                loaded_plugins.insert( filename );
-                _state_publisher.insert( std::make_pair(filename, publisher) );
+                loaded_plugins.insert( publisher->name() );
+                _state_publisher.insert( std::make_pair(publisher->name(), publisher) );
             }
 
             DataStreamer *streamer =  qobject_cast<DataStreamer *>(plugin);
             if (streamer)
             {
                 qDebug() << filename << ": is a DataStreamer plugin";
-                loaded_plugins.insert( filename );
-                _data_streamer.insert( std::make_pair(filename, streamer ) );
+                loaded_plugins.insert( streamer->name() );
+                _data_streamer.insert( std::make_pair(streamer->name() , streamer ) );
             }
         }
         else{
@@ -737,6 +732,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
     DataLoader* loader = nullptr;
 
     typedef std::map<QString,DataLoader*>::iterator MapIterator;
+
     std::vector<MapIterator> compatible_loaders;
 
     for (MapIterator it = _data_loader.begin(); it != _data_loader.end(); it++)
@@ -758,17 +754,26 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
        loader = compatible_loaders.front()->second;
     }
     else{
+      static QString last_plugin_name_used;
 
       QStringList names;
       for (auto cl: compatible_loaders)
       {
+        if( cl->first == last_plugin_name_used){
+          names.push_front(  cl->first );
+        }
+        else{
+          names.push_back(  cl->first );
+        }
         names << cl->first;
       }
 
        bool ok;
        QString plugin_name = QInputDialog::getItem(this, tr("QInputDialog::getItem()"), tr("Select the loader to use:"), names, 0, false, &ok);
-       if (ok && !plugin_name.isEmpty()){
+       if (ok && !plugin_name.isEmpty())
+       {
              loader = _data_loader[ plugin_name ];
+             last_plugin_name_used = plugin_name;
        }
     }
 
@@ -832,7 +837,6 @@ void MainWindow::onActionReloadRecentLayout()
 
 void MainWindow::onActionLoadStreamer()
 {
-    typedef std::map<QString,DataStreamer*>::iterator StreamerIterator;
     if( _data_streamer.empty())
     {
         qDebug() << "Error, no streamer loaded";
