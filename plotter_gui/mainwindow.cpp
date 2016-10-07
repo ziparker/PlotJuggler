@@ -759,13 +759,14 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
       QStringList names;
       for (auto cl: compatible_loaders)
       {
-        if( cl->first == last_plugin_name_used){
-          names.push_front(  cl->first );
+        const auto& name = cl->first;
+
+        if( name == last_plugin_name_used ){
+            names.push_front( name );
         }
         else{
-          names.push_back(  cl->first );
+            names.push_back( name );
         }
-        names << cl->first;
       }
 
        bool ok;
