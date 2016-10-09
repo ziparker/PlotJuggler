@@ -54,8 +54,15 @@ inline SelectFromListDialog::SelectFromListDialog(QStringList *fields, bool sing
         ui->pushButtonSelectAll->hide();
     }
 
-    for (int i=0; i< fields->size(); i++) {
-        ui->listFieldsWidget->addItem( new QListWidgetItem( (*fields)[i] ) );
+    // if there is only one item in the list, select it by default
+    for (int i=0; i< fields->size(); i++)
+    {
+      auto item = new QListWidgetItem( (*fields)[i] );
+      ui->listFieldsWidget->addItem( item );
+
+      if( fields->size() == 1){
+        item->setSelected(true);
+      }
     }
 }
 
