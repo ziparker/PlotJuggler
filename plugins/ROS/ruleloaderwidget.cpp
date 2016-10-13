@@ -44,7 +44,7 @@ RuleLoaderWidget::~RuleLoaderWidget()
 
 const RosIntrospection::SubstitutionRuleMap& RuleLoaderWidget::getLoadedRules() const
 {
-    return _loaded_rules;
+  return _loaded_rules;
 }
 
 void RuleLoaderWidget::on_pushButtonLoadOther_pressed()
@@ -61,7 +61,7 @@ void RuleLoaderWidget::on_pushButtonLoadOther_pressed()
     directory_path = info.absoluteFilePath();
   }
 
-  fileName = QFileDialog::getOpenFileName(this, "Open Layout", directory_path, "*.txt");
+  fileName = QFileDialog::getOpenFileName(this, "Open Layout", directory_path, "*.txt *.xml");
 
   if (fileName.isEmpty())
     return;
@@ -83,6 +83,8 @@ void RuleLoaderWidget::readRuleFile(QFile &file)
   {
     QMessageBox::warning(0, tr("Warning"), tr("Can't open file\n") );
     ui->labelLoadedRules->setText("none");
+    _loaded_rules.clear();
+    return;
   }
 
   QSettings settings( "IcarusTechnology", "PlotJuggler");
@@ -105,13 +107,18 @@ void RuleLoaderWidget::readRuleFile(QFile &file)
 
   QDomElement root = domDocument.namedItem("SubstitutionRules").toElement();
 
+  errorStr.clear();
+
   for ( auto type_el = root.firstChildElement(  "RosType" )  ;
         type_el.isNull() == false;
         type_el = type_el.nextSiblingElement( "RosType" ) )
   {
     if( type_el.hasAttribute("name") == false)
     {
-      errorStr = tr("Missing attribute \"name\" in RosType");
+      QMessageBox::warning(0, tr("Error"), tr("Missing attribute \"name\" in RosType") );
+      ui->labelLoadedRules->setText("none");
+      _loaded_rules.clear();
+      return;
     }
     else{
       QString ros_type_name = type_el.attribute("name");
@@ -122,10 +129,9 @@ void RuleLoaderWidget::readRuleFile(QFile &file)
             rule_el = rule_el.nextSiblingElement( "rule" ) )
 
       {
-
-        auto pattern_el      = type_el.firstChildElement("pattern");
-        auto alias_el        = type_el.firstChildElement("alias");
-        auto substitution_el = type_el.firstChildElement("substitution");
+        auto pattern_el      = rule_el.firstChildElement("pattern");
+        auto alias_el        = rule_el.firstChildElement("alias");
+        auto substitution_el = rule_el.firstChildElement("substitution");
 
         if(pattern_el.isNull() ){
           errorStr = tr("<rule> needs a child called <pattern>");
@@ -137,27 +143,23 @@ void RuleLoaderWidget::readRuleFile(QFile &file)
           errorStr = tr("<rule> needs a child called <substitution>");
         }
         else{
-          SubstitutionRule rule;
+          SubstitutionRule rule(
+                pattern_el.text().toStdString().c_str(),
+                alias_el.text().toStdString().c_str(),
+                substitution_el.text().toStdString().c_str() );
 
-          std::vector<SString>* vectors[3] = { &rule.pattern, &rule.pattern, &rule.pattern };
-          QString text[3] = { pattern_el.text(), alias_el.text(), substitution_el.text() };
-
-          for (int i=0; i<3; i++)
-          {
-            QStringList tags = text[i].split(".",QString::SkipEmptyParts);
-
-            for (int i=0; i < tags.count(); i++)
-            {
-              SString ss (tags[i].toLatin1().data(), tags[i].size() );
-              vectors[i]->push_back( ss );
-            }
-          }
           rules.push_back( std::move( rule ) );
         }
 
+        if( errorStr.size() != 0)
+        {
+          QMessageBox::warning(0, tr("Error"), errorStr );
+          ui->labelLoadedRules->setText("none");
+          _loaded_rules.clear();
+          return;
+        }
       }
       _loaded_rules[ros_type_name.toStdString() ] = rules;
-
     }
   }
 
