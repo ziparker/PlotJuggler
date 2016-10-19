@@ -1,5 +1,5 @@
-#ifndef DATALOAD_CSV_H
-#define DATALOAD_CSV_H
+#ifndef STATE_PUBLISHER_ZMQ_H
+#define STATE_PUBLISHER_ZMQ_H
 
 #include <QObject>
 #include <QtPlugin>
@@ -36,4 +36,4 @@ private:
 
 };
 
-#endif // DATALOAD_CSV_H
+#endif // STATE_PUBLISHER_ZMQ_H

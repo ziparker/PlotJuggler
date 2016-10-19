@@ -56,12 +56,10 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
   ros::serialization::OStream stream(buffer, sizeof(buffer));
   msg->write(stream);
 
-  uint8_t* buffer_ptr = buffer;
-
   ROSType datatype( data_type );
   SString topicname( topic_name.data(), topic_name.length() );
 
-  buildRosFlatType( _ros_type_map, datatype, topicname, &buffer_ptr, &flat_container);
+  buildRosFlatType( _ros_type_map, datatype, topicname, buffer, &flat_container);
   applyNameTransform( _rules[topic_name], &flat_container );
 
   // qDebug() << " pushing " << msg_time;

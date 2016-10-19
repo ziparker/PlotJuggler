@@ -24,19 +24,11 @@ public:
     const RosIntrospection::SubstitutionRuleMap& getLoadedRules() const;
 
 private slots:
-    void on_buttonConnect_pressed();
-
-    void on_buttonDisconnect_pressed();
-
-    void on_checkBoxEnvironmentSettings_toggled(bool checked);
-
-    void showNoMasterMessage();
+    void on_buttonRefresh_pressed();
 
     void on_listTopics_itemSelectionChanged();
 
     void on_buttonBox_accepted();
-
-    void on_checkBoxEnableSubstitution_toggled(bool checked);
 
 private:
 

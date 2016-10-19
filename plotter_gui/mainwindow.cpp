@@ -306,6 +306,14 @@ void MainWindow::loadPlugins(QString directory_name)
                 qDebug() << filename << ": is a StatePublisher plugin";
                 loaded_plugins.insert( publisher->name() );
                 _state_publisher.insert( std::make_pair(publisher->name(), publisher) );
+
+                QAction* activatePublisher = new QAction( publisher->name() , this);
+                activatePublisher->setCheckable(true);
+                activatePublisher->setChecked(false);
+                ui->menuPublishers->setEnabled(true);
+                ui->menuPublishers->addAction(activatePublisher);
+
+                connect(activatePublisher, SIGNAL( toggled(bool)), publisher->getObject(), SLOT(setEnabled(bool)) );
             }
 
             DataStreamer *streamer =  qobject_cast<DataStreamer *>(plugin);

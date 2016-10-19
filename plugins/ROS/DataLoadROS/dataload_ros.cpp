@@ -11,6 +11,8 @@
 
 #include "dialog_select_ros_topics.h"
 #include "../ruleloaderwidget.h"
+#include "../shape_shifter_factory.hpp"
+
 
 DataLoadROS::DataLoadROS()
 {
@@ -46,10 +48,14 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
   {
     all_topic_names.push_back( QString( connections[i]->topic.c_str() ) );
 
-    const auto&  data_type =  connections[i]->datatype;
-    auto topic_map = buildROSTypeMapFromDefinition( data_type,
-                                                    connections[i]->msg_def);
+    const auto&  md5sum     =  connections[i]->md5sum;
+    const auto&  data_type  =  connections[i]->datatype;
+    const auto&  definition =  connections[i]->msg_def;
+
+    auto topic_map = buildROSTypeMapFromDefinition( data_type, definition);
     type_map.insert( std::make_pair(data_type,topic_map));
+
+    ShapeShifterFactory::getInstance().registerMessage(connections[i]->topic, md5sum, data_type, definition);
   }
 
   all_topic_names.sort();
@@ -59,8 +65,6 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
   DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topic_names );
 
   std::set<std::string> topic_selected;
-
-  std::vector<uint8_t> buffer ( 64*1024 );
 
   if( dialog->exec() == QDialog::Accepted)
   {
@@ -94,12 +98,17 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
 
   for(const rosbag::MessageInstance& msg: bag_view_reduced )
   {
-   /* if( topic_selected.find( msg.getTopic() ) == topic_selected.end() )
+    /* if( topic_selected.find( msg.getTopic() ) == topic_selected.end() )
     {
       continue;
     }*/
 
-    const auto& data_type = msg.getDataType();
+    const auto& md5sum     = msg.getMD5Sum();
+    const auto& data_type  = msg.getDataType();
+    const auto& definition = msg.getMessageDefinition();
+    auto msg_size = msg.size();
+
+    std::vector<uint8_t> buffer ( msg_size );
 
     double msg_time = (msg.getTime() - first_time).toSec();
 
@@ -120,13 +129,10 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
     // this single line takes almost the entire time of the loop
     msg.write(stream);
 
-    uint8_t* buffer_ptr = buffer.data();
-
     ROSType datatype(  msg.getDataType() );
     SString topic_name( msg.getTopic().data(),  msg.getTopic().size() );
 
-    buildRosFlatType(type_map[ data_type ], datatype, topic_name, &buffer_ptr, &flat_container);
-
+    buildRosFlatType(type_map[ data_type ], datatype, topic_name, buffer.data(), &flat_container);
     applyNameTransform( _rules[data_type], &flat_container );
 
     for(auto& it: flat_container.renamed_value )
@@ -147,9 +153,33 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
 
       if( plot_data->size() >= plot_data->capacity() ) // auto increase size
       {
-        plot_data->setCapacity( plot_data->size()*2 );
+        plot_data->setCapacity( plot_data->size()*1.5 );
       }
       plot_data->pushBack( PlotData::Point(msg_time, value));
+
+    } //end of for flat_container.renamed_value
+
+    //-----------------------------------------
+    // adding raw serialized topic for future uses.
+    {
+
+      auto plot_pair = plot_map.user_defined.find( md5sum );
+
+      if( plot_pair == plot_map.user_defined.end() )
+      {
+        PlotDataAnyPtr temp(new PlotDataAny());
+        auto res = plot_map.user_defined.insert( std::make_pair( msg.getTopic(), temp ) );
+        plot_pair = res.first;
+      }
+
+      PlotDataAnyPtr& plot_raw = plot_pair->second;
+
+      if( plot_raw->size() >= plot_raw->capacity() ) // auto increase size
+      {
+        plot_raw->setCapacity( plot_raw->size()*1.5 );
+      }
+      plot_raw->pushBack( PlotDataAny::Point(msg_time, boost::any(std::move(buffer)) ));
+
     }
     //   qDebug() << msg.getTopic().c_str();
   }

@@ -245,8 +245,17 @@
     </property>
     <addaction name="actionStartStreaming"/>
    </widget>
+   <widget class="QMenu" name="menuPublishers">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="title">
+     <string>Publishers</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStreaming"/>
+   <addaction name="menuPublishers"/>
   </widget>
   <action name="actionLoadData">
    <property name="text">

@@ -8,6 +8,7 @@
 #include <mutex>
 #include <boost/circular_buffer.hpp>
 #include <boost/optional.hpp>
+#include <boost/any.hpp>
 #include <QDebug>
 #include <type_traits>
 
@@ -55,7 +56,7 @@ public:
 
   int getIndexFromX(Time x);
 
-  boost::optional<Value> getYfromX(Time x );
+  boost::optional<const Value &> getYfromX(Time x );
 
   Point at(size_t index);
 
@@ -96,15 +97,15 @@ private:
 
 
 typedef PlotDataGeneric<double,double>  PlotData;
-typedef PlotDataGeneric<double,void*>   PlotDataVoid;
+typedef PlotDataGeneric<double, boost::any>   PlotDataAny;
 
 
 typedef std::shared_ptr<PlotData>     PlotDataPtr;
-typedef std::shared_ptr<PlotDataVoid> PlotDataVoidPtr;
+typedef std::shared_ptr<PlotDataAny>  PlotDataAnyPtr;
 
 typedef struct{
   std::map<std::string, PlotDataPtr>     numeric;
-  std::map<std::string, PlotDataVoidPtr> user_defined;
+  std::map<std::string, PlotDataAnyPtr>  user_defined;
 } PlotDataMap;
 
 
@@ -195,7 +196,7 @@ inline int PlotDataGeneric<Time, Value>::getIndexFromX(Time x )
 
 
 template < typename Time, typename Value>
-inline boost::optional<Value> PlotDataGeneric<Time, Value>::getYfromX(Time x)
+inline boost::optional<const Value &> PlotDataGeneric<Time, Value>::getYfromX(Time x)
 {
   std::lock_guard<std::mutex> lock(_mutex);
 
@@ -204,7 +205,7 @@ inline boost::optional<Value> PlotDataGeneric<Time, Value>::getYfromX(Time x)
 
   if( index >= _x_points.size() || index < 0 )
   {
-    return boost::optional<Value>();
+    return boost::optional<const Value&>();
   }
   return _y_points.at(index);
 }
