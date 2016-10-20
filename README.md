@@ -38,4 +38,4 @@ The proceed as you would do with any cmake based project
 # Note for ROS users
  
 If you use CATKIN to build this project, the ROS related plugins will be automatically included into the compilation.
- 
+You will also need to download and build this package: https://github.com/facontidavide/ros_type_introspection 
