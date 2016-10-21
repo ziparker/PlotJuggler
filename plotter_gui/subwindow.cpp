@@ -1,11 +1,15 @@
 #include "subwindow.h"
 #include <QDebug>
 
-SubWindow::SubWindow(PlotDataMap *mapped_data, QWidget *parent) :
-  QMainWindow(parent),
-  tabbed_widget_( mapped_data, this )
+SubWindow::SubWindow(PlotDataMap *mapped_data, QMainWindow *parent_window) :
+  QMainWindow(parent_window)
 {
-    this->setCentralWidget( &tabbed_widget_ );
+    tabbed_widget_ = new TabbedPlotWidget(parent_window, mapped_data, 0 );
+    this->setCentralWidget( tabbed_widget_ );
+}
+
+SubWindow::~SubWindow(){
+
 }
 
 void SubWindow::closeEvent(QCloseEvent *event)

@@ -39,9 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
-    _main_tabbed_widget = new TabbedPlotWidget( TabbedPlotWidget::MainWindoArea(),  &_mapped_plot_data, this);
-    onTabAreaAdded( _main_tabbed_widget );
-    _main_tabbed_widget->addTab(); // this MUST be done after onTabAreaAdded
+    _main_tabbed_widget = new TabbedPlotWidget( this,  &_mapped_plot_data, this);
 
     ui->centralLayout->insertWidget(0, _main_tabbed_widget);
     ui->leftLayout->addWidget( _curvelist_widget );
@@ -53,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent) :
     loadPlugins( QCoreApplication::applicationDirPath() );
     loadPlugins("/usr/local/PlotJuggler/plugins");
 
-   // buildData();
+    buildData();
     _undo_timer.start();
 
     // save initial state
@@ -169,8 +167,8 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 
     window->setWindowTitle( QString(prefix) + QString::number(window_number));
 
-    connect( window, SIGNAL(destroyed(QObject*)),        this,  SLOT(ondoubleingWindowDestroyed(QObject*)) );
-    connect( window, SIGNAL(closeRequestedByUser()),     this,  SLOT(onUndoableChange()) );
+    connect( window, SIGNAL(destroyed(QObject*)),    this,  SLOT(onFloatingWindowDestroyed(QObject*)) );
+    connect( window, SIGNAL(closeRequestedByUser()), this,  SLOT(onUndoableChange()) );
 
     _floating_window.push_back( window );
 
@@ -178,8 +176,6 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
    //_tabbed_plotarea.push_back( tabbed_widget );
 
     window->tabbedWidget()->setStreamingMode( ui->pushButtonStreaming->isChecked() );
-    onTabAreaAdded( window->tabbedWidget() );
-    window->tabbedWidget()->addTab( first_tab ); // this MUST be done after onTabAreaAdded
 
     window->setAttribute( Qt::WA_DeleteOnClose, true );
     window->show();
@@ -416,15 +412,6 @@ void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
     connect( matrix, SIGNAL(undoableChange()),       this, SLOT( onUndoableChange()) );
 }
 
-void MainWindow::onTabAreaAdded(TabbedPlotWidget* tabbed_widget)
-{
-    connect( tabbed_widget, SIGNAL(undoableChangeHappened()),        this, SLOT(onUndoableChange()) );
-    connect( tabbed_widget, SIGNAL(destroyed(QObject*)),             this, SLOT(on_tabbedAreaDestroyed(QObject*)) );
-    connect( tabbed_widget, SIGNAL(sendTabToNewWindow(PlotMatrix*)), this, SLOT(onCreateFloatingWindow(PlotMatrix*)) );
-    connect( tabbed_widget, SIGNAL(matrixAdded(PlotMatrix*)),        this, SLOT(onPlotMatrixAdded(PlotMatrix*)) );
-}
-
-
 QDomDocument MainWindow::xmlSaveState()
 {
     QDomDocument doc;
@@ -434,6 +421,9 @@ QDomDocument MainWindow::xmlSaveState()
     doc.appendChild(instr);
 
     QDomElement root = doc.createElement( "root" );
+
+    QDomElement main_area =_main_tabbed_widget->xmlSaveState(doc);
+    root.appendChild( main_area );
 
     for (SubWindow* floating_window: _floating_window)
     {
@@ -448,6 +438,7 @@ QDomDocument MainWindow::xmlSaveState()
 
 bool MainWindow::xmlLoadState(QDomDocument state_document)
 {
+
     QDomElement root = state_document.namedItem("root").toElement();
     if ( root.isNull() ) {
         qWarning() << "No <root> element found at the top-level of the XML file!";
@@ -978,7 +969,7 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 
 void MainWindow::onUndoInvoked( )
 {
-    //qDebug() << "on_UndoInvoked "<<_undo_states.size();
+    qDebug() << "on_UndoInvoked "<<_undo_states.size();
 
     if( _undo_states.size() > 1)
     {
@@ -986,6 +977,7 @@ void MainWindow::onUndoInvoked( )
         _redo_states.push_back( state_document );
         _undo_states.pop_back();
         state_document = _undo_states.back();
+
         xmlLoadState( state_document );
 
         updateInternalState();
@@ -1023,15 +1015,6 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
 
 void MainWindow::on_tabbedAreaDestroyed(QObject *object)
 {
-    for (auto it = _floating_window.begin(); it != _floating_window.end(); it++)
-    {
-        if( (*it)->tabbedWidget() == object)
-        {
-            _floating_window.erase( it );
-            break;
-        }
-    }
-
     updateInternalState();
     this->setFocus();
 }
@@ -1060,16 +1043,15 @@ void MainWindow::updateInternalState()
 {
     //TODO. implement this with SIGNAl SLOTS
     std::map<QString,TabbedPlotWidget*> tabbed_map;
-
     tabbed_map.insert( std::make_pair( QString("Main window"), _main_tabbed_widget) );
 
     for (SubWindow* subwin: _floating_window)
     {
         tabbed_map.insert( std::make_pair( subwin->windowTitle(), subwin->tabbedWidget() ) );
     }
-    for (SubWindow* subwin: _floating_window)
+    for (auto& it: tabbed_map)
     {
-        subwin->tabbedWidget()->setSiblingsList( tabbed_map );
+        it.second->setSiblingsList( tabbed_map );
     }
 
     if( !ui->pushButtonStreaming->isChecked())
@@ -1091,8 +1073,6 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
     PlotMatrix* dst_matrix = NULL;
     QPoint src_pos;
     QPoint dst_pos;
-
-    //qDebug() << source->windowTitle() << " -> " << destination->windowTitle();
 
     std::vector<TabbedPlotWidget*> tabbed_plotarea;
     tabbed_plotarea.reserve( 1+ _floating_window.size());
@@ -1131,14 +1111,13 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
             }
         }
     }
-    if(src_matrix) {
+    if(src_matrix && dst_matrix)
+    {
        src_matrix->gridLayout()->removeWidget( source );
-        src_matrix->gridLayout()->addWidget( destination, src_pos.x(), src_pos.y() );
-    }
+       dst_matrix->gridLayout()->removeWidget( destination );
 
-    if(dst_matrix) {
-        dst_matrix->gridLayout()->removeWidget( destination );
-        dst_matrix->gridLayout()->addWidget( source, dst_pos.x(), dst_pos.y() );
+       src_matrix->gridLayout()->addWidget( destination, src_pos.x(), src_pos.y() );
+       dst_matrix->gridLayout()->addWidget( source,      dst_pos.x(), dst_pos.y() );
     }
     onUndoableChange();
 }
