@@ -5,11 +5,12 @@
 #include <QElapsedTimer>
 #include <QShortcut>
 #include <set>
+#include <deque>
 #include "plotwidget.h"
 #include "plotmatrix.h"
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
-
+#include "subwindow.h"
 #include "PlotJuggler/dataloader_base.h"
 #include "PlotJuggler/statepublisher_base.h"
 #include "PlotJuggler/datastreamer_base.h"
@@ -90,8 +91,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    std::vector<TabbedPlotWidget *> _tabbed_plotarea;
-    std::vector<QMainWindow *>      _floating_window;
+    TabbedPlotWidget *      _main_tabbed_widget;
+    std::deque<SubWindow*> _floating_window;
 
     //QAction* _actionUndo;
     //QAction* _actionRedo;

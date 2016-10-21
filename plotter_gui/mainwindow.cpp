@@ -24,7 +24,6 @@
 #include "busytaskdialog.h"
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
-#include "subwindow.h"
 #include "selectlistdialog.h"
 
 
@@ -40,14 +39,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
-    auto tabbed_widget = new TabbedPlotWidget( TabbedPlotWidget::MainWindoArea(),  &_mapped_plot_data, this);
+    _main_tabbed_widget = new TabbedPlotWidget( TabbedPlotWidget::MainWindoArea(),  &_mapped_plot_data, this);
+    onTabAreaAdded( _main_tabbed_widget );
+    _main_tabbed_widget->addTab(); // this MUST be done after onTabAreaAdded
 
-    _tabbed_plotarea.push_back(tabbed_widget );
-
-    onTabAreaAdded( tabbed_widget );
-    tabbed_widget->addTab(); // this MUST be done after onTabAreaAdded
-
-    ui->centralLayout->insertWidget(0, _tabbed_plotarea.back());
+    ui->centralLayout->insertWidget(0, _main_tabbed_widget);
     ui->leftLayout->addWidget( _curvelist_widget );
 
     connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
@@ -145,7 +141,7 @@ void MainWindow::onTrackerPositionUpdated(QPointF pos)
 
 void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 {
-    SubWindow* window = new SubWindow( this );
+    SubWindow* window = new SubWindow(&_mapped_plot_data, this );
     Qt::WindowFlags flags = window->windowFlags();
     window->setWindowFlags( flags | Qt::SubWindow );
 
@@ -178,15 +174,13 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
 
     _floating_window.push_back( window );
 
-    TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, window);
+   // TabbedPlotWidget *tabbed_widget = new TabbedPlotWidget( &_mapped_plot_data, window);
+   //_tabbed_plotarea.push_back( tabbed_widget );
 
-    _tabbed_plotarea.push_back( tabbed_widget );
-    tabbed_widget->setStreamingMode( ui->pushButtonStreaming->isChecked() );
+    window->tabbedWidget()->setStreamingMode( ui->pushButtonStreaming->isChecked() );
+    onTabAreaAdded( window->tabbedWidget() );
+    window->tabbedWidget()->addTab( first_tab ); // this MUST be done after onTabAreaAdded
 
-    onTabAreaAdded( tabbed_widget );
-    tabbed_widget->addTab( first_tab ); // this MUSt be done after onTabAreaAdded
-
-    window->setCentralWidget( tabbed_widget );
     window->setAttribute( Qt::WA_DeleteOnClose, true );
     window->show();
     window->activateWindow();
@@ -441,9 +435,9 @@ QDomDocument MainWindow::xmlSaveState()
 
     QDomElement root = doc.createElement( "root" );
 
-    for (size_t i = 0; i < _tabbed_plotarea.size(); i++)
+    for (SubWindow* floating_window: _floating_window)
     {
-        QDomElement tabbed_area = _tabbed_plotarea[i]->xmlSaveState(doc);
+        QDomElement tabbed_area = floating_window->tabbedWidget()->xmlSaveState(doc);
         root.appendChild( tabbed_area );
     }
 
@@ -487,7 +481,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     }
 
     //-----------------------------------------------------
-    size_t index = 1;
+    size_t index = 0;
 
     for (  tabbed_area = root.firstChildElement(  "tabbed_widget" )  ;
            tabbed_area.isNull() == false;
@@ -495,11 +489,10 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     {
         if( tabbed_area.attribute("parent").compare("main_window") == 0)
         {
-            _tabbed_plotarea.front()->xmlLoadState( tabbed_area );
+            _main_tabbed_widget->xmlLoadState( tabbed_area );
         }
         else{
-            TabbedPlotWidget* tabbed_widget = _tabbed_plotarea.at( index++ );
-            tabbed_widget->xmlLoadState( tabbed_area );
+            _floating_window[index++]->tabbedWidget()->xmlLoadState( tabbed_area );
         }
     }
     return true;
@@ -566,9 +559,17 @@ std::vector<PlotWidget*> MainWindow::getAllPlots()
 {
     std::vector<PlotWidget*> output;
 
-    for (size_t i = 0; i < _tabbed_plotarea.size(); i++)
+    std::vector<TabbedPlotWidget*> tabbed_plotarea;
+    tabbed_plotarea.reserve( 1+ _floating_window.size());
+
+    tabbed_plotarea.push_back( _main_tabbed_widget );
+    for (SubWindow* subwin: _floating_window){
+      tabbed_plotarea.push_back( subwin->tabbedWidget() );
+    }
+
+    for (size_t i = 0; i < tabbed_plotarea.size(); i++)
     {
-        QTabWidget* tab_widget = _tabbed_plotarea[i]->tabWidget();
+        QTabWidget* tab_widget = tabbed_plotarea[i]->tabWidget();
         for (int t = 0; t < tab_widget->count(); t++)
         {
             PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(t) );
@@ -1022,16 +1023,16 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
 
 void MainWindow::on_tabbedAreaDestroyed(QObject *object)
 {
-    for (size_t i=0; i< _tabbed_plotarea.size(); i++)
+    for (auto it = _floating_window.begin(); it != _floating_window.end(); it++)
     {
-        if( _tabbed_plotarea[i] == object)
+        if( (*it)->tabbedWidget() == object)
         {
-            _tabbed_plotarea.erase( _tabbed_plotarea.begin() + i);
+            _floating_window.erase( it );
             break;
         }
     }
-    updateInternalState();
 
+    updateInternalState();
     this->setFocus();
 }
 
@@ -1060,15 +1061,15 @@ void MainWindow::updateInternalState()
     //TODO. implement this with SIGNAl SLOTS
     std::map<QString,TabbedPlotWidget*> tabbed_map;
 
-    tabbed_map.insert( std::make_pair( QString("Main window"), _tabbed_plotarea[0] ) );
+    tabbed_map.insert( std::make_pair( QString("Main window"), _main_tabbed_widget) );
 
-    for (unsigned i = 1; i < _tabbed_plotarea.size(); i++)
+    for (SubWindow* subwin: _floating_window)
     {
-        tabbed_map.insert( std::make_pair( _floating_window[i-1]->windowTitle(), _tabbed_plotarea[i] ) );
+        tabbed_map.insert( std::make_pair( subwin->windowTitle(), subwin->tabbedWidget() ) );
     }
-    for (size_t i = 0; i < _tabbed_plotarea.size(); i++)
+    for (SubWindow* subwin: _floating_window)
     {
-        _tabbed_plotarea[i]->setSiblingsList( tabbed_map );
+        subwin->tabbedWidget()->setSiblingsList( tabbed_map );
     }
 
     if( !ui->pushButtonStreaming->isChecked())
@@ -1093,9 +1094,17 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 
     //qDebug() << source->windowTitle() << " -> " << destination->windowTitle();
 
-    for(size_t w=0; w < _tabbed_plotarea.size(); w++)
+    std::vector<TabbedPlotWidget*> tabbed_plotarea;
+    tabbed_plotarea.reserve( 1+ _floating_window.size());
+
+    tabbed_plotarea.push_back( _main_tabbed_widget );
+    for (SubWindow* subwin: _floating_window){
+      tabbed_plotarea.push_back( subwin->tabbedWidget() );
+    }
+
+    for(size_t w=0; w < tabbed_plotarea.size(); w++)
     {
-        QTabWidget * tabs = _tabbed_plotarea[w]->tabWidget();
+        QTabWidget * tabs = tabbed_plotarea[w]->tabWidget();
 
         for (int t=0; t < tabs->count(); t++)
         {
@@ -1173,10 +1182,11 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 
 void MainWindow::onReplotRequested()
 {
-    for(unsigned i=0; i< _tabbed_plotarea.size(); i++)
+    _main_tabbed_widget->currentTab()->maximumZoomOut() ;
+
+    for(SubWindow* subwin: _floating_window)
     {
-        TabbedPlotWidget* area = _tabbed_plotarea[i];
-        PlotMatrix* matrix =  area->currentTab() ;
+        PlotMatrix* matrix =  subwin->tabbedWidget()->currentTab() ;
         matrix->maximumZoomOut(); // includes replot
     }
 
