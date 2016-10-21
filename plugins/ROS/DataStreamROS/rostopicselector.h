@@ -24,7 +24,7 @@ public:
     const RosIntrospection::SubstitutionRuleMap& getLoadedRules() const;
 
 private slots:
-    void on_buttonRefresh_pressed();
+    void on_pushButtonRefresh_pressed();
 
     void on_listTopics_itemSelectionChanged();
 

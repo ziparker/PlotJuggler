@@ -50,6 +50,7 @@ private:
 
     ros::Time _initial_time;
 
+    ros::NodeHandlePtr node_;
     std::vector<ros::Subscriber> _subscribers;
 
     RosIntrospection::SubstitutionRuleMap _rules;

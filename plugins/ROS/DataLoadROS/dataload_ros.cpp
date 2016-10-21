@@ -103,9 +103,8 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
       continue;
     }*/
 
-    const auto& md5sum     = msg.getMD5Sum();
-    const auto& data_type  = msg.getDataType();
-    const auto& definition = msg.getMessageDefinition();
+    const auto& md5sum    = msg.getMD5Sum();
+    const auto& datatype  = msg.getDataType();
     auto msg_size = msg.size();
 
     std::vector<uint8_t> buffer ( msg_size );
@@ -129,11 +128,10 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
     // this single line takes almost the entire time of the loop
     msg.write(stream);
 
-    ROSType datatype(  msg.getDataType() );
     SString topic_name( msg.getTopic().data(),  msg.getTopic().size() );
 
-    buildRosFlatType(type_map[ data_type ], datatype, topic_name, buffer.data(), &flat_container);
-    applyNameTransform( _rules[data_type], &flat_container );
+    buildRosFlatType(type_map[ datatype ], datatype, topic_name, buffer.data(), &flat_container);
+    applyNameTransform( _rules[datatype], &flat_container );
 
     for(auto& it: flat_container.renamed_value )
     {

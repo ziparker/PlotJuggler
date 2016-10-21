@@ -37,14 +37,14 @@ void TopicPublisherROS::updateState(PlotDataMap *datamap, double current_time)
   {
     const std::string&    topic_name = data_it.first;
 
-    boost::optional<RosIntrospection::ShapeShifter2*> registered_shapeshifted_msg = ShapeShifterFactory::getInstance().getMessage( topic_name );
+    boost::optional<RosIntrospection::ShapeShifter*> registered_shapeshifted_msg = ShapeShifterFactory::getInstance().getMessage( topic_name );
     if( ! registered_shapeshifted_msg )
     {
       // will not be able to use this anyway, just skip
       continue;
     }
 
-    RosIntrospection::ShapeShifter2* shapeshifted_msg = registered_shapeshifted_msg.get();
+    RosIntrospection::ShapeShifter* shapeshifted_msg = registered_shapeshifted_msg.get();
     const PlotDataAnyPtr& plot_any = data_it.second;
 
     boost::optional<const boost::any&> any_value = plot_any->getYfromX( current_time );

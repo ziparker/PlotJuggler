@@ -15,7 +15,6 @@ RosTopicSelector::RosTopicSelector(QWidget *parent) :
 
     QSettings settings( "IcarusTechnology", "PlotJuggler");
 
-
     _rule_widget = new RuleLoaderWidget(this);
     ui->frame->layout()->addWidget( _rule_widget );
 }
@@ -28,22 +27,6 @@ RosTopicSelector::~RosTopicSelector()
 QStringList RosTopicSelector::getSelectedTopicsList()
 {
     return _selected_topics;
-}
-
-
-void RosTopicSelector::on_buttonRefresh_pressed()
-{
-
-    ui->listTopics->clear();
-    QStringList topic_advertised;
-
-    ros::master::V_TopicInfo topic_infos;
-    ros::master::getTopics(topic_infos);
-    for (ros::master::TopicInfo topic_info: topic_infos)
-    {
-        topic_advertised.append( QString( topic_info.name.c_str() )  );
-    }
-    ui->listTopics->addItems( topic_advertised );
 }
 
 
@@ -71,4 +54,18 @@ void RosTopicSelector::on_buttonBox_accepted()
 const RosIntrospection::SubstitutionRuleMap &RosTopicSelector::getLoadedRules() const
 {
     return _rule_widget->getLoadedRules();
+}
+
+void RosTopicSelector::on_pushButtonRefresh_pressed()
+{
+  ui->listTopics->clear();
+  QStringList topic_advertised;
+
+  ros::master::V_TopicInfo topic_infos;
+  ros::master::getTopics(topic_infos);
+  for (ros::master::TopicInfo topic_info: topic_infos)
+  {
+      topic_advertised.append( QString( topic_info.name.c_str() )  );
+  }
+  ui->listTopics->addItems( topic_advertised );
 }

@@ -154,12 +154,12 @@ void PlotWidget::buildLegend()
     _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
 
     _legend->setBorderRadius( 6 );
-    _legend->setMargin( 3 );
-    _legend->setSpacing( 1 );
+    _legend->setMargin( 1 );
+    _legend->setSpacing( 0.8 );
     _legend->setItemMargin( 0 );
 
     QFont font = _legend->font();
-    font.setPointSize( 8 );
+    font.setPointSize( 7 );
     _legend->setFont( font );
 
     _legend->setVisible( true );

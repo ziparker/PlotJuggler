@@ -13,7 +13,8 @@
 #include <QApplication>
 
 #include "rostopicselector.h"
-#include "ruleloaderwidget.h"
+#include "../ruleloaderwidget.h"
+#include "../qnodedialog.h"
 
 DataStreamROS::DataStreamROS()
 {
@@ -37,13 +38,13 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
 
   static std::set<std::string> registered_type;
 
-  auto& data_type = msg->getDataType();
+  auto& datatype = msg->getDataType();
 
-  if( registered_type.find( data_type ) == registered_type.end() )
+  if( registered_type.find( datatype ) == registered_type.end() )
   {
-    registered_type.insert( data_type );
+    registered_type.insert( datatype );
     _ros_type_map = buildROSTypeMapFromDefinition(
-          data_type,
+          datatype,
           msg->getMessageDefinition() );
   }
 
@@ -56,7 +57,6 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
   ros::serialization::OStream stream(buffer, sizeof(buffer));
   msg->write(stream);
 
-  ROSType datatype( data_type );
   SString topicname( topic_name.data(), topic_name.length() );
 
   buildRosFlatType( _ros_type_map, datatype, topicname, buffer, &flat_container);
@@ -123,6 +123,9 @@ void DataStreamROS::extractInitialSamples()
 
 bool DataStreamROS::launch()
 {
+
+  node_ = getGlobalRosNode();
+
   using namespace RosIntrospection;
 
   if( _running )
@@ -153,7 +156,6 @@ bool DataStreamROS::launch()
   //-------------------------
 
   ros::start(); // needed because node will go out of scope
-  ros::NodeHandle node;
 
   _subscribers.clear();
   for (int i=0; i<topic_selected.size(); i++ )
@@ -161,7 +163,7 @@ bool DataStreamROS::launch()
     auto topic_name = topic_selected.at(i).toStdString();
     boost::function<void(const topic_tools::ShapeShifter::ConstPtr&) > callback;
     callback = boost::bind( &DataStreamROS::topicCallback, this, _1, topic_name ) ;
-    _subscribers.push_back( node.subscribe( topic_name, 1000,  callback)  );
+    _subscribers.push_back( node_->subscribe( topic_name, 1000,  callback)  );
   }
 
   _running = true;
