@@ -8,6 +8,8 @@ To understand what PlotJuggler can do for you, take a look to the following vide
 
 <iframe src="https://player.vimeo.com/video/174120477" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> <p><a href="https://vimeo.com/174120477">PlotJuggler: a desktop application to plot time series.</a></p>
 
+![PlotJuggler](/PlotJuggler.gif)
+
 # How to build
 
 First of all you need to clone the repository and its submodules either using the command:
@@ -36,4 +38,4 @@ The proceed as you would do with any cmake based project
 # Note for ROS users
  
 If you use CATKIN to build this project, the ROS related plugins will be automatically included into the compilation.
- 
+You will also need to download and build this package: https://github.com/facontidavide/ros_type_introspection 
