@@ -8,16 +8,18 @@ class SubWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit SubWindow(PlotDataMap *mapped_data, QWidget *parent = 0);
+    explicit SubWindow(PlotDataMap *mapped_data, QMainWindow *parent_window);
 
-    TabbedPlotWidget* tabbedWidget() { return &tabbed_widget_;}
+    virtual ~SubWindow();
+
+    TabbedPlotWidget* tabbedWidget() { return tabbed_widget_;}
 
 signals:
     void closeRequestedByUser();
 
 protected:
-    virtual void closeEvent(QCloseEvent *event);
-    TabbedPlotWidget tabbed_widget_;
+    virtual void closeEvent(QCloseEvent *event) override;
+    TabbedPlotWidget* tabbed_widget_;
 
 };
 

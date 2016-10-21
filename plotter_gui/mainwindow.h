@@ -44,8 +44,6 @@ private slots:
 
     void onPlotMatrixAdded(PlotMatrix* matrix);
 
-    void onTabAreaAdded(TabbedPlotWidget* tabbed_widget);
-
     void onActionSaveLayout();
 
     void onActionLoadLayout(bool reload_previous = false);

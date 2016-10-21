@@ -7,34 +7,22 @@
 #include "ui_tabbedplotwidget.h"
 
 
-TabbedPlotWidget::TabbedPlotWidget(PlotDataMap *mapped_data, QWidget *parent ) :
+TabbedPlotWidget::TabbedPlotWidget(QMainWindow *main_window, PlotDataMap *mapped_data, QMainWindow *parent ) :
     QWidget(parent),
     ui(new Ui::TabbedPlotWidget)
 {
     _mapped_data = mapped_data;
-    _parent_type = QString("floating_window");
 
-    ui->setupUi(this);
-
-    _horizontal_link = true;
-    init();
-}
-
-TabbedPlotWidget::TabbedPlotWidget(MainWindoArea, PlotDataMap *mapped_data, QWidget* parent ) :
-    QWidget( parent ),
-    ui(new Ui::TabbedPlotWidget)
-{
-    _mapped_data = mapped_data;
-    _parent_type = QString("main_window");
+    if( main_window == parent){
+       _parent_type = QString("main_window");
+    }
+    else{
+      _parent_type = QString("floating_window");
+    }
     ui->setupUi(this);
 
     _horizontal_link = true;
 
-    init();
-}
-
-void TabbedPlotWidget::init()
-{
     ui->tabWidget->tabBar()->installEventFilter( this );
 
     _action_renameTab = new QAction(tr("Rename tab"), this);
@@ -44,6 +32,13 @@ void TabbedPlotWidget::init()
     _tab_menu = new QMenu(this);
     _tab_menu->addAction( _action_renameTab );
     _tab_menu->addSeparator();
+
+    connect( this, SIGNAL(destroyed(QObject*)),             main_window, SLOT(on_tabbedAreaDestroyed(QObject*)) );
+    connect( this, SIGNAL(sendTabToNewWindow(PlotMatrix*)), main_window, SLOT(onCreateFloatingWindow(PlotMatrix*)) );
+    connect( this, SIGNAL(matrixAdded(PlotMatrix*)),        main_window, SLOT(onPlotMatrixAdded(PlotMatrix*)) );
+    connect( this, SIGNAL(undoableChangeHappened()),        main_window, SLOT(onUndoableChange()) );
+
+    this->addTab();
 }
 
 void TabbedPlotWidget::setSiblingsList(const std::map<QString, TabbedPlotWidget *> &other_tabbed_widgets)
@@ -79,8 +74,6 @@ void TabbedPlotWidget::addTab( PlotMatrix* tab)
     ui->tabWidget->setCurrentWidget( tab );
 
     tab->setHorizontalLink( _horizontal_link );
-
-    emit undoableChangeHappened();
 }
 
 QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument &doc)
@@ -163,8 +156,7 @@ void TabbedPlotWidget::setStreamingMode(bool streaming_mode)
 }
 
 
-TabbedPlotWidget::~TabbedPlotWidget()
-{
+TabbedPlotWidget::~TabbedPlotWidget(){
     delete ui;
 }
 

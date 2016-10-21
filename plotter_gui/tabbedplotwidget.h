@@ -2,6 +2,7 @@
 #define TABBEDPLOTWIDGET_H
 
 #include <QWidget>
+#include <QMainWindow>
 #include <QTableWidget>
 #include "plotmatrix.h"
 
@@ -9,20 +10,17 @@ namespace Ui {
 class TabbedPlotWidget;
 }
 
-class MainWindow;
-
 
 class TabbedPlotWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    typedef struct{} MainWindoArea;
+    typedef struct{} MainWindowArea;
 
-    explicit TabbedPlotWidget(PlotDataMap *mapped_data, QWidget *parent );
-
-    explicit TabbedPlotWidget(MainWindoArea, PlotDataMap *mapped_data, QWidget* main_window_parent );
-
+    explicit TabbedPlotWidget(QMainWindow *main_window,
+                              PlotDataMap *mapped_data,
+                              QMainWindow *parent );
 
     void setSiblingsList( const std::map<QString,TabbedPlotWidget*>& other_tabbed_widgets );
 
@@ -72,8 +70,6 @@ private slots:
 private:
     Ui::TabbedPlotWidget *ui;
 
-    void init();
-
     QAction* _action_renameTab;
     QMenu* _tab_menu;
 
@@ -89,6 +85,7 @@ protected:
     virtual bool eventFilter(QObject *obj, QEvent *event);
 
 signals:
+    void created();
     void undoableChangeHappened();
     void matrixAdded( PlotMatrix * );
     void sendTabToNewWindow(PlotMatrix *);
