@@ -7,7 +7,7 @@ class ShapeShifterFactory{
 public:
   static ShapeShifterFactory &getInstance();
 
-  void registerMessage(const std::string& topic_name, const std::__cxx11::string &md5sum, const std::string& datatype, const std::string& definition );
+  void registerMessage(const std::string& topic_name, const std::string &md5sum, const std::string& datatype, const std::string& definition );
 
   boost::optional<RosIntrospection::ShapeShifter *> getMessage(const std::string& topic_name);
 
