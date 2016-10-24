@@ -65,6 +65,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->streamingLabel->setHidden(true);
     ui->streamingSpinBox->setHidden(true);
+    ui->menuBar->show();
+    
     this->repaint();
 }
 
