@@ -54,5 +54,5 @@ if(catkin_FOUND)
        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
      )
 elseif()
-    install(TARGETS PlotJuggler DESTINATION ${CMAKE_INSTALL_PREFIX}/bin  )
+    install(TARGETS PlotJuggler DESTINATION bin  )
 endif()
