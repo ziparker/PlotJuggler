@@ -18,7 +18,7 @@ SET( CW_SRC
     src/swatch.cpp
     )
 
-add_library(colorwidgets ${CW_SRC})
+add_library(colorwidgets STATIC ${CW_SRC})
 
 target_link_libraries(colorwidgets
     ${Qt5Widgets_LIBRARIES} )

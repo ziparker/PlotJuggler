@@ -7,6 +7,7 @@
 #include <mutex>
 #include <chrono>
 #include <thread>
+#include <math.h>
 
 DataStreamSample::DataStreamSample()
 {
