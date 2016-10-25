@@ -27,6 +27,11 @@ QT5_WRAP_UI ( COMMON_UI_SRC
     )
 
 add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC} )
+target_link_libraries( commonROS
+  ${Qt5Widgets_LIBRARIES}
+  ${Qt5Xml_LIBRARIES}
+  ${catkin_LIBRARIES}
+  )
 
 
 
@@ -43,14 +48,14 @@ QT5_WRAP_UI ( DATALOAD_UI_SRC
     )
 
 add_library( DataLoadROS SHARED ${DATALOAD_SRC} ${DATALOAD_UI_SRC} )
-target_link_libraries( DataLoadROS  ${catkin_LIBRARIES} commonROS)
+target_link_libraries( DataLoadROS  commonROS)
 
-add_dependencies(DataLoadROS 
+add_dependencies(DataLoadROS
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
     )
 
-#############  
+#############
 SET( DATASTREAM_SRC
     DataStreamROS/datastream_ROS.cpp
     DataStreamROS/datastream_ROS.h
@@ -62,14 +67,14 @@ QT5_WRAP_UI ( DATASTREAM_UI_SRC
     DataStreamROS/rostopicselector.ui )
 
 add_library( DataStreamROS SHARED ${DATASTREAM_SRC} ${DATASTREAM_UI_SRC} )
-target_link_libraries( DataStreamROS  ${catkin_LIBRARIES} commonROS )
+target_link_libraries( DataStreamROS  commonROS )
 
-add_dependencies(DataStreamROS 
+add_dependencies(DataStreamROS
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
     )
 
-#############  
+#############
 SET( PUBLISHER_SRC
     TopicPublisherROS/statepublisher_rostopic.cpp
     TopicPublisherROS/statepublisher_rostopic.h
@@ -80,7 +85,7 @@ QT5_WRAP_UI ( PUBLISHER_UI_SRC  )
 add_library( RosTopicPublisher SHARED ${PUBLISHER_SRC} ${PUBLISHER_UI_SRC} )
 target_link_libraries( RosTopicPublisher  ${catkin_LIBRARIES} commonROS )
 
-add_dependencies(RosTopicPublisher 
+add_dependencies(RosTopicPublisher
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
     )
