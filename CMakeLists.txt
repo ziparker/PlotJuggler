@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml)
 
+find_package(catkin QUIET)
 if(catkin_FOUND)
     message("--------------------------------------------------------------------")
     message("PlotJuggler is being built using CATKIN. ROS plugin will be compiled")
@@ -20,9 +21,8 @@ if(catkin_FOUND)
     catkin_package(
         INCLUDE_DIRS include
         CATKIN_DEPENDS ros_type_introspection
-        DEPENDS system_lib
+        DEPENDS
         )
-
 endif()
 
 
@@ -55,7 +55,6 @@ elseif()
 endif()
 
 
-add_subdirectory( common)
 add_subdirectory( color_widgets )
 add_subdirectory( qwt/src )
 add_subdirectory( plotter_gui )
