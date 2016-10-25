@@ -107,5 +107,5 @@ if(catkin_FOUND)
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 elseif()
-    install(TARGETS DataLoadROS DataStreamROS RosTopicPublisher DESTINATION ${CMAKE_INSTALL_PREFIX}/bin  )
+    install(TARGETS DataLoadROS DataStreamROS RosTopicPublisher DESTINATION bin  )
 endif()
