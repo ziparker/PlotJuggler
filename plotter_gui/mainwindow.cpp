@@ -44,6 +44,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->centralLayout->insertWidget(0, _main_tabbed_widget);
     ui->leftLayout->addWidget( _curvelist_widget );
 
+    ui->splitter->setCollapsible(0,true);
+
     connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
 
     createActions();
