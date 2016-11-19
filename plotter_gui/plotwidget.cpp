@@ -543,8 +543,11 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas)
             max_X = range_X.second;
         }
 
-        int X0 = data->plot()->getIndexFromX( min_X );
-        int X1 = data->plot()->getIndexFromX( max_X );
+        const auto range_X = data->plot()->getRangeX();
+        if( !range_X ) continue;
+
+        int X0 = data->plot()->getIndexFromX(std::max(range_X->min, min_X));
+        int X1 = data->plot()->getIndexFromX(std::min(range_X->max, max_X));
 
         if( X0<0 || X1 <0)
         {
