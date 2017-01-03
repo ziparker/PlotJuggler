@@ -87,8 +87,8 @@
          </property>
          <property name="iconSize">
           <size>
-           <width>26</width>
-           <height>26</height>
+           <width>16</width>
+           <height>16</height>
           </size>
          </property>
          <property name="checkable">
