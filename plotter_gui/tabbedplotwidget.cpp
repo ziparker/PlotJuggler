@@ -403,3 +403,18 @@ void TabbedPlotWidget::on_pushButtonShowLabel_toggled(bool checked)
 }
 
 
+
+void TabbedPlotWidget::on_pushButtonShowGrid_toggled(bool checked)
+{
+    for(int i=0; i< ui->tabWidget->count(); i++)
+    {
+        PlotMatrix* matrix = static_cast<PlotMatrix*>( ui->tabWidget->widget(i) );
+
+        for(unsigned p=0; p< matrix->plotCount(); p++)
+        {
+            PlotWidget* plot = matrix->plotAt(p);
+            plot->activateGrid( checked );
+        }
+    }
+    currentTab()->replot();
+}
