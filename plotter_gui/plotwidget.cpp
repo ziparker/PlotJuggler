@@ -29,6 +29,7 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     _panner( 0 ),
     _tracker ( 0 ),
     _legend( 0 ),
+    _grid( 0 ),
     _mapped_data( datamap ),
     _show_line_and_points(false)
 {
@@ -57,10 +58,13 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     this->canvas()->installEventFilter( this );
 
     //--------------------------
+    _grid = new QwtPlotGrid();
     _zoomer = ( new QwtPlotZoomer( this->canvas() ) );
     _magnifier = ( new PlotMagnifier( this->canvas() ) );
     _panner = ( new QwtPlotPanner( this->canvas() ) );
     _tracker = ( new CurveTracker( this ) );
+
+    _grid->setPen(QPen(Qt::gray, 0.0, Qt::DotLine));
 
     _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
     _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
@@ -154,14 +158,13 @@ void PlotWidget::buildLegend()
     _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
 
     _legend->setBorderRadius( 6 );
-    _legend->setMargin( 1 );
-    _legend->setSpacing( 0.8 );
+    _legend->setMargin( 5 );
+    _legend->setSpacing( 0 );
     _legend->setItemMargin( 0 );
 
     QFont font = _legend->font();
-    font.setPointSize( 7 );
+    font.setPointSize( 8 );
     _legend->setFont( font );
-
     _legend->setVisible( true );
 }
 
@@ -418,7 +421,6 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         }
     }
 
-
     QDomElement rectangle =  plot_widget.firstChildElement( "range" );
     QRectF rect;
     rect.setBottom( rectangle.attribute("bottom").toDouble());
@@ -465,6 +467,15 @@ void PlotWidget::activateLegent(bool activate)
     else           _legend->detach();
 }
 
+void PlotWidget::activateGrid(bool activate)
+{
+    _grid->enableX(activate);
+    _grid->enableXMin(activate);
+    _grid->enableY(activate);
+    _grid->enableYMin(activate);
+    _grid->attach(this);
+}
+
 
 void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
 {
@@ -476,7 +487,6 @@ void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
             data->setSubsampleFactor( );
         }
     }
-
     QwtPlot::setAxisScale( axisId, min, max, step);
 }
 

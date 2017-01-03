@@ -48,7 +48,6 @@ public:
 
     void setScale( QRectF rect, bool emit_signal = true );
 
-    void activateLegent(bool activate);
 
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) ;
@@ -80,6 +79,10 @@ public slots:
 
     void removeCurve(const QString& name);
 
+    void activateLegent(bool activate);
+
+    void activateGrid(bool activate);
+
 private slots:
     void launchRemoveCurveDialog();
     void canvasContextMenuTriggered(const QPoint &pos);
@@ -105,6 +108,7 @@ private:
     // QRectF _prev_bounding;
     CurveTracker* _tracker;
     QwtPlotLegendItem* _legend;
+    QwtPlotGrid* _grid;
 
     void setAxisScale( int axisId, double min, double max, double step = 0 );
 
