@@ -31,7 +31,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
-    _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this)
+    _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this),
+    _current_streamer(nullptr)
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
@@ -668,29 +669,28 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
 void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
 {
-    _mapped_plot_data.user_defined.clear();
-
-    for (auto& it: mapped_data.user_defined)
-    {
-        _mapped_plot_data.user_defined[ it.first ] = it.second;
-    }
+    // overwrite the old user_defined map
+    _mapped_plot_data.user_defined = mapped_data.user_defined;
 
     for (auto& it: mapped_data.numeric)
     {
-        std::string name  = it.first;
+        const std::string& name  = it.first;
         PlotDataPtr plot  = it.second;
 
         QString qname = QString::fromStdString(name);
+        auto plot_with_same_name = _mapped_plot_data.numeric.find(name);
 
-        // remap to derived class
-        if( _mapped_plot_data.numeric.find(name) == _mapped_plot_data.numeric.end() )
+        // this is a new plot
+        if( plot_with_same_name == _mapped_plot_data.numeric.end() )
         {
             QColor color = colorHint();
             plot->setColorHint( color.red(), color.green(), color.blue() );
             _curvelist_widget->addItem( new QListWidgetItem( qname ) );
+            _mapped_plot_data.numeric.insert( std::make_pair(name, plot) );
         }
-
-        _mapped_plot_data.numeric[name] = plot;
+        else{ // a plot with the same name existed already
+            plot_with_same_name->second = plot;
+        }
     }
 
     if( _mapped_plot_data.numeric.size() > mapped_data.numeric.size() )
@@ -841,7 +841,12 @@ void MainWindow::onActionReloadRecentLayout()
 
 void MainWindow::onActionLoadStreamer()
 {
-    _current_streamer = nullptr;
+    if( _current_streamer )
+    {
+        _current_streamer->shutdown();
+        _current_streamer = nullptr;
+    }
+
     if( _data_streamer.empty())
     {
         qDebug() << "Error, no streamer loaded";
@@ -880,7 +885,7 @@ void MainWindow::onActionLoadStreamer()
         }
     }
 
-    if( _current_streamer && _current_streamer->launch() )
+    if( _current_streamer && _current_streamer->start() )
     {
         _current_streamer->enableStreaming( false );
         ui->pushButtonStreaming->setEnabled(true);
@@ -1048,7 +1053,7 @@ void MainWindow::onCreateFloatingWindow(PlotMatrix* first_tab)
 
 void MainWindow::updateInternalState()
 {
-    //TODO. implement this with SIGNAl SLOTS
+    //TODO. implement this with SIGNALS and SLOTS
     std::map<QString,TabbedPlotWidget*> tabbed_map;
     tabbed_map.insert( std::make_pair( QString("Main window"), _main_tabbed_widget) );
 

@@ -20,7 +20,9 @@ public:
 
     virtual PlotDataMap &getDataMap() override;
 
-    virtual bool launch() override;
+    virtual bool start() override;
+
+    virtual void shutdown() override;
 
     virtual void enableStreaming(bool enable) override;
 
@@ -50,7 +52,7 @@ private:
 
     ros::Time _initial_time;
 
-    ros::NodeHandlePtr node_;
+    ros::NodeHandlePtr _node;
     std::vector<ros::Subscriber> _subscribers;
 
     RosIntrospection::SubstitutionRuleMap _rules;
