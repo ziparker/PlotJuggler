@@ -121,24 +121,11 @@ void DataStreamROS::extractInitialSamples()
 }
 
 
-bool DataStreamROS::launch()
+bool DataStreamROS::start()
 {
-
-  node_ = getGlobalRosNode();
+  _node = getGlobalRosNode();
 
   using namespace RosIntrospection;
-
-  if( _running )
-  {
-    _plot_data.numeric.clear();
-    _running = false;
-    if(ros::isStarted())
-    {
-      ros::shutdown(); // explicitly needed since we use ros::start();
-      ros::waitForShutdown();
-    }
-    _thread.join();
-  }
 
   RosTopicSelector dialog( 0 );
   int res = dialog.exec();
@@ -163,7 +150,7 @@ bool DataStreamROS::launch()
     auto topic_name = topic_selected.at(i).toStdString();
     boost::function<void(const topic_tools::ShapeShifter::ConstPtr&) > callback;
     callback = boost::bind( &DataStreamROS::topicCallback, this, _1, topic_name ) ;
-    _subscribers.push_back( node_->subscribe( topic_name, 1000,  callback)  );
+    _subscribers.push_back( _node->subscribe( topic_name, 1000,  callback)  );
   }
 
   _running = true;
@@ -179,16 +166,24 @@ void DataStreamROS::enableStreaming(bool enable) { _enabled = enable; }
 
 bool DataStreamROS::isStreamingEnabled() const { return _enabled; }
 
+
+void DataStreamROS::shutdown()
+{
+    _subscribers.clear();
+    //_plot_data.numeric.clear();
+
+    if(ros::isStarted() && _running)
+    {
+      _running = false;
+      ros::shutdown(); // explicitly needed since we use ros::start();;
+      ros::waitForShutdown();
+      _thread.join();
+    }
+}
+
 DataStreamROS::~DataStreamROS()
 {
-  _subscribers.clear();
-
-  if(ros::isStarted() && _running)
-  {
-    _running = false;
-    ros::shutdown(); // explicitly needed since we use ros::start();;
-    _thread.join();
-  }
+    shutdown();
 }
 
 

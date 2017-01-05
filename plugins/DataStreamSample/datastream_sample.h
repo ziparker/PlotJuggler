@@ -18,7 +18,9 @@ public:
 
     virtual PlotDataMap& getDataMap() override { return _plot_data; }
 
-    virtual bool launch() override;
+    virtual bool start() override;
+
+    virtual void shutdown() override;
 
     virtual void enableStreaming(bool enable) override;
 
@@ -38,6 +40,7 @@ private:
     std::thread _thread;
 
     bool _running;
+    double _simulated_time;
 
     std::vector<double> vect_A;
     std::vector<double> vect_B;

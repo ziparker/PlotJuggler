@@ -30,7 +30,9 @@ QColor colorHint()
     return color;
 }
 
-DataStreamSample::DataStreamSample()
+DataStreamSample::DataStreamSample():
+    _simulated_time(0),
+    _enabled(false)
 {
     QStringList  words_list;
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
@@ -57,14 +59,19 @@ DataStreamSample::DataStreamSample()
 
         _plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
-    _enabled = false;
 }
 
-bool DataStreamSample::launch()
+bool DataStreamSample::start()
 {
     _running = true;
     _thread = std::thread([this](){ this->update();} );
     return true;
+}
+
+void DataStreamSample::shutdown()
+{
+    _running = false;
+    if( _thread.joinable()) _thread.join();
 }
 
 void DataStreamSample::enableStreaming(bool enable) { _enabled = enable; }
@@ -73,9 +80,7 @@ bool DataStreamSample::isStreamingEnabled() const { return _enabled; }
 
 DataStreamSample::~DataStreamSample()
 {
-    _running = false;
-    if( _thread.joinable())
-        _thread.join();
+    shutdown();
 }
 
 
@@ -84,14 +89,11 @@ void DataStreamSample::update()
 {
     static auto prev_time = std::chrono::high_resolution_clock::now();
 
-    double t = 0;
-
     _running = true;
     while( _running )
     {
         size_t index=0;
-
-        t+= 0.01;
+        _simulated_time += 0.01;
 
         for (auto& it: _plot_data.numeric )
         {
@@ -102,7 +104,7 @@ void DataStreamSample::update()
             index++;
 
             auto& plot = it.second;
-
+            const double t = _simulated_time;
             double y =  A*sin(B*t + C) +D*t*0.02;
 
             if( _enabled )

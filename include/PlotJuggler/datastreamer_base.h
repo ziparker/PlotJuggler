@@ -12,7 +12,9 @@ public:
 
     virtual PlotDataMap& getDataMap() = 0;
 
-    virtual bool launch() = 0;
+    virtual bool start() = 0;
+
+    virtual void shutdown() = 0;
 
     virtual void enableStreaming(bool enable) = 0;
 
