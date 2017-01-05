@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     loadPlugins( QCoreApplication::applicationDirPath() );
     loadPlugins("/usr/local/PlotJuggler/plugins");
 
-    //buildData();
+    //2uildData();
     _undo_timer.start();
 
     // save initial state
@@ -79,14 +79,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::onUndoableChange()
 {
-    /* int elapsed_ms = _undo_timer.restart();
+     int elapsed_ms = _undo_timer.restart();
 
     // overwrite the previous
-    if( elapsed_ms < 300)
+    if( elapsed_ms < 100)
     {
         if( _undo_states.empty() == false)
             _undo_states.pop_back();
-    }*/
+    }
 
     if( ui->pushButtonStreaming->isChecked() == false)
     {
@@ -841,6 +841,7 @@ void MainWindow::onActionReloadRecentLayout()
 
 void MainWindow::onActionLoadStreamer()
 {
+    _current_streamer = nullptr;
     if( _data_streamer.empty())
     {
         qDebug() << "Error, no streamer loaded";
@@ -849,7 +850,7 @@ void MainWindow::onActionLoadStreamer()
 
     if( _data_streamer.size() == 1)
     {
-        _current_streamer = _data_streamer[0];
+        _current_streamer = _data_streamer.begin()->second;
     }
     else if( _data_streamer.size() > 1)
     {
@@ -884,6 +885,9 @@ void MainWindow::onActionLoadStreamer()
         _current_streamer->enableStreaming( false );
         ui->pushButtonStreaming->setEnabled(true);
         importPlotDataMap( _current_streamer->getDataMap() );
+    }
+    else{
+        qDebug() << "Failed to launch the streamer";
     }
 }
 
