@@ -3,12 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml)
 
-#NOTE: catkin will be found only if you compile your projects using catkin_make
-# catkin tools might not work. In that case, you might force the compilation of
-# the ROS plugins uncommenting the next line
-
-
-#find_package(catkin QUIET)
+#NOTE: if you have catkin install, but you don't want ROS to be used, commend the following line
+find_package(catkin QUIET)
 
 if(catkin_FOUND)
     message("--------------------------------------------------------------------")
