@@ -39,10 +39,10 @@ The proceed as you would do with any cmake based project
  
 # Note for ROS users
  
-If you use CATKIN (to be specific, "catkin_make") to build this project, the ROS related plugins will be automatically included into the compilation.
-If you want to use __catkin tools__ instead, you might uncomment this line in CMakeLists.txt
+If you use CATKIN to build this project, the ROS related plugins will be automatically included into the compilation.
+If you __don't want__ to compile the ROS plugins but catkin is installed in your system,  comment this line in CMakeLists.txt
 
-				find_package(catkin QUIET)
+       find_package(catkin QUIET)
 
 You will also need to download and build this package: https://github.com/facontidavide/ros_type_introspection 
 In ROS Indigo and Kinetic, you can just run
