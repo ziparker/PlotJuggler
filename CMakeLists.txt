@@ -3,9 +3,16 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml)
 
-find_package(catkin QUIET)
+#NOTE: catkin will be found only if you compile your projects using catkin_make
+# catkin tools might not work. In that case, you might force the compilation of
+# the ROS plugins uncommenting the next line
+
+
+#find_package(catkin QUIET)
+
 if(catkin_FOUND)
     message("--------------------------------------------------------------------")
+    message(catkin_FOUND)
     message("PlotJuggler is being built using CATKIN. ROS plugin will be compiled")
     message("--------------------------------------------------------------------")
 
@@ -47,7 +54,7 @@ if(catkin_FOUND)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/lib/${PROJECT_NAME})
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/lib/${PROJECT_NAME})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/lib/${PROJECT_NAME})
-elseif()
+else()
     set(CMAKE_INSTALL_PREFIX "/usr/local")
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -82,8 +89,8 @@ SET(CPACK_PACKAGE_VENDOR "Icarus Technology")
 
 SET(CPACK_PACKAGE_VERSION_MAJOR "0")
 SET(CPACK_PACKAGE_VERSION_MINOR "6")
-SET(CPACK_PACKAGE_VERSION_PATCH "0")
-SET(CPACK_PACKAGE_VERSION "0.6.0")
+SET(CPACK_PACKAGE_VERSION_PATCH "1")
+SET(CPACK_PACKAGE_VERSION "0.6.1")
 
 SET(CPACK_PACKAGE_NAME "plotjuggler${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default")

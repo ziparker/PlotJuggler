@@ -53,6 +53,6 @@ if(catkin_FOUND)
        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
      )
-elseif()
+else()
     install(TARGETS PlotJuggler DESTINATION bin  )
 endif()
