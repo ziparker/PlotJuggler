@@ -21,6 +21,7 @@ First of all you need to clone the repository and its submodules either using th
 or
 
       git clone https://github.com/facontidavide/PlotJuggler.git
+      cd PlotJuggler
       git submodule update --init --recursive
 
 
@@ -28,7 +29,11 @@ The only binary dependencies that you need installed on your system are Boost an
 
     sudo apt-get -y install qtbase5-dev libboost-dev
     
-The proceed as you would do with any cmake based project
+On Fedora
+
+    sudo dnf install qt5-qtbase-devel boost-devel
+    
+Then proceed as you would do with any cmake based project
 
      mkdir build; cd build
      cmake ..
