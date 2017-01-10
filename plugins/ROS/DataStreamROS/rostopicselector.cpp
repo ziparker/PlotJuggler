@@ -49,6 +49,11 @@ void RosTopicSelector::on_buttonBox_accepted()
     this->accept();
 }
 
+void RosTopicSelector::on_buttonBox_rejected()
+{
+    this->reject();
+}
+
 
 
 const RosIntrospection::SubstitutionRuleMap &RosTopicSelector::getLoadedRules() const
@@ -67,5 +72,6 @@ void RosTopicSelector::on_pushButtonRefresh_pressed()
   {
       topic_advertised.append( QString( topic_info.name.c_str() )  );
   }
+  topic_advertised.sort();
   ui->listTopics->addItems( topic_advertised );
 }
