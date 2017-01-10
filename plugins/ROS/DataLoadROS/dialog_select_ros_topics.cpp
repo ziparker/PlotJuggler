@@ -18,15 +18,17 @@ DialogSelectRosTopics::DialogSelectRosTopics(QStringList topic_list, QWidget *pa
     auto flags = this->windowFlags();
     this->setWindowFlags( flags | Qt::WindowStaysOnTopHint);
 
+    topic_list.sort();
+
     ui->setupUi(this);
 
     for (int i=0; i< topic_list.size(); i++) {
         ui->listRosTopics->addItem( new QListWidgetItem( topic_list[i] ) );
+    }
 
-        // if there is only one item in the list, select it by default
-        if( topic_list.size() == 1){
-          ui->listRosTopics->item(0)->setSelected(true);
-        }
+    // if there is only one item in the list, select it by default
+    if( topic_list.size() == 1){
+      ui->listRosTopics->item(0)->setSelected(true);
     }
 
     _rule_widget = new RuleLoaderWidget(this);
