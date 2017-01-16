@@ -54,4 +54,5 @@ In ROS Indigo and Kinetic, you can just run
 
        sudo apt-get install ros-indigo-ros-type-introspection
 or
-			 sudo apt-get install ros-kinetic-ros-type-introspection
+
+       sudo apt-get install ros-kinetic-ros-type-introspection
