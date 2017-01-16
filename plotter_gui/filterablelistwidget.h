@@ -26,7 +26,7 @@ public:
 
     void addItems(const QStringList& index_list);
 
-     QList<QListWidgetItem*> findItems(const QString& text);
+     QList<QListWidgetItem*> findItems(const QString& text) const;
 
 private slots:
 
@@ -43,6 +43,7 @@ private slots:
 private:
     Ui::FilterableListWidget *ui;
 
+    const QListWidget* list() const;
     QListWidget* list();
 };
 

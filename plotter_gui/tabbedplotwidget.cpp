@@ -76,7 +76,7 @@ void TabbedPlotWidget::addTab( PlotMatrix* tab)
     tab->setHorizontalLink( _horizontal_link );
 }
 
-QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument &doc)
+QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument &doc) const
 {
     QDomElement tabbed_area = doc.createElement( "tabbed_widget" );
 

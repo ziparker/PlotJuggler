@@ -416,7 +416,7 @@ void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
     connect( matrix, SIGNAL(undoableChange()),       this, SLOT( onUndoableChange()) );
 }
 
-QDomDocument MainWindow::xmlSaveState()
+QDomDocument MainWindow::xmlSaveState() const
 {
     QDomDocument doc;
     QDomProcessingInstruction instr =

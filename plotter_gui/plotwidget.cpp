@@ -244,12 +244,12 @@ void PlotWidget::removeCurve(const QString &name)
     }
 }
 
-bool PlotWidget::isEmpty()
+bool PlotWidget::isEmpty() const
 {
     return _curve_list.empty();
 }
 
-const std::map<QString, std::shared_ptr<QwtPlotCurve> > &PlotWidget::curveList()
+const std::map<QString, std::shared_ptr<QwtPlotCurve> > &PlotWidget::curveList() const
 {
     return _curve_list;
 }
@@ -334,7 +334,7 @@ void PlotWidget::detachAllCurves()
     replot();
 }
 
-QDomElement PlotWidget::xmlSaveState( QDomDocument &doc)
+QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
 {
     QDomElement plot_el = doc.createElement("plot");
 
@@ -434,7 +434,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
 }
 
 
-QRectF PlotWidget::currentBoundingRect()
+QRectF PlotWidget::currentBoundingRect() const
 {
     QRectF rect;
     rect.setBottom( this->canvasMap( yLeft ).s1() );
@@ -491,7 +491,7 @@ void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
 }
 
 
-std::pair<double,double> PlotWidget::maximumRangeX()
+std::pair<double,double> PlotWidget::maximumRangeX() const
 {
     double left   = 0;
     double right  = 0;
@@ -531,7 +531,7 @@ std::pair<double,double> PlotWidget::maximumRangeX()
 }
 
 //TODO report failure for empty dataset
-std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas)
+std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
 {
     double top    = 0;
     double bottom = 0;

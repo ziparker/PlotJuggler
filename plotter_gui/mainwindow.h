@@ -126,7 +126,7 @@ private:
 
     DataStreamer* _current_streamer;
 
-    QDomDocument xmlSaveState();
+    QDomDocument xmlSaveState() const;
     bool xmlLoadState(QDomDocument state_document);
 
     boost::circular_buffer<QDomDocument> _undo_states;
