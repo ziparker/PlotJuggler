@@ -84,6 +84,13 @@
            <property name="whatsThis">
             <string/>
            </property>
+           <property name="styleSheet">
+            <string notr="true">QToolTip {
+border: 1px solid black;
+border-radius: 6px;
+background: white;
+}</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -131,6 +138,13 @@
            <property name="whatsThis">
             <string/>
            </property>
+           <property name="styleSheet">
+            <string notr="true">QToolTip {
+border: 1px solid black;
+border-radius: 6px;
+background: white;
+}</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -171,6 +185,13 @@
            </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide/Show the grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QToolTip {
+border: 1px solid black;
+border-radius: 6px;
+background: white;
+}</string>
            </property>
            <property name="text">
             <string/>
@@ -216,6 +237,13 @@
            <property name="autoFillBackground">
             <bool>false</bool>
            </property>
+           <property name="styleSheet">
+            <string notr="true">QToolTip {
+border: 1px solid black;
+border-radius: 6px;
+background: white;
+}</string>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -252,7 +280,14 @@
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="toolTip">
-            <string>Maximize the horizontal zoom</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximize the horizontal zoom&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QToolTip {
+border: 1px solid black;
+border-radius: 6px;
+background: white;
+}</string>
            </property>
            <property name="text">
             <string/>
