@@ -85,11 +85,7 @@
             <string/>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolTip {
-border: 1px solid black;
-border-radius: 6px;
-background: white;
-}</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string/>
@@ -139,11 +135,7 @@ background: white;
             <string/>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolTip {
-border: 1px solid black;
-border-radius: 6px;
-background: white;
-}</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string/>
@@ -187,11 +179,7 @@ background: white;
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide/Show the grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolTip {
-border: 1px solid black;
-border-radius: 6px;
-background: white;
-}</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string/>
@@ -238,11 +226,7 @@ background: white;
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">QToolTip {
-border: 1px solid black;
-border-radius: 6px;
-background: white;
-}</string>
+            <string notr="true"/>
            </property>
            <property name="text">
             <string/>
