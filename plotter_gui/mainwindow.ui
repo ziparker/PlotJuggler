@@ -98,6 +98,13 @@ border-radius: 4px;
             <property name="whatsThis">
              <string>Add new subwindow</string>
             </property>
+            <property name="styleSheet">
+             <string notr="true">QToolTip {
+border: 1px solid black;
+border-radius: 6px;
+background: white;
+}</string>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -129,6 +136,13 @@ border-radius: 4px;
             </property>
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle the vertical tracker&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QToolTip {
+border: 1px solid black;
+border-radius: 6px;
+background: white;
+}</string>
             </property>
             <property name="text">
              <string/>
@@ -219,6 +233,16 @@ border-radius: 4px;
             </property>
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start/Stop streaming&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QToolTip {
+border: 1px solid black;
+border-radius: 6px;
+background: white;
+}</string>
             </property>
             <property name="text">
              <string>Streaming</string>
