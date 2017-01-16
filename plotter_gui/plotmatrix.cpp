@@ -158,7 +158,7 @@ unsigned PlotMatrix::plotCount() const
     return _num_rows*_num_cols;
 }
 
-bool PlotMatrix::isColumnEmpty( unsigned col )
+bool PlotMatrix::isColumnEmpty( unsigned col ) const
 {
     for (int r=0; r < _layout->rowCount(); r++)
     {
@@ -170,7 +170,7 @@ bool PlotMatrix::isColumnEmpty( unsigned col )
     return true;
 }
 
-bool PlotMatrix::isRowEmpty(unsigned row )
+bool PlotMatrix::isRowEmpty(unsigned row ) const
 {
     for (int c=0; c< _layout->columnCount(); c++)
     {
@@ -235,7 +235,7 @@ void PlotMatrix::setAxisScale(QwtPlot::Axis axisId, unsigned row, unsigned col,
     }
 }
 
-QDomElement PlotMatrix::xmlSaveState( QDomDocument &doc )
+QDomElement PlotMatrix::xmlSaveState( QDomDocument &doc ) const
 {
     QDomElement element = doc.createElement("plotmatrix");
 
@@ -246,7 +246,7 @@ QDomElement PlotMatrix::xmlSaveState( QDomDocument &doc )
     {
         for(unsigned row = 0; row< _num_rows; row++)
         {
-            PlotWidget* plot = plotAt(row,col);
+            const PlotWidget* plot = plotAt(row,col);
             QDomElement child = plot->xmlSaveState(doc);
 
             child.setAttribute("row", row);

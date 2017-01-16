@@ -30,7 +30,7 @@ public:
 
     void addTab(PlotMatrix *tab = NULL);
 
-    QDomElement xmlSaveState(QDomDocument &doc);
+    QDomElement xmlSaveState(QDomDocument &doc) const;
     bool xmlLoadState(QDomElement &tabbed_area);
 
     ~TabbedPlotWidget();

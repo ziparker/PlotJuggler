@@ -30,19 +30,19 @@ public:
 
     bool addCurve(const QString&  name, bool do_replot = true);
 
-    bool isEmpty();
+    bool isEmpty() const;
 
-    const std::map<QString, std::shared_ptr<QwtPlotCurve> > &curveList();
+    const std::map<QString, std::shared_ptr<QwtPlotCurve> > &curveList() const;
 
-    QDomElement xmlSaveState(QDomDocument &doc);
+    QDomElement xmlSaveState(QDomDocument &doc) const;
 
     bool xmlLoadState(QDomElement &element, QMessageBox::StandardButton* answer);
 
-    QRectF currentBoundingRect();
+    QRectF currentBoundingRect() const;
 
-    std::pair<double,double> maximumRangeX();
+    std::pair<double,double> maximumRangeX() const;
 
-    std::pair<double,double> maximumRangeY(bool current_canvas = false);
+    std::pair<double,double> maximumRangeY(bool current_canvas = false) const;
 
     CurveTracker* tracker();
 
@@ -101,7 +101,6 @@ private:
     QAction *_action_zoomOutHorizontally;
     QAction *_action_zoomOutVertically;
 
-
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
     QwtPlotPanner* _panner;
@@ -120,7 +119,6 @@ private:
     int   _fps_counter;
     QTime _fps_timeStamp;
     bool _show_line_and_points;
-
 
 };
 

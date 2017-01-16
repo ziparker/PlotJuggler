@@ -54,9 +54,14 @@ void FilterableListWidget::addItems(const QStringList &index_list)
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
-QList<QListWidgetItem *> FilterableListWidget::findItems(const QString &text)
+QList<QListWidgetItem *> FilterableListWidget::findItems(const QString &text) const
 {
     return list()->findItems( text, Qt::MatchExactly);
+}
+
+const QListWidget *FilterableListWidget::list() const
+{
+    return ui->listWidget;
 }
 
 QListWidget *FilterableListWidget::list()

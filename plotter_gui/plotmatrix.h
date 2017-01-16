@@ -25,8 +25,8 @@ public:
     unsigned colsCount() const;
     unsigned plotCount() const;
 
-    bool isRowEmpty(unsigned row );
-    bool isColumnEmpty(unsigned row );
+    bool isRowEmpty(unsigned row ) const;
+    bool isColumnEmpty(unsigned row ) const;
 
     PlotWidget* plotAt( unsigned row, unsigned column );
     const PlotWidget* plotAt( unsigned row, unsigned column ) const;
@@ -37,7 +37,7 @@ public:
     void setAxisScale(QwtPlot::Axis axisId, unsigned row, unsigned col,
                       double min, double max, double step = 0 );
 
-    QDomElement xmlSaveState(QDomDocument &doc);
+    QDomElement xmlSaveState(QDomDocument &doc) const;
 
     bool xmlLoadState(QDomElement &plotmatrix_element );
 
