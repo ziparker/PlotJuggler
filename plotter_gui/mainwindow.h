@@ -142,6 +142,8 @@ private:
 
     void importPlotDataMap(const PlotDataMap &mapped_data);
 
+    void parseCommandLine();
+
 protected:
     void mousePressEvent(QMouseEvent *event) ;
 
