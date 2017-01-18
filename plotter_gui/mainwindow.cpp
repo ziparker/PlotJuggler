@@ -17,6 +17,7 @@
 #include <QWindow>
 #include <set>
 #include <QInputDialog>
+#include <QCommandLineParser>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -27,7 +28,27 @@
 #include "selectlistdialog.h"
 
 
-MainWindow::MainWindow(QWidget *parent) :
+void MainWindow::parseCommandLine()
+{
+  QCommandLineParser parser;
+  parser.setApplicationDescription("PlotJuggler ");
+  parser.addHelpOption();
+  parser.addVersionOption();
+
+  // A boolean option with multiple names (-t, --test)
+  QCommandLineOption test_option(QStringList() << "t" << "test",
+                                 QCoreApplication::translate("main", "Generate test curves at startup"));
+  parser.addOption(test_option);
+
+  parser.process( *qApp );
+
+  if( parser.isSet(test_option))
+  {
+    buildData();
+  }
+}
+
+MainWindow::MainWindow( QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
@@ -54,7 +75,6 @@ MainWindow::MainWindow(QWidget *parent) :
     loadPlugins( QCoreApplication::applicationDirPath() );
     loadPlugins("/usr/local/PlotJuggler/plugins");
 
-    //2uildData();
     _undo_timer.start();
 
     // save initial state
@@ -71,6 +91,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->menuBar->show();
     
     this->repaint();
+
+    parseCommandLine();
+
 }
 
 MainWindow::~MainWindow()
