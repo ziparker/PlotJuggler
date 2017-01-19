@@ -5,7 +5,7 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName("PlotJuggler");
-    QCoreApplication::setApplicationVersion("0.6.2");
+    QCoreApplication::setApplicationVersion("0.7.0");
 
     qApp->setStyleSheet(QString("QToolTip {\n"
                                 "   border: 1px solid black;\n"

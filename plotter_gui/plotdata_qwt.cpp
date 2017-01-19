@@ -63,18 +63,14 @@ size_t PlotDataQwt::size() const
     return _plot_data->size() /  _subsample ;
 }
 
-QColor PlotDataQwt::colorHint() const
-{
-    int red, green, blue;
-     _plot_data->getColorHint(&red, &green, &blue) ;
-
-    return QColor( red, green, blue);
+QColor PlotDataQwt::randomColorHint() const
+{   
+     return _plot_data->getColorHint() ;
 }
 
 void PlotDataQwt::setColorHint(QColor color)
 {
-     _plot_data->setColorHint(
-                 color.red(), color.green(), color.blue()) ;
+     _plot_data->setColorHint(color) ;
 }
 
 void PlotDataQwt::setSubsampleFactor()
