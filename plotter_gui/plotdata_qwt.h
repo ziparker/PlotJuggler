@@ -30,10 +30,26 @@ public:
 
     void setSubsampleFactor();
 
+
+    PlotData::RangeTime getRangeX();
+
+    PlotData::RangeValue getRangeY(int first_index, int last_index );
+
+    typedef enum{
+      noTransform,
+      firstDerivative,
+      secondDerivative
+    } Transform;
+
+    void setTransform(Transform trans) { _transform = trans; }
+    Transform transform() const { return _transform; }
+
 private:
     PlotDataPtr _plot_data;
     int      _preferedColor;
     unsigned _subsample;
+    Transform _transform;
+
 };
 
 

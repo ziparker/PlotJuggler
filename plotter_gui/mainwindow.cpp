@@ -1159,7 +1159,7 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 
 void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 {
-    if( ! _current_streamer )
+    if( !_current_streamer )
     {
         checked = false;
     }
