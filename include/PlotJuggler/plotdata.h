@@ -71,7 +71,7 @@ public:
 
   void pushBackAsynchronously(Point p);
 
-  void update();
+  bool update();
 
   QColor getColorHint() const;
 
@@ -79,10 +79,6 @@ public:
 
   void setMaximumRangeX(Time max_range);
 
-  RangeTime getRangeX();
-
-  RangeValue getRangeY(int first_index = 0,
-                       int last_index = std::numeric_limits<int>::max() );
 
 protected:
 
@@ -165,9 +161,11 @@ inline void PlotDataGeneric<Time, Value>::pushBackAsynchronously(Point point)
 }
 
 template < typename Time, typename Value>
-inline void PlotDataGeneric<Time, Value>::update()
+inline bool PlotDataGeneric<Time, Value>::update()
 {
   std::lock_guard<std::mutex> lock(_mutex);
+
+  if( _pushed_points.empty() ) return false;
 
   while( !_pushed_points.empty() )
   {
@@ -177,6 +175,7 @@ inline void PlotDataGeneric<Time, Value>::update()
       _y_points.push_back( point.y );
       _pushed_points.pop_front();
   }
+  return true;
 }
 
 template < typename Time, typename Value>
@@ -284,43 +283,6 @@ inline void PlotDataGeneric<Time, Value>::setMaximumRangeX(Time max_range)
 {
   //std::lock_guard<std::mutex> lock(_mutex);
   _max_range_X = max_range;
-}
-
-template < typename Time, typename Value>
-inline typename PlotDataGeneric<Time, Value>::RangeTime
-PlotDataGeneric<Time, Value>::getRangeX()
-{
- // std::lock_guard<std::mutex> lock(_mutex);
-  if( _x_points.size() < 2 )
-    return  RangeTime() ;
-  else
-    return  RangeTime( { _x_points.front(), _x_points.back() } );
-}
-
-
-
-template< typename Time, typename Value > inline typename
-PlotDataGeneric<Time, Value>::RangeValue
-PlotDataGeneric<Time, Value>::getRangeY(int first_index, int last_index )
-{
-  if( first_index < 0 || last_index < 0 || first_index > last_index)
-  {
-    return RangeValue();
-  }
-  //std::lock_guard<std::mutex> lock(_mutex);
-
-  const Value first_Y = _y_points.at(first_index);
-  Value y_min = first_Y;
-  Value y_max = first_Y;
-
-  for (int i = first_index+1; i < last_index; i++)
-  {
-    const Value Y = _y_points.at(i);
-
-    if( Y < y_min )      y_min = Y;
-    else if( Y > y_max ) y_max = Y;
-  }
-  return RangeValue( { y_min, y_max } );
 }
 
 

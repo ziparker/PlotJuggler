@@ -77,6 +77,10 @@ public slots:
 
     void on_zoomOutVertical_triggered();
 
+    void on_noTransform_triggered(bool checked);
+    void on_1stDerivativeTransform_triggered(bool checked);
+    void on_2ndDerivativeTransform_triggered(bool checked);
+
     void removeCurve(const QString& name);
 
     void activateLegent(bool activate);
@@ -100,6 +104,9 @@ private:
     QAction *_action_showPoints;
     QAction *_action_zoomOutHorizontally;
     QAction *_action_zoomOutVertically;
+    QAction *_action_noTransform;
+    QAction *_action_firstDerivativeTransform;
+    QAction *_action_secondDerivativeTransform;
 
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;

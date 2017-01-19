@@ -17,6 +17,7 @@
 #include <set>
 #include <memory>
 #include <qwt_text.h>
+#include <QActionGroup>
 
 //#include <qwt_plot_opengl_canvas.h>
 //#include <qwt_plot_glcanvas.h>
@@ -138,6 +139,20 @@ void PlotWidget::buildActions()
     connect(_action_zoomOutVertically, SIGNAL(triggered()), this, SLOT(on_zoomOutVertical_triggered()));
     connect(_action_zoomOutVertically, SIGNAL(triggered()), this, SIGNAL(undoableChange()) );
 
+    _action_noTransform = new QAction(tr("&NO Transform"), this);
+    _action_noTransform->setCheckable( true );
+    _action_noTransform->setChecked( true );
+    connect(_action_noTransform, SIGNAL(triggered(bool)), this, SLOT(on_noTransform_triggered(bool)));
+
+    _action_firstDerivativeTransform = new QAction(tr("&1st derivative"), this);
+    _action_firstDerivativeTransform->setCheckable( true );
+    connect(_action_firstDerivativeTransform, SIGNAL(triggered(bool)), this, SLOT(on_1stDerivativeTransform_triggered(bool)));
+
+    _action_secondDerivativeTransform = new QAction(tr("&2nd Derivative"), this);
+    _action_secondDerivativeTransform->setCheckable( true );
+
+  //  menu.addAction(_action_firstDerivativeTransform);
+  //  menu.addAction(_action_secondDerivativeTransform);
 }
 
 void PlotWidget::buildLegend()
@@ -503,7 +518,7 @@ std::pair<double,double> PlotWidget::maximumRangeX() const
     {
         PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
         plot->data()->update();
-        auto range_X = plot->data()->getRangeX();
+        auto range_X = plot->getRangeX();
 
         if( !range_X ) continue;
 
@@ -552,7 +567,7 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
             max_X = range_X.second;
         }
 
-        const auto range_X = plot->data()->getRangeX();
+        const auto range_X = plot->getRangeX();
         if( !range_X ) continue;
 
         int X0 = plot->data()->getIndexFromX(std::max(range_X->min, min_X));
@@ -564,7 +579,7 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
           continue;
         }
         else{
-           auto range_Y = plot->data()->getRangeY(X0, X1);
+           auto range_Y = plot->getRangeY(X0, X1);
            if( !range_Y )
            {
              qDebug() << " invalid range_Y in PlotWidget::maximumRangeY";
@@ -727,6 +742,33 @@ void PlotWidget::on_zoomOutVertical_triggered()
     this->setScale(act);
 }
 
+void PlotWidget::on_noTransform_triggered(bool checked )
+{
+  for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+  {
+      PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+      plot->setTransform( PlotDataQwt::noTransform );
+  }
+  on_zoomOutVertical_triggered();
+  replot();
+}
+
+void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
+{
+  for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+  {
+      PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+      plot->setTransform( PlotDataQwt::firstDerivative );
+  }
+  on_zoomOutVertical_triggered();
+  replot();
+}
+
+void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
+{
+
+}
+
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 {
     QMenu menu(this);
@@ -738,6 +780,17 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     menu.addSeparator();
     menu.addAction(_action_zoomOutHorizontally);
     menu.addAction(_action_zoomOutVertically);
+    menu.addSeparator();
+
+    auto transform_group = new QActionGroup(this);
+
+    transform_group->addAction(_action_noTransform);
+    transform_group->addAction(_action_firstDerivativeTransform);
+    transform_group->addAction(_action_secondDerivativeTransform);
+
+    menu.addAction( _action_noTransform );
+    menu.addAction( _action_firstDerivativeTransform );
+    menu.addAction( _action_secondDerivativeTransform );
 
     _action_removeCurve->setEnabled( ! _curve_list.empty() );
     _action_removeAllCurves->setEnabled( ! _curve_list.empty() );
