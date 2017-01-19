@@ -11,25 +11,21 @@ class PlotDataQwt: public QwtSeriesData<QPointF>
 {
 public:
 
-   // PlotDataQwt();
-
-
     PlotDataQwt(PlotDataPtr base);
 
     virtual ~PlotDataQwt() {}
 
-    virtual QPointF sample( size_t i ) const;
-    virtual QRectF boundingRect() const;
+    virtual QPointF sample( size_t i ) const override;
+
+    virtual QRectF boundingRect() const override;
+
+    virtual size_t size() const override;
 
     QRectF maximumBoundingRect(double min_X, double max_X);
 
-    PlotDataPtr plot() { return _plot_data; }
+    PlotDataPtr data() { return _plot_data; }
 
-    virtual size_t size() const;
-
-   // void setRangeX(double x_left, double x_right);
-
-    QColor colorHint() const;
+    QColor randomColorHint() const;
     void setColorHint(QColor color);
 
     void setSubsampleFactor();

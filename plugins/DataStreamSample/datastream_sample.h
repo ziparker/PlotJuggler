@@ -32,7 +32,7 @@ public:
 
 private:
 
-    void update();
+    void loop();
 
     PlotDataMap _plot_data;
     bool _enabled;

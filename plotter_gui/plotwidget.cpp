@@ -207,10 +207,7 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
             curve->setStyle( QwtPlotCurve::Lines);
         }
 
-        int red, green,blue;
-        data->getColorHint(& red, &green, &blue);
-        curve->setPen( QColor( red, green, blue),  0.7 );
-
+        curve->setPen( data->getColorHint(),  0.7 );
         curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
         curve->attach( this );
@@ -483,8 +480,9 @@ void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
     {
         for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
         {
-            PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
-            data->setSubsampleFactor( );
+            PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+            plot->setSubsampleFactor( );
+            plot->data()->update();
         }
     }
     QwtPlot::setAxisScale( axisId, min, max, step);
@@ -503,8 +501,9 @@ std::pair<double,double> PlotWidget::maximumRangeX() const
     bool first = true;
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
-        PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
-        auto range_X = data->plot()->getRangeX();
+        PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+        plot->data()->update();
+        auto range_X = plot->data()->getRangeX();
 
         if( !range_X ) continue;
 
@@ -526,7 +525,6 @@ std::pair<double,double> PlotWidget::maximumRangeX() const
     }
 
     _magnifier->setAxisLimits( xBottom, left, right);
-
     return std::make_pair( left, right);
 }
 
@@ -539,7 +537,8 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
     bool first = true;
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
-        PlotDataQwt* data = static_cast<PlotDataQwt*>( it->second->data() );
+        PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+        plot->data()->update();
 
         double min_X, max_X;
         if( current_canvas )
@@ -553,11 +552,11 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
             max_X = range_X.second;
         }
 
-        const auto range_X = data->plot()->getRangeX();
+        const auto range_X = plot->data()->getRangeX();
         if( !range_X ) continue;
 
-        int X0 = data->plot()->getIndexFromX(std::max(range_X->min, min_X));
-        int X1 = data->plot()->getIndexFromX(std::min(range_X->max, max_X));
+        int X0 = plot->data()->getIndexFromX(std::max(range_X->min, min_X));
+        int X1 = plot->data()->getIndexFromX(std::min(range_X->max, max_X));
 
         if( X0<0 || X1 <0)
         {
@@ -565,7 +564,7 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
           continue;
         }
         else{
-           auto range_Y = data->plot()->getRangeY(X0, X1);
+           auto range_Y = plot->data()->getRangeY(X0, X1);
            if( !range_Y )
            {
              qDebug() << " invalid range_Y in PlotWidget::maximumRangeY";
@@ -610,6 +609,12 @@ void PlotWidget::replot()
     /* if(_tracker ) {
         _tracker->refreshPosition( );
     }*/
+
+    for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+        plot->data()->update();
+    }
 
     QwtPlot::replot();
 }

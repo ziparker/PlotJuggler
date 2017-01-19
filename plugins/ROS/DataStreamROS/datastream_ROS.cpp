@@ -79,7 +79,8 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
       plot = res.first;
     }
 
-    plot->second->pushBack( PlotData::Point(msg_time, value));
+    // IMPORTANT: don't use pushBack(), it may cause a segfault
+    plot->second->pushBackAsynchronously( PlotData::Point(msg_time, value));
   }
 }
 

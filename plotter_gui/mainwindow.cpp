@@ -271,7 +271,7 @@ void MainWindow::createActions()
 }
 
 
-QColor MainWindow::colorHint()
+QColor MainWindow::randomColorHint()
 {
     static int index = 0;
     QColor color;
@@ -380,8 +380,8 @@ void MainWindow::buildData()
             plot->pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
         }
 
-        QColor color = colorHint();
-        plot->setColorHint( color.red(), color.green(), color.blue() );
+        QColor color = randomColorHint();
+        plot->setColorHint( color );
 
         _mapped_plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
@@ -706,8 +706,8 @@ void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
         // this is a new plot
         if( plot_with_same_name == _mapped_plot_data.numeric.end() )
         {
-            QColor color = colorHint();
-            plot->setColorHint( color.red(), color.green(), color.blue() );
+            QColor color = randomColorHint();
+            plot->setColorHint( color );
             _curvelist_widget->addItem( new QListWidgetItem( qname ) );
             _mapped_plot_data.numeric.insert( std::make_pair(name, plot) );
         }

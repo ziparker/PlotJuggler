@@ -10,7 +10,7 @@
 #include <math.h>
 
 
-QColor colorHint()
+QColor randomColorHint()
 {
     static int index = 0;
     QColor color;
@@ -50,12 +50,12 @@ DataStreamSample::DataStreamSample():
         vect_C.push_back(C);
         vect_D.push_back(D);
 
-        QColor color = colorHint();
+        QColor color = randomColorHint();
 
         PlotDataPtr plot( new PlotData() );
         plot->setName( name.toStdString() );
         plot->setMaximumRangeX( 4.0 );
-        plot->setColorHint( color.red(), color.green(), color.blue() );
+        plot->setColorHint( color );
 
         _plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
@@ -64,7 +64,7 @@ DataStreamSample::DataStreamSample():
 bool DataStreamSample::start()
 {
     _running = true;
-    _thread = std::thread([this](){ this->update();} );
+    _thread = std::thread([this](){ this->loop();} );
     return true;
 }
 
@@ -85,7 +85,7 @@ DataStreamSample::~DataStreamSample()
 
 
 
-void DataStreamSample::update()
+void DataStreamSample::loop()
 {
     static auto prev_time = std::chrono::high_resolution_clock::now();
 
@@ -107,8 +107,10 @@ void DataStreamSample::update()
             const double t = _simulated_time;
             double y =  A*sin(B*t + C) +D*t*0.02;
 
-            if( _enabled )
-                plot->pushBack( PlotData::Point( t, y ) );
+            if( _enabled ){
+                // IMPORTANT: don't use pushBack(), it may cause a segfault
+                plot->pushBackAsynchronously( PlotData::Point( t, y ) );
+            }
         }
 
         prev_time += std::chrono::milliseconds(10);

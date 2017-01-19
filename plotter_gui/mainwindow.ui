@@ -79,8 +79,8 @@ border-radius: 4px;
            <widget class="QPushButton" name="pushButtonAddSubwindow">
             <property name="minimumSize">
              <size>
-              <width>0</width>
-              <height>40</height>
+              <width>40</width>
+              <height>36</height>
              </size>
             </property>
             <property name="maximumSize">
@@ -99,11 +99,10 @@ border-radius: 4px;
              <string>Add new subwindow</string>
             </property>
             <property name="styleSheet">
-             <string notr="true">QToolTip {
-border: 1px solid black;
+             <string notr="true">border: 1px solid black;
 border-radius: 6px;
 background: white;
-}</string>
+</string>
             </property>
             <property name="text">
              <string/>
@@ -114,8 +113,8 @@ background: white;
             </property>
             <property name="iconSize">
              <size>
-              <width>26</width>
-              <height>26</height>
+              <width>30</width>
+              <height>30</height>
              </size>
             </property>
             <property name="flat">
@@ -125,6 +124,12 @@ background: white;
           </item>
           <item>
            <widget class="QPushButton" name="pushButtonActivateTracker">
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>36</height>
+             </size>
+            </property>
             <property name="maximumSize">
              <size>
               <width>50</width>
