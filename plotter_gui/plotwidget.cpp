@@ -61,7 +61,7 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
 
     //--------------------------
     _grid = new QwtPlotGrid();
-    _zoomer = ( new QwtPlotZoomer( this->canvas() ) );
+    _zoomer = ( new PlotZoomer( this->canvas() ) );
     _magnifier = ( new PlotMagnifier( this->canvas() ) );
     _panner = ( new QwtPlotPanner( this->canvas() ) );
     _tracker = ( new CurveTracker( this ) );
@@ -71,15 +71,15 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     _zoomer->setRubberBandPen( QColor( Qt::red , 1, Qt::DotLine) );
     _zoomer->setTrackerPen( QColor( Qt::green, 1, Qt::DotLine ) );
     _zoomer->setMousePattern( QwtEventPattern::MouseSelect1, Qt::LeftButton, Qt::NoModifier );
-    connect(_zoomer, SIGNAL(zoomed(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
+    connect(_zoomer, SIGNAL(zoomed(const QRectF&)), this, SLOT(on_externallyResized(const QRectF&)) );
 
     _magnifier->setAxisEnabled(xTop, false);
     _magnifier->setAxisEnabled(yRight, false);
 
     // disable right button. keep mouse wheel
     _magnifier->setMouseButton( Qt::NoButton );
-    connect(_magnifier, SIGNAL(rescaled(QRectF)), this, SLOT(on_externallyResized(QRectF)) );
-    connect(_magnifier, SIGNAL(rescaled(QRectF)), this, SLOT(replot()) );
+    connect(_magnifier, SIGNAL(rescaled(const QRectF&)), this, SLOT(on_externallyResized(const QRectF&)) );
+    connect(_magnifier, SIGNAL(rescaled(const QRectF&)), this, SLOT(replot()) );
 
     _panner->setMouseButton(  Qt::MiddleButton, Qt::NoModifier);
 
@@ -159,8 +159,8 @@ void PlotWidget::buildActions()
     transform_group->addAction(_action_1stDerivativeTransform);
     transform_group->addAction(_action_2ndDerivativeTransform);
 
-  //  menu.addAction(_action_firstDerivativeTransform);
-  //  menu.addAction(_action_secondDerivativeTransform);
+    //  menu.addAction(_action_firstDerivativeTransform);
+    //  menu.addAction(_action_secondDerivativeTransform);
 }
 
 void PlotWidget::buildLegend()
@@ -379,19 +379,19 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
         plot_el.appendChild(curve_el);
     }
 
-    if( _current_transform != PlotDataQwt::noTransform )
+    QDomElement transform  = doc.createElement("transform");
+    if( _current_transform == PlotDataQwt::firstDerivative )
     {
-      QDomElement transform  = doc.createElement("transform");
-      if( _current_transform == PlotDataQwt::firstDerivative )
-      {
         transform.setAttribute("value", "firstDerivative" );
-      }
-      else if ( _current_transform == PlotDataQwt::secondDerivative )
-      {
-        transform.setAttribute("value", "secondDerivative" );
-      }
-      plot_el.appendChild(transform);
     }
+    else if ( _current_transform == PlotDataQwt::secondDerivative )
+    {
+        transform.setAttribute("value", "secondDerivative" );
+    }
+    else{
+        transform.setAttribute("value", "noTransform" );
+    }
+    plot_el.appendChild(transform);
 
     return plot_el;
 }
@@ -459,20 +459,19 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
     QDomElement transform = plot_widget.firstChildElement( "transform" );
     if( !transform.isNull()  )
     {
-      QString trans_value = transform.attribute("value");
-      if( trans_value == "firstDerivative" &&
-          _current_transform != PlotDataQwt::firstDerivative)
-      {
-        _action_1stDerivativeTransform->trigger();
-      }
-      else if(trans_value == "secondDerivative" &&
-              _current_transform != PlotDataQwt::secondDerivative)
-      {
-        _action_2ndDerivativeTransform->trigger();
-      }
-      else if( _current_transform != PlotDataQwt::noTransform){
-        _action_noTransform->trigger();
-      }
+        QString trans_value = transform.attribute("value");
+        if( trans_value == "firstDerivative")
+        {
+            _action_1stDerivativeTransform->trigger();
+        }
+        else if(trans_value == "secondDerivative")
+        {
+            _action_2ndDerivativeTransform->trigger();
+        }
+        else if(trans_value == "noTransform")
+        {
+            _action_noTransform->trigger();
+        }
     }
     //-----------------------------------------
     QDomElement rectangle = plot_widget.firstChildElement( "range" );
@@ -553,7 +552,7 @@ std::pair<double,double> PlotWidget::maximumRangeX() const
     double right  = 0;
 
     if( _curve_list.size() == 0){
-      return std::make_pair( double(0), double(0) );
+        return std::make_pair( double(0), double(0) );
     }
 
     bool first = true;
@@ -566,13 +565,13 @@ std::pair<double,double> PlotWidget::maximumRangeX() const
         if( !range_X ) continue;
 
         if( first ){
-          first = false;
-          left  = range_X->min;
-          right = range_X->max;
+            first = false;
+            left  = range_X->min;
+            right = range_X->max;
         }
         else{
-          if( left  > range_X->min )    left  = range_X->min;
-          if( right < range_X->max )    right = range_X->max;
+            if( left  > range_X->min )    left  = range_X->min;
+            if( right < range_X->max )    right = range_X->max;
         }
     }
 
@@ -618,27 +617,27 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
 
         if( X0<0 || X1 <0)
         {
-          qDebug() << " invalid X0/X1 range in PlotWidget::maximumRangeY";
-          continue;
+            qDebug() << " invalid X0/X1 range in PlotWidget::maximumRangeY";
+            continue;
         }
         else{
-           auto range_Y = plot->getRangeY(X0, X1);
-           if( !range_Y )
-           {
-             qDebug() << " invalid range_Y in PlotWidget::maximumRangeY";
-             continue;
-           }
+            auto range_Y = plot->getRangeY(X0, X1);
+            if( !range_Y )
+            {
+                qDebug() << " invalid range_Y in PlotWidget::maximumRangeY";
+                continue;
+            }
 
-           if( first ){
-             first = true;
-             top    = range_Y->max;
-             bottom = range_Y->min;
-             first = false;
-           }
-           else{
-             if( top <    range_Y->max )    top    = range_Y->max;
-             if( bottom > range_Y->min )    bottom = range_Y->min;
-           }
+            if( first ){
+                first = true;
+                top    = range_Y->max;
+                bottom = range_Y->min;
+                first = false;
+            }
+            else{
+                if( top <    range_Y->max )    top    = range_Y->max;
+                if( bottom > range_Y->min )    bottom = range_Y->min;
+            }
         }
     }
 
@@ -744,7 +743,7 @@ void PlotWidget::on_showPoints_triggered(bool checked)
     replot();
 }
 
-void PlotWidget::on_externallyResized(QRectF rect)
+void PlotWidget::on_externallyResized(const QRectF& rect)
 {
     emit rectChanged( this, rect);
 }
@@ -787,59 +786,68 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 
 void PlotWidget::on_noTransform_triggered(bool checked )
 {
-  for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
-  {
-      PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
-      plot->setTransform( PlotDataQwt::noTransform );
-      plot->updateData(true);
-  }
-  this->setTitle("");
-  _current_transform = ( PlotDataQwt::noTransform );
+    if(_current_transform ==  PlotDataQwt::noTransform) return;
 
-  on_zoomOutVertical_triggered(false);
-  replot();
+    for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+        plot->setTransform( PlotDataQwt::noTransform );
+        plot->updateData(true);
+    }
+    this->setTitle("");
+    _current_transform = ( PlotDataQwt::noTransform );
+
+    on_zoomOutVertical_triggered(false);
+    replot();
+    emit undoableChange();
 }
 
 void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
 {
-  for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
-  {
-      PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
-      plot->setTransform( PlotDataQwt::firstDerivative );
-      plot->updateData(true);
-  }
+    if(_current_transform ==  PlotDataQwt::firstDerivative) return;
 
-  QFont font_title;
-  font_title.setPointSize(10);
-  QwtText text("1st derivative");
-  text.setFont(font_title);
+    for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+        plot->setTransform( PlotDataQwt::firstDerivative );
+        plot->updateData(true);
+    }
 
-  this->setTitle(text);
-  _current_transform = ( PlotDataQwt::firstDerivative );
+    QFont font_title;
+    font_title.setPointSize(10);
+    QwtText text("1st derivative");
+    text.setFont(font_title);
 
-  on_zoomOutVertical_triggered(false);
-  replot();
+    this->setTitle(text);
+    _current_transform = ( PlotDataQwt::firstDerivative );
+
+    on_zoomOutVertical_triggered(false);
+    replot();
+    emit undoableChange();
 }
 
 void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
 {
-  for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
-  {
-      PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
-      plot->setTransform( PlotDataQwt::secondDerivative );
-      plot->updateData(true);
-  }
+    if(_current_transform ==  PlotDataQwt::secondDerivative) return;
 
-  QFont font_title;
-  font_title.setPointSize(10);
-  QwtText text("2nd derivative");
-  text.setFont(font_title);
+    for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    {
+        PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+        plot->setTransform( PlotDataQwt::secondDerivative );
+        plot->updateData(true);
+    }
 
-  this->setTitle(text);
-  _current_transform = ( PlotDataQwt::secondDerivative );
+    QFont font_title;
+    font_title.setPointSize(10);
+    QwtText text("2nd derivative");
+    text.setFont(font_title);
 
-  on_zoomOutVertical_triggered(false);
-  replot();
+    this->setTitle(text);
+    _current_transform = ( PlotDataQwt::secondDerivative );
+
+    on_zoomOutVertical_triggered(false);
+    replot();
+    emit undoableChange();
 }
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
