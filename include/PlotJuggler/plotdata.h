@@ -71,7 +71,7 @@ public:
 
   void pushBackAsynchronously(Point p);
 
-  bool update();
+  bool flushAsyncBuffer();
 
   QColor getColorHint() const;
 
@@ -161,7 +161,7 @@ inline void PlotDataGeneric<Time, Value>::pushBackAsynchronously(Point point)
 }
 
 template < typename Time, typename Value>
-inline bool PlotDataGeneric<Time, Value>::update()
+inline bool PlotDataGeneric<Time, Value>::flushAsyncBuffer()
 {
   std::lock_guard<std::mutex> lock(_mutex);
 
@@ -249,7 +249,7 @@ PlotDataGeneric<Time, Value>::at(size_t index)
 {
  // std::lock_guard<std::mutex> lock(_mutex);
   try{
-    return { _x_points.at(index),  _y_points.at(index)  };
+    return { _x_points[index],  _y_points[index]  };
   }
   catch(...)
   {

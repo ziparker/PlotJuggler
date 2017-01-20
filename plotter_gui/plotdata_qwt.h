@@ -30,6 +30,7 @@ public:
 
     void setSubsampleFactor();
 
+    void updateData(bool force_transform);
 
     PlotData::RangeTime getRangeX();
 
@@ -46,6 +47,7 @@ public:
 
 private:
     PlotDataPtr _plot_data;
+    std::vector<QPointF> _cached_transformed_curve;
     int      _preferedColor;
     unsigned _subsample;
     Transform _transform;

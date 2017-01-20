@@ -150,6 +150,7 @@ void PlotWidget::buildActions()
 
     _action_secondDerivativeTransform = new QAction(tr("&2nd Derivative"), this);
     _action_secondDerivativeTransform->setCheckable( true );
+    connect(_action_secondDerivativeTransform, SIGNAL(triggered(bool)), this, SLOT(on_2ndDerivativeTransform_triggered(bool)));
 
   //  menu.addAction(_action_firstDerivativeTransform);
   //  menu.addAction(_action_secondDerivativeTransform);
@@ -497,7 +498,6 @@ void PlotWidget::setAxisScale(int axisId, double min, double max, double step)
         {
             PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
             plot->setSubsampleFactor( );
-            plot->data()->update();
         }
     }
     QwtPlot::setAxisScale( axisId, min, max, step);
@@ -517,7 +517,7 @@ std::pair<double,double> PlotWidget::maximumRangeX() const
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
-        plot->data()->update();
+        plot->updateData(false);
         auto range_X = plot->getRangeX();
 
         if( !range_X ) continue;
@@ -553,7 +553,7 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
-        plot->data()->update();
+        plot->updateData(false);
 
         double min_X, max_X;
         if( current_canvas )
@@ -628,7 +628,7 @@ void PlotWidget::replot()
     for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
     {
         PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
-        plot->data()->update();
+        plot->updateData(false);
     }
 
     QwtPlot::replot();
@@ -748,7 +748,10 @@ void PlotWidget::on_noTransform_triggered(bool checked )
   {
       PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
       plot->setTransform( PlotDataQwt::noTransform );
+      plot->updateData(true);
   }
+  this->setTitle("");
+
   on_zoomOutVertical_triggered();
   replot();
 }
@@ -759,14 +762,38 @@ void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
   {
       PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
       plot->setTransform( PlotDataQwt::firstDerivative );
+      plot->updateData(true);
   }
+
+  QFont font_title;
+  font_title.setPointSize(10);
+  QwtText text("1st derivative");
+  text.setFont(font_title);
+
+  this->setTitle(text);
+
   on_zoomOutVertical_triggered();
   replot();
 }
 
 void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
 {
+  for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+  {
+      PlotDataQwt* plot = static_cast<PlotDataQwt*>( it->second->data() );
+      plot->setTransform( PlotDataQwt::secondDerivative );
+      plot->updateData(true);
+  }
 
+  QFont font_title;
+  font_title.setPointSize(10);
+  QwtText text("2nd derivative");
+  text.setFont(font_title);
+
+  this->setTitle(text);
+
+  on_zoomOutVertical_triggered();
+  replot();
 }
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
