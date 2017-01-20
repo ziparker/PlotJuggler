@@ -43,7 +43,10 @@ int main(int argc, char *argv[])
   painter.setPen(QColor(50, 50, 50));
 
   QString subtitle = getFunnySubtitle();
-  painter.setFont( QFont("Arial", 28 ) );
+  int font_size = 36;
+  do{
+      painter.setFont( QFont("Arial", font_size-- ) );
+  }while( painter.fontMetrics().width(subtitle) > 550 );
 
   painter.drawText( QRect(50, 200, 580, 100), Qt::AlignHCenter | Qt::AlignVCenter, subtitle );
   painter.end();
