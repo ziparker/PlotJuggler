@@ -77,7 +77,7 @@ public slots:
 
     void on_zoomOutVertical_triggered();
 
-    void on_noTransform_triggered(bool checked);
+    void on_noTransform_triggered(bool checked );
     void on_1stDerivativeTransform_triggered(bool checked);
     void on_2ndDerivativeTransform_triggered(bool checked);
 
@@ -105,8 +105,8 @@ private:
     QAction *_action_zoomOutHorizontally;
     QAction *_action_zoomOutVertically;
     QAction *_action_noTransform;
-    QAction *_action_firstDerivativeTransform;
-    QAction *_action_secondDerivativeTransform;
+    QAction *_action_1stDerivativeTransform;
+    QAction *_action_2ndDerivativeTransform;
 
     QwtPlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
@@ -119,6 +119,7 @@ private:
     void setAxisScale( int axisId, double min, double max, double step = 0 );
 
     PlotDataMap* _mapped_data;
+    PlotDataQwt::Transform _current_transform;
 
     void buildActions();
     void buildLegend();

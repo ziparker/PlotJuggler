@@ -32,7 +32,8 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
     _legend( 0 ),
     _grid( 0 ),
     _mapped_data( datamap ),
-    _show_line_and_points(false)
+    _show_line_and_points(false),
+    _current_transform( PlotDataQwt::noTransform )
 {
     this->setAcceptDrops( true );
     this->setMinimumWidth( 100 );
@@ -144,13 +145,19 @@ void PlotWidget::buildActions()
     _action_noTransform->setChecked( true );
     connect(_action_noTransform, SIGNAL(triggered(bool)), this, SLOT(on_noTransform_triggered(bool)));
 
-    _action_firstDerivativeTransform = new QAction(tr("&1st derivative"), this);
-    _action_firstDerivativeTransform->setCheckable( true );
-    connect(_action_firstDerivativeTransform, SIGNAL(triggered(bool)), this, SLOT(on_1stDerivativeTransform_triggered(bool)));
+    _action_1stDerivativeTransform = new QAction(tr("&1st derivative"), this);
+    _action_1stDerivativeTransform->setCheckable( true );
+    connect(_action_1stDerivativeTransform, SIGNAL(triggered(bool)), this, SLOT(on_1stDerivativeTransform_triggered(bool)));
 
-    _action_secondDerivativeTransform = new QAction(tr("&2nd Derivative"), this);
-    _action_secondDerivativeTransform->setCheckable( true );
-    connect(_action_secondDerivativeTransform, SIGNAL(triggered(bool)), this, SLOT(on_2ndDerivativeTransform_triggered(bool)));
+    _action_2ndDerivativeTransform = new QAction(tr("&2nd Derivative"), this);
+    _action_2ndDerivativeTransform->setCheckable( true );
+    connect(_action_2ndDerivativeTransform, SIGNAL(triggered(bool)), this, SLOT(on_2ndDerivativeTransform_triggered(bool)));
+
+    auto transform_group = new QActionGroup(this);
+
+    transform_group->addAction(_action_noTransform);
+    transform_group->addAction(_action_1stDerivativeTransform);
+    transform_group->addAction(_action_2ndDerivativeTransform);
 
   //  menu.addAction(_action_firstDerivativeTransform);
   //  menu.addAction(_action_secondDerivativeTransform);
@@ -351,14 +358,6 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
 {
     QDomElement plot_el = doc.createElement("plot");
 
-    QDomElement range_el = doc.createElement("range");
-    QRectF rect = this->currentBoundingRect();
-    range_el.setAttribute("bottom", QString::number(rect.bottom()) );
-    range_el.setAttribute("top", QString::number(rect.top()) );
-    range_el.setAttribute("left", QString::number(rect.left()) );
-    range_el.setAttribute("right", QString::number(rect.right()) );
-    plot_el.appendChild(range_el);
-
     for(auto it=_curve_list.begin(); it != _curve_list.end(); ++it)
     {
         QString name = it->first;
@@ -371,6 +370,21 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
 
         plot_el.appendChild(curve_el);
     }
+
+    if( _current_transform != PlotDataQwt::noTransform )
+    {
+      QDomElement transform  = doc.createElement("transform");
+      if( _current_transform == PlotDataQwt::firstDerivative )
+      {
+        transform.setAttribute("value", "firstDerivative" );
+      }
+      else if ( _current_transform == PlotDataQwt::secondDerivative )
+      {
+        transform.setAttribute("value", "secondDerivative" );
+      }
+      plot_el.appendChild(transform);
+    }
+
     return plot_el;
 }
 
@@ -433,15 +447,27 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
             }
         }
     }
+    //-----------------------------------------
+    QDomElement transform =  plot_widget.firstChildElement( "transform" );
+    if( !transform.isNull() )
+    {
+      QString trans_value = transform.attribute("value");
+      if( trans_value == "firstDerivative"){
+        _action_1stDerivativeTransform->trigger();
+      }
+      else if(trans_value == "secondDerivative"){
+        _action_2ndDerivativeTransform->trigger();
+      }
+      else{
+        _action_noTransform->trigger();
+      }
+    }
+    else{
+      _action_noTransform->trigger();
+    }
 
-    QDomElement rectangle =  plot_widget.firstChildElement( "range" );
-    QRectF rect;
-    rect.setBottom( rectangle.attribute("bottom").toDouble());
-    rect.setTop( rectangle.attribute("top").toDouble());
-    rect.setLeft( rectangle.attribute("left").toDouble());
-    rect.setRight( rectangle.attribute("right").toDouble());
-
-    this->setScale( rect, false);
+    //-----------------------------------------
+    this->zoomOut(false);
 
     return true;
 }
@@ -751,6 +777,7 @@ void PlotWidget::on_noTransform_triggered(bool checked )
       plot->updateData(true);
   }
   this->setTitle("");
+  _current_transform = ( PlotDataQwt::noTransform );
 
   on_zoomOutVertical_triggered();
   replot();
@@ -771,6 +798,8 @@ void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
   text.setFont(font_title);
 
   this->setTitle(text);
+  _current_transform = ( PlotDataQwt::firstDerivative );
+
 
   on_zoomOutVertical_triggered();
   replot();
@@ -791,6 +820,7 @@ void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
   text.setFont(font_title);
 
   this->setTitle(text);
+  _current_transform = ( PlotDataQwt::secondDerivative );
 
   on_zoomOutVertical_triggered();
   replot();
@@ -808,16 +838,9 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     menu.addAction(_action_zoomOutHorizontally);
     menu.addAction(_action_zoomOutVertically);
     menu.addSeparator();
-
-    auto transform_group = new QActionGroup(this);
-
-    transform_group->addAction(_action_noTransform);
-    transform_group->addAction(_action_firstDerivativeTransform);
-    transform_group->addAction(_action_secondDerivativeTransform);
-
     menu.addAction( _action_noTransform );
-    menu.addAction( _action_firstDerivativeTransform );
-    menu.addAction( _action_secondDerivativeTransform );
+    menu.addAction( _action_1stDerivativeTransform );
+    menu.addAction( _action_2ndDerivativeTransform );
 
     _action_removeCurve->setEnabled( ! _curve_list.empty() );
     _action_removeAllCurves->setEnabled( ! _curve_list.empty() );
