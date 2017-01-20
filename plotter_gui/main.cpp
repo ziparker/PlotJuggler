@@ -12,7 +12,7 @@ QString getFunnySubtitle(){
   {
   case 0: return "The best excuse to buy a second monitor";
   case 1: return "Now with 100% more splashscreens";
-  case 2: return "Because command line tools sucks";
+  case 2: return "Because command line tools suck";
   case 3: return "Data at your fingertips";
   case 4: return "You might have used Kst2";
   case 5: return "Have you starred me on Github?";
@@ -43,16 +43,16 @@ int main(int argc, char *argv[])
   painter.setPen(QColor(50, 50, 50));
 
   QString subtitle = getFunnySubtitle();
-  painter.setFont( QFont("Arial", 30) );
+  painter.setFont( QFont("Arial", 38 - subtitle.size()/4 ) );
 
-  painter.drawText( QRect(30, 200, 600, 100), Qt::AlignHCenter | Qt::AlignVCenter, subtitle );
+  painter.drawText( QRect(50, 200, 580, 100), Qt::AlignHCenter | Qt::AlignVCenter, subtitle );
   painter.end();
 
   QSplashScreen splash(main_pixmap);
   splash.show();
 
 
-  for (int i =0; i<(20 + subtitle.size()/2) && !splash.isHidden(); i++ ) {
+  for (int i =0; i<(25 + subtitle.size()/2) && !splash.isHidden(); i++ ) {
     app.processEvents();
     QThread::msleep(100);
     splash.raise();
