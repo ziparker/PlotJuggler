@@ -49,23 +49,20 @@ QRectF PlotDataQwt::maximumBoundingRect(double min_X, double max_X)
       return QRectF();
     }
 
-    auto range_X_opt = getRangeX();
+    auto range_X = getRangeX();
 
-    if( !range_X_opt ){
+    if( !range_X ){
       return QRectF();
     }
 
-    auto range_Y_opt = getRangeY( x1, x2  );
-    if( !range_Y_opt){
+    auto range_Y = getRangeY( x1, x2  );
+    if( !range_Y){
       return QRectF();
     }
 
-    auto range_X = range_X_opt.get();
-    auto range_Y = range_Y_opt.get();
-
-    QRectF rect ( range_X.min,  range_Y.min,
-                  range_X.max - range_X.min,
-                  range_Y.max - range_Y.min );
+    QRectF rect ( range_X->min,  range_Y->min,
+                  range_X->max - range_X->min,
+                  range_Y->max - range_Y->min );
     return rect;
 }
 

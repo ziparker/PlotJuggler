@@ -358,6 +358,14 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
 {
     QDomElement plot_el = doc.createElement("plot");
 
+    QDomElement range_el = doc.createElement("range");
+    QRectF rect = this->currentBoundingRect();
+    range_el.setAttribute("bottom", QString::number(rect.bottom()) );
+    range_el.setAttribute("top", QString::number(rect.top()) );
+    range_el.setAttribute("left", QString::number(rect.left()) );
+    range_el.setAttribute("right", QString::number(rect.right()) );
+    plot_el.appendChild(range_el);
+
     for(auto it=_curve_list.begin(); it != _curve_list.end(); ++it)
     {
         QString name = it->first;
@@ -448,26 +456,35 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         }
     }
     //-----------------------------------------
-    QDomElement transform =  plot_widget.firstChildElement( "transform" );
-    if( !transform.isNull() )
+    QDomElement transform = plot_widget.firstChildElement( "transform" );
+    if( !transform.isNull()  )
     {
       QString trans_value = transform.attribute("value");
-      if( trans_value == "firstDerivative"){
+      if( trans_value == "firstDerivative" &&
+          _current_transform != PlotDataQwt::firstDerivative)
+      {
         _action_1stDerivativeTransform->trigger();
       }
-      else if(trans_value == "secondDerivative"){
+      else if(trans_value == "secondDerivative" &&
+              _current_transform != PlotDataQwt::secondDerivative)
+      {
         _action_2ndDerivativeTransform->trigger();
       }
-      else{
+      else if( _current_transform != PlotDataQwt::noTransform){
         _action_noTransform->trigger();
       }
     }
-    else{
-      _action_noTransform->trigger();
-    }
-
     //-----------------------------------------
-    this->zoomOut(false);
+    QDomElement rectangle = plot_widget.firstChildElement( "range" );
+    if( !rectangle.isNull()){
+        QRectF rect;
+        rect.setBottom( rectangle.attribute("bottom").toDouble());
+        rect.setTop( rectangle.attribute("top").toDouble());
+        rect.setLeft( rectangle.attribute("left").toDouble());
+        rect.setRight( rectangle.attribute("right").toDouble());
+
+        this->setScale( rect, false);
+    }
 
     return true;
 }
@@ -550,12 +567,12 @@ std::pair<double,double> PlotWidget::maximumRangeX() const
 
         if( first ){
           first = false;
-          left  = range_X.get().min;
-          right = range_X.get().max;
+          left  = range_X->min;
+          right = range_X->max;
         }
         else{
-          if( left  > range_X.get().min )    left  = range_X.get().min;
-          if( right < range_X.get().max )    right = range_X.get().max;
+          if( left  > range_X->min )    left  = range_X->min;
+          if( right < range_X->max )    right = range_X->max;
         }
     }
 
@@ -614,13 +631,13 @@ std::pair<double,double>  PlotWidget::maximumRangeY(bool current_canvas) const
 
            if( first ){
              first = true;
-             top    = range_Y.get().max;
-             bottom = range_Y.get().min;
+             top    = range_Y->max;
+             bottom = range_Y->min;
              first = false;
            }
            else{
-             if( top <    range_Y.get().max )    top    = range_Y.get().max;
-             if( bottom > range_Y.get().min )    bottom = range_Y.get().min;
+             if( top <    range_Y->max )    top    = range_Y->max;
+             if( bottom > range_Y->min )    bottom = range_Y->min;
            }
         }
     }
@@ -758,14 +775,14 @@ void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
     this->setScale(act, emit_signal);
 }
 
-void PlotWidget::on_zoomOutVertical_triggered()
+void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 {
     QRectF act = currentBoundingRect();
     auto rangeY = maximumRangeY( true );
 
     act.setBottom( rangeY.first );
     act.setTop( rangeY.second );
-    this->setScale(act);
+    this->setScale(act, emit_signal);
 }
 
 void PlotWidget::on_noTransform_triggered(bool checked )
@@ -779,7 +796,7 @@ void PlotWidget::on_noTransform_triggered(bool checked )
   this->setTitle("");
   _current_transform = ( PlotDataQwt::noTransform );
 
-  on_zoomOutVertical_triggered();
+  on_zoomOutVertical_triggered(false);
   replot();
 }
 
@@ -800,8 +817,7 @@ void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
   this->setTitle(text);
   _current_transform = ( PlotDataQwt::firstDerivative );
 
-
-  on_zoomOutVertical_triggered();
+  on_zoomOutVertical_triggered(false);
   replot();
 }
 
@@ -822,7 +838,7 @@ void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
   this->setTitle(text);
   _current_transform = ( PlotDataQwt::secondDerivative );
 
-  on_zoomOutVertical_triggered();
+  on_zoomOutVertical_triggered(false);
   replot();
 }
 
