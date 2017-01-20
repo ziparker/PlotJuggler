@@ -53,7 +53,8 @@ MainWindow::MainWindow( QWidget *parent) :
     ui(new Ui::MainWindow),
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
     _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this),
-    _current_streamer(nullptr)
+    _current_streamer(nullptr),
+    _disable_undo_logging(false)
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
@@ -101,7 +102,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::onUndoableChange()
 {
-     int elapsed_ms = _undo_timer.restart();
+    if(_disable_undo_logging) return;
+
+    int elapsed_ms = _undo_timer.restart();
 
     // overwrite the previous
     if( elapsed_ms < 100)
@@ -118,6 +121,26 @@ void MainWindow::onUndoableChange()
         _redo_states.clear();
         qDebug() << "Undo pushed " <<  _undo_states.size();
     }
+}
+
+
+void MainWindow::onRedoInvoked()
+{
+    _disable_undo_logging = true;
+    if( _redo_states.size() > 0)
+    {
+        QDomDocument state_document = _redo_states.back();
+        while( _undo_states.size() >= 100 ) _undo_states.pop_front();
+        _undo_states.push_back( state_document );
+        _redo_states.pop_back();
+
+        xmlLoadState( state_document );
+
+        qDebug() << "ReDo pushed " <<  _undo_states.size();
+
+        updateInternalState();
+    }
+    _disable_undo_logging = false;
 }
 
 void MainWindow::getMaximumRangeX(double* minX, double* maxX)
@@ -225,7 +248,6 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainWindow::createActions()
 {
-
     _undo_shortcut.setContext(Qt::ApplicationShortcut);
     _redo_shortcut.setContext(Qt::ApplicationShortcut);
 
@@ -1001,6 +1023,7 @@ void MainWindow::onUndoInvoked( )
 {
     qDebug() << "on_UndoInvoked "<<_undo_states.size() << " -> " <<_undo_states.size()-1;
 
+    _disable_undo_logging = true;
     if( _undo_states.size() > 1)
     {
         QDomDocument state_document = _undo_states.back();
@@ -1013,23 +1036,8 @@ void MainWindow::onUndoInvoked( )
 
         updateInternalState();
     }
+    _disable_undo_logging = false;
 }
-
-void MainWindow::onRedoInvoked()
-{
-    if( _redo_states.size() > 0)
-    {
-        QDomDocument state_document = _redo_states.back();
-        while( _undo_states.size() >= 100 ) _undo_states.pop_front();
-        _undo_states.push_back( state_document );
-        _redo_states.pop_back();
-
-        xmlLoadState( state_document );
-
-        updateInternalState();
-    }
-}
-
 
 void MainWindow::on_horizontalSlider_sliderMoved(int position)
 {

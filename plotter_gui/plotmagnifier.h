@@ -17,9 +17,9 @@ public:
     void setAxisLimits(int axis,double lower, double upper);
 
 protected:
-    virtual void rescale( double factor ) ;
+    virtual void rescale( double factor ) override;
 
-    virtual void widgetWheelEvent( QWheelEvent *event );
+    virtual void widgetWheelEvent( QWheelEvent *event ) override;
 
     double _lower_bounds[QwtPlot::axisCnt];
     double _upper_bounds[QwtPlot::axisCnt];

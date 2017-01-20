@@ -403,7 +403,6 @@ void PlotMatrix::on_singlePlotScaleChanged(PlotWidget *modified_plot, QRectF new
             }
         }
     }
-
     emit undoableChange();
 }
 

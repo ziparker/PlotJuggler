@@ -10,7 +10,7 @@
 #include <qwt_symbol.h>
 #include <qwt_legend.h>
 #include "plotmagnifier.h"
-#include <qwt_plot_zoomer.h>
+#include "plotzoomer.h"
 #include <qwt_plot_panner.h>
 #include <QDomDocument>
 #include "plotdata_qwt.h"
@@ -92,7 +92,7 @@ private slots:
     void canvasContextMenuTriggered(const QPoint &pos);
     void on_changeColor_triggered();
     void on_showPoints_triggered(bool checked);
-    void on_externallyResized(QRectF new_rect);
+    void on_externallyResized(const QRectF &new_rect);
 
 
 private:
@@ -108,7 +108,7 @@ private:
     QAction *_action_1stDerivativeTransform;
     QAction *_action_2ndDerivativeTransform;
 
-    QwtPlotZoomer* _zoomer;
+    PlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
     QwtPlotPanner* _panner;
     // QRectF _prev_bounding;

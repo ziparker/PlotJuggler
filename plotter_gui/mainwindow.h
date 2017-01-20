@@ -133,6 +133,7 @@ private:
     std::deque<QDomDocument> _redo_states;
 
     QElapsedTimer _undo_timer;
+    bool _disable_undo_logging;
 
     QString _loaded_datafile;
 
