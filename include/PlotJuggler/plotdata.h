@@ -6,9 +6,9 @@
 #include <string>
 #include <map>
 #include <mutex>
-#include <boost/circular_buffer.hpp>
-#include <boost/optional.hpp>
-#include <boost/any.hpp>
+#include <deque>
+#include <PlotJuggler/optional.hpp>
+#include <PlotJuggler/any.hpp>
 #include <QDebug>
 #include <QColor>
 #include <type_traits>
@@ -27,20 +27,19 @@ public:
     Value max;
   };
 
-  typedef boost::optional<RangeTime_>  RangeTime;
-  typedef boost::optional<RangeValue_> RangeValue;
+  typedef nonstd::optional<RangeTime_>  RangeTime;
+  typedef nonstd::optional<RangeValue_> RangeValue;
 
   class Point{
   public:
     Time x;
     Value y;
     Point( Time _x, Value _y): x(_x), y(_y) {}
+    Point() = default;
   };
 
   enum{
     MAX_CAPACITY = 1024*1024,
-    MIN_CAPACITY = 10,
-    DEFAULT_CAPACITY = 1024,
     ASYNC_BUFFER_CAPACITY = 1024
   };
 
@@ -59,13 +58,9 @@ public:
 
   int getIndexFromX(Time x);
 
-  boost::optional<const Value &> getYfromX(Time x );
+  nonstd::optional<const Value &> getYfromX(Time x );
 
   Point at(size_t index);
-
-  void setCapacity(size_t capacity);
-
-  size_t capacity() const { return _capacity; }
 
   void pushBack(Point p);
 
@@ -83,27 +78,24 @@ public:
 protected:
 
   std::string _name;
-  boost::circular_buffer<Time>  _x_points;
-  boost::circular_buffer<Value> _y_points;
+  std::deque<Time>  _x_points;
+  std::deque<Value> _y_points;
 
-  boost::circular_buffer<Point> _pushed_points;
+  std::deque<Point> _pushed_points;
 
   QColor _color_hint;
 
 private:
 
   void updateCapacityBasedOnMaxTime();
-
-  bool _update_bounding_rect;
-
   Time _max_range_X;
   std::mutex _mutex;
-  size_t _capacity;
+
 };
 
 
 typedef PlotDataGeneric<double,double>  PlotData;
-typedef PlotDataGeneric<double, boost::any> PlotDataAny;
+typedef PlotDataGeneric<double, nonstd::any> PlotDataAny;
 
 
 typedef std::shared_ptr<PlotData>     PlotDataPtr;
@@ -121,29 +113,9 @@ typedef struct{
 
 template < typename Time, typename Value>
 inline PlotDataGeneric <Time, Value>::PlotDataGeneric():
-  _x_points( DEFAULT_CAPACITY ),
-  _y_points( DEFAULT_CAPACITY ),
-  _pushed_points( ASYNC_BUFFER_CAPACITY ),
-  _update_bounding_rect(true),
-  _max_range_X( std::numeric_limits<Time>::max() ),
-  _capacity(1024 )
+  _max_range_X( std::numeric_limits<Time>::max() )
 {
   static_assert( std::is_arithmetic<Time>::value ,"Only numbers can be used as time");
-}
-
-template < typename Time, typename Value>
-inline void PlotDataGeneric<Time, Value>::setCapacity(size_t capacity)
-{
-  //std::lock_guard<std::mutex> lock(_mutex);
-  if( capacity > MAX_CAPACITY)
-    capacity = MAX_CAPACITY;
-
-  if( capacity < MIN_CAPACITY)
-    capacity = MIN_CAPACITY;
-
-  _capacity = capacity;
-  _x_points.set_capacity( capacity );
-  _y_points.set_capacity( capacity );
 }
 
 template < typename Time, typename Value>
@@ -151,12 +123,15 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
 {
   _x_points.push_back( point.x );
   _y_points.push_back( point.y );
+ // while(_x_points.size() > _capacity) _x_points.pop_front();
+ // while(_y_points.size() > _capacity) _y_points.pop_front();
 }
 
 template < typename Time, typename Value>
 inline void PlotDataGeneric<Time, Value>::pushBackAsynchronously(Point point)
 {
   std::lock_guard<std::mutex> lock(_mutex);
+  while(_pushed_points.size() > ASYNC_BUFFER_CAPACITY) _pushed_points.pop_front();
   _pushed_points.push_back( point );
 }
 
@@ -182,32 +157,17 @@ template < typename Time, typename Value>
 inline void PlotDataGeneric<Time, Value>::updateCapacityBasedOnMaxTime()
 {
   const long sizeX      = _x_points.size();
-  const size_t capacity = _x_points.capacity();
-
+/*
   if( sizeX >= 2 &&
-      capacity >= MIN_CAPACITY &&
-      capacity <= MAX_CAPACITY &&
       _max_range_X != std::numeric_limits<Time>::max())
   {
-    const Time rangeX = _x_points.back() - _x_points.front();
-    const Time delta = rangeX / (Time)(sizeX - 1);
-    size_t new_capacity = ( _max_range_X / delta);
-
-    if( labs( new_capacity - capacity) > (capacity*2)/100 ) // apply changes only if new capacity is > 2%
-    {
-      while( _x_points.size() > new_capacity)
-      {
+    Time rangeX = _x_points.back() - _x_points.front();
+    while( rangeX > _max_range_X){
         _x_points.pop_front();
         _y_points.pop_front();
-      }
-
-      if( new_capacity > MAX_CAPACITY) new_capacity = MAX_CAPACITY;
-      if( new_capacity < MIN_CAPACITY) new_capacity = MIN_CAPACITY;
-
-      _x_points.set_capacity( new_capacity );
-      _y_points.set_capacity( new_capacity );
+        rangeX = _x_points.back() - _x_points.front();
     }
-  }
+  }*/
 }
 
 template < typename Time, typename Value>
@@ -229,7 +189,7 @@ inline int PlotDataGeneric<Time, Value>::getIndexFromX(Time x )
 
 
 template < typename Time, typename Value>
-inline boost::optional<const Value &> PlotDataGeneric<Time, Value>::getYfromX(Time x)
+inline nonstd::optional<const Value &> PlotDataGeneric<Time, Value>::getYfromX(Time x)
 {
   //std::lock_guard<std::mutex> lock(_mutex);
 
@@ -238,7 +198,7 @@ inline boost::optional<const Value &> PlotDataGeneric<Time, Value>::getYfromX(Ti
 
   if( index >= _x_points.size() || index < 0 )
   {
-    return boost::optional<const Value&>();
+    return nonstd::optional<const Value&>();
   }
   return _y_points.at(index);
 }

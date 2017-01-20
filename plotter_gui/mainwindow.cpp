@@ -78,8 +78,6 @@ MainWindow::MainWindow( QWidget *parent) :
     _undo_timer.start();
 
     // save initial state
-    _undo_states.set_capacity( 100 );
-    _redo_states.set_capacity( 100 );
     onUndoableChange();
 
     _replot_timer = new QTimer(this);
@@ -114,9 +112,11 @@ void MainWindow::onUndoableChange()
 
     if( ui->pushButtonStreaming->isChecked() == false)
     {
+        while( _undo_states.size() >= 100 ) _undo_states.pop_front();
         _undo_states.push_back( xmlSaveState() );
         updateInternalState();
         _redo_states.clear();
+        qDebug() << "Undo pushed " <<  _undo_states.size();
     }
 }
 
@@ -360,10 +360,8 @@ void MainWindow::buildData()
 
     _curvelist_widget->addItems( words_list );
 
-
     foreach( const QString& name, words_list)
     {
-
         double A =  6* ((double)qrand()/(double)RAND_MAX)  - 3;
         double B =  3* ((double)qrand()/(double)RAND_MAX)  ;
         double C =  3* ((double)qrand()/(double)RAND_MAX)  ;
@@ -371,7 +369,6 @@ void MainWindow::buildData()
 
         PlotDataPtr plot ( new PlotData(  ) );
         plot->setName(  name.toStdString() );
-        plot->setCapacity( SIZE );
 
         double t = 0;
         for (unsigned indx=0; indx<SIZE; indx++)
@@ -379,14 +376,12 @@ void MainWindow::buildData()
             t += 0.001;
             plot->pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
         }
-
         QColor color = randomColorHint();
         plot->setColorHint( color );
 
         _mapped_plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
     ui->horizontalSlider->setRange(0, SIZE  );
-
 }
 
 
@@ -1004,11 +999,12 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
 
 void MainWindow::onUndoInvoked( )
 {
-    qDebug() << "on_UndoInvoked "<<_undo_states.size();
+    qDebug() << "on_UndoInvoked "<<_undo_states.size() << " -> " <<_undo_states.size()-1;
 
     if( _undo_states.size() > 1)
     {
         QDomDocument state_document = _undo_states.back();
+        while( _redo_states.size() >= 100 ) _redo_states.pop_front();
         _redo_states.push_back( state_document );
         _undo_states.pop_back();
         state_document = _undo_states.back();
@@ -1024,6 +1020,7 @@ void MainWindow::onRedoInvoked()
     if( _redo_states.size() > 0)
     {
         QDomDocument state_document = _redo_states.back();
+        while( _undo_states.size() >= 100 ) _undo_states.pop_front();
         _undo_states.push_back( state_document );
         _redo_states.pop_back();
 

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   painter.setPen(QColor(50, 50, 50));
 
   QString subtitle = getFunnySubtitle();
-  painter.setFont( QFont("Arial", 38 - subtitle.size()/4 ) );
+  painter.setFont( QFont("Arial", 28 ) );
 
   painter.drawText( QRect(50, 200, 580, 100), Qt::AlignHCenter | Qt::AlignVCenter, subtitle );
   painter.end();
@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
   QSplashScreen splash(main_pixmap);
   splash.show();
 
+  MainWindow w;
 
   for (int i =0; i<(25 + subtitle.size()/2) && !splash.isHidden(); i++ ) {
     app.processEvents();
@@ -58,9 +59,8 @@ int main(int argc, char *argv[])
     splash.raise();
   }
 
- splash.close();
+  splash.close();
 
-  MainWindow w;
   w.show();
 
   return app.exec();

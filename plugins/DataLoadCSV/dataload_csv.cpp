@@ -147,7 +147,6 @@ PlotDataMap DataLoadCSV::readDataFromFile(const std::string &file_name,
 
                     PlotDataPtr plot( new PlotData );
                     plot->setName( name );
-                    plot->setCapacity( tot_lines );
                     plot_data.numeric.insert( std::make_pair( name, plot ) );
 
                     valid_field_names.push_back( qname );

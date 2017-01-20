@@ -75,7 +75,7 @@ public slots:
 
     void on_zoomOutHorizontal_triggered(bool emit_signal = true);
 
-    void on_zoomOutVertical_triggered();
+    void on_zoomOutVertical_triggered(bool emit_signal = true);
 
     void on_noTransform_triggered(bool checked );
     void on_1stDerivativeTransform_triggered(bool checked);
