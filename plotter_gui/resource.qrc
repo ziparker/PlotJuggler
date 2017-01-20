@@ -42,4 +42,7 @@
         <file>resources/columns.png</file>
         <file>resources/rows.png</file>
     </qresource>
+    <qresource prefix="/splash">
+        <file>resources/splash.jpg</file>
+    </qresource>
 </RCC>
