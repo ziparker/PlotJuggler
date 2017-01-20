@@ -17,18 +17,8 @@ QPointF PlotDataQwt::sample(size_t i) const
     const auto& p = _plot_data->at( i );
     return QPointF( p.x, p.y) ;
   }
-  else if(_transform == firstDerivative) {
-
-    const auto& p0 = _plot_data->at( i );
-    const auto& p1 = _plot_data->at( i+1 );
-    const auto delta = p1.x - p0.x;
-    const auto vel = (p1.y - p0.y) /delta;
-    return QPointF( (p1.x + p0.x) /2.0, vel) ;
-  }
-  else // if(_transform == secondDerivative)
-  {
-    const auto& p = _plot_data->at( i );
-    return QPointF( p.x, p.y) ;
+  else {
+    return _cached_transformed_curve[i];
   }
 }
 
@@ -37,6 +27,18 @@ QRectF PlotDataQwt::boundingRect() const
     qDebug() << "boundingRect not implemented";
     return QRectF(0,0,1,1);
 }
+
+
+size_t PlotDataQwt::size() const
+{
+  if(_transform == noTransform) {
+    return _plot_data->size();
+  }
+  else {
+    return _cached_transformed_curve.size();
+  }
+}
+
 
 QRectF PlotDataQwt::maximumBoundingRect(double min_X, double max_X)
 {
@@ -67,14 +69,6 @@ QRectF PlotDataQwt::maximumBoundingRect(double min_X, double max_X)
     return rect;
 }
 
-size_t PlotDataQwt::size() const
-{
-    //return (_index_last - _index_first +1) / _subsample;
-   // return _plot_data->size() /  _subsample ;
-   if( _plot_data->size() <=1 ) return 0;
-   return _plot_data->size() -1;
-}
-
 QColor PlotDataQwt::randomColorHint() const
 {   
      return _plot_data->getColorHint() ;
@@ -88,6 +82,52 @@ void PlotDataQwt::setColorHint(QColor color)
 void PlotDataQwt::setSubsampleFactor()
 {
   //  _subsample = (_plot_data->size() / 2000) + 1;
+}
+
+void PlotDataQwt::updateData(bool force_transform)
+{
+  bool updated = _plot_data->flushAsyncBuffer();
+
+  if(updated || force_transform)
+  {
+    if(_transform == firstDerivative)
+    {
+      if( _plot_data->size() < 1){
+        _cached_transformed_curve.clear();
+      }
+      else{
+        _cached_transformed_curve.resize( _plot_data->size() - 1 );
+      }
+
+      for (size_t i=0; i< _plot_data->size() -1; i++ )
+      {
+        const auto& p0 = _plot_data->at( i );
+        const auto& p1 = _plot_data->at( i+1 );
+        const auto delta = p1.x - p0.x;
+        const auto vel = (p1.y - p0.y) /delta;
+        _cached_transformed_curve[i] = QPointF( (p1.x + p0.x)*0.5, vel) ;
+      }
+    }
+    else if(_transform == secondDerivative)
+    {
+      if( _plot_data->size() < 2){
+        _cached_transformed_curve.clear();
+      }
+      else{
+        _cached_transformed_curve.resize( _plot_data->size() - 2 );
+      }
+
+      for (size_t i=0; i< _cached_transformed_curve.size(); i++ )
+      {
+        const auto& p0 = _plot_data->at( i );
+        const auto& p1 = _plot_data->at( i+1 );
+        const auto& p2 = _plot_data->at( i+2 );
+        const auto delta = (p2.x - p0.x) *0.5;
+        const auto acc = ( p2.y - 2.0* p1.y + p0.y)/(delta*delta);
+        _cached_transformed_curve[i] =  QPointF( (p2.x + p0.x)*0.5, acc ) ;
+      }
+    }
+  }
 }
 
 PlotData::RangeTime PlotDataQwt::getRangeX()
