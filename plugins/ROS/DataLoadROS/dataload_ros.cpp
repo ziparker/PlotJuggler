@@ -142,17 +142,11 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
       if( plot_pair == plot_map.numeric.end() )
       {
         PlotDataPtr temp(new PlotData());
-        //temp->setCapacity( bag_view_reduced.size() );
         auto res = plot_map.numeric.insert( std::make_pair(field_name, temp ) );
         plot_pair = res.first;
       }
 
       PlotDataPtr& plot_data = plot_pair->second;
-
-      if( plot_data->size() >= plot_data->capacity() ) // auto increase size
-      {
-        plot_data->setCapacity( plot_data->size()*1.5 );
-      }
       plot_data->pushBack( PlotData::Point(msg_time, value));
 
     } //end of for flat_container.renamed_value
@@ -171,13 +165,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
       }
 
       PlotDataAnyPtr& plot_raw = plot_pair->second;
-
-      if( plot_raw->size() >= plot_raw->capacity() ) // auto increase size
-      {
-        plot_raw->setCapacity( plot_raw->size()*1.5 );
-      }
-      plot_raw->pushBack( PlotDataAny::Point(msg_time, boost::any(std::move(buffer)) ));
-
+      plot_raw->pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer)) ));
     }
     //   qDebug() << msg.getTopic().c_str();
   }

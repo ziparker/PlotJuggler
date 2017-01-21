@@ -13,7 +13,7 @@
 
 <buildtool_depend>catkin</buildtool_depend>
 
-<build_depend>rosbag_DF</build_depend>
+<build_depend>rosbag</build_depend>
 <build_depend>rosbag_storage</build_depend>
 <build_depend>roscpp</build_depend>
 <build_depend>roscpp_serialization</build_depend>

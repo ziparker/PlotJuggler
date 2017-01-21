@@ -42,7 +42,6 @@
 
 #define optional_CPP11_OR_GREATER  ( __cplusplus >= 201103L )
 #define optional_CPP14_OR_GREATER  ( __cplusplus >= 201402L )
-#define optional_CPP17_OR_GREATER  ( __cplusplus >= 201700L )
 
 // half-open range [lo..hi):
 #define optional_BETWEEN( v, lo, hi ) ( lo <= v && v < hi )
@@ -97,12 +96,6 @@
 
 #if optional_CPP14_OR_GREATER
 # define optional_HAVE_CONSTEXPR_14  1
-#endif
-
-// Presence of C++17 language features:
-
-#if optional_CPP17_OR_GREATER
-# define optional_HAVE_ENUM_CLASS_CONSTRUCTION_FROM_UNDERLYING_TYPE  1
 #endif
 
 // Presence of C++ library features:
