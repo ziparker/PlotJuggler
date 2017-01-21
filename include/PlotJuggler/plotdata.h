@@ -54,13 +54,13 @@ public:
   void setName(const std::string& name) { _name = name; }
   std::string name() const { return _name; }
 
-  virtual size_t size();
+  virtual size_t size() const;
 
-  int getIndexFromX(Time x);
+  int getIndexFromX(Time x) const;
 
-  nonstd::optional<const Value &> getYfromX(Time x );
+  nonstd::optional<Value> getYfromX(Time x ) const;
 
-  Point at(size_t index);
+  Point at(size_t index) const;
 
   void pushBack(Point p);
 
@@ -171,7 +171,7 @@ inline void PlotDataGeneric<Time, Value>::updateCapacityBasedOnMaxTime()
 }
 
 template < typename Time, typename Value>
-inline int PlotDataGeneric<Time, Value>::getIndexFromX(Time x )
+inline int PlotDataGeneric<Time, Value>::getIndexFromX(Time x ) const
 {
  // std::lock_guard<std::mutex> lock(_mutex);
   if( _x_points.size() == 0 ){
@@ -189,7 +189,7 @@ inline int PlotDataGeneric<Time, Value>::getIndexFromX(Time x )
 
 
 template < typename Time, typename Value>
-inline nonstd::optional<const Value &> PlotDataGeneric<Time, Value>::getYfromX(Time x)
+inline nonstd::optional<Value> PlotDataGeneric<Time, Value>::getYfromX(Time x) const
 {
   //std::lock_guard<std::mutex> lock(_mutex);
 
@@ -198,14 +198,14 @@ inline nonstd::optional<const Value &> PlotDataGeneric<Time, Value>::getYfromX(T
 
   if( index >= _x_points.size() || index < 0 )
   {
-    return nonstd::optional<const Value&>();
+    return nonstd::optional<Value>();
   }
   return _y_points.at(index);
 }
 
 template < typename Time, typename Value>
 inline typename PlotDataGeneric<Time, Value>::Point
-PlotDataGeneric<Time, Value>::at(size_t index)
+PlotDataGeneric<Time, Value>::at(size_t index) const
 {
  // std::lock_guard<std::mutex> lock(_mutex);
   try{
@@ -219,7 +219,7 @@ PlotDataGeneric<Time, Value>::at(size_t index)
 
 
 template < typename Time, typename Value>
-inline size_t PlotDataGeneric<Time, Value>::size()
+inline size_t PlotDataGeneric<Time, Value>::size() const
 {
   //std::lock_guard<std::mutex> lock(_mutex);
   return _x_points.size();

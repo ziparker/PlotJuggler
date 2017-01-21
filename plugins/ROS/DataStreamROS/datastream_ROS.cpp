@@ -73,7 +73,6 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     if( plot == _plot_data.numeric.end() )
     {
       PlotDataPtr temp(new PlotData());
-      temp->setCapacity( 1000 );
       temp->setMaximumRangeX( 4.0 );
       auto res = _plot_data.numeric.insert( std::make_pair(field_name, temp ) );
       plot = res.first;

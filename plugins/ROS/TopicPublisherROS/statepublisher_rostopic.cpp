@@ -1,5 +1,5 @@
 #include "statepublisher_rostopic.h"
-#include <boost/any.hpp>
+#include <PlotJuggler/any.hpp>
 #include "../shape_shifter_factory.hpp"
 #include "../qnodedialog.h"
 
@@ -37,25 +37,25 @@ void TopicPublisherROS::updateState(PlotDataMap *datamap, double current_time)
   {
     const std::string&    topic_name = data_it.first;
 
-    boost::optional<RosIntrospection::ShapeShifter*> registered_shapeshifted_msg = ShapeShifterFactory::getInstance().getMessage( topic_name );
+    nonstd::optional<RosIntrospection::ShapeShifter*> registered_shapeshifted_msg = ShapeShifterFactory::getInstance().getMessage( topic_name );
     if( ! registered_shapeshifted_msg )
     {
       // will not be able to use this anyway, just skip
       continue;
     }
 
-    RosIntrospection::ShapeShifter* shapeshifted_msg = registered_shapeshifted_msg.get();
+    RosIntrospection::ShapeShifter* shapeshifted_msg = *registered_shapeshifted_msg;
     const PlotDataAnyPtr& plot_any = data_it.second;
 
-    boost::optional<const boost::any&> any_value = plot_any->getYfromX( current_time );
+    nonstd::optional<nonstd::any> any_value = plot_any->getYfromX( current_time );
 
-    if(!any_value || any_value.get().type() != typeid( std::vector<uint8_t> ))
+    if(!any_value || any_value->type() != typeid( std::vector<uint8_t> ))
     {
       // can't cast to expected type
       continue;
     }
 
-    std::vector<uint8_t> raw_buffer =  boost::any_cast<std::vector<uint8_t>>( any_value.get() );
+    std::vector<uint8_t> raw_buffer =  nonstd::any_cast<std::vector<uint8_t>>( any_value );
 
     ros::serialization::IStream stream( raw_buffer.data(), raw_buffer.size() );
     shapeshifted_msg->read( stream );
