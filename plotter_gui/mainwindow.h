@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QElapsedTimer>
 #include <QShortcut>
+#include <QCommandLineParser>
 #include <set>
 #include <deque>
 #include "plotwidget.h"
@@ -24,7 +25,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(bool test_option, QWidget *parent = 0);
     ~MainWindow();
 
 public slots:
@@ -142,8 +143,6 @@ private:
     void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
 
     void importPlotDataMap(const PlotDataMap &mapped_data);
-
-    void parseCommandLine();
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
