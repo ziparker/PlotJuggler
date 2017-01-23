@@ -28,27 +28,7 @@
 #include "selectlistdialog.h"
 
 
-void MainWindow::parseCommandLine()
-{
-  QCommandLineParser parser;
-  parser.setApplicationDescription("PlotJuggler ");
-  parser.addHelpOption();
-  parser.addVersionOption();
-
-  // A boolean option with multiple names (-t, --test)
-  QCommandLineOption test_option(QStringList() << "t" << "test",
-                                 QCoreApplication::translate("main", "Generate test curves at startup"));
-  parser.addOption(test_option);
-
-  parser.process( *qApp );
-
-  if( parser.isSet(test_option))
-  {
-    buildData();
-  }
-}
-
-MainWindow::MainWindow( QWidget *parent) :
+MainWindow::MainWindow(bool test_option, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
@@ -91,8 +71,10 @@ MainWindow::MainWindow( QWidget *parent) :
     
     this->repaint();
 
-    parseCommandLine();
-
+    if( test_option )
+    {
+      buildData();
+    }
 }
 
 MainWindow::~MainWindow()
