@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.1 (2017-01-24)
+------------------
 * removing the old name "SuperPlotter"
 * bug fix that affected data streaming
 * this explicit dependency might be needed by bloom
