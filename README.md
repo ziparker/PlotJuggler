@@ -16,16 +16,9 @@ To understand what PlotJuggler can do for you, take a look to the following vide
 
 First of all you need to clone the repository and its submodules either using the command:
 
-      git clone --recursive https://github.com/facontidavide/PlotJuggler.git
-
-or
-
       git clone https://github.com/facontidavide/PlotJuggler.git
-      cd PlotJuggler
-      git submodule update --init --recursive
 
-
-The only binary dependencies that you need installed on your system are Boost and Qt5. On Ubuntu the debans can be installed with the command:
+The only binary dependencies that you need installed on your system is Qt5. On Ubuntu the debians can be installed with the command:
 
     sudo apt-get -y install qtbase5-dev 
     
