@@ -2,6 +2,11 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove submodule
+* Contributors: Davide Faconti
+
 0.8.1 (2017-01-24)
 ------------------
 * removing the old name "SuperPlotter"
