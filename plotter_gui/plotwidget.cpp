@@ -221,6 +221,12 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
         //  curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
 
+		if( _current_transform != PlotDataQwt::noTransform)
+		{
+			plot_qwt->setTransform( _current_transform );
+			plot_qwt->updateData(true);
+		}
+
         curve->setData( plot_qwt );
 
         if( _show_line_and_points ) {
@@ -236,11 +242,6 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         curve->attach( this );
         _curve_list.insert( std::make_pair(name, curve));
         
-        if( _current_transform != PlotSeries::noTransform)
-	    {
-		    curve->series().setTransform( _current_transform );
-		    curve->series().updateData(true);
-	    }
     }
 
     auto rangeX = maximumRangeX();
