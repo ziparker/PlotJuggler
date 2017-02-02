@@ -232,10 +232,15 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
 
         curve->setPen( data->getColorHint(),  0.7 );
         curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
-
+	    
         curve->attach( this );
-
         _curve_list.insert( std::make_pair(name, curve));
+        
+        if( _current_transform != PlotSeries::noTransform)
+	    {
+		    curve->series().setTransform( _current_transform );
+		    curve->series().updateData(true);
+	    }
     }
 
     auto rangeX = maximumRangeX();
