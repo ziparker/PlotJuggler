@@ -28,7 +28,7 @@ public:
     PlotWidget(PlotDataMap* datamap, QWidget *parent=0);
     virtual ~PlotWidget();
 
-    bool addCurve(const QString&  name, bool do_replot = true);
+    bool addCurve(const QString&  name, bool do_replot );
 
     bool isEmpty() const;
 
@@ -46,7 +46,7 @@ public:
 
     CurveTracker* tracker();
 
-    void setScale( QRectF rect, bool emit_signal = true );
+    void setScale( QRectF rect, bool emit_signal );
 
 
 protected:
@@ -71,11 +71,11 @@ public slots:
 
     void detachAllCurves();
 
-    void zoomOut(bool emit_signal = true);
+    void zoomOut(bool emit_signal);
 
-    void on_zoomOutHorizontal_triggered(bool emit_signal = true);
+    void on_zoomOutHorizontal_triggered(bool emit_signal);
 
-    void on_zoomOutVertical_triggered(bool emit_signal = true);
+    void on_zoomOutVertical_triggered(bool emit_signal);
 
     void on_noTransform_triggered(bool checked );
     void on_1stDerivativeTransform_triggered(bool checked);
