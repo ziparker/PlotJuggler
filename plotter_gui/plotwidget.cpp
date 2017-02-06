@@ -335,7 +335,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
                 stream >> row >> col >> roleDataMap;
 
                 QString curve_name = roleDataMap[0].toString();
-                addCurve( curve_name );
+                addCurve( curve_name, true );
                 plot_added = true;
             }
             if( plot_added )
@@ -741,7 +741,7 @@ void PlotWidget::zoomOut(bool emit_signal)
 
     rect.setBottom( rangeY.min );
     rect.setTop( rangeY.max );
-    this->setScale(rect);
+    this->setScale(rect, emit_signal);
 }
 
 void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)

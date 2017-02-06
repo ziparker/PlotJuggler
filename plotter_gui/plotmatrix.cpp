@@ -356,7 +356,7 @@ void PlotMatrix::maximumZoomOutVertical()
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            plot->on_zoomOutVertical_triggered();
+            plot->on_zoomOutVertical_triggered(false);
         }
     }
     replot();
@@ -369,7 +369,7 @@ void PlotMatrix::maximumZoomOut()
         PlotWidget *plot = plotAt(i);
         if( plot->isEmpty() == false)
         {
-            plot->zoomOut();
+            plot->zoomOut(false);
         }
     }
     replot();
