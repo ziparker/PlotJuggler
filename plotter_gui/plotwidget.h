@@ -40,9 +40,9 @@ public:
 
     QRectF currentBoundingRect() const;
 
-    std::pair<double,double> maximumRangeX() const;
+    PlotData::RangeTime maximumRangeX() const;
 
-    std::pair<double,double> maximumRangeY(bool current_canvas = false) const;
+    PlotData::RangeValue maximumRangeY( PlotData::RangeTime range_X ) const;
 
     CurveTracker* tracker();
 
@@ -111,12 +111,10 @@ private:
     PlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
     QwtPlotPanner* _panner;
-    // QRectF _prev_bounding;
+
     CurveTracker* _tracker;
     QwtPlotLegendItem* _legend;
     QwtPlotGrid* _grid;
-
-    void setAxisScale( int axisId, double min, double max, double step = 0 );
 
     PlotDataMap* _mapped_data;
     PlotDataQwt::Transform _current_transform;

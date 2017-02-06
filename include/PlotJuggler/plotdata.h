@@ -17,18 +17,18 @@ template <typename Time, typename Value> class PlotDataGeneric
 {
 public:
 
-  struct RangeTime_{
+  struct RangeTime{
     Time min;
     Time max;
   };
 
-  struct RangeValue_{
+  struct RangeValue{
     Value min;
     Value max;
   };
 
-  typedef nonstd::optional<RangeTime_>  RangeTime;
-  typedef nonstd::optional<RangeValue_> RangeValue;
+  typedef nonstd::optional<RangeTime>  RangeTimeOpt;
+  typedef nonstd::optional<RangeValue> RangeValueOpt;
 
   class Point{
   public:
