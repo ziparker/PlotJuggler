@@ -4,6 +4,11 @@ Changelog for package plotjuggler
 
 Forthcoming
 -----------
+* bug fixes
+* QWT submodule removed
+* removed boost dependency
+* Contributors: Davide Faconti
+
 * remove submodule
 * Contributors: Davide Faconti
 
