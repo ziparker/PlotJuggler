@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.0 (2017-02-07)
+------------------
 * bug fixes
 * QWT submodule removed
 * removed boost dependency
