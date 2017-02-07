@@ -101,7 +101,7 @@ void MainWindow::onUndoableChange()
         _undo_states.push_back( xmlSaveState() );
         updateInternalState();
         _redo_states.clear();
-        qDebug() << "Undo pushed " <<  _undo_states.size();
+        //qDebug() << "Undo pushed " <<  _undo_states.size();
     }
 }
 
@@ -118,7 +118,7 @@ void MainWindow::onRedoInvoked()
 
         xmlLoadState( state_document );
 
-        qDebug() << "ReDo pushed " <<  _undo_states.size();
+        //qDebug() << "ReDo pushed " <<  _undo_states.size();
 
         updateInternalState();
     }
@@ -212,6 +212,7 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab, bool undoable)
     window->setAttribute( Qt::WA_DeleteOnClose, true );
     window->show();
     window->activateWindow();
+    window->raise();
 
     if( undoable ) onUndoableChange();
 }
@@ -224,7 +225,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 
     foreach(QString format, mimeFormats)
     {
-        qDebug() << " mimestuff " << format;
+       // qDebug() << " mimestuff " << format;
     }
 }
 
