@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml)
 
+if (NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type selected, default to RelWithDebInfo")
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif()
+
 #NOTE: if you have catkin install, but you don't want ROS to be used, commend the following line
 find_package(catkin QUIET)
 
