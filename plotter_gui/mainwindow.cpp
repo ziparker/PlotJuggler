@@ -26,7 +26,7 @@
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
 #include "selectlistdialog.h"
-
+#include "aboutdialog.h"
 
 MainWindow::MainWindow(bool test_option, QWidget *parent) :
     QMainWindow(parent),
@@ -1222,3 +1222,10 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
 
 }
 
+
+void MainWindow::on_actionAbout_triggered()
+{
+
+  AboutDialog* aboutdialog = new AboutDialog(this);
+  aboutdialog->show();
+}
