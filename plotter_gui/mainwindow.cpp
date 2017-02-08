@@ -1141,6 +1141,11 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 
        src_matrix->gridLayout()->addWidget( destination, src_pos.x(), src_pos.y() );
        dst_matrix->gridLayout()->addWidget( source,      dst_pos.x(), dst_pos.y() );
+
+       src_matrix->updateLayout();
+       if( src_matrix != dst_matrix){
+         dst_matrix->updateLayout();
+       }
     }
     onUndoableChange();
 }
