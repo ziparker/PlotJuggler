@@ -75,7 +75,6 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
     }
     // load the rules
     _rules = dialog->getLoadedRules();
-
   }
 
   rosbag::View bag_view_reduced ( true );
@@ -113,7 +112,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
 
     if( count++ %1000 == 0)
     {
-      qDebug() << count << " / " << bag_view_reduced.size();
+     // qDebug() << count << " / " << bag_view_reduced.size();
 
       progress_dialog.setValue( count );
       QApplication::processEvents();
@@ -133,9 +132,18 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
     buildRosFlatType(type_map[ datatype ], datatype, topic_name, buffer.data(), &flat_container);
     applyNameTransform( _rules[datatype], &flat_container );
 
-    for(auto& it: flat_container.renamed_value )
+    static std::map<const SString*, std::string> cache;
+
+    for(const auto& it: flat_container.renamed_value )
     {
-      std::string field_name ( it.first.data(), it.first.size());
+      auto cache_it = cache.find( &it.first );
+      if( cache_it == cache.end() )
+      {
+        auto ret = cache.insert( std::make_pair( &it.first, std::string( it.first.data(), it.first.size())) );
+        cache_it = ret.first;
+      }
+
+      const std::string& field_name = cache_it->second;
       auto value = it.second;
 
       auto plot_pair = plot_map.numeric.find( field_name );
