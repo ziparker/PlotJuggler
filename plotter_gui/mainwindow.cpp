@@ -64,6 +64,7 @@ MainWindow::MainWindow(bool test_option, QWidget *parent) :
     _replot_timer = new QTimer(this);
     connect(_replot_timer, SIGNAL(timeout()), this, SLOT(onReplotRequested()));
 
+    ui->menuFile->setToolTipsVisible(true);
     ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->streamingLabel->setHidden(true);
     ui->streamingSpinBox->setHidden(true);
@@ -917,6 +918,11 @@ void MainWindow::onActionLoadStreamer()
     else{
         qDebug() << "Failed to launch the streamer";
     }
+
+    ui->actionStartStreaming->setEnabled(false);
+    ui->actionStopStreaming->setEnabled(true);
+    ui->actionDeleteAllData->setEnabled( false );
+    ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
 }
 
 void MainWindow::onActionLoadLayout(bool reload_previous)
@@ -1233,4 +1239,20 @@ void MainWindow::on_actionAbout_triggered()
 
   AboutDialog* aboutdialog = new AboutDialog(this);
   aboutdialog->show();
+}
+
+void MainWindow::on_actionStopStreaming_triggered()
+{
+    ui->pushButtonStreaming->setChecked(false);
+    ui->pushButtonStreaming->setEnabled(false);
+    _current_streamer->shutdown();
+    _current_streamer = nullptr;
+
+    ui->actionStartStreaming->setEnabled(true);
+    ui->actionStopStreaming->setEnabled(false);
+
+    if( !_mapped_plot_data.numeric.empty()){
+        ui->actionDeleteAllData->setEnabled( true );
+        ui->actionDeleteAllData->setToolTip("");
+    }
 }
