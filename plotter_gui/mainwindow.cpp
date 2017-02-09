@@ -70,9 +70,9 @@ MainWindow::MainWindow(bool test_option, QWidget *parent) :
     ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->streamingLabel->setHidden(true);
     ui->streamingSpinBox->setHidden(true);
-    ui->menuBar->show();
-    
-    this->repaint();
+
+    this->setMenuBar(ui->menuBar);
+    ui->menuBar->setNativeMenuBar(false);
 
     connect(_streamer_signal_mapper, SIGNAL(mapped(QString)),
             this, SLOT(onActionLoadStreamer(QString)) );
