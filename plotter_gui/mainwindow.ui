@@ -279,7 +279,7 @@ background: white;
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -302,6 +302,7 @@ background: white;
      <string>Streaming</string>
     </property>
     <addaction name="actionStartStreaming"/>
+    <addaction name="actionStopStreaming"/>
    </widget>
    <widget class="QMenu" name="menuPublishers">
     <property name="enabled">
@@ -364,12 +365,20 @@ background: white;
   </action>
   <action name="actionStartStreaming">
    <property name="text">
-    <string>Start streaming</string>
+    <string>Start (load plugin)</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionStopStreaming">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Stop streaming</string>
    </property>
   </action>
  </widget>
