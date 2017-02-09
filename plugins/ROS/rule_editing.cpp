@@ -4,6 +4,19 @@
 #include <QSettings>
 #include <QPlainTextEdit>
 #include <QTimer>
+#include <QMessageBox>
+
+const char* DEFAULT =
+        "<SubstitutionRules>\n"
+        "\n"
+        "<RosType name=\"JointStates\">\n"
+        "  <rule pattern=\"position.#\" alias=\"name.#\" substitution=\"@.pos\" timestamp=\"header.stamp\"/>\n"
+        "  <rule pattern=\"velocity.#\" alias=\"name.#\" substitution=\"@.vel\" timestamp=\"header.stamp\"/>\n"
+        "  <rule pattern=\"effort.#\"   alias=\"name.#\" substitution=\"@.eff\" timestamp=\"header.stamp\"/>\n"
+        "</RosType>\n"
+        "\n"
+        "</SubstitutionRules>\n"
+        ;
 
 XMLSyntaxHighlighter::XMLSyntaxHighlighter(QObject * parent) :
     QSyntaxHighlighter(parent)
@@ -53,7 +66,7 @@ void XMLSyntaxHighlighter::highlightBlock(const QString & text)
 }
 
 void XMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
-                                                 const QRegExp & regex,
+                                            const QRegExp & regex,
                                             const QString & text)
 {
     int index = regex.indexIn(text);
@@ -73,24 +86,19 @@ void XMLSyntaxHighlighter::setRegexes()
     _xmlCommentRegex.setPattern("<!--[^\\n]*-->");
 
     _xmlKeywordRegexes = QList<QRegExp>() << QRegExp("<\\?") << QRegExp("/>")
-                                           << QRegExp(">") << QRegExp("<") << QRegExp("</")
-                                           << QRegExp("\\?>");
+                                          << QRegExp(">") << QRegExp("<") << QRegExp("</")
+                                          << QRegExp("\\?>");
 }
 
 void XMLSyntaxHighlighter::setFormats()
 {
     _xmlKeywordFormat.setForeground(Qt::blue);
-    _xmlKeywordFormat.setFontWeight(QFont::Normal);
-
     _xmlElementFormat.setForeground(Qt::darkMagenta);
-    _xmlElementFormat.setFontWeight(QFont::Normal);
 
     _xmlAttributeFormat.setForeground(Qt::darkGreen);
-    _xmlAttributeFormat.setFontWeight(QFont::Normal);
     _xmlAttributeFormat.setFontItalic(true);
 
     _xmlValueFormat.setForeground(Qt::darkRed);
-
     _xmlCommentFormat.setForeground(Qt::gray);
 }
 
@@ -102,11 +110,18 @@ RuleEditing::RuleEditing(QWidget *parent) :
 
     _highlighter = new XMLSyntaxHighlighter(ui->textEdit);
 
-    on_pushButtonReset_pressed();
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    restoreGeometry(settings.value("RuleEditing.geometry").toByteArray());
+
+    on_pushButtonPrevious_pressed();
 
     _timer.setInterval(200);
     _timer.setSingleShot(false);
     _timer.start();
+
+    const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+
+    ui->textEdit->setFont(fixedFont);
 
     connect(&_timer, SIGNAL(timeout()), this, SLOT(on_timer()));
 }
@@ -166,23 +181,11 @@ bool RuleEditing::isValidXml()
                 ui->labelValidSyntax->setText(tr("Invalid: ") + errorStr);
                 return false;
             }
-
-            auto pattern_el      = rule_el.firstChildElement("pattern");
-            auto alias_el        = rule_el.firstChildElement("alias");
-            auto substitution_el = rule_el.firstChildElement("substitution");
-
-            if(pattern_el.isNull() ){
-                errorStr = tr("<rule> needs a child called <pattern>");
-                ui->labelValidSyntax->setText(tr("Invalid: ") + errorStr);
-                return false;
-            }
-            else if( alias_el.isNull() ){
-                errorStr = tr("<rule> needs a child called <alias>");
-                ui->labelValidSyntax->setText(tr("Invalid: ") + errorStr);
-                return false;
-            }
-            else if( substitution_el.isNull() ){
-                errorStr = tr("<rule> needs a child called <substitution>");
+            if( !rule_el.hasAttribute("pattern") ||
+                    !rule_el.hasAttribute("alias") ||
+                    !rule_el.hasAttribute("substitution") )
+            {
+                errorStr = tr("<rule> must have the attributes 'pattern', 'alias' and 'substitution'");
                 ui->labelValidSyntax->setText(tr("Invalid: ") + errorStr);
                 return false;
             }
@@ -196,9 +199,41 @@ void RuleEditing::on_pushButtonSave_pressed()
 {
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     settings.setValue("RuleEditing.text", ui->textEdit->toPlainText() );
+    this->close();
+}
+
+void RuleEditing::closeEvent(QCloseEvent *event)
+{
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    settings.setValue("RuleEditing.geometry", saveGeometry());
+    QWidget::closeEvent(event);
+}
+
+void RuleEditing::on_timer()
+{
+    bool valid = isValidXml();
+    ui->pushButtonSave->setEnabled(valid);
+}
+
+void RuleEditing::on_pushButtonCancel_pressed()
+{
+    this->close();
 }
 
 void RuleEditing::on_pushButtonReset_pressed()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(0, tr("Warning"),
+                                  tr("Do you really want to overwrite these rules\n"),
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::No );
+    if( reply == QMessageBox::Yes )
+    {
+        ui->textEdit->setPlainText( DEFAULT );
+    }
+}
+
+void RuleEditing::on_pushButtonPrevious_pressed()
 {
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     if( settings.contains("RuleEditing.text") )
@@ -206,10 +241,7 @@ void RuleEditing::on_pushButtonReset_pressed()
         QString text = settings.value("RuleEditing.text").toString();
         ui->textEdit->setPlainText(text);
     }
-}
-
-void RuleEditing::on_timer()
-{
-    bool valid = isValidXml();
-    ui->pushButtonSave->setEnabled(valid);
+    else{
+        ui->textEdit->setPlainText( DEFAULT );
+    }
 }

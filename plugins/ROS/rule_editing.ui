@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>654</width>
+    <width>770</width>
     <height>491</height>
    </rect>
   </property>
@@ -57,7 +57,14 @@ p, li { white-space: pre-wrap; }
      <item>
       <widget class="QPushButton" name="pushButtonReset">
        <property name="text">
-        <string>ResetTo Default</string>
+        <string>Restore Default</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonPrevious">
+       <property name="text">
+        <string>Restore Previous</string>
        </property>
       </widget>
      </item>
@@ -84,7 +91,7 @@ p, li { white-space: pre-wrap; }
      <item>
       <widget class="QPushButton" name="pushButtonSave">
        <property name="text">
-        <string>Save</string>
+        <string>Save and Close</string>
        </property>
       </widget>
      </item>

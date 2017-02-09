@@ -42,22 +42,6 @@ private:
     QRegExp             _xmlCommentRegex;
 };
 
-/*
-class XMLHighlighter : public QSyntaxHighlighter
-{
-    Q_OBJECT
-public:
-    XMLHighlighter(QTextDocument *parent = 0);
-protected:
-    virtual void highlightBlock(const QString &text) Q_DECL_OVERRIDE;
-private:
-    QTextCharFormat validElementFormat; // The format for XML elements
-    QTextCharFormat attributeNameFormat; // The format for XML attribute names
-    QTextCharFormat attributeValueFormat; // The format for XML attribute values
-    QTextCharFormat commentFormat; // formatting for XML comments
-};
-*/
-
 class RuleEditing : public QDialog
 {
   Q_OBJECT
@@ -73,6 +57,8 @@ private slots:
 
     void on_timer();
 
+    void on_pushButtonCancel_pressed();
+
 private:
  bool isValidXml();
 
@@ -80,6 +66,10 @@ private:
 
   XMLSyntaxHighlighter *_highlighter;
   QTimer _timer;
+
+private slots:
+  virtual void closeEvent(QCloseEvent *event) override;
+  void on_pushButtonPrevious_pressed();
 };
 
 #endif // RULE_EDITING_H
