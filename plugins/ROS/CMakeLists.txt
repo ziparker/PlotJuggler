@@ -17,6 +17,8 @@ add_definitions(-DQT_SHARED)
 SET( COMMON_SRC
     ruleloaderwidget.h
     ruleloaderwidget.cpp
+    rule_editing.h
+    rule_editing.cpp
     qnodedialog.h
     qnodedialog.cpp
     )
