@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include "ruleloaderwidget.h"
+#include "rule_editing.h"
 #include "ui_ruleloaderwidget.h"
 #include <QDomDocument>
 
@@ -49,6 +50,10 @@ const RosIntrospection::SubstitutionRuleMap& RuleLoaderWidget::getLoadedRules() 
 
 void RuleLoaderWidget::on_pushButtonLoadOther_pressed()
 {
+  RuleEditing* rule_editing = new RuleEditing(this);
+  rule_editing->exec();
+
+    /*
   QSettings settings( "IcarusTechnology", "PlotJuggler");
 
   QString directory_path = QDir::currentPath();
@@ -67,7 +72,7 @@ void RuleLoaderWidget::on_pushButtonLoadOther_pressed()
     return;
 
   QFile file(fileName);
-  readRuleFile( file );
+  readRuleFile( file );*/
 }
 
 void RuleLoaderWidget::on_checkBoxEnableSubstitution_toggled(bool checked)
