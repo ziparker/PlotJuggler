@@ -1278,3 +1278,15 @@ void MainWindow::on_actionStopStreaming_triggered()
     }
 }
 
+
+void MainWindow::on_actionExit_triggered()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(0, tr("Warning"),
+                                  tr("Do you really want quit?\n"),
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::No );
+    if( reply == QMessageBox::Yes ) {
+        this->close();
+    }
+}
