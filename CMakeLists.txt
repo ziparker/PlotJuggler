@@ -1,6 +1,10 @@
 project(plotjuggler)
 cmake_minimum_required(VERSION 2.8)
 
+# http://answers.ros.org/question/230877/optionally-build-a-package-with-catkin/
+if( CATKIN_DEVEL_PREFIX )
+    set(COMPILING_WITH_CATKIN 1)
+endif()
 
 SET(PLOTJUGGLER_VERSION_MAJOR 0)
 SET(PLOTJUGGLER_VERSION_MINOR 9)
@@ -19,11 +23,10 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 #NOTE: if you have catkin install, but you don't want ROS to be used, commend the following line
-find_package(catkin QUIET)
+#find_package(catkin QUIET)
 
-if(catkin_FOUND)
+if(COMPILING_WITH_CATKIN)
     message("--------------------------------------------------------------------")
-    message(catkin_FOUND)
     message("PlotJuggler is being built using CATKIN. ROS plugin will be compiled")
     message("--------------------------------------------------------------------")
 
@@ -65,7 +68,7 @@ include_directories(
 include_directories( ./qwt/src ./include ./color_widgets/include )
 
 
-if(catkin_FOUND)
+if(COMPILING_WITH_CATKIN)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
@@ -84,7 +87,7 @@ add_subdirectory( plotter_gui )
 add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataStreamSample )
 
-if(catkin_FOUND)
+if(COMPILING_WITH_CATKIN)
     add_subdirectory( plugins/ROS )
 endif()
 
