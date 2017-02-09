@@ -26,6 +26,7 @@ SET( COMMON_SRC
 QT5_WRAP_UI ( COMMON_UI_SRC
     qnodedialog.ui
     ruleloaderwidget.ui
+    rule_editing.ui
     )
 
 add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC} )
