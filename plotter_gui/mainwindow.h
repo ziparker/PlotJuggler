@@ -146,7 +146,7 @@ private:
 
     std::string _last_load_configuration;
 
-    QSignalMapper *_signal_mapper;
+    QSignalMapper *_streamer_signal_mapper;
 
     void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
 

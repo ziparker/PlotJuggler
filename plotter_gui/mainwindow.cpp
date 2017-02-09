@@ -40,7 +40,7 @@ MainWindow::MainWindow(bool test_option, QWidget *parent) :
     QLocale::setDefault(QLocale::c()); // set as default
 
     _curvelist_widget = new FilterableListWidget(this);
-    _signal_mapper = new QSignalMapper(this);
+    _streamer_signal_mapper = new QSignalMapper(this);
 
     ui->setupUi(this);
 
@@ -74,7 +74,7 @@ MainWindow::MainWindow(bool test_option, QWidget *parent) :
     
     this->repaint();
 
-    connect(_signal_mapper, SIGNAL(mapped(QString)),
+    connect(_streamer_signal_mapper, SIGNAL(mapped(QString)),
             this, SLOT(onActionLoadStreamer(QString)) );
 
     if( _test_option )
@@ -374,8 +374,8 @@ void MainWindow::loadPlugins(QString directory_name)
                 ui->menuStreaming->setEnabled(true);
                 ui->menuStreaming->addAction(startStreamer);
 
-                connect(startStreamer, SIGNAL(triggered()), _signal_mapper, SLOT(map()));
-                _signal_mapper->setMapping(startStreamer, name );
+                connect(startStreamer, SIGNAL(triggered()), _streamer_signal_mapper, SLOT(map()));
+                _streamer_signal_mapper->setMapping(startStreamer, name );
               }
             }
         }
@@ -1256,7 +1256,6 @@ void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
 
 void MainWindow::on_actionAbout_triggered()
 {
-
   AboutDialog* aboutdialog = new AboutDialog(this);
   aboutdialog->show();
 }
