@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.1 (2017-02-09)
+------------------
 * FIX: avoid the use of catkin when using plain cmake
 * IMPROVEMENT: exit option in the file menu
 * IMPROVEMENT: reduce the number of steps to launch a streamer
