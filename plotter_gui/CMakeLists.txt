@@ -50,7 +50,7 @@ target_link_libraries(PlotJuggler
     qwt_static
     )
 
-if(catkin_FOUND)
+if(COMPILING_WITH_CATKIN)
     install(TARGETS PlotJuggler
        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

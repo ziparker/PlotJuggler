@@ -18,7 +18,7 @@ add_library(DataStreamSample SHARED ${SRC} ${UI_SRC}  )
 
 target_link_libraries(DataStreamSample  ${Qt5Widgets_LIBRARIES} )
 
-if(catkin_FOUND)
+if(COMPILING_WITH_CATKIN)
     install(TARGETS DataStreamSample
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
