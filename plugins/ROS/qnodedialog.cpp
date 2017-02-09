@@ -21,7 +21,8 @@ std::string getDefaultMasterURI()
       return "http://localhost:11311";
     }
     else{
-      return qgetenv("ROS_MASTER_URI").toStdString();
+      auto master_uri = ( qgetenv("ROS_MASTER_URI"));
+      return std::string( master_uri.data() );
     }
 }
 
