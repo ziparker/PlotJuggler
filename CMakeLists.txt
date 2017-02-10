@@ -2,7 +2,7 @@ project(plotjuggler)
 cmake_minimum_required(VERSION 2.8)
 
 # http://answers.ros.org/question/230877/optionally-build-a-package-with-catkin/
-if( CATKIN_DEVEL_PREFIX )
+if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR DCATKIN_BUILD_BINARY_PACKAGE)
     set(COMPILING_WITH_CATKIN 1)
 endif()
 
