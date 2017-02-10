@@ -396,7 +396,8 @@ void MainWindow::buildData()
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
                << "mai" << "nessun" << "ci" << "dividera";
 
-    _curvelist_widget->addItems( words_list );
+    for(auto& word: words_list)
+        _curvelist_widget->addItem( new QListWidgetItem(word) );
 
     foreach( const QString& name, words_list)
     {
@@ -1078,7 +1079,6 @@ void MainWindow::onFloatingWindowDestroyed(QObject *object)
             break;
         }
     }
-
     updateInternalState();
 }
 
@@ -1090,7 +1090,6 @@ void MainWindow::onCreateFloatingWindow(PlotMatrix* first_tab)
 
 void MainWindow::updateInternalState()
 {
-    //TODO. implement this with SIGNALS and SLOTS
     std::map<QString,TabbedPlotWidget*> tabbed_map;
     tabbed_map.insert( std::make_pair( QString("Main window"), _main_tabbed_widget) );
 
@@ -1235,13 +1234,13 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
 {
     for (auto it = _mapped_plot_data.numeric.begin(); it != _mapped_plot_data.numeric.end(); it++ )
     {
-        auto plot = it->second;
+        auto& plot = it->second;
         plot->setMaximumRangeX( value );
     }
 
     for (auto it = _mapped_plot_data.user_defined.begin(); it != _mapped_plot_data.user_defined.end(); it++ )
     {
-        auto plot = it->second;
+        auto& plot = it->second;
         plot->setMaximumRangeX( value );
     }
 }
@@ -1285,7 +1284,7 @@ void MainWindow::on_actionExit_triggered()
     reply = QMessageBox::question(0, tr("Warning"),
                                   tr("Do you really want quit?\n"),
                                   QMessageBox::Yes | QMessageBox::No,
-                                  QMessageBox::No );
+                                  QMessageBox::Yes );
     if( reply == QMessageBox::Yes ) {
         this->close();
     }
