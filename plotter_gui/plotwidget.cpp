@@ -291,7 +291,7 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
         QByteArray encoded = mimeData->data( format );
         QDataStream stream(&encoded, QIODevice::ReadOnly);
 
-        if( format.contains( "qabstractitemmodeldatalist") )
+        if( format.contains( "curveslist") )
         {
             event->acceptProposedAction();
         }
@@ -324,22 +324,17 @@ void PlotWidget::dropEvent(QDropEvent *event)
         QByteArray encoded = mimeData->data( format );
         QDataStream stream(&encoded, QIODevice::ReadOnly);
 
-        if( format.contains( "qabstractitemmodeldatalist") )
+        if( format.contains( "curveslist") )
         {
             bool plot_added = false;
             while (!stream.atEnd())
             {
-                int row, col;
-                QMap<int,  QVariant> roleDataMap;
-
-                stream >> row >> col >> roleDataMap;
-
-                QString curve_name = roleDataMap[0].toString();
+                QString curve_name;
+                stream >> curve_name;
                 addCurve( curve_name, true );
                 plot_added = true;
             }
-            if( plot_added )
-            {
+            if( plot_added ) {
                 emit undoableChange();
             }
         }
@@ -902,7 +897,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
         if( mouse_event->button() == Qt::LeftButton &&
-                (mouse_event->modifiers() & Qt::ShiftModifier) )
+            (mouse_event->modifiers() & Qt::ShiftModifier) )
         {
             isPressed = true;
             const QPoint point = mouse_event->pos();
