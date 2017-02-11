@@ -31,32 +31,11 @@ QStringList RosTopicSelector::getSelectedTopicsList()
     return _selected_topics;
 }
 
-
 void RosTopicSelector::on_listTopics_itemSelectionChanged()
 {
     QModelIndexList indexes = ui->listTopics->selectionModel()->selectedIndexes();
-    ui->buttonBox->setEnabled( indexes.count() > 0);
+    ui->pushButtonOK->setEnabled( indexes.count() > 0);
 }
-
-void RosTopicSelector::on_buttonBox_accepted()
-{
-    QListWidget* list = ui->listTopics;
-    QModelIndexList indexes = list->selectionModel()->selectedIndexes();
-
-    _selected_topics.clear();
-    foreach(QModelIndex index, indexes)
-    {
-        _selected_topics .append(  index.data(Qt::DisplayRole ).toString() );
-    }
-    this->accept();
-}
-
-void RosTopicSelector::on_buttonBox_rejected()
-{
-    this->reject();
-}
-
-
 
 const RosIntrospection::SubstitutionRuleMap &RosTopicSelector::getLoadedRules() const
 {
@@ -76,4 +55,22 @@ void RosTopicSelector::on_pushButtonRefresh_pressed()
   }
   topic_advertised.sort();
   ui->listTopics->addItems( topic_advertised );
+}
+
+void RosTopicSelector::on_pushButtonCancel_pressed()
+{
+    this->reject();
+}
+
+void RosTopicSelector::on_pushButtonOK_pressed()
+{
+    QListWidget* list = ui->listTopics;
+    QModelIndexList indexes = list->selectionModel()->selectedIndexes();
+
+    _selected_topics.clear();
+    foreach(QModelIndex index, indexes)
+    {
+        _selected_topics .append(  index.data(Qt::DisplayRole ).toString() );
+    }
+    this->accept();
 }
