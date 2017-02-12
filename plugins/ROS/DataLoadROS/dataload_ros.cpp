@@ -60,7 +60,9 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
 
     int count = 0;
 
-    DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topics );
+    QStringList default_topic_names = QString(load_configuration.c_str()).split(' ');
+
+    DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topics, default_topic_names );
 
     std::set<std::string> topic_selected;
 
