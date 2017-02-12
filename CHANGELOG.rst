@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2017-02-12)
+-------------------
 * auto loading of streamer based on saved layout
 * refactoring of the ROS plugins 
 * REFACTORING to allow future improvements of drag&drop
