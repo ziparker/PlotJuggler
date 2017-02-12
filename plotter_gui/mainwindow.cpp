@@ -940,6 +940,8 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
         ui->actionStopStreaming->setEnabled(true);
         ui->actionDeleteAllData->setEnabled( false );
         ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
+
+        ui->pushButtonStreaming->setChecked(true);
     }
     else{
         qDebug() << "Failed to launch the streamer";
@@ -1226,7 +1228,7 @@ void MainWindow::onReplotRequested()
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
-        _replot_timer->start( 20 );
+        _replot_timer->start( 20 ); // 50 Hz at most
     }
 }
 

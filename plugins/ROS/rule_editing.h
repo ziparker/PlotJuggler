@@ -6,6 +6,7 @@
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 #include <QTextEdit>
+#include <ros_type_introspection/renamer.hpp>
 
 namespace Ui {
 class RuleEditing;
@@ -42,15 +43,21 @@ private:
     QRegExp             _xmlCommentRegex;
 };
 
+
 class RuleEditing : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  explicit RuleEditing(QWidget *parent = 0);
-  ~RuleEditing();
+    explicit RuleEditing(QWidget *parent = 0);
+    ~RuleEditing();
+
+    static RosIntrospection::SubstitutionRuleMap getRenamingRules();
+
+    static QString getRenamingXML();
 
 private slots:
+
     void on_pushButtonSave_pressed();
 
     void on_pushButtonReset_pressed();
@@ -60,16 +67,18 @@ private slots:
     void on_pushButtonCancel_pressed();
 
 private:
- bool isValidXml();
 
-  Ui::RuleEditing *ui;
+    bool isValidXml();
 
-  XMLSyntaxHighlighter *_highlighter;
-  QTimer _timer;
+    Ui::RuleEditing *ui;
+
+    XMLSyntaxHighlighter *_highlighter;
+    QTimer _timer;
 
 private slots:
-  virtual void closeEvent(QCloseEvent *event) override;
-  void on_pushButtonPrevious_pressed();
+
+    virtual void closeEvent(QCloseEvent *event) override;
+
 };
 
 #endif // RULE_EDITING_H

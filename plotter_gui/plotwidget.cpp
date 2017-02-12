@@ -92,9 +92,6 @@ PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
 
     this->canvas()->setMouseTracking(true);
     this->canvas()->installEventFilter(this);
-
-    // this->axisScaleDraw( QwtPlot::xBottom )->enableComponent( QwtAbstractScaleDraw::Labels, false );
-    //  this->axisScaleDraw( QwtPlot::yLeft   )->enableComponent( QwtAbstractScaleDraw::Labels, false );
 }
 
 void PlotWidget::buildActions()
@@ -219,7 +216,7 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         PlotDataQwt* plot_qwt = new PlotDataQwt( data );
 
         curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
-        //  curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
+        curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
 
 		if( _current_transform != PlotDataQwt::noTransform)
 		{
@@ -890,8 +887,6 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
     static bool isPressed = true;
 
-    // qDebug() <<  event->type();
-
     if ( event->type() == QEvent::MouseButtonPress)
     {
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
@@ -906,8 +901,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
             emit trackerMoved(pointF);
         }
     }
-
-    if ( event->type() == QEvent::MouseButtonRelease)
+    else if ( event->type() == QEvent::MouseButtonRelease)
     {
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
@@ -916,8 +910,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
             isPressed = false;
         }
     }
-
-    if ( event->type() == QEvent::MouseMove )
+    else if ( event->type() == QEvent::MouseMove )
     {
         // special processing for mouse move
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
@@ -931,9 +924,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
             emit trackerMoved(pointF);
         }
     }
-
-    //------------------------------------------------------
-    if ( obj == this->canvas() && event->type() == QEvent::Paint )
+    else if ( obj == this->canvas() && event->type() == QEvent::Paint )
     {
         if ( !_fps_timeStamp.isValid() )
         {
@@ -951,9 +942,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
                 QwtText fps;
                 fps.setText( QString::number( qRound( _fps_counter / elapsed ) ) );
                 fps.setFont(font_title);
-
-                //this->setTitle( fps );
-
+                //qDebug() << _fps_counter / elapsed ;
                 _fps_counter = 0;
                 _fps_timeStamp.start();
             }

@@ -113,7 +113,7 @@ RuleEditing::RuleEditing(QWidget *parent) :
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     restoreGeometry(settings.value("RuleEditing.geometry").toByteArray());
 
-    on_pushButtonPrevious_pressed();
+    ui->textEdit->setPlainText( getRenamingXML() );
 
     _timer.setInterval(200);
     _timer.setSingleShot(false);
@@ -130,6 +130,7 @@ RuleEditing::~RuleEditing()
 {
     delete ui;
 }
+
 
 bool RuleEditing::isValidXml()
 {
@@ -233,15 +234,54 @@ void RuleEditing::on_pushButtonReset_pressed()
     }
 }
 
-void RuleEditing::on_pushButtonPrevious_pressed()
+QString RuleEditing::getRenamingXML()
 {
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     if( settings.contains("RuleEditing.text") )
     {
-        QString text = settings.value("RuleEditing.text").toString();
-        ui->textEdit->setPlainText(text);
+        return settings.value("RuleEditing.text").toString();
     }
     else{
-        ui->textEdit->setPlainText( DEFAULT );
+        return DEFAULT;
     }
 }
+
+RosIntrospection::SubstitutionRuleMap RuleEditing::getRenamingRules()
+{
+    using namespace RosIntrospection;
+    SubstitutionRuleMap rule_map;
+
+    QDomDocument domDocument;
+
+    if (!domDocument.setContent( getRenamingXML() , true))
+    {
+        return rule_map;
+    }
+    QDomElement root = domDocument.namedItem("SubstitutionRules").toElement();
+
+    for ( auto type_el = root.firstChildElement("RosType")  ;
+          type_el.isNull() == false;
+          type_el = type_el.nextSiblingElement("RosType") )
+    {
+        std::string type_name = type_el.attribute("name").toStdString();
+        std::vector<SubstitutionRule> rules_vect;
+
+        for ( auto rule_el = type_el.firstChildElement("rule")  ;
+              rule_el.isNull() == false;
+              rule_el = rule_el.nextSiblingElement("rule") )
+        {
+            std::string pattern      = rule_el.attribute("pattern").toStdString();
+            std::string substitution = rule_el.attribute("substitution").toStdString();
+            std::string alias        = rule_el.attribute("alias").toStdString();
+
+            SubstitutionRule rule( pattern.c_str(),
+                                   alias.c_str(),
+                                   substitution.c_str() );
+
+            rules_vect.push_back( rule );
+        }
+        rule_map.insert( std::make_pair( std::move(type_name), std::move( rules_vect ) ));
+    }
+    return rule_map;
+}
+
