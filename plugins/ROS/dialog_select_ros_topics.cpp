@@ -15,6 +15,7 @@
 
 
 DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString, QString> > &topic_list,
+                                             QStringList default_selected_topics,
                                              QWidget *parent) :
     QDialog(parent),
     ui(new Ui::dialogSelectRosTopics)
@@ -35,11 +36,17 @@ DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString
 
     for (int row=0; row< topic_list.size(); row++)
     {
-        QTableWidgetItem *name_item = new QTableWidgetItem( topic_list[row].first );
+        QString topic_name(topic_list[row].first );
+        QTableWidgetItem *name_item = new QTableWidgetItem( topic_name );
         ui->listRosTopics->setItem(row, 0, name_item);
 
         QTableWidgetItem *type_item = new QTableWidgetItem( topic_list[row].second );
         ui->listRosTopics->setItem(row, 1, type_item);
+
+        if(default_selected_topics.contains(topic_name))
+        {
+            ui->listRosTopics->selectRow(0);
+        }
     }
 
     ui->listRosTopics->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
@@ -49,6 +56,7 @@ DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString
     if( topic_list.size() == 1){
         ui->listRosTopics->selectRow(0);
     }
+
 
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     ui->checkBoxEnableRules->setChecked(     settings.value("DialogSelectRosTopics.enableRules", true ).toBool());

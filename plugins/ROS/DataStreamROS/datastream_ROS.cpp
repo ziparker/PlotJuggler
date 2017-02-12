@@ -39,15 +39,15 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         return;
     }
 
-    static ros::Time prev_time = ros::Time::now();
-    ros::Duration elapsed_time = ros::Time::now() - prev_time;
-    _received_msg_count++;
-    if( elapsed_time > ros::Duration(1))
-    {
-        prev_time += elapsed_time;
-        qDebug() << "count: " << ((double)_received_msg_count)/ elapsed_time.toSec();
-        _received_msg_count = 0;
-    }
+//    static ros::Time prev_time = ros::Time::now();
+//    ros::Duration elapsed_time = ros::Time::now() - prev_time;
+//    _received_msg_count++;
+//    if( elapsed_time > ros::Duration(1))
+//    {
+//        prev_time += elapsed_time;
+//      //  qDebug() << "count: " << ((double)_received_msg_count)/ elapsed_time.toSec();
+//        _received_msg_count = 0;
+//    }
     using namespace RosIntrospection;
 
     static std::set<std::string> registered_type;
@@ -182,7 +182,7 @@ bool DataStreamROS::start()
                                    QString(topic_info.datatype.c_str()) ) );
     }
 
-    DialogSelectRosTopics dialog(all_topics, 0 );
+    DialogSelectRosTopics dialog(all_topics, QStringList(), 0 );
     int res = dialog.exec();
 
     QStringList topic_selected = dialog.getSelectedItems();

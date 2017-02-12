@@ -559,9 +559,16 @@ void MainWindow::onActionSaveLayout()
         QDomElement root = doc.namedItem("root").toElement();
         QDomElement previously_loaded_datafile =  doc.createElement( "previouslyLoadedDatafile" );
         QDomText textNode = doc.createTextNode( _loaded_datafile );
-
         previously_loaded_datafile.appendChild( textNode );
         root.appendChild( previously_loaded_datafile );
+    }
+    if( _current_streamer )
+    {
+        QDomElement root = doc.namedItem("root").toElement();
+        QDomElement loaded_streamer =  doc.createElement( "previouslyLoadedStreamer" );
+        QDomText textNode = doc.createTextNode( _current_streamer->name() );
+        loaded_streamer.appendChild( textNode );
+        root.appendChild( loaded_streamer );
     }
 
     QSettings settings( "IcarusTechnology", "PlotJuggler");
@@ -1003,8 +1010,8 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
     }
 
     QDomElement root = domDocument.namedItem("root").toElement();
-    QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoadedDatafile" );
 
+    QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoadedDatafile" );
     if( previously_loaded_datafile.isNull() == false)
     {
         QString filename = previously_loaded_datafile.text();
@@ -1020,6 +1027,26 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
             onActionLoadDataFileImpl( filename );
         }
     }
+
+    QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoadedStreamer" );
+    if( previously_loaded_streamer.isNull() == false)
+    {
+        QString streamer_name = previously_loaded_streamer.text();
+
+        bool streamer_loaded = false;
+        for(auto& it: _data_streamer)
+        {
+            if( it.first == streamer_name) streamer_loaded = true;
+        }
+        if( streamer_loaded ){
+            onActionLoadStreamer( streamer_name );
+        }
+        else{
+            QMessageBox::warning(this, tr("Error Loading Streamer"),
+                                 tr("The stramer named %1 can not be loaded.").arg(streamer_name));
+        }
+    }
+
     ///--------------------------------------------------
 
     xmlLoadState( domDocument );

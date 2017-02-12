@@ -20,6 +20,7 @@ class DialogSelectRosTopics : public QDialog
 
 public:
     explicit DialogSelectRosTopics(const std::vector<std::pair<QString,QString>>& topic_list,
+                                   QStringList default_selected_topics,
                                    QWidget *parent = 0);
     ~DialogSelectRosTopics();
 
