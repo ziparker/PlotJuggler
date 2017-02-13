@@ -81,7 +81,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
     }
 
     rosbag::View bag_view_reduced ( true );
-     bag_view_reduced.addQuery(bag, [topic_selected](rosbag::ConnectionInfo const* connection)
+    bag_view_reduced.addQuery(bag, [topic_selected](rosbag::ConnectionInfo const* connection)
     {
         return topic_selected.find( connection->topic ) != topic_selected.end();
     } );
@@ -149,28 +149,19 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
             msg_time -= first_time.toSec();
         }
 
-        static std::map<SString, PlotDataPtr> cache;
-
         for(const auto& it: flat_container.renamed_value )
         {
-            auto cache_it = cache.find( it.first);
+            std::string field_name( it.first.data(), it.first.size());
 
-            if( cache_it == cache.end())
+            auto plot_pair = plot_map.numeric.find( field_name );
+            if( plot_pair == plot_map.numeric.end() )
             {
-                std::string field_name( it.first.data(), it.first.size());
-
-                auto plot_pair = plot_map.numeric.find( field_name );
-                if( plot_pair == plot_map.numeric.end() )
-                {
-                    PlotDataPtr temp(new PlotData());
-                    auto res = plot_map.numeric.insert( std::make_pair(field_name, temp ) );
-                    plot_pair = res.first;
-                }
-                auto res = cache.insert( std::make_pair( it.first, plot_pair->second ) );
-                cache_it = res.first;
+                PlotDataPtr temp(new PlotData());
+                auto res = plot_map.numeric.insert( std::make_pair(field_name, temp ) );
+                plot_pair = res.first;
             }
 
-            PlotDataPtr& plot_data = cache_it->second;
+            PlotDataPtr& plot_data = plot_pair->second;
             plot_data->pushBack( PlotData::Point(msg_time, it.second));
         } //end of for flat_container.renamed_value
 
