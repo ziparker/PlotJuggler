@@ -125,7 +125,6 @@ void PlotMatrix::removeRow(unsigned row_to_delete)
     if(_num_rows==1 && _num_cols ==1 ) {
         return;
     }
-
     for(unsigned row = row_to_delete; row< _num_rows-1; row++)
     {
         for(unsigned col = 0; col< _num_cols; col++)
