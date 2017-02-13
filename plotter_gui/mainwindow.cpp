@@ -280,27 +280,6 @@ void MainWindow::createActions()
     }
 }
 
-
-QColor MainWindow::randomColorHint()
-{
-    static int index = 0;
-    QColor color;
-    switch( index%9 )
-    {
-    case 0:  color = QColor(Qt::black) ;break;
-    case 1:  color = QColor(Qt::blue);break;
-    case 2:  color =  QColor(Qt::red); break;
-    case 3:  color =  QColor(Qt::darkGreen); break;
-    case 4:  color =  QColor(Qt::magenta); break;
-    case 5:  color =  QColor(Qt::darkCyan); break;
-    case 6:  color =  QColor(Qt::gray); break;
-    case 7:  color =  QColor(Qt::darkBlue); break;
-    case 8:  color =  QColor(Qt::darkYellow); break;
-    }
-    index++;
-    return color;
-}
-
 void MainWindow::loadPlugins(QString directory_name)
 {
     static std::set<QString> loaded_plugins;
@@ -415,9 +394,6 @@ void MainWindow::buildData()
             t += 0.001;
             plot->pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
         }
-        QColor color = randomColorHint();
-        plot->setColorHint( color );
-
         _mapped_plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
     ui->horizontalSlider->setRange(0, SIZE  );
@@ -747,8 +723,6 @@ void MainWindow::importPlotDataMap(const PlotDataMap& mapped_data)
         // this is a new plot
         if( plot_with_same_name == _mapped_plot_data.numeric.end() )
         {
-            QColor color = randomColorHint();
-            plot->setColorHint( color );
             _curvelist_widget->addItem( new QListWidgetItem( qname ) );
             _mapped_plot_data.numeric.insert( std::make_pair(name, plot) );
         }

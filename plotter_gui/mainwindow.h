@@ -124,8 +124,6 @@ private:
 
     void rearrangeGridLayout();
 
-    QColor randomColorHint();
-
     void loadPlugins(QString subdir_name);
 
     std::map<QString,DataLoader*>      _data_loader;
