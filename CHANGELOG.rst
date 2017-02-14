@@ -2,6 +2,11 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* critical bug fixed in ROS streaming
+* Contributors: Davide Faconti
+
 0.10.1 (2017-02-14)
 -------------------
 * adding more command line functionality
