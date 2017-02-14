@@ -2,6 +2,16 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* adding more command line functionality
+* BUG-FIX: bad resizing when a matrix row or column is deleted
+* simplifying how random colors are managed
+* more streaming buffer
+* remember selected topics
+* improvements and bug fixes
+* Contributors: Davide Faconti
+
 0.10.0 (2017-02-12)
 -------------------
 * auto loading of streamer based on saved layout
