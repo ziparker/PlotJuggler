@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.1 (2017-02-14)
+-------------------
 * adding more command line functionality
 * BUG-FIX: bad resizing when a matrix row or column is deleted
 * simplifying how random colors are managed
