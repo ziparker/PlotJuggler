@@ -2,6 +2,12 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* adding help dialog
+* minor bug fix
+* Contributors: Davide Faconti
+
 0.10.2 (2017-02-14)
 -------------------
 * critical bug fixed in ROS streaming
