@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.3 (2017-02-21)
+-------------------
 * adding help dialog
 * minor bug fix
 * Contributors: Davide Faconti
