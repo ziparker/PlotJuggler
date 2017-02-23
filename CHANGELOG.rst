@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.11.0 (2017-02-23)
+-------------------
 * should fix the reloading issue
 * Update README.md
 * minor fixes of the help_dialog layout
