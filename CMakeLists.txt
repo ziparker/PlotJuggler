@@ -7,7 +7,7 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
 endif()
 
 SET(PLOTJUGGLER_VERSION_MAJOR 0)
-SET(PLOTJUGGLER_VERSION_MINOR 11)
+SET(PLOTJUGGLER_VERSION_MINOR 12)
 SET(PLOTJUGGLER_VERSION_PATCH 0)
 
 add_definitions(
@@ -22,9 +22,6 @@ if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to RelWithDebInfo")
     set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
-
-#NOTE: if you have catkin install, but you don't want ROS to be used, commend the following line
-#find_package(catkin QUIET)
 
 if(COMPILING_WITH_CATKIN)
     message("--------------------------------------------------------------------")
@@ -112,7 +109,7 @@ SET(CPACK_PACKAGE_VERSION_PATCH ${PLOTJUGGLER_VERSION_PATCH} )
 SET(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
 SET(CPACK_PACKAGE_NAME "plotjuggler${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default")
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default, libqt5svg5-dev")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "PlotJuggler")
 
 INCLUDE(CPack)
