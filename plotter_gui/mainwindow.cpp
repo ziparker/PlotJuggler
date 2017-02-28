@@ -1251,13 +1251,11 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
     }
 }
 
-
 void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
 {
     emit  activateTracker( checked );
 
 }
-
 
 void MainWindow::on_actionAbout_triggered()
 {
