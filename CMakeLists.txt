@@ -16,6 +16,7 @@ add_definitions(
     -DPJ_PATCH_VERSION=${PLOTJUGGLER_VERSION_PATCH} )
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml )
+find_package(Qt5Svg)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to RelWithDebInfo")
@@ -62,7 +63,7 @@ include_directories(
     ${Qt5Concurrent_INCLUDE_DIRS}
     ${Qt5PrintSupport_INCLUDE_DIRS}
     ${Qt5Xml_INCLUDE_DIRS}
-    #${Qt5OpenGl_INCLUDE_DIRS}
+    ${Qt5Svg_INCLUDE_DIRS}
     )
 
 include_directories( ./qwt/src ./include ./color_widgets/include )

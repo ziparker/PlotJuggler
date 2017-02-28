@@ -47,6 +47,7 @@ target_link_libraries(PlotJuggler
     ${Qt5PrintSupport_LIBRARIES}
     ${Qt5Xml_LIBRARIES}
     ${Qt5Concurrent_LIBRARIES}
+    ${Qt5Svg_LIBRARIES}
     colorwidgets
     qwt_static
     )
