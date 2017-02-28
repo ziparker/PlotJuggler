@@ -22,7 +22,7 @@ QString getFunnySubtitle(){
     case 9: return "Just Plot It!";
     case 10: return "More than you can plot";
     case 11: return "Happy Plotting, or get your money back";
-    case 12: return "\"It won't take me much to code that\".. Davide, 2013";
+    case 12: return "\"It won't take me much to code that\".. Davide, 2014";
     case 13: return "Don't use MATLAB for that!";
     case 14: return "Startup is actually fast. I added splashscreens for fun\"";
     case 15: return "I didn't find a better name...";
