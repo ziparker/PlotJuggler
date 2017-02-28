@@ -208,5 +208,4 @@ target_link_libraries(qwt_static
     ${Qt5PrintSupport_LIBRARIES}
     ${Qt5Concurrent_LIBRARIES}
     ${Qt5Svg_LIBRARIES}
-
     )

@@ -15,8 +15,8 @@ add_definitions(
     -DPJ_MINOR_VERSION=${PLOTJUGGLER_VERSION_MINOR}
     -DPJ_PATCH_VERSION=${PLOTJUGGLER_VERSION_PATCH} )
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml )
-find_package(Qt5Svg)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml Svg )
+
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to RelWithDebInfo")
