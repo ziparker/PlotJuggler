@@ -181,11 +181,9 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     getMaximumRangeX( &minX, &maxX );
 
     double ratio = (current_time - minX)/(double)(maxX-minX);
-
     double min_slider = (double)ui->horizontalSlider->minimum();
     double max_slider = (double)ui->horizontalSlider->maximum();
     int slider_value = (int)((max_slider- min_slider)* ratio) ;
-
     ui->horizontalSlider->setValue(slider_value);
 
     //------------------------
@@ -467,7 +465,6 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
     connect( this, SIGNAL(activateTracker(bool)),  plot, SLOT( replot() ));
 
     plot->tracker()->setEnabled(  ui->pushButtonActivateTracker->isChecked() );
-
 }
 
 void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
@@ -1047,19 +1044,6 @@ void MainWindow::onUndoInvoked( )
     _disable_undo_logging = false;
 }
 
-void MainWindow::on_horizontalSlider_sliderMoved(int position)
-{
-    QSlider* slider = ui->horizontalSlider;
-    double ratio = (double)position / (double)(slider->maximum() -  slider->minimum() );
-
-    double minX, maxX;
-    getMaximumRangeX( &minX, &maxX);
-
-    double posX = (maxX-minX) * ratio + minX;
-
-    onTrackerTimeUpdated( posX );
-    emit  trackerTimeUpdated( QPointF(posX,0 ) );
-}
 
 void MainWindow::on_tabbedAreaDestroyed(QObject *object)
 {
@@ -1090,6 +1074,17 @@ void MainWindow::updateInternalState()
 {
     std::map<QString,TabbedPlotWidget*> tabbed_map;
     tabbed_map.insert( std::make_pair( QString("Main window"), _main_tabbed_widget) );
+
+    double maxX = 0;
+
+    forEachWidget([&](PlotWidget* plot)
+    {
+        for( auto& it: plot->curveList()) {
+            maxX = std::max(maxX, (double)it.second->data()->size() );
+        }
+    } );
+
+    ui->horizontalSlider->setRange(0,maxX);
 
     for (SubWindow* subwin: _floating_window)
     {
@@ -1331,6 +1326,20 @@ void MainWindow::on_actionQuick_Help_triggered()
     ui->label_6->setMovie(movie_6);
     movie_6->start();
 
-
     dialog->exec();
+}
+
+void MainWindow::on_horizontalSlider_valueChanged(int position)
+{
+    //qDebug() <<position;
+    QSlider* slider = ui->horizontalSlider;
+    double ratio = (double)position / (double)(slider->maximum() -  slider->minimum() );
+
+    double minX, maxX;
+    getMaximumRangeX( &minX, &maxX);
+
+    double posX = (maxX-minX) * ratio + minX;
+
+    onTrackerTimeUpdated( posX );
+    emit  trackerTimeUpdated( QPointF(posX,0 ) );
 }
