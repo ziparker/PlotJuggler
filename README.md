@@ -49,13 +49,9 @@ A mandatory dependency is the package: https://github.com/facontidavide/ros_type
 
 __IMPORTANT__: there is a critical bug in version 0.3.x of ros_type_introspection. Use version 0.4.3 or later.
 
-__At the time of writing, you must compile ros_type_introspection from source (master branch).__
+You can easily install the Indigo, Jade or Kinetic package with the command:
 
-In the future you will be able to install it on ROS Indigo and Kinetic:
+       sudo apt-get install ros-XXXX-ros-type-introspection
 
-       sudo apt-get install ros-indigo-ros-type-introspection
-or
-
-       sudo apt-get install ros-kinetic-ros-type-introspection
       
 
