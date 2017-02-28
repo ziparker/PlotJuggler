@@ -19,7 +19,7 @@
 #include <qwt_text.h>
 #include <QActionGroup>
 #include <QFileDialog>
-#include <qwt/qwt_plot_renderer.h>
+#include "qwt_plot_renderer.h"
 #include <PlotJuggler/random_color.h>
 
 
