@@ -26,6 +26,7 @@ QString getFunnySubtitle(){
     case 13: return "Don't use MATLAB for that!";
     case 14: return "Startup is actually fast. I added splashscreens for fun\"";
     case 15: return "I didn't find a better name...";
+    case 16: return "Changing the world, one plot at a time";
     }
     return "Juggle with data";
 }
@@ -37,8 +38,9 @@ int main(int argc, char *argv[])
 
     qApp->setStyleSheet(QString("QToolTip {\n"
                                 "   border: 1px solid black;\n"
-                                "   border-radius: 6px;\n"
-                                "   background: white;\n}" ));
+                                "   border-radius: 4px;\n"
+                                "   background: white;\n"
+                                "   color: black; }" ));
 
     QString VERSION_STRING = QString::number(PJ_MAJOR_VERSION) + QString(".") +
             QString::number(PJ_MINOR_VERSION) + QString(".") +
