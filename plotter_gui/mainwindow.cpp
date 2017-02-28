@@ -53,6 +53,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     ui->leftLayout->addWidget( _curvelist_widget );
 
     ui->splitter->setCollapsible(0,true);
+    ui->splitter->setStretchFactor(0,2);
+    ui->splitter->setStretchFactor(1,5);
 
     connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
 
