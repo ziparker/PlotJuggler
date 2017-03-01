@@ -15,6 +15,12 @@ add_definitions(
     -DPJ_MINOR_VERSION=${PLOTJUGGLER_VERSION_MINOR}
     -DPJ_PATCH_VERSION=${PLOTJUGGLER_VERSION_PATCH} )
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+SET(CMAKE_AUTOUIC ON)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml Svg )
 
 
@@ -24,9 +30,9 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 if(COMPILING_WITH_CATKIN)
-    message("--------------------------------------------------------------------")
-    message("PlotJuggler is being built using CATKIN. ROS plugin will be compiled")
-    message("--------------------------------------------------------------------")
+    message("---------------------------------------------------------------------")
+    message("PlotJuggler is being built using CATKIN. ROS plugins will be compiled")
+    message("---------------------------------------------------------------------")
 
     find_package(catkin REQUIRED COMPONENTS
         rosbag
@@ -45,25 +51,26 @@ if(COMPILING_WITH_CATKIN)
 endif()
 
 
-set(CMAKE_AUTOMOC ON)
-SET(CMAKE_AUTOUIC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 IF (NOT WIN32)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fPIC")
 ENDIF()
 
-include_directories(
-    ${Qt5Widgets_INCLUDE_DIRS}
-    ${Qt5Concurrent_INCLUDE_DIRS}
-    ${Qt5PrintSupport_INCLUDE_DIRS}
-    ${Qt5Xml_INCLUDE_DIRS}
-    ${Qt5Svg_INCLUDE_DIRS}
+IF (CMAKE_VERSION LESS 2.8.9)
+    include_directories(
+        ${Qt5Core_INCLUDE_DIRS}
+        ${Qt5Gui_INCLUDE_DIRS}
+        ${Qt5Widgets_INCLUDE_DIRS}
+        ${Qt5Concurrent_INCLUDE_DIRS}
+        ${Qt5PrintSupport_INCLUDE_DIRS}
+        ${Qt5Xml_INCLUDE_DIRS}
+        ${Qt5Svg_INCLUDE_DIRS}
     )
+ENDIF()
 
-include_directories( ./qwt/src ./include ./color_widgets/include )
+include_directories( ./qwt/src
+    ./include
+    ./color_widgets/include )
 
 
 if(COMPILING_WITH_CATKIN)
