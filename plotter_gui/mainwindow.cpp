@@ -323,7 +323,10 @@ void MainWindow::loadPlugins(QString directory_name)
         QObject *plugin = pluginLoader.instance();
         if (plugin)
         {
-            DataLoader *loader = qobject_cast<DataLoader *>(plugin);
+            DataLoader *loader        = qobject_cast<DataLoader *>(plugin);
+            StatePublisher *publisher = qobject_cast<StatePublisher *>(plugin);
+            DataStreamer *streamer    =  qobject_cast<DataStreamer *>(plugin);
+
             if (loader)
             {
                 qDebug() << filename << ": is a DataLoader plugin";
@@ -336,9 +339,7 @@ void MainWindow::loadPlugins(QString directory_name)
                     _data_loader.insert( std::make_pair( loader->name(), loader) );
                 }
             }
-
-            StatePublisher *publisher = qobject_cast<StatePublisher *>(plugin);
-            if (publisher)
+            else if (publisher)
             {
                 qDebug() << filename << ": is a StatePublisher plugin";
                 if( !_test_option && publisher->isDebugPlugin())
@@ -360,9 +361,7 @@ void MainWindow::loadPlugins(QString directory_name)
                             publisher->getObject(), SLOT(setEnabled(bool)) );
                 }
             }
-
-            DataStreamer *streamer =  qobject_cast<DataStreamer *>(plugin);
-            if (streamer)
+            else if (streamer)
             {
                 qDebug() << filename << ": is a DataStreamer plugin";
                 if( !_test_option && streamer->isDebugPlugin())
@@ -377,6 +376,8 @@ void MainWindow::loadPlugins(QString directory_name)
                     QAction* startStreamer = new QAction(QString("Start: ") + name, this);
                     ui->menuStreaming->setEnabled(true);
                     ui->menuStreaming->addAction(startStreamer);
+
+                    streamer->setMenu( ui->menuStreaming );
 
                     connect(startStreamer, SIGNAL(triggered()), _streamer_signal_mapper, SLOT(map()));
                     _streamer_signal_mapper->setMapping(startStreamer, name );
@@ -908,6 +909,8 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
         ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
 
         ui->pushButtonStreaming->setChecked(true);
+
+        on_streamingSpinBox_valueChanged( ui->streamingSpinBox->value() );
     }
     else{
         qDebug() << "Failed to launch the streamer";
