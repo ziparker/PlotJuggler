@@ -48,6 +48,8 @@ if(COMPILING_WITH_CATKIN)
         CATKIN_DEPENDS ros_type_introspection
         DEPENDS
         )
+
+    INCLUDE_DIRECTORIES( ${catkin_INCLUDE_DIRS} )
 endif()
 
 
