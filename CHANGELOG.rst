@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.12.0 (2017-03-06)
+-------------------
 * Create .appveyor.yml
 * added the ability to save rosbags from streaming
 * bug fixes
