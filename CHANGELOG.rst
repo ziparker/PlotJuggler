@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.12.2 (2017-03-10)
+-------------------
 * Left curve list will display current value from vertical tracker
 * new splashscreen phrases
 * Temporarily disabilig Qt5Svg
