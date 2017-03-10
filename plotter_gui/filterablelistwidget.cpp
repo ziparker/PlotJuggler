@@ -38,7 +38,7 @@ FilterableListWidget::~FilterableListWidget()
     delete ui;
 }
 
-int FilterableListWidget::count() const
+int FilterableListWidget::rowCount() const
 {
     return table()->rowCount();
 }
@@ -51,7 +51,7 @@ void FilterableListWidget::clear()
 
 void FilterableListWidget::addItem(QTableWidgetItem *item)
 {
-    int row = count();
+    int row = rowCount();
     table()->setRowCount(row+1);
     table()->setItem(row, 0, item);
     table()->setItem(row, 1, new QTableWidgetItem("-") );
@@ -155,8 +155,9 @@ void FilterableListWidget::on_checkBoxCaseSensitive_toggled(bool checked)
 
 void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
 {
-    int item_count = count();
+    int item_count = rowCount();
     int visible_count = 0;
+    bool updated = false;
 
     Qt::CaseSensitivity cs = Qt::CaseInsensitive;
     if( ui->checkBoxCaseSensitive->isChecked())
@@ -166,7 +167,7 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
     QRegExp regexp( search_string,  cs, QRegExp::Wildcard );
     QRegExpValidator v(regexp, 0);
 
-    for (int row=0; row< count(); row++)
+    for (int row=0; row< rowCount(); row++)
     {
         QTableWidgetItem* item = table()->item(row,0);
         QString name = item->text();
@@ -187,9 +188,15 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
         }
         if( !toHide ) visible_count++;
 
+        if( toHide != table()->isRowHidden(row) ) updated = true;
+
         table()->setRowHidden(row, toHide );
     }
-    ui->labelNumberDisplayed->setText( QString::number( visible_count ) + QString(" of ") + QString::number( item_count ) )   ;
+    ui->labelNumberDisplayed->setText( QString::number( visible_count ) + QString(" of ") + QString::number( item_count ) );
+
+    if(updated){
+        emit hiddenItemsChanged();
+    }
 }
 
 void FilterableListWidget::on_pushButtonSettings_toggled(bool checked)
@@ -212,8 +219,12 @@ void FilterableListWidget::on_pushButtonSettings_toggled(bool checked)
 
 void FilterableListWidget::on_checkBoxHideSecondColumn_toggled(bool checked)
 {
-    if(checked)
+    if(checked){
         table()->hideColumn(1);
-    else
+        emit hiddenItemsChanged();
+    }
+    else{
         table()->showColumn(1);
+        emit hiddenItemsChanged();
+    }
 }

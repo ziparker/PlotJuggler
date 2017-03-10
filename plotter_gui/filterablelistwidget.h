@@ -20,8 +20,7 @@ public:
     explicit FilterableListWidget(QWidget *parent = 0);
     ~FilterableListWidget();
 
-    //
-    int count() const;
+    int rowCount() const;
 
     void clear();
 
@@ -50,12 +49,17 @@ private slots:
     void on_checkBoxHideSecondColumn_toggled(bool checked);
 
 private:
+
     Ui::FilterableListWidget *ui;
+
     QPoint _drag_start_pos;
 
-
-
     bool eventFilter(QObject *object, QEvent *event);
+
+signals:
+
+    void hiddenItemsChanged();
+
 };
 
 #endif // CURVE_SELECTOR_H
