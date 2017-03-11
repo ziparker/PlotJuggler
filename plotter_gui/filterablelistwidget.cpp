@@ -7,6 +7,7 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QHeaderView>
+#include <QFontDatabase>
 
 FilterableListWidget::FilterableListWidget(QWidget *parent) :
     QWidget(parent),
@@ -54,10 +55,15 @@ void FilterableListWidget::addItem(QTableWidgetItem *item)
     int row = rowCount();
     table()->setRowCount(row+1);
     table()->setItem(row, 0, item);
-    table()->setItem(row, 1, new QTableWidgetItem("-") );
-    on_lineEdit_textChanged( ui->lineEdit->text() );
-    table()->resizeColumnToContents(0);
-    table()->resizeColumnToContents(1);
+
+    auto val_cell = new QTableWidgetItem("-");
+    val_cell->setTextAlignment(Qt::AlignRight);
+    val_cell->setFlags( Qt::NoItemFlags | Qt::ItemIsEnabled );
+    val_cell->setFont(  QFontDatabase::systemFont(QFontDatabase::FixedFont) );
+
+    table()->setItem(row, 1, val_cell );
+
+    //on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
 

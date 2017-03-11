@@ -54,6 +54,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     connect( _curvelist_widget, SIGNAL(hiddenItemsChanged()),
              this, SLOT(updateLeftTableValues()) );
 
+    connect(this, SIGNAL(trackerTimeUpdated(QPointF)), this, SLOT(updateLeftTableValues()) );
+
     _main_tabbed_widget = new TabbedPlotWidget( this,  &_mapped_plot_data, this);
 
     ui->centralLayout->insertWidget(0, _main_tabbed_widget);
@@ -208,13 +210,27 @@ void MainWindow::updateLeftTableValues()
                     val = data->getYfromX( _tracker_time );
                     if(val){
                         double num = val.value();
-                        table->item(row,1)->setText( QString::number( num, (num > 1e8) ? 'f': 'g') );
+                        QString num_text = QString::number( num, 'f', 4);
+                        if(num_text.contains('.'))
+                        {
+                            int idx = num_text.length() -1;
+                            while( num_text[idx] == '0' )
+                            {
+                                num_text[idx] = ' ';
+                                idx--;
+                            }
+                            if(  num_text[idx] == '.') num_text[idx] = ' ';
+                        }
+                        num_text.remove( QRegExp("0+$") ); // Remove any number of trailing 0's
+                        num_text.remove( QRegExp("\\.$") ); // If the last character is just a '.' then remove it
+
+                        table->item(row,1)->setText(num_text + ' ');
                     }
                 }
                 else{
                     if( data->size() > 0) {
                         double num = (data->at( data->size()-1 )).y;
-                        table->item(row,1)->setText( QString::number( num, (num > 1e8) ? 'f': 'g') );
+                        table->item(row,1)->setText( QString::number( num, ((num > 1e8) ? 'f': 'g') , 4) );
                     }
                 }
             }
@@ -244,7 +260,6 @@ void MainWindow::onTrackerPositionUpdated(QPointF pos)
 {
     onTrackerTimeUpdated( pos.x() );
     _tracker_time = pos.x();
-    updateLeftTableValues();
     emit  trackerTimeUpdated( QPointF(pos ) );
 }
 
@@ -1399,5 +1414,6 @@ void MainWindow::on_horizontalSlider_valueChanged(int position)
     double posX = (maxX-minX) * ratio + minX;
 
     onTrackerTimeUpdated( posX );
+    _tracker_time = posX;
     emit  trackerTimeUpdated( QPointF(posX,0 ) );
 }
