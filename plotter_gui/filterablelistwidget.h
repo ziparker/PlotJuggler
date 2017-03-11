@@ -34,7 +34,10 @@ public:
 
     QTableWidget *table();
 
+    void updateFilter();
+
 private slots:
+
 
     void on_radioContains_toggled(bool checked);
 

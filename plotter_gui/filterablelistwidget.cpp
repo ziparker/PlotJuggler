@@ -62,8 +62,6 @@ void FilterableListWidget::addItem(QTableWidgetItem *item)
     val_cell->setFont(  QFontDatabase::systemFont(QFontDatabase::FixedFont) );
 
     table()->setItem(row, 1, val_cell );
-
-    //on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
 
@@ -89,6 +87,11 @@ const QTableWidget *FilterableListWidget::table() const
 QTableWidget *FilterableListWidget::table()
 {
     return ui->tableWidget;
+}
+
+void FilterableListWidget::updateFilter()
+{
+    on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
 bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
