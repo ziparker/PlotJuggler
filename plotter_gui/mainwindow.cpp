@@ -224,7 +224,7 @@ void MainWindow::updateLeftTableValues()
                 }
                 if( valid)
                 {
-                    QString num_text = QString::number( num, 'f', 4);
+                    QString num_text = QString::number( num, 'f', 3);
                     if(num_text.contains('.'))
                     {
                         int idx = num_text.length() -1;
@@ -235,9 +235,6 @@ void MainWindow::updateLeftTableValues()
                         }
                         if(  num_text[idx] == '.') num_text[idx] = ' ';
                     }
-                    num_text.remove( QRegExp("0+$") ); // Remove any number of trailing 0's
-                    num_text.remove( QRegExp("\\.$") ); // If the last character is just a '.' then remove it
-
                     table->item(row,1)->setText(num_text + ' ');
                 }
             }
@@ -493,6 +490,8 @@ void MainWindow::buildData()
         _mapped_plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
     }
     ui->horizontalSlider->setRange(0, SIZE  );
+
+    _curvelist_widget->updateFilter();
 }
 
 
@@ -919,6 +918,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
                              tr("Cannot read files with extension %1.\n No plugin can handle that!\n")
                              .arg(filename) );
     }
+    _curvelist_widget->updateFilter();
 }
 
 void MainWindow::onActionReloadSameDataFile()
