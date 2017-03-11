@@ -202,36 +202,43 @@ void MainWindow::updateLeftTableValues()
             auto it = _mapped_plot_data.numeric.find(name);
             if( it !=  _mapped_plot_data.numeric.end())
             {
-                nonstd::optional<PlotData::TimeType> val;
+                nonstd::optional<PlotData::TimeType> value;
                 PlotDataPtr data = it->second;
+
+                double num = 0.0;
+                bool valid = false;
 
                 if( _tracker_time < std::numeric_limits<double>::max())
                 {
-                    val = data->getYfromX( _tracker_time );
-                    if(val){
-                        double num = val.value();
-                        QString num_text = QString::number( num, 'f', 4);
-                        if(num_text.contains('.'))
-                        {
-                            int idx = num_text.length() -1;
-                            while( num_text[idx] == '0' )
-                            {
-                                num_text[idx] = ' ';
-                                idx--;
-                            }
-                            if(  num_text[idx] == '.') num_text[idx] = ' ';
-                        }
-                        num_text.remove( QRegExp("0+$") ); // Remove any number of trailing 0's
-                        num_text.remove( QRegExp("\\.$") ); // If the last character is just a '.' then remove it
-
-                        table->item(row,1)->setText(num_text + ' ');
+                    auto value = data->getYfromX( _tracker_time );
+                    if(value){
+                        valid = true;
+                        num = value.value();
                     }
                 }
                 else{
-                    if( data->size() > 0) {
-                        double num = (data->at( data->size()-1 )).y;
-                        table->item(row,1)->setText( QString::number( num, ((num > 1e8) ? 'f': 'g') , 4) );
+                   if( data->size() > 0) {
+                       valid = true;
+                       num = (data->at( data->size()-1 )).y;
+                   }
+                }
+                if( valid)
+                {
+                    QString num_text = QString::number( num, 'f', 4);
+                    if(num_text.contains('.'))
+                    {
+                        int idx = num_text.length() -1;
+                        while( num_text[idx] == '0' )
+                        {
+                            num_text[idx] = ' ';
+                            idx--;
+                        }
+                        if(  num_text[idx] == '.') num_text[idx] = ' ';
                     }
+                    num_text.remove( QRegExp("0+$") ); // Remove any number of trailing 0's
+                    num_text.remove( QRegExp("\\.$") ); // If the last character is just a '.' then remove it
+
+                    table->item(row,1)->setText(num_text + ' ');
                 }
             }
         }
