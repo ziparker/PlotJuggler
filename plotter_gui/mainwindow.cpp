@@ -492,6 +492,10 @@ void MainWindow::buildData()
     ui->horizontalSlider->setRange(0, SIZE  );
 
     _curvelist_widget->updateFilter();
+
+    forEachWidget( [](PlotWidget* plot) {
+        plot->reloadPlotData();
+    } );
 }
 
 
