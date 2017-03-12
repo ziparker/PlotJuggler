@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.13.0 (2017-03-12)
+-------------------
 * default range X for empty plots
 * better formatting
 * improving 2nd column visualization
