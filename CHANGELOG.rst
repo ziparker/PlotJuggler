@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.14.0 (2017-03-15)
+-------------------
 * improved usability
 * adding XY plots (#26)
 * improving plot magnifier
