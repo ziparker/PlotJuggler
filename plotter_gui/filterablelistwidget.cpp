@@ -166,7 +166,7 @@ void FilterableListWidget::on_radioContains_toggled(bool checked)
     if(checked)
     {
         ui->radioRegExp->setChecked( false);
-        on_lineEdit_textChanged( ui->lineEdit->text() );
+        updateFilter();
     }
 }
 
@@ -175,13 +175,13 @@ void FilterableListWidget::on_radioRegExp_toggled(bool checked)
     if(checked)
     {
         ui->radioContains->setChecked( false);
-        on_lineEdit_textChanged( ui->lineEdit->text() );
+        updateFilter();
     }
 }
 
 void FilterableListWidget::on_checkBoxCaseSensitive_toggled(bool checked)
 {
-    on_lineEdit_textChanged( ui->lineEdit->text() );
+    updateFilter();
 }
 
 
@@ -277,4 +277,5 @@ void FilterableListWidget::removeSelectedCurves()
             emit deleteCurve( item->text() );
         }
     }
+    updateFilter();
 }
