@@ -878,13 +878,17 @@ void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
 
 void PlotWidget::on_savePlotToFile()
 {
-    QString fileName;
+    QFileDialog saveDialog;
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setDefaultSuffix("png");
 
 #ifndef QWT_NO_SVG
-    fileName = QFileDialog::getSaveFileName(this, tr("File to export"), QString(),"Compatible formats (*.jpg *.jpeg *.svg *.png)");
+    saveDialog.setNameFilter("Compatible formats (*.jpg *.jpeg *.svg *.png)");
 #else
-    fileName = QFileDialog::getSaveFileName(this, tr("File to export"), QString(),"Compatible formats (*.jpg *.jpeg *.png)");
+    saveDialog.setNameFilter("Compatible formats (*.jpg *.jpeg *.png)");
 #endif
+    saveDialog.exec();
+    QString fileName = saveDialog.selectedFiles().first();
 
     if ( !fileName.isEmpty() )
     {
@@ -892,7 +896,6 @@ void PlotWidget::on_savePlotToFile()
         rend.renderDocument(this,fileName, QSizeF(200,150), 150);
     }
 }
-
 
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)

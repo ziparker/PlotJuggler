@@ -166,7 +166,6 @@ private:
     void importPlotDataMap(const PlotDataMap &new_data);
 
 protected:
-    void mousePressEvent(QMouseEvent *event) ;
 
     void dragEnterEvent(QDragEnterEvent *event) ;
 
