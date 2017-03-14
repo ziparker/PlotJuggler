@@ -8,6 +8,7 @@
 #include <QMimeData>
 #include <QHeaderView>
 #include <QFontDatabase>
+#include <QMessageBox>
 
 FilterableListWidget::FilterableListWidget(QWidget *parent) :
     QWidget(parent),
@@ -16,9 +17,9 @@ FilterableListWidget::FilterableListWidget(QWidget *parent) :
     ui->setupUi(this);
     ui->tableWidget->viewport()->installEventFilter( this );
 
-   table()->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-   table()->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-   table()->horizontalHeader()->resizeSection(1, 120);
+    table()->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    table()->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    table()->horizontalHeader()->resizeSection(1, 120);
 
     for( int i=0; i< ui->gridLayoutSettings->count(); i++)
     {
@@ -32,6 +33,10 @@ FilterableListWidget::FilterableListWidget(QWidget *parent) :
             }
         }
     }
+
+    this->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(on_ShowContextMenu(const QPoint &)));
 }
 
 FilterableListWidget::~FilterableListWidget()
@@ -96,7 +101,7 @@ void FilterableListWidget::updateFilter()
 
 bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
 {
-   // qDebug() <<event->type();
+    // qDebug() <<event->type();
     if(event->type() == QEvent::MouseButtonPress)
     {
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
@@ -117,7 +122,7 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
         double distance_from_click = (mouse_event->pos() - _drag_start_pos).manhattanLength();
 
         if ((mouse_event->buttons() == Qt::LeftButton) &&
-             distance_from_click >= QApplication::startDragDistance())
+                distance_from_click >= QApplication::startDragDistance())
         {
             QDrag *drag = new QDrag(this);
             QMimeData *mimeData = new QMimeData;
@@ -235,5 +240,41 @@ void FilterableListWidget::on_checkBoxHideSecondColumn_toggled(bool checked)
     else{
         table()->showColumn(1);
         emit hiddenItemsChanged();
+    }
+}
+
+void FilterableListWidget::on_ShowContextMenu(const QPoint &pos)
+{
+    QIcon iconDelete;
+    iconDelete.addFile(QStringLiteral(":/icons/resources/clean_pane_small@2x.png"),
+                       QSize(26, 26), QIcon::Normal, QIcon::Off);
+
+    QAction* action_removeCurves = new QAction(tr("&Delete selected curves from memory"), this);
+    action_removeCurves->setIcon(iconDelete);
+
+    connect(action_removeCurves, SIGNAL(triggered()),
+            this, SLOT(removeSelectedCurves()) );
+
+    QMenu menu(this);
+    menu.addAction(action_removeCurves);
+    menu.exec(mapToGlobal(pos));
+}
+
+void FilterableListWidget::removeSelectedCurves()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(0, tr("Warning"),
+                                  tr("Do you really want to remove these data?\n"),
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::No );
+
+    if( reply == QMessageBox::Yes ) {
+
+        while( table()->selectedItems().size() > 0 )
+        {
+            QTableWidgetItem* item = table()->selectedItems().first();
+            emit deleteCurve( item->text() );
+            table()->removeRow( item->row() );
+        }
     }
 }
