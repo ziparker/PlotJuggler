@@ -101,6 +101,8 @@ private slots:
 
     void updateLeftTableValues();
 
+    void deleteLoadedData(const QString &curve_name);
+
 private:
     Ui::MainWindow *ui;
 
@@ -168,7 +170,6 @@ protected:
 
     void dragEnterEvent(QDragEnterEvent *event) ;
 
-    void deleteLoadedData(const QString &curve_name);
 
     QTimer *_replot_timer;
 signals:

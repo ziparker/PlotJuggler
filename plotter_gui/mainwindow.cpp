@@ -54,6 +54,9 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     connect( _curvelist_widget, SIGNAL(hiddenItemsChanged()),
              this, SLOT(updateLeftTableValues()) );
 
+    connect(_curvelist_widget, SIGNAL(deleteCurve(QString)),
+            this, SLOT(deleteLoadedData(QString)) );
+
     connect(this, SIGNAL(trackerTimeUpdated(QPointF)), this, SLOT(updateLeftTableValues()) );
 
     _main_tabbed_widget = new TabbedPlotWidget( this,  &_mapped_plot_data, this);
@@ -696,7 +699,7 @@ void MainWindow::onDeleteLoadedData()
 {
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(0, tr("Warning"),
-                                  tr("Do you really want to remove any loaded data?\n"),
+                                  tr("Do you really want to remove the loaded data?\n"),
                                   QMessageBox::Yes | QMessageBox::No,
                                   QMessageBox::No );
     if( reply == QMessageBox::No ) {

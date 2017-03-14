@@ -51,6 +51,10 @@ private slots:
 
     void on_checkBoxHideSecondColumn_toggled(bool checked);
 
+    void on_ShowContextMenu(const QPoint &pos);
+
+    void removeSelectedCurves();
+
 private:
 
     Ui::FilterableListWidget *ui;
@@ -62,6 +66,8 @@ private:
 signals:
 
     void hiddenItemsChanged();
+
+    void deleteCurve(QString curve_name);
 
 };
 
