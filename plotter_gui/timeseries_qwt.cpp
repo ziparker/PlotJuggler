@@ -1,7 +1,8 @@
 #include "timeseries_qwt.h"
 #include <limits>
 #include <stdexcept>
-
+#include <QMessageBox>
+#include <QString>
 
 TimeseriesQwt::TimeseriesQwt(PlotDataPtr base):
     _plot_data(base),
@@ -117,23 +118,33 @@ void TimeseriesQwt::updateData(bool force_transform)
         }
         else if( _transform == XYPlot && _alternative_X_axis)
         {
+            bool failed = false;
             const size_t N = _alternative_X_axis->size();
 
             if( _plot_data->size() != N ){
-                return ;
+                failed = true ;
             }
 
-            for (size_t i=0; i<N; i++ )
+            for (size_t i=0; i<N && !failed; i++ )
             {
                 if( _alternative_X_axis->at(i).x != _plot_data->at(i).x ){
-                    return ;
+                    failed = true ;
+                    break;
                 }
             }
-            _cached_transformed_curve.resize(N);
-            for (size_t i=0; i<N; i++ )
-            {
-                _cached_transformed_curve[i] = QPointF(_alternative_X_axis->at(i).y,
-                                                       _plot_data->at(i).y );
+
+            if( failed){
+                QMessageBox::warning(0, QString("Warning"),
+                                     QString("The creation of the XY plot failed because at least two "
+                                             "timeseries don't share the same time axis.") );
+            }
+            else{
+                _cached_transformed_curve.resize(N);
+                for (size_t i=0; i<N; i++ )
+                {
+                    _cached_transformed_curve[i] = QPointF(_alternative_X_axis->at(i).y,
+                                                           _plot_data->at(i).y );
+                }
             }
         }
     }

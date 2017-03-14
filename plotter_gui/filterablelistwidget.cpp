@@ -10,6 +10,7 @@
 #include <QFontDatabase>
 #include <QMessageBox>
 #include <QApplication>
+#include <QPainter>
 
 FilterableListWidget::FilterableListWidget(QWidget *parent) :
     QWidget(parent),
@@ -141,8 +142,21 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
                 if( table()->selectedItems().size() == 1)
                 {
                     mimeData->setData("curveslist/new_X_axis", mdata);
-                    QPixmap icon(":/icons/resources/resize_vertical.png");
-                    drag->setDragCursor(icon, Qt::MoveAction);
+
+                    QPixmap cursor( QSize(120,30) );
+                    cursor.fill();
+
+                    QPainter painter;
+                    painter.begin( &cursor);
+                    painter.setPen(QColor(22, 22, 22));
+
+                    QString text("set as new X axis");
+                    painter.setFont( QFont("Arial", 10 ) );
+
+                    painter.drawText( QRect(0, 0, 120, 30), Qt::AlignHCenter | Qt::AlignVCenter, text );
+                    painter.end();
+
+                    drag->setDragCursor(cursor, Qt::MoveAction);
                 }
                 else{
                     //abort

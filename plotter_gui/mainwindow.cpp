@@ -264,6 +264,7 @@ void MainWindow::onTrackerTimeUpdated(double current_time)
     {
         it->second->updateState( &_mapped_plot_data, current_time);
     }
+    ui->displayTime->setText( QString::number(current_time, 'g', 3));
 }
 
 void MainWindow::onTrackerPositionUpdated(QPointF pos)
@@ -1446,5 +1447,5 @@ void MainWindow::on_horizontalSlider_valueChanged(int position)
 
     onTrackerTimeUpdated( posX );
     _tracker_time = posX;
-    emit  trackerTimeUpdated( QPointF(posX,0 ) );
+    emit trackerTimeUpdated( QPointF(posX,0 ) );
 }
