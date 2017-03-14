@@ -274,7 +274,6 @@ void FilterableListWidget::removeSelectedCurves()
         {
             QTableWidgetItem* item = table()->selectedItems().first();
             emit deleteCurve( item->text() );
-            table()->removeRow( item->row() );
         }
     }
 }
