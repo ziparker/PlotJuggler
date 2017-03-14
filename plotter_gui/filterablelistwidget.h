@@ -36,6 +36,8 @@ public:
 
     void updateFilter();
 
+    virtual void keyPressEvent(QKeyEvent * event) override;
+
 private slots:
 
 

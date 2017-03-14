@@ -34,9 +34,9 @@ FilterableListWidget::FilterableListWidget(QWidget *parent) :
         }
     }
 
-    this->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
-            this, SLOT(on_ShowContextMenu(const QPoint &)));
+//    this->setContextMenuPolicy(Qt::CustomContextMenu);
+//    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
+//            this, SLOT(on_ShowContextMenu(const QPoint &)));
 }
 
 FilterableListWidget::~FilterableListWidget()
@@ -97,6 +97,13 @@ QTableWidget *FilterableListWidget::table()
 void FilterableListWidget::updateFilter()
 {
     on_lineEdit_textChanged( ui->lineEdit->text() );
+}
+
+void FilterableListWidget::keyPressEvent(QKeyEvent *event)
+{
+    if( event->key() == Qt::Key_Delete){
+        removeSelectedCurves();
+    }
 }
 
 bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
@@ -245,19 +252,7 @@ void FilterableListWidget::on_checkBoxHideSecondColumn_toggled(bool checked)
 
 void FilterableListWidget::on_ShowContextMenu(const QPoint &pos)
 {
-    QIcon iconDelete;
-    iconDelete.addFile(QStringLiteral(":/icons/resources/clean_pane_small@2x.png"),
-                       QSize(26, 26), QIcon::Normal, QIcon::Off);
 
-    QAction* action_removeCurves = new QAction(tr("&Delete selected curves from memory"), this);
-    action_removeCurves->setIcon(iconDelete);
-
-    connect(action_removeCurves, SIGNAL(triggered()),
-            this, SLOT(removeSelectedCurves()) );
-
-    QMenu menu(this);
-    menu.addAction(action_removeCurves);
-    menu.exec(mapToGlobal(pos));
 }
 
 void FilterableListWidget::removeSelectedCurves()
