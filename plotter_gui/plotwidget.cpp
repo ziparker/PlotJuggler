@@ -98,18 +98,15 @@ PlotWidget::PlotWidget(const PlotDataMap *datamap, QWidget *parent):
     connect(_magnifier, SIGNAL(rescaled(const QRectF&)), this, SLOT(on_externallyResized(const QRectF&)) );
     connect(_magnifier, SIGNAL(rescaled(const QRectF&)), this, SLOT(replot()) );
 
-    _panner->setMouseButton(  Qt::MiddleButton, Qt::NoModifier);
+    _panner->setMouseButton(  Qt::LeftButton, Qt::ControlModifier);
 
-    this->canvas()->setContextMenuPolicy( Qt::ContextMenuPolicy::CustomContextMenu );
-    connect( canvas, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(canvasContextMenuTriggered(QPoint)) );
     //-------------------------
 
     buildActions();
     buildLegend();
 
-    this->canvas()->setMouseTracking(true);
+    this->canvas()->setMouseTracking(false);
     this->canvas()->installEventFilter(this);
-
 
     setDefaultRangeX();
 }
@@ -923,87 +920,79 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     menu.exec( canvas()->mapToGlobal(pos) );
 }
 
-void PlotWidget::mousePressEvent(QMouseEvent *event)
-{
-    if( event->button() == Qt::LeftButton)
-    {
-        if (event->modifiers() & Qt::ControlModifier )
-        {
-            QDrag *drag = new QDrag(this);
-            QMimeData *mimeData = new QMimeData;
-
-            QByteArray data;
-            QDataStream dataStream(&data, QIODevice::WriteOnly);
-
-            dataStream << this->windowTitle();
-
-            mimeData->setData("plot_area", data );
-            drag->setMimeData(mimeData);
-            drag->exec();
-        }
-        else if( event->modifiers() == Qt::NoModifier)
-        {
-            QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/zoom_in_32px.png")));
-        }
-    }
-
-    if( event->button() == Qt::MiddleButton && event->modifiers() == Qt::NoModifier)
-    {
-        QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/move.png")));
-    }
-
-    QwtPlot::mousePressEvent(event);
-}
-
-void PlotWidget::mouseReleaseEvent(QMouseEvent *event )
-{
-    QApplication::restoreOverrideCursor();
-    QwtPlot::mouseReleaseEvent(event);
-}
-
 bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
-    static bool left_and_shift_pressed = false;
-
-    if ( event->type() == QEvent::MouseButtonPress)
+    switch( event->type() )
     {
-        QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
-        if( mouse_event->button() == Qt::LeftButton &&
-                (mouse_event->modifiers() & Qt::ShiftModifier) )
-        {
-            left_and_shift_pressed = true;
-            const QPoint point = mouse_event->pos();
-            QPointF pointF ( invTransform( xBottom, point.x()),
-                             invTransform( yLeft, point.y()) );
-            emit trackerMoved(pointF);
-        }
-    }
-    else if ( event->type() == QEvent::MouseButtonRelease)
+    case QEvent::MouseButtonPress:
     {
-        QApplication::restoreOverrideCursor();
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
         if( mouse_event->button() == Qt::LeftButton )
         {
-            left_and_shift_pressed = false;
+            if( mouse_event->modifiers() == Qt::ShiftModifier) // vertical tracker
+            {
+                const QPoint point = mouse_event->pos();
+                QPointF pointF ( invTransform( xBottom, point.x()),
+                                 invTransform( yLeft, point.y()) );
+                emit trackerMoved(pointF);
+            }
+            if( mouse_event->modifiers() == Qt::ControlModifier) // panner
+            {
+                QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/move.png")));
+            }
+            else if(mouse_event->modifiers() == Qt::NoModifier )
+            {
+                QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/zoom_in_32px.png")));
+            }
         }
-    }
-    else if ( event->type() == QEvent::MouseMove )
+        else if( mouse_event->button() == Qt::RightButton )
+        {
+            if( mouse_event->modifiers() == Qt::NoModifier) // show menu
+            {
+                canvasContextMenuTriggered( mouse_event->pos() );
+            }
+            else if( mouse_event->modifiers() == Qt::ControlModifier) // Start swapping two plots
+            {
+
+                QDrag *drag = new QDrag(this);
+                QMimeData *mimeData = new QMimeData;
+
+                QByteArray data;
+                QDataStream dataStream(&data, QIODevice::WriteOnly);
+
+                dataStream << this->windowTitle();
+
+                mimeData->setData("plot_area", data );
+                drag->setMimeData(mimeData);
+                drag->exec();
+            }
+        }
+    }break;
+    //---------------------------------
+    case QEvent::MouseMove:
     {
-        // special processing for mouse move
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
 
-        if ( left_and_shift_pressed && mouse_event->modifiers() & Qt::ShiftModifier )
+        if ( mouse_event->buttons() == Qt::LeftButton &&
+             mouse_event->modifiers() == Qt::ShiftModifier )
         {
             const QPoint point = mouse_event->pos();
             QPointF pointF ( invTransform( xBottom, point.x()),
                              invTransform( yLeft, point.y()) );
-
             emit trackerMoved(pointF);
         }
-    }
-    else if ( obj == this->canvas() && event->type() == QEvent::Paint )
+    }break;
+    //---------------------------------
+    case QEvent::MouseButtonRelease :
+    {
+        QApplication::restoreOverrideCursor();
+    }break;
+
+    } //end switch
+
+    if ( obj == this->canvas() && event->type() == QEvent::Paint )
     {
         if ( !_fps_timeStamp.isValid() )
         {
