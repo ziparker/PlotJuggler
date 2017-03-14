@@ -95,6 +95,9 @@ PlotWidget::PlotWidget(const PlotDataMap *datamap, QWidget *parent):
 
     // disable right button. keep mouse wheel
     _magnifier->setMouseButton( Qt::NoButton );
+    _magnifier->setZoomInKey( Qt::Key::Key_Plus);
+    _magnifier->setZoomOutKey( Qt::Key::Key_Minus);
+
     connect(_magnifier, SIGNAL(rescaled(const QRectF&)), this, SLOT(on_externallyResized(const QRectF&)) );
     connect(_magnifier, SIGNAL(rescaled(const QRectF&)), this, SLOT(replot()) );
 
@@ -989,33 +992,42 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     {
         QApplication::restoreOverrideCursor();
     }break;
-
-    } //end switch
-
-    if ( obj == this->canvas() && event->type() == QEvent::Paint )
+    //---------------------------------
+    case QEvent::KeyPress:
     {
-        if ( !_fps_timeStamp.isValid() )
+//        QKeyEvent *key_event = static_cast<QKeyEvent*>(event);
+//        qDebug() << key_event->key();
+     }break;
+    //---------------------------------
+    case QEvent::Paint :
+    {
+        if ( obj == this->canvas())
         {
-            _fps_timeStamp.start();
-            _fps_counter = 0;
-        }
-        else{
-            _fps_counter++;
-
-            const double elapsed = _fps_timeStamp.elapsed() / 1000.0;
-            if ( elapsed >= 1 )
+            if ( !_fps_timeStamp.isValid() )
             {
-                QFont font_title;
-                font_title.setPointSize(9);
-                QwtText fps;
-                fps.setText( QString::number( qRound( _fps_counter / elapsed ) ) );
-                fps.setFont(font_title);
-                //qDebug() << _fps_counter / elapsed ;
-                _fps_counter = 0;
                 _fps_timeStamp.start();
+                _fps_counter = 0;
+            }
+            else{
+                _fps_counter++;
+
+                const double elapsed = _fps_timeStamp.elapsed() / 1000.0;
+                if ( elapsed >= 1 )
+                {
+                    QFont font_title;
+                    font_title.setPointSize(9);
+                    QwtText fps;
+                    fps.setText( QString::number( qRound( _fps_counter / elapsed ) ) );
+                    fps.setFont(font_title);
+                    //qDebug() << _fps_counter / elapsed ;
+                    _fps_counter = 0;
+                    _fps_timeStamp.start();
+                }
             }
         }
-    }
+    }break;
+
+    } //end switch
 
     return QwtPlot::eventFilter( obj, event );
 }
