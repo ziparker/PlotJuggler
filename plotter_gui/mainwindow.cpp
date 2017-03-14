@@ -501,12 +501,6 @@ void MainWindow::buildData()
     } );
 }
 
-
-void MainWindow::mousePressEvent(QMouseEvent *)
-{
-
-}
-
 void MainWindow::onSplitterMoved(int , int )
 {
     QList<int> sizes = ui->splitter->sizes();
