@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.14.1 (2017-03-15)
+-------------------
 * improved the time slider
 * bug fixes
 * Contributors: Davide Faconti
