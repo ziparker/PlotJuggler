@@ -127,10 +127,10 @@ void PlotWidget::buildActions()
 
     QIcon iconColors;
     iconColors.addFile(QStringLiteral(":/icons/resources/office_chart_lines.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
-    _action_changeColors = new QAction(tr("&Change colors"), this);
-    _action_changeColors->setIcon(iconColors);
-    _action_changeColors->setStatusTip(tr("Change the color of the curves"));
-    connect(_action_changeColors, SIGNAL(triggered()), this, SLOT(on_changeColor_triggered()));
+    _action_changeColorsDialog = new QAction(tr("&Change colors"), this);
+    _action_changeColorsDialog->setIcon(iconColors);
+    _action_changeColorsDialog->setStatusTip(tr("Change the color of the curves"));
+    connect(_action_changeColorsDialog, SIGNAL(triggered()), this, SLOT(on_changeColorsDialog_triggered()));
 
     QIcon iconPoints;
     iconPoints.addFile(QStringLiteral(":/icons/resources/line_chart_32px.png"), QSize(26, 26), QIcon::Normal, QIcon::Off);
@@ -797,7 +797,7 @@ void PlotWidget::launchRemoveCurveDialog()
     }
 }
 
-void PlotWidget::on_changeColor_triggered()
+void PlotWidget::on_changeColorsDialog_triggered()
 {
     std::map<QString,QColor> color_by_name;
 
@@ -808,24 +808,31 @@ void PlotWidget::on_changeColor_triggered()
         color_by_name.insert(std::make_pair( curve_name, curve->pen().color() ));
     }
 
-    CurveColorPick* dialog = new CurveColorPick(&color_by_name, this);
+    CurveColorPick* dialog = new CurveColorPick(color_by_name, this);
+
+    connect( dialog, SIGNAL(changeColor(QString,QColor)),
+             this, SLOT(on_changeColor(QString,QColor)),
+             Qt::DirectConnection);
+
     dialog->exec();
 
-    bool modified = false;
-
-    for(auto it = _curve_list.begin(); it != _curve_list.end(); ++it)
+    if( dialog->anyColorModified() )
     {
-        const QString& curve_name = it->first;
+        emit undoableChange();
+    }
+}
+
+void PlotWidget::on_changeColor(QString curve_name, QColor new_color)
+{
+    auto it = _curve_list.find(curve_name);
+    if( it != _curve_list.end())
+    {
         auto curve = it->second;
-        QColor new_color = color_by_name[curve_name];
         if( curve->pen().color() != new_color)
         {
-            curve->setPen( color_by_name[curve_name], 1.0 );
-            modified = true;
+            curve->setPen( new_color, 1.0 );
         }
-    }
-    if( modified){
-        emit undoableChange();
+        replot();
     }
 }
 
@@ -1035,7 +1042,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     menu.addAction(_action_removeCurve);
     menu.addAction(_action_removeAllCurves);
     menu.addSeparator();
-    menu.addAction(_action_changeColors);
+    menu.addAction(_action_changeColorsDialog);
     menu.addAction(_action_showPoints);
     menu.addSeparator();
     menu.addAction(_action_zoomOutHorizontally);
@@ -1050,7 +1057,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 
     _action_removeCurve->setEnabled( ! _curve_list.empty() );
     _action_removeAllCurves->setEnabled( ! _curve_list.empty() );
-    _action_changeColors->setEnabled(  ! _curve_list.empty() );
+    _action_changeColorsDialog->setEnabled(  ! _curve_list.empty() );
 
     menu.exec( canvas()->mapToGlobal(pos) );
 }
