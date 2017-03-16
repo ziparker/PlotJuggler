@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.14.2 (2017-03-16)
+-------------------
 * improve CurveColorPick
 * bugs fixed
 * crash fixed
