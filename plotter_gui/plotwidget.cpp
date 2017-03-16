@@ -311,6 +311,16 @@ void PlotWidget::removeCurve(const QString &name)
         _point_marker[name]->detach();
         _point_marker.erase( name );
     }
+    if( _axisX && _axisX->name() == name.toStdString())
+    {
+        _axisX = PlotDataPtr();
+        for(auto it : _curve_list)
+        {
+            TimeseriesQwt* series = static_cast<TimeseriesQwt*>( it.second->data() );
+            series->setAlternativeAxisX(_axisX);
+        }
+        _action_noTransform->trigger();
+    }
 }
 
 bool PlotWidget::isEmpty() const
@@ -447,8 +457,15 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
         transform.setAttribute("value", "noTransform" ); break;
 
     case TimeseriesQwt::XYPlot:{
-        transform.setAttribute("value", "XYPlot" );
-        transform.setAttribute("axisX",  _axisX->name().c_str() );
+
+        if( _axisX ){
+            transform.setAttribute("value", "XYPlot" );
+            transform.setAttribute("axisX",  _axisX->name().c_str() );
+        }
+        else{
+            transform.setAttribute("value", "noTransform" );
+            transform.setAttribute("axisX",  "" );
+        }
     }break;
 
     }
@@ -459,8 +476,6 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
 
 bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardButton* answer)
 {
-    this->blockSignals(true);
-
     QDomElement curve;
 
     std::set<QString> added_curve_names;
@@ -538,12 +553,15 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         }
         else if(trans_value == "XYPlot")
         {
-            if( transform.hasAttribute("axisX") ){
-                changeAxisX( transform.attribute("axisX") );
+            QString axisX_name = transform.attribute("axisX");
+            if( axisX_name.size()>0)
+            {
+                changeAxisX( axisX_name );
             }
         }
     }
     //-----------------------------------------
+
     QDomElement rectangle = plot_widget.firstChildElement( "range" );
     if( !rectangle.isNull()){
         QRectF rect;
@@ -554,7 +572,6 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         this->setScale( rect, false);
     }
 
-    this->blockSignals(false);
     return true;
 }
 
@@ -597,7 +614,7 @@ void PlotWidget::reloadPlotData()
             _axisX = it->second;
         }
         else{
-            _axisX.reset();
+            _axisX = PlotDataPtr();
         }
     }
 
@@ -947,8 +964,15 @@ bool PlotWidget::isXYPlot() const
 void PlotWidget::changeAxisX(QString curve_name)
 {
     qDebug() << "changeAxisX " << curve_name;
-    _axisX = _mapped_data->numeric[ curve_name.toStdString() ];
-    _action_phaseXY->trigger();
+    auto it = _mapped_data->numeric.find( curve_name.toStdString() );
+    if( it != _mapped_data->numeric.end())
+    {
+        _axisX = it->second;
+        _action_phaseXY->trigger();
+    }
+    else{
+        // do nothing (?)
+    }
 }
 
 
