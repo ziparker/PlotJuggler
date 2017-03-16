@@ -296,7 +296,5 @@ void FilterableListWidget::removeSelectedCurves()
 
 void FilterableListWidget::removeRow(int row)
 {
-    int rowcount = this->rowCount();
     table()->removeRow(row);
-    qDebug()  << rowcount << " - " << row << " = " << this->rowCount();
 }

@@ -578,7 +578,7 @@ QDomDocument MainWindow::xmlSaveState() const
 
 bool MainWindow::xmlLoadState(QDomDocument state_document)
 {
-    this->blockSignals(true);
+    const bool isBlocked = this->blockSignals(true);
 
     QDomElement root = state_document.namedItem("root").toElement();
     if ( root.isNull() ) {
@@ -627,7 +627,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
             _floating_window[index++]->tabbedWidget()->xmlLoadState( tabbed_area );
         }
     }
-    this->blockSignals(false);
+    this->blockSignals(isBlocked);
     return true;
 }
 
@@ -681,6 +681,8 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
         return;
     }
 
+    _mapped_plot_data.numeric.erase( plot_curve );
+
     auto rows_to_remove = _curvelist_widget->findRowsByName( curve_name );
     for(int row : rows_to_remove)
     {
@@ -689,7 +691,6 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
 
     emit requestRemoveCurveByName( curve_name );
 
-    _mapped_plot_data.numeric.erase( plot_curve );
 
     if( _curvelist_widget->rowCount() == 0)
     {
