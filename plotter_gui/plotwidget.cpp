@@ -404,6 +404,7 @@ void PlotWidget::detachAllCurves()
 
     _curve_list.erase(_curve_list.begin(), _curve_list.end());
     _point_marker.erase(_point_marker.begin(), _point_marker.end());
+    emit _tracker->setPosition( _tracker->actualPosition() );
     replot();
 }
 

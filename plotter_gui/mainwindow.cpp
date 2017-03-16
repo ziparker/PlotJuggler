@@ -48,7 +48,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     ui->setupUi(this);
 
-    connect( _curvelist_widget->table()->verticalScrollBar(), SIGNAL(sliderMoved(int)),
+    connect( _curvelist_widget->getTtable()->verticalScrollBar(), SIGNAL(sliderMoved(int)),
              this, SLOT(updateLeftTableValues()) );
 
     connect( _curvelist_widget, SIGNAL(hiddenItemsChanged()),
@@ -175,7 +175,7 @@ void MainWindow::onRedoInvoked()
 
 void MainWindow::updateLeftTableValues()
 {
-    auto table = _curvelist_widget->table();
+    const auto& table = _curvelist_widget->getTtable();
 
     if( table->isColumnHidden(1) == false)
     {
@@ -684,7 +684,7 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
     auto rows_to_remove = _curvelist_widget->findRowsByName( curve_name );
     for(int row : rows_to_remove)
     {
-        _curvelist_widget->table()->removeRow(row);
+        _curvelist_widget->removeRow(row);
     }
 
     emit requestRemoveCurveByName( curve_name );
@@ -719,6 +719,7 @@ void MainWindow::onDeleteLoadedData()
 
     ui->actionReloadData->setEnabled( false );
     ui->actionDeleteAllData->setEnabled( false );
+
 }
 
 void MainWindow::onActionLoadDataFile(bool reload_from_settings)
