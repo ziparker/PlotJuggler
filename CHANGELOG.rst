@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.0 (2017-03-17)
+-------------------
 * Multiple problems fixed with streaming interface nd XY plots
 * Contributors: Davide Faconti
 
