@@ -2,6 +2,12 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* adding some deadband to the zoomer
+* fixed a bug related to tabs and new windows
+* Contributors: Davide Faconti
+
 0.15.0 (2017-03-17)
 -------------------
 * Multiple problems fixed with streaming interface nd XY plots
