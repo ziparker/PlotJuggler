@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.1 (2017-03-20)
+-------------------
 * adding some deadband to the zoomer
 * fixed a bug related to tabs and new windows
 * Contributors: Davide Faconti
