@@ -15,12 +15,12 @@ PlotZoomer::PlotZoomer(QWidget *canvas, bool doReplot):
 void PlotZoomer::widgetMousePressEvent(QMouseEvent *me)
 {
     _mouse_pressed = false;
-    this->setTrackerMode(AlwaysOff);
     auto patterns = this->mousePattern();
     for (QwtEventPattern::MousePattern& pattern: patterns)
     {
         if( this->mouseMatch(pattern, me) ){
             _mouse_pressed = true;
+            this->setTrackerMode(AlwaysOn);
             _initial_pos = me->pos();
         }
     }
@@ -43,6 +43,7 @@ void PlotZoomer::widgetMouseMoveEvent(QMouseEvent *me)
             {
                 _zoom_enabled = true;
                 this->setRubberBand( RectRubberBand );
+                this->setTrackerMode(AlwaysOff);
                 QApplication::setOverrideCursor(zoom_cursor);
             }
         }
@@ -62,6 +63,7 @@ void PlotZoomer::widgetMouseReleaseEvent(QMouseEvent *me)
     _zoom_enabled = false;
     QApplication::restoreOverrideCursor();
     QwtPlotPicker::widgetMouseReleaseEvent( me );
+    this->setTrackerMode(AlwaysOff);
 }
 
 bool PlotZoomer::accept(QPolygon &pa) const
