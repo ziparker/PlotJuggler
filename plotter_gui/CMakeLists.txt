@@ -38,7 +38,8 @@ SET( PLOTTER_SRC
     ../include/PlotJuggler/plotdata.h
     )
 
-add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC})
+add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC} ${BACKWARD_ENABLE})
+add_backward(PlotJuggler)
 
 if( Qt5Svg_FOUND)
     target_link_libraries(PlotJuggler
@@ -49,7 +50,8 @@ if( Qt5Svg_FOUND)
         Qt5::Concurrent
         Qt5::Svg
         colorwidgets
-        qwt_static )
+        qwt_static
+        bfd )
 else()
     target_link_libraries(PlotJuggler
         Qt5::Core
@@ -58,7 +60,8 @@ else()
         Qt5::Xml
         Qt5::Concurrent
         colorwidgets
-        qwt_static )
+        qwt_static
+        bfd )
 endif()
 
 
