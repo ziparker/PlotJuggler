@@ -3,8 +3,8 @@ Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-Forthcoming
------------
+0.16.0 (2017-03-22)
+-------------------
 * removed the normalization of time in ROS plugins
 * relative time seems to work properly
 * Contributors: Davide Faconti
