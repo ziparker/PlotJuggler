@@ -102,7 +102,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         auto plot_pair = _plot_data.user_defined.find( md5sum );
         if( plot_pair == _plot_data.user_defined.end() )
         {
-            PlotDataAnyPtr temp(new PlotDataAny());
+            PlotDataAnyPtr temp(new PlotDataAny(topic_name.c_str()));
             auto res = _plot_data.user_defined.insert( std::make_pair( topic_name, temp ) );
             plot_pair = res.first;
         }
