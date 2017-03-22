@@ -33,8 +33,7 @@ if (LIBBFD_FOUND)
       set( BACKWARD_LIBS dl bfd PARENT_SCOPE )
 
 else (LIBBFD_FOUND)
-      message(STATUS "Looked for Bfd libraries named ${LIBBFD_NAMES}.")
-      message(FATAL_ERROR "Could NOT find Bfd library")
+      message(STATUS "Could NOT find Bfd library named ${LIBBFD_NAMES}.")
 endif (LIBBFD_FOUND)
 
 mark_as_advanced(
