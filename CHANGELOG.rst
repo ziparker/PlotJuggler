@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.2 (2017-03-22)
+-------------------
 * multiple fixes
 * backward-cpp added
 * show coordinates when the left mouse is clicked (but not moved)
