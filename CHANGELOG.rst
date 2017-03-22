@@ -3,8 +3,8 @@ Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-Forthcoming
------------
+0.15.3 (2017-03-22)
+-------------------
 * multiple fixes
 * update related to backtrace
 * backward-cpp added
