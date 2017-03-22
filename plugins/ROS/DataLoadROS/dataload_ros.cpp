@@ -152,10 +152,6 @@ PlotDataMap DataLoadROS::readDataFromFile(const std::string& file_name,
                 msg_time = msg.getTime().toSec();
             }
         }
-        if( dialog->checkBoxNormalizeTime()->isChecked() )
-        {
-            msg_time -= first_time.toSec();
-        }
 
         for(const auto& it: flat_container.renamed_value )
         {
