@@ -103,7 +103,9 @@ private slots:
 
     void deleteLoadedData(const QString &curve_name);
 
-    void on_actionRemoveTimeOffset_toggled(bool arg1);
+    void on_checkBoxRemoveTimeOffset_toggled(bool checked);
+
+    void on_pushButtonOptions_toggled(bool checked);
 
 private:
     Ui::MainWindow *ui;

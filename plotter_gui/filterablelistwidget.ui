@@ -76,6 +76,12 @@ border: 0.5px solid rgb(150, 150, 150);</string>
        </item>
        <item>
         <widget class="QPushButton" name="pushButtonSettings">
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
@@ -91,8 +97,8 @@ border: 0.5px solid rgb(150, 150, 150);</string>
          </property>
          <property name="iconSize">
           <size>
-           <width>16</width>
-           <height>16</height>
+           <width>22</width>
+           <height>22</height>
           </size>
          </property>
          <property name="checkable">

@@ -115,6 +115,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     restoreGeometry(settings.value("MainWindow.geometry").toByteArray());
+
+    ui->widgetOptions->setVisible( ui->pushButtonOptions->isChecked() );
 }
 
 MainWindow::~MainWindow()
@@ -641,8 +643,8 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     if( !relative_time.isNull())
     {
         bool enabled = (relative_time.attribute("enabled") == QString("1"));
-        ui->actionRemoveTimeOffset->setChecked(enabled);
-        on_actionRemoveTimeOffset_toggled(enabled);
+        ui->checkBoxRemoveTimeOffset->setChecked(enabled);
+        on_checkBoxRemoveTimeOffset_toggled(enabled);
     }
 
     this->blockSignals(isBlocked);
@@ -1507,10 +1509,8 @@ void MainWindow::on_horizontalSlider_valueChanged(int position)
     emit trackerTimeUpdated( _tracker_time );
 }
 
-void MainWindow::on_actionRemoveTimeOffset_toggled(bool )
+void MainWindow::on_checkBoxRemoveTimeOffset_toggled(bool checked)
 {
-    bool checked = ui->actionRemoveTimeOffset->isChecked();
-
     if( ! checked){
         _time_offset = 0;
     }
@@ -1534,4 +1534,10 @@ void MainWindow::on_actionRemoveTimeOffset_toggled(bool )
     } );
 
     if (this->signalsBlocked() == false)  onUndoableChange();
+}
+
+
+void MainWindow::on_pushButtonOptions_toggled(bool checked)
+{
+    ui->widgetOptions->setVisible( checked );
 }

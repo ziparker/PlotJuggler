@@ -63,7 +63,7 @@ border-radius: 4px;
        <layout class="QVBoxLayout" name="leftLayout"/>
       </widget>
       <widget class="QWidget" name="layoutWidget">
-       <layout class="QVBoxLayout" name="centralLayout" stretch="0">
+       <layout class="QVBoxLayout" name="centralLayout" stretch="0,0">
         <property name="sizeConstraint">
          <enum>QLayout::SetMaximumSize</enum>
         </property>
@@ -79,49 +79,43 @@ border-radius: 4px;
            <number>4</number>
           </property>
           <item>
-           <widget class="QPushButton" name="pushButtonAddSubwindow">
+           <widget class="QPushButton" name="pushButtonOptions">
             <property name="minimumSize">
              <size>
               <width>40</width>
-              <height>36</height>
+              <height>40</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>170</width>
+              <width>40</width>
               <height>40</height>
              </size>
             </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
             <property name="toolTip">
-             <string>Add new subwindow</string>
-            </property>
-            <property name="whatsThis">
-             <string>Add new subwindow</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show/Hide extra options&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="styleSheet">
-             <string notr="true">border: 1px solid black;
-border-radius: 6px;
-background: white;
-</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string/>
             </property>
             <property name="icon">
              <iconset resource="resource.qrc">
-              <normaloff>:/icons/resources/stacks_32px.png</normaloff>:/icons/resources/stacks_32px.png</iconset>
+              <normaloff>:/icons/resources/cog.png</normaloff>:/icons/resources/cog.png</iconset>
             </property>
             <property name="iconSize">
              <size>
-              <width>30</width>
-              <height>30</height>
+              <width>22</width>
+              <height>22</height>
              </size>
             </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
             <property name="flat">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -130,13 +124,13 @@ background: white;
             <property name="minimumSize">
              <size>
               <width>40</width>
-              <height>36</height>
+              <height>40</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>50</width>
-              <height>16777215</height>
+              <width>40</width>
+              <height>40</height>
              </size>
             </property>
             <property name="focusPolicy">
@@ -173,6 +167,53 @@ background: white;
             </property>
             <property name="flat">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonAddSubwindow">
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="toolTip">
+             <string>Add new subwindow</string>
+            </property>
+            <property name="whatsThis">
+             <string>Add new subwindow</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border: 1px solid black;
+border-radius: 6px;
+background: white;
+</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/stacks_32px.png</normaloff>:/icons/resources/stacks_32px.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>30</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -296,6 +337,28 @@ background: white;
           </item>
          </layout>
         </item>
+        <item>
+         <widget class="QWidget" name="widgetOptions" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <item>
+            <widget class="QCheckBox" name="checkBoxRemoveTimeOffset">
+             <property name="text">
+              <string>Remove time offset</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>
@@ -356,16 +419,9 @@ background: white;
     <addaction name="actionQuick_Help"/>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuVisualization">
-    <property name="title">
-     <string>Visualization</string>
-    </property>
-    <addaction name="actionRemoveTimeOffset"/>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStreaming"/>
    <addaction name="menuPublishers"/>
-   <addaction name="menuVisualization"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionLoadData">
