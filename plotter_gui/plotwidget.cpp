@@ -482,6 +482,18 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
 
     std::set<QString> added_curve_names;
 
+    QDomElement transform = plot_widget.firstChildElement( "transform" );
+    if( !transform.isNull()    )
+    {
+        if( transform.attribute("value") == "XYPlot")
+        {
+            QString axisX_name = transform.attribute("axisX");
+            if( axisX_name.size()>0){
+                changeAxisX( axisX_name );
+            }
+        }
+    }
+
     for (  curve = plot_widget.firstChildElement( "curve" )  ;
            !curve.isNull();
            curve = curve.nextSiblingElement( "curve" ) )
@@ -537,7 +549,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
     }
 
     //-----------------------------------------
-    QDomElement transform = plot_widget.firstChildElement( "transform" );
+
     if( !transform.isNull()  )
     {
         QString trans_value = transform.attribute("value");
@@ -553,14 +565,14 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         {
             _action_noTransform->trigger();
         }
-        else if(trans_value == "XYPlot")
-        {
-            QString axisX_name = transform.attribute("axisX");
-            if( axisX_name.size()>0)
-            {
-                changeAxisX( axisX_name );
-            }
-        }
+//        else if(trans_value == "XYPlot")
+//        {
+//            QString axisX_name = transform.attribute("axisX");
+//            if( axisX_name.size()>0)
+//            {
+//                changeAxisX( axisX_name );
+//            }
+//        }
     }
     //-----------------------------------------
 
@@ -609,7 +621,7 @@ void PlotWidget::setScale(QRectF rect, bool emit_signal)
 
 void PlotWidget::reloadPlotData()
 {
-    if( _axisX )
+    if( isXYPlot() )
     {
         auto it = _mapped_data->numeric.find( _axisX->name() );
         if( it != _mapped_data->numeric.end() ){
@@ -626,12 +638,12 @@ void PlotWidget::reloadPlotData()
         const std::string curve_name = curve_it.first.toStdString();
 
         auto it = _mapped_data->numeric.find( curve_name );
-        if( it!= _mapped_data->numeric.end())
+        if( it != _mapped_data->numeric.end())
         {
             TimeseriesQwt* new_plotqwt = new TimeseriesQwt( it->second );
             new_plotqwt->setTimeOffset( _time_offset );
-            new_plotqwt->setTransform( _current_transform );
             new_plotqwt->setAlternativeAxisX( _axisX );
+            new_plotqwt->setTransform( _current_transform );
             curve_data->setData( new_plotqwt );
         }
     }
@@ -989,7 +1001,7 @@ void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
 
 bool PlotWidget::isXYPlot() const
 {
-    return (_current_transform == TimeseriesQwt::XYPlot);
+    return (_current_transform == TimeseriesQwt::XYPlot && _axisX);
 }
 
 void PlotWidget::changeAxisX(QString curve_name)
