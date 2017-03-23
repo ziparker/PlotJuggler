@@ -51,7 +51,7 @@ if(COMPILING_WITH_CATKIN)
     catkin_package(
         INCLUDE_DIRS include
         CATKIN_DEPENDS ros_type_introspection
-        DEPENDS binutils
+        DEPENDS
         )
 
     INCLUDE_DIRECTORIES( ${catkin_INCLUDE_DIRS} )
