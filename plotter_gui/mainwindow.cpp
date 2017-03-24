@@ -81,7 +81,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     onUndoableChange();
 
     _replot_timer = new QTimer(this);
-    connect(_replot_timer, SIGNAL(timeout()), this, SLOT(onReplotRequested()));
+    connect(_replot_timer, SIGNAL(timeout()), this, SLOT(updateDataAndReplot()));
 
     ui->menuFile->setToolTipsVisible(true);
     ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -148,9 +148,7 @@ void MainWindow::onUndoableChange()
     {
         while( _undo_states.size() >= 100 ) _undo_states.pop_front();
         _undo_states.push_back( xmlSaveState() );
-        updateInternalState();
         _redo_states.clear();
-        //qDebug() << "Undo pushed " <<  _undo_states.size();
     }
 }
 
@@ -166,10 +164,6 @@ void MainWindow::onRedoInvoked()
         _redo_states.pop_back();
 
         xmlLoadState( state_document );
-
-        //qDebug() << "ReDo pushed " <<  _undo_states.size();
-
-        updateInternalState();
     }
     _disable_undo_logging = false;
 }
@@ -546,11 +540,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
     connect( this, SIGNAL(trackerTimeUpdated(double)), plot, SLOT(setTrackerPosition(double)));
     connect( this, SIGNAL(trackerTimeUpdated(double)), plot, SLOT( replot() ));
 
-    connect( this, SIGNAL(activateTracker(bool)),  plot, SLOT(activateTracker(bool)) );
-    connect( this, SIGNAL(activateTracker(bool)),  plot, SLOT( replot() ));
-
     plot->on_changeTimeOffset( _time_offset );
-    plot->activateTracker( ui->pushButtonActivateTracker->isChecked() );
 }
 
 void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
@@ -646,7 +636,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
         ui->checkBoxRemoveTimeOffset->setChecked(enabled);
         updateTimeSlider();
     }
-
+    onLayoutChanged();
     this->blockSignals(isBlocked);
     return true;
 }
@@ -854,9 +844,7 @@ void MainWindow::importPlotDataMap(const PlotDataMap& new_data)
         plot->reloadPlotData();
     } );
 
-    onReplotRequested();
-
-    updateInternalState();
+    updateTimeSlider();
 }
 
 void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_timeindex )
@@ -1128,7 +1116,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
     _undo_states.clear();
     _undo_states.push_back( domDocument );
 
-    updateInternalState();
+    onLayoutChanged();
 }
 
 
@@ -1147,7 +1135,7 @@ void MainWindow::onUndoInvoked( )
 
         xmlLoadState( state_document );
 
-        updateInternalState();
+        onLayoutChanged();
     }
     _disable_undo_logging = false;
 }
@@ -1155,7 +1143,7 @@ void MainWindow::onUndoInvoked( )
 
 void MainWindow::on_tabbedAreaDestroyed(QObject *object)
 {
-    updateInternalState();
+    onLayoutChanged();
     this->setFocus();
 }
 
@@ -1169,7 +1157,7 @@ void MainWindow::onFloatingWindowDestroyed(QObject *object)
             break;
         }
     }
-    updateInternalState();
+    onLayoutChanged();
 }
 
 void MainWindow::onCreateFloatingWindow(PlotMatrix* first_tab)
@@ -1178,7 +1166,7 @@ void MainWindow::onCreateFloatingWindow(PlotMatrix* first_tab)
 }
 
 
-void MainWindow::updateInternalState()
+void MainWindow::onLayoutChanged()
 {
     std::map<QString,TabbedPlotWidget*> tabbed_map;
     tabbed_map.insert( std::make_pair( QString("Main window"), _main_tabbed_widget) );
@@ -1191,11 +1179,6 @@ void MainWindow::updateInternalState()
     {
         it.second->setSiblingsList( tabbed_map );
     }
-
-    if( !ui->pushButtonStreaming->isChecked())
-        emit activateTracker(  ui->pushButtonActivateTracker->isChecked() );
-    else
-        emit activateTracker( false );
 }
 
 void MainWindow::forEachWidget(std::function<void (PlotWidget*, PlotMatrix*, int,int )> operation)
@@ -1372,14 +1355,9 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
         _replot_timer->setSingleShot(true);
         _replot_timer->start( 5 );
     }
-
-    if( !checked )
-        emit activateTracker(  ui->pushButtonActivateTracker->isChecked() );
-    else
-        emit activateTracker( false );
 }
 
-void MainWindow::onReplotRequested()
+void MainWindow::updateDataAndReplot()
 {
     // STEP 1: sync the data (usefull for streaming
     bool data_updated = false;
@@ -1403,15 +1381,6 @@ void MainWindow::onReplotRequested()
         updateLeftTableValues();
     }
     //--------------------------------
-    // zoom out
-    _main_tabbed_widget->currentTab()->maximumZoomOut() ;
-
-    for(SubWindow* subwin: _floating_window)
-    {
-        PlotMatrix* matrix =  subwin->tabbedWidget()->currentTab() ;
-        matrix->maximumZoomOut(); // includes replot
-    }
-    //--------------------------------
     // trigger again the execution of this callback if steaming == true
     if( ui->pushButtonStreaming->isChecked())
     {
@@ -1424,7 +1393,19 @@ void MainWindow::onReplotRequested()
             if( plot->isXYPlot()){
                 plot->setTrackerPosition( _max_slider_time + _time_offset);
             }
+            else{
+                plot->activateTracker(false);
+            }
         } );
+    }
+    //--------------------------------
+    // zoom out and replot
+    _main_tabbed_widget->currentTab()->maximumZoomOut() ;
+
+    for(SubWindow* subwin: _floating_window)
+    {
+        PlotMatrix* matrix =  subwin->tabbedWidget()->currentTab() ;
+        matrix->maximumZoomOut(); // includes replot
     }
 }
 
@@ -1441,11 +1422,6 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
         PlotDataAnyPtr plot = it.second;
         plot->setMaximumRangeX( value );
     }
-}
-
-void MainWindow::on_pushButtonActivateTracker_toggled(bool checked)
-{
-    emit  activateTracker( checked );
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -1470,6 +1446,13 @@ void MainWindow::on_actionStopStreaming_triggered()
         ui->actionDeleteAllData->setEnabled( true );
         ui->actionDeleteAllData->setToolTip("");
     }
+
+    forEachWidget( [&](PlotWidget* plot)
+    {
+        if( !plot->isXYPlot() ){
+            plot->activateTracker(false);
+        }
+    } );
 }
 
 
@@ -1520,7 +1503,6 @@ void MainWindow::on_actionQuick_Help_triggered()
 
 void MainWindow::on_horizontalSlider_valueChanged(int position)
 {
-    //qDebug() <<position;
     QSlider* slider = ui->horizontalSlider;
     double ratio = (double)position / (double)(slider->maximum() -  slider->minimum() );
     double posX = (_max_slider_time-_min_slider_time) * ratio + _min_slider_time;
