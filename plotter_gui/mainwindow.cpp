@@ -571,7 +571,7 @@ QDomDocument MainWindow::xmlSaveState() const
     doc.appendChild(root);
 
     QDomElement relative_time = doc.createElement( "use_relative_time_offset" );
-    relative_time.setAttribute("enabled", ui->actionRemoveTimeOffset->isChecked() );
+    relative_time.setAttribute("enabled", ui->checkBoxRemoveTimeOffset->isChecked() );
     root.appendChild( relative_time );
 
     return doc;
@@ -632,8 +632,8 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     QDomElement relative_time = root.firstChildElement( "use_relative_time_offset" );
     if( !relative_time.isNull())
     {
-        bool enabled = (relative_time.attribute("enabled") == QString("1"));
-        ui->checkBoxRemoveTimeOffset->setChecked(enabled);
+        bool remove_offset = (relative_time.attribute("enabled") == QString("1"));
+        ui->checkBoxRemoveTimeOffset->setChecked(remove_offset);
         updateTimeSlider();
     }
     onLayoutChanged();

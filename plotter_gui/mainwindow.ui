@@ -437,14 +437,6 @@ background: white;
     <string>F1</string>
    </property>
   </action>
-  <action name="actionRemoveTimeOffset">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Remove time offset</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
