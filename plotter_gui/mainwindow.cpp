@@ -462,8 +462,8 @@ void MainWindow::buildData()
     size_t SIZE = 100*1000;
 
     QStringList  words_list;
-    words_list << "siam" << "tre" << "piccoli" << "porcellin"
-               << "mai" << "nessun" << "ci" << "dividera";
+    words_list << "world.siam" << "world.tre" << "walk.piccoli" << "walk.porcellin"
+               << "fly.high.mai" << "fly.high.nessun" << "fly.low.ci" << "fly.low.dividera";
 
     for(auto& word: words_list){
         _curvelist_widget->addItem( new QTableWidgetItem(word) );

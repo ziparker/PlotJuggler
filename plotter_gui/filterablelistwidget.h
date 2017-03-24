@@ -6,11 +6,14 @@
 #include <QListWidget>
 #include <QTableWidget>
 #include <QMouseEvent>
+#include <QStandardItemModel>
+
 
 namespace Ui {
 class FilterableListWidget;
 }
 
+class TreeModelCompleter;
 
 class FilterableListWidget : public QWidget
 {
@@ -54,16 +57,21 @@ private slots:
 
     void removeSelectedCurves();
 
+    void on_radioPrefix_toggled(bool checked);
 
 private:
-
 
     QTableWidget *table();
 
     Ui::FilterableListWidget *ui;
 
     QPoint _drag_start_pos;
+
     bool _newX_modifier;
+
+    QStandardItemModel* _string_model;
+
+    TreeModelCompleter* _completer;
 
     bool eventFilter(QObject *object, QEvent *event);
 
