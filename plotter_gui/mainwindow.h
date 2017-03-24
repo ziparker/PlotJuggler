@@ -81,13 +81,11 @@ private slots:
 
     void on_pushButtonStreaming_toggled(bool checked);
 
-    void onReplotRequested();
+    void updateDataAndReplot();
 
     void on_streamingSpinBox_valueChanged(int value);
 
     void onDeleteLoadedData();
-
-    void on_pushButtonActivateTracker_toggled(bool checked);
 
     void on_actionAbout_triggered();
 
@@ -123,7 +121,7 @@ private:
 
     FilterableListWidget* _curvelist_widget;
 
-    void updateInternalState();
+    void onLayoutChanged();
 
     void forEachWidget(std::function<void(PlotWidget*, PlotMatrix*, int, int)> op);
 
