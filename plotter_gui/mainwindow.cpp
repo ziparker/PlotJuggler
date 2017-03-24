@@ -644,7 +644,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     {
         bool enabled = (relative_time.attribute("enabled") == QString("1"));
         ui->checkBoxRemoveTimeOffset->setChecked(enabled);
-        on_checkBoxRemoveTimeOffset_toggled(enabled);
+        updateTimeSlider();
     }
 
     this->blockSignals(isBlocked);
@@ -780,8 +780,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
         filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
     }
     else{
-        filename = QFileDialog::getOpenFileName(this,
-                                                "Open Datafile",
+        filename = QFileDialog::getOpenFileName(this, "Open Datafile",
                                                 directory_path,
                                                 file_extension_filter);
     }
@@ -1184,8 +1183,6 @@ void MainWindow::updateInternalState()
     std::map<QString,TabbedPlotWidget*> tabbed_map;
     tabbed_map.insert( std::make_pair( QString("Main window"), _main_tabbed_widget) );
 
-    updateTimeSlider();
-
     for (SubWindow* subwin: _floating_window)
     {
         tabbed_map.insert( std::make_pair( subwin->windowTitle(), subwin->tabbedWidget() ) );
@@ -1238,6 +1235,39 @@ void MainWindow::forEachWidget(std::function<void (PlotWidget *)> op)
 
 void MainWindow::updateTimeSlider()
 {
+    //----------------------------------
+    // Update Time offset
+    bool remove_offset = ui->checkBoxRemoveTimeOffset->isChecked();
+    static int prev_was_checked = -1; // next will be false the first time
+
+    if( prev_was_checked != remove_offset)
+    {
+        prev_was_checked = remove_offset;
+
+        if( !remove_offset || _mapped_plot_data.numeric.size() == 0){
+            _time_offset = 0;
+        }
+        else{
+            double min_time = std::numeric_limits<double>::max();
+            for (auto it: _mapped_plot_data.numeric )
+            {
+                PlotDataPtr data = it.second;
+                if(data->size() >=1)
+                {
+                    const double min = data->at(0).x;
+                    if( min_time > min) min_time = min;
+                }
+            }
+            _time_offset = min_time;
+        }
+
+        forEachWidget( [&](PlotWidget* plot) {
+            plot->on_changeTimeOffset( _time_offset );
+        } );
+    }
+
+    //----------------------------------
+    // Update horizontal slider
     int max_steps = 10;
     _min_slider_time = std::numeric_limits<double>::max();
     _max_slider_time = std::numeric_limits<double>::min();
@@ -1351,30 +1381,29 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 
 void MainWindow::onReplotRequested()
 {
-    bool updated = false;
-
-    _tracker_time = std::numeric_limits<double>::max();
-
+    // STEP 1: sync the data (usefull for streaming
+    bool data_updated = false;
     {
         PlotData::asyncPushMutex().lock();
-
         for(auto it : _mapped_plot_data.numeric)
         {
             PlotDataPtr data = ( it.second );
-            updated |= data->flushAsyncBuffer();
+            data_updated |= data->flushAsyncBuffer();
         }
-
         PlotData::asyncPushMutex().unlock();
     }
 
-    if( updated )
+    if( data_updated )
     {
         forEachWidget( [](PlotWidget* plot)
         {
-                plot->updateCurves(true);
+            plot->updateCurves(true);
         } );
+        updateTimeSlider();
+        updateLeftTableValues();
     }
-
+    //--------------------------------
+    // zoom out
     _main_tabbed_widget->currentTab()->maximumZoomOut() ;
 
     for(SubWindow* subwin: _floating_window)
@@ -1382,20 +1411,13 @@ void MainWindow::onReplotRequested()
         PlotMatrix* matrix =  subwin->tabbedWidget()->currentTab() ;
         matrix->maximumZoomOut(); // includes replot
     }
-
+    //--------------------------------
+    // trigger again the execution of this callback if steaming == true
     if( ui->pushButtonStreaming->isChecked())
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
         _replot_timer->start( 20 ); // 50 Hz at most
-
-        for (auto it: _mapped_plot_data.numeric)
-        {
-            it.second->flushAsyncBuffer();
-        }
-
-        updateLeftTableValues();
-        updateTimeSlider();
 
         forEachWidget( [&](PlotWidget* plot)
         {
@@ -1511,28 +1533,7 @@ void MainWindow::on_horizontalSlider_valueChanged(int position)
 
 void MainWindow::on_checkBoxRemoveTimeOffset_toggled(bool checked)
 {
-    if( ! checked){
-        _time_offset = 0;
-    }
-    else{
-        double min_time = std::numeric_limits<double>::max();
-        for (auto it: _mapped_plot_data.numeric )
-        {
-            PlotDataPtr data = it.second;
-            if(data->size() >=1)
-            {
-                const double min = data->at(0).x;
-                if( min_time > min) min_time = min;
-            }
-        }
-        _time_offset = min_time;
-    }
     updateTimeSlider();
-
-    forEachWidget( [&](PlotWidget* plot) {
-        plot->on_changeTimeOffset( _time_offset );
-    } );
-
     if (this->signalsBlocked() == false)  onUndoableChange();
 }
 
