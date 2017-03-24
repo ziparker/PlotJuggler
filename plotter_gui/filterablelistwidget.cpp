@@ -98,17 +98,16 @@ void FilterableListWidget::addItem(QTableWidgetItem *item)
 
     for (int col=0; col < parts.count(); col++)
     {
-        bool present = false;
-        for (int row = 0; row < parent_item->rowCount(); row++)
+        bool already_stored = false;
+        for (int row = 0; row < parent_item->rowCount() && !already_stored; row++)
         {
             if( parent_item->child(row)->text() == parts[col])
             {
-                present = true;
+                already_stored = true;
                 parent_item = parent_item->child(row);
-                break;
             }
         }
-        if( !present )
+        if( !already_stored )
         {
             QStandardItem *item = new QStandardItem(parts[col]);
             parent_item->appendRow(item);
