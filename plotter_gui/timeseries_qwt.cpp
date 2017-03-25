@@ -235,7 +235,7 @@ void TimeseriesQwt::setTransform(TimeseriesQwt::Transform trans)
     }
 }
 
-double TimeseriesQwt::setTimeOffset(double offset)
+void TimeseriesQwt::setTimeOffset(double offset)
 {
     _time_offset = offset;
     updateData();

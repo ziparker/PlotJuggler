@@ -20,10 +20,8 @@ public:
     TreeModelCompleter(QAbstractItemModel *model, QObject *parent = 0): QCompleter(model, parent)
     {  }
 
-
-    QStringList splitPath(const QString &path) const override
-    {
-        return path.split('.');
+    QStringList splitPath(const QString &path) const override {
+        return path.split('/');
     }
 
     QString pathFromIndex(const QModelIndex &index) const override
@@ -34,23 +32,23 @@ public:
             QString name = model()->data(i, completionRole()).toString();
             dataList.prepend(name);
         }
-        return dataList.join('.');
+        return dataList.join('/');
     }
 };
 
 FilterableListWidget::FilterableListWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FilterableListWidget),
-    _string_model( new QStandardItemModel(this)),
-    _completer( new TreeModelCompleter(_string_model, this) )
+    _tree_model( new QStandardItemModel(this)),
+    _completer( new TreeModelCompleter(_tree_model, this) )
 {
     ui->setupUi(this);
     ui->tableWidget->viewport()->installEventFilter( this );
     ui->lineEdit->installEventFilter( this );
 
-    table()->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    table()->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    table()->horizontalHeader()->resizeSection(1, 120);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    ui->tableWidget->horizontalHeader()->resizeSection(1, 120);
 
     ui->widgetOptions->setVisible(false);
 
@@ -59,7 +57,6 @@ FilterableListWidget::FilterableListWidget(QWidget *parent) :
     ui->radioPrefix->setAutoExclusive(true);
 
     _completer->setCompletionMode( QCompleter::PopupCompletion );
-
 }
 
 FilterableListWidget::~FilterableListWidget()
@@ -69,51 +66,29 @@ FilterableListWidget::~FilterableListWidget()
 
 int FilterableListWidget::rowCount() const
 {
-    return getTtable()->rowCount();
+    return ui->tableWidget->rowCount();
 }
 
 void FilterableListWidget::clear()
 {
-    table()->setRowCount(0);
+    ui->tableWidget->setRowCount(0);
+    _tree_model->clear();
     ui->labelNumberDisplayed->setText( "0 of 0");
 }
 
 void FilterableListWidget::addItem(QTableWidgetItem *item)
 {
     const int row = rowCount();
-    table()->setRowCount(row+1);
-    table()->setItem(row, 0, item);
+    ui->tableWidget->setRowCount(row+1);
+    ui->tableWidget->setItem(row, 0, item);
 
     auto val_cell = new QTableWidgetItem("-");
     val_cell->setTextAlignment(Qt::AlignRight);
     val_cell->setFlags( Qt::NoItemFlags | Qt::ItemIsEnabled );
     val_cell->setFont(  QFontDatabase::systemFont(QFontDatabase::FixedFont) );
 
-    table()->setItem(row, 1, val_cell );
-
-    QString name = item->data(Qt::DisplayRole).toString();
-    QStringList parts = name.split('.');
-
-    QStandardItem *parent_item = _string_model->invisibleRootItem();
-
-    for (int col=0; col < parts.count(); col++)
-    {
-        bool already_stored = false;
-        for (int row = 0; row < parent_item->rowCount() && !already_stored; row++)
-        {
-            if( parent_item->child(row)->text() == parts[col])
-            {
-                already_stored = true;
-                parent_item = parent_item->child(row);
-            }
-        }
-        if( !already_stored )
-        {
-            QStandardItem *item = new QStandardItem(parts[col]);
-            parent_item->appendRow(item);
-            parent_item = item;
-        }
-    }
+    ui->tableWidget->setItem(row, 1, val_cell );
+     addToCompletionTree(item);
 }
 
 
@@ -121,7 +96,7 @@ QList<int>
 FilterableListWidget::findRowsByName(const QString &text) const
 {
     QList<int> output;
-    QList<QTableWidgetItem*> item_list = getTtable()->findItems( text, Qt::MatchExactly);
+    QList<QTableWidgetItem*> item_list = ui->tableWidget->findItems( text, Qt::MatchExactly);
     for(QTableWidgetItem* item : item_list)
     {
         if(item->column() == 0) {
@@ -131,15 +106,11 @@ FilterableListWidget::findRowsByName(const QString &text) const
     return output;
 }
 
-const QTableWidget *FilterableListWidget::getTtable() const
+const QTableWidget *FilterableListWidget::getTable() const
 {
     return ui->tableWidget;
 }
 
-QTableWidget *FilterableListWidget::table()
-{
-    return ui->tableWidget;
-}
 
 void FilterableListWidget::updateFilter()
 {
@@ -158,11 +129,11 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
     QObject *obj = object;
     while ( obj != NULL )
     {
-        if( obj == table() || obj == ui->lineEdit ) break;
+        if( obj == ui->tableWidget || obj == ui->lineEdit ) break;
         obj = obj->parent();
     }
 
-    if(obj == table())
+    if(obj == ui->tableWidget)
     {
         if(event->type() == QEvent::MouseButtonPress)
         {
@@ -192,12 +163,12 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
                 QByteArray mdata;
                 QDataStream stream(&mdata, QIODevice::WriteOnly);
 
-                for(QTableWidgetItem* item: table()->selectedItems()) {
+                for(QTableWidgetItem* item: ui->tableWidget->selectedItems()) {
                     stream << item->text();
                 }
                 if( _newX_modifier )
                 {
-                    if( table()->selectedItems().size() == 1)
+                    if( ui->tableWidget->selectedItems().size() == 1)
                     {
                         mimeData->setData("curveslist/new_X_axis", mdata);
 
@@ -267,6 +238,33 @@ void FilterableListWidget::on_radioRegExp_toggled(bool checked)
     }
 }
 
+void FilterableListWidget::addToCompletionTree(QTableWidgetItem* item)
+{
+    QString name = item->data(Qt::DisplayRole).toString();
+    QStringList parts = name.split('/');
+
+    QStandardItem *parent_item = _tree_model->invisibleRootItem();
+
+    for (int col=0; col < parts.count(); col++)
+    {
+        bool already_stored = false;
+        for (int row = 0; row < parent_item->rowCount() && !already_stored; row++)
+        {
+            if( parent_item->child(row)->text() == parts[col])
+            {
+                already_stored = true;
+                parent_item = parent_item->child(row);
+            }
+        }
+        if( !already_stored )
+        {
+            QStandardItem *item = new QStandardItem(parts[col]);
+            parent_item->appendRow(item);
+            parent_item = item;
+        }
+    }
+}
+
 void FilterableListWidget::on_radioPrefix_toggled(bool checked)
 {
     if(checked) {
@@ -297,7 +295,7 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
 
     for (int row=0; row< rowCount(); row++)
     {
-        QTableWidgetItem* item = table()->item(row,0);
+        QTableWidgetItem* item = ui->tableWidget->item(row,0);
         QString name = item->text();
         int pos = 0;
         bool toHide = false;
@@ -323,9 +321,9 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
         }
         if( !toHide ) visible_count++;
 
-        if( toHide != table()->isRowHidden(row) ) updated = true;
+        if( toHide != ui->tableWidget->isRowHidden(row) ) updated = true;
 
-        table()->setRowHidden(row, toHide );
+        ui->tableWidget->setRowHidden(row, toHide );
     }
     ui->labelNumberDisplayed->setText( QString::number( visible_count ) + QString(" of ") + QString::number( item_count ) );
 
@@ -342,11 +340,11 @@ void FilterableListWidget::on_pushButtonSettings_toggled(bool checked)
 void FilterableListWidget::on_checkBoxHideSecondColumn_toggled(bool checked)
 {
     if(checked){
-        table()->hideColumn(1);
+        ui->tableWidget->hideColumn(1);
         emit hiddenItemsChanged();
     }
     else{
-        table()->showColumn(1);
+        ui->tableWidget->showColumn(1);
         emit hiddenItemsChanged();
     }
 }
@@ -361,18 +359,27 @@ void FilterableListWidget::removeSelectedCurves()
 
     if( reply == QMessageBox::Yes ) {
 
-        while( table()->selectedItems().size() > 0 )
+        while( ui->tableWidget->selectedItems().size() > 0 )
         {
-            QTableWidgetItem* item = table()->selectedItems().first();
+            QTableWidgetItem* item = ui->tableWidget->selectedItems().first();
             emit deleteCurve( item->text() );
         }
     }
+
+    // rebuild the tree model
+    _tree_model->clear();
+    for (int row=0; row< rowCount(); row++)
+    {
+        QTableWidgetItem* item = ui->tableWidget->item(row,0);
+        addToCompletionTree(item);
+    }
+
     updateFilter();
 }
 
 void FilterableListWidget::removeRow(int row)
 {
-    table()->removeRow(row);
+    ui->tableWidget->removeRow(row);
 }
 
 

@@ -120,6 +120,41 @@ border-radius: 4px;
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButtonActivateGrid">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>40</horstretch>
+              <verstretch>40</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show/Hide the grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="resource.qrc">
+              <normaloff>:/icons/resources/grid.png</normaloff>:/icons/resources/grid.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>30</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="pushButtonAddSubwindow">
             <property name="minimumSize">
              <size>
@@ -182,7 +217,7 @@ background: white;
             </property>
             <property name="maximumSize">
              <size>
-              <width>120</width>
+              <width>160</width>
               <height>16777215</height>
              </size>
             </property>
@@ -217,7 +252,7 @@ background: white;
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
+              <width>10</width>
               <height>20</height>
              </size>
             </property>
@@ -297,6 +332,9 @@ background: white;
            </property>
            <item>
             <widget class="QCheckBox" name="checkBoxRemoveTimeOffset">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If checked, an offset will be appliet to each timeseries to ensure that the first time instant is equal to zero.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>Remove time offset</string>
              </property>
@@ -304,6 +342,26 @@ background: white;
               <bool>true</bool>
              </property>
             </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBoxUseDateTime">
+             <property name="text">
+              <string>Show current time as DateTime</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
