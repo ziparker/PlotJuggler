@@ -239,9 +239,14 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time)
     int slider_value = (int)((max_slider- min_slider)* ratio) ;
 
     ui->horizontalSlider->setValue(slider_value);
+    on_checkBoxUseDateTime_toggled( ui->checkBoxUseDateTime->isChecked() );
 
     //------------------------
-    on_checkBoxUseDateTime_toggled( ui->checkBoxUseDateTime->isChecked() );
+    for ( auto it: _state_publisher)
+    {
+        it.second->updateState( &_mapped_plot_data, absolute_time);
+    }
+    //------------------------
 }
 
 void MainWindow::onTrackerPositionUpdated(QPointF relative_pos)
