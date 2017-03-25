@@ -37,7 +37,7 @@ public:
 
     void updateFilter();
 
-    const QTableWidget * getTtable() const;
+    const QTableWidget * getTable() const;
 
     virtual void keyPressEvent(QKeyEvent * event) override;
 
@@ -61,19 +61,21 @@ private slots:
 
 private:
 
-    QTableWidget *table();
-
     Ui::FilterableListWidget *ui;
 
     QPoint _drag_start_pos;
 
     bool _newX_modifier;
 
-    QStandardItemModel* _string_model;
+    QStandardItemModel* _tree_model;
 
     TreeModelCompleter* _completer;
 
     bool eventFilter(QObject *object, QEvent *event);
+
+    void updateTreeModel();
+    
+    void addToCompletionTree(QTableWidgetItem *item);
 
 signals:
 

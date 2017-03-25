@@ -105,6 +105,10 @@ private slots:
 
     void on_pushButtonOptions_toggled(bool checked);
 
+    void on_checkBoxUseDateTime_toggled(bool checked);
+
+    void on_pushButtonActivateGrid_toggled(bool checked);
+
 private:
     Ui::MainWindow *ui;
 
@@ -176,8 +180,6 @@ private:
     void importPlotDataMap(const PlotDataMap &new_data);
 
 protected:
-
-    void dragEnterEvent(QDragEnterEvent *event) ;
 
     double _time_offset;
 

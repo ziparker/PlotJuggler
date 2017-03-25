@@ -204,7 +204,7 @@ void PlotWidget::buildLegend()
     _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
 
     _legend->setBorderRadius( 6 );
-    _legend->setMargin( 5 );
+    _legend->setMargin( 1 );
     _legend->setSpacing( 0 );
     _legend->setItemMargin( 0 );
 
@@ -670,7 +670,7 @@ void PlotWidget::activateGrid(bool activate)
 
 void PlotWidget::activateTracker(bool activate)
 {
-    _tracker->setEnabled( activate && isXYPlot() == false);
+    _tracker->setEnabled( activate && !isXYPlot());
 }
 
 void PlotWidget::setTrackerPosition(double abs_time)
@@ -938,6 +938,7 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 
 void PlotWidget::on_noTransform_triggered(bool checked )
 {
+    activateTracker(true);
     if(_current_transform ==  TimeseriesQwt::noTransform) return;
 
     for (auto it :_curve_list)
@@ -955,6 +956,7 @@ void PlotWidget::on_noTransform_triggered(bool checked )
 
 void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
 {
+    activateTracker(true);
     if(_current_transform ==  TimeseriesQwt::firstDerivative) return;
 
     for (auto it :_curve_list)
@@ -978,6 +980,7 @@ void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
 
 void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
 {
+    activateTracker(true);
     if(_current_transform ==  TimeseriesQwt::secondDerivative) return;
 
     for (auto it :_curve_list)
@@ -1004,23 +1007,10 @@ bool PlotWidget::isXYPlot() const
     return (_current_transform == TimeseriesQwt::XYPlot && _axisX);
 }
 
-void PlotWidget::changeAxisX(QString curve_name)
-{
-    qDebug() << "changeAxisX " << curve_name;
-    auto it = _mapped_data->numeric.find( curve_name.toStdString() );
-    if( it != _mapped_data->numeric.end())
-    {
-        _axisX = it->second;
-        _action_phaseXY->trigger();
-    }
-    else{
-        // do nothing (?)
-    }
-}
-
 
 void PlotWidget::on_convertToXY_triggered(bool)
 {
+    activateTracker(true);
     if( !_axisX )
     {
         QMessageBox::warning(0, tr("Warning"),
@@ -1032,7 +1022,6 @@ void PlotWidget::on_convertToXY_triggered(bool)
 
     _tracker->setEnabled(false);
 
-    qDebug() << "on_convertToXY_triggered ";
     _current_transform = TimeseriesQwt::XYPlot;
 
     for (auto it :_curve_list)
@@ -1052,6 +1041,19 @@ void PlotWidget::on_convertToXY_triggered(bool)
 
     zoomOut(true);
     replot();
+}
+
+void PlotWidget::changeAxisX(QString curve_name)
+{
+    auto it = _mapped_data->numeric.find( curve_name.toStdString() );
+    if( it != _mapped_data->numeric.end())
+    {
+        _axisX = it->second;
+        _action_phaseXY->trigger();
+    }
+    else{
+        // do nothing (?)
+    }
 }
 
 void PlotWidget::on_savePlotToFile()
