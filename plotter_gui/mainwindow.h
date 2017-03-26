@@ -37,7 +37,7 @@ private slots:
 
     void onTrackerTimeUpdated(double absolute_time );
 
-    void onTrackerPositionUpdated(QPointF pos );
+    void onTrackerMovedFromWidget(QPointF pos );
 
     void onSplitterMoved(int, int);
 
@@ -97,7 +97,7 @@ private slots:
 
     void updateLeftTableValues();
 
-    void deleteLoadedData(const QString &curve_name);
+    void deleteDataOfSingleCurve(const QString &curve_name);
 
     void on_checkBoxRemoveTimeOffset_toggled(bool checked);
 
@@ -131,7 +131,7 @@ private:
 
     void updateTimeSlider();
 
-    void buildData();
+    void buildDummyData();
 
     PlotDataMap    _mapped_plot_data;
 
