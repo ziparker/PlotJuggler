@@ -56,7 +56,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
              this, SLOT(updateLeftTableValues()) );
 
     connect(_curvelist_widget, SIGNAL(deleteCurve(QString)),
-            this, SLOT(deleteLoadedData(QString)) );
+            this, SLOT(deleteDataOfSingleCurve(QString)) );
 
     connect(this, SIGNAL(trackerTimeUpdated(double)), this, SLOT(updateLeftTableValues()) );
 
@@ -99,7 +99,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     if( _test_option )
     {
-        buildData();
+        buildDummyData();
     }
 
     bool file_loaded = false;
@@ -265,7 +265,7 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time)
     //------------------------
 }
 
-void MainWindow::onTrackerPositionUpdated(QPointF relative_pos)
+void MainWindow::onTrackerMovedFromWidget(QPointF relative_pos)
 {
     _tracker_time = relative_pos.x() + _time_offset;
     onTrackerTimeUpdated( _tracker_time );
@@ -453,7 +453,7 @@ void MainWindow::loadPlugins(QString directory_name)
     }
 }
 
-void MainWindow::buildData()
+void MainWindow::buildDummyData()
 {
     size_t SIZE = 100*1000;
 
@@ -534,7 +534,7 @@ void MainWindow::resizeEvent(QResizeEvent *)
 void MainWindow::onPlotAdded(PlotWidget* plot)
 {
     connect( plot, SIGNAL(undoableChange()),       this, SLOT(onUndoableChange()) );
-    connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerPositionUpdated(QPointF)));
+    connect( plot, SIGNAL(trackerMoved(QPointF)),  this, SLOT(onTrackerMovedFromWidget(QPointF)));
     connect( plot, SIGNAL(swapWidgetsRequested(PlotWidget*,PlotWidget*)), this, SLOT(onSwapPlots(PlotWidget*,PlotWidget*)) );
 
     connect( this, SIGNAL(requestRemoveCurveByName(const QString&)), plot, SLOT(removeCurve(const QString&))) ;
@@ -687,7 +687,7 @@ void MainWindow::onActionSaveLayout()
     }
 }
 
-void MainWindow::deleteLoadedData(const QString& curve_name)
+void MainWindow::deleteDataOfSingleCurve(const QString& curve_name)
 {
     auto plot_curve = _mapped_plot_data.numeric.find( curve_name.toStdString() );
     if( plot_curve == _mapped_plot_data.numeric.end())
@@ -837,7 +837,7 @@ void MainWindow::importPlotDataMap(const PlotDataMap& new_data)
                     auto& name = it.first;
                     if( new_data.numeric.find( name ) == new_data.numeric.end() )
                     {
-                        this->deleteLoadedData( QString( name.c_str() ) );
+                        this->deleteDataOfSingleCurve( QString( name.c_str() ) );
                         repeat = true;
                         break;
                     }
@@ -983,7 +983,7 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
             _current_streamer = it->second;
         }
         else{
-            qDebug() << "Error. The streame " << streamer_name <<
+            qDebug() << "Error. The streamer " << streamer_name <<
                         " can't be loaded";
             return;
         }
