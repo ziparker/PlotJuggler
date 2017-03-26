@@ -3,6 +3,7 @@
 #include "../shape_shifter_factory.hpp"
 #include "../qnodedialog.h"
 #include <QMainWindow>
+#include <QSettings>
 
 RosoutPublisher::RosoutPublisher():
     enabled_(false )
@@ -34,10 +35,17 @@ void RosoutPublisher::setEnabled(bool to_enable)
         connect( this, SIGNAL(timeRangeChanged(TimePoint,TimePoint)),
                  logwidget, SLOT(on_timeRangeChanged(TimePoint,TimePoint)) );
 
+        QSettings settings( "IcarusTechnology", "PlotJuggler");
+        _log_window->restoreGeometry(settings.value("RosoutPublisher.geometry").toByteArray());
+
         _log_window->show();
     }
     else{
         if( _log_window ) {
+
+            QSettings settings( "IcarusTechnology", "PlotJuggler");
+            settings.setValue("RosoutPublisher.geometry", _log_window->saveGeometry());
+
             _log_window->setAttribute(Qt::WA_DeleteOnClose, true);
             _log_window->close();
             _tablemodel.removeRows(0, _tablemodel.rowCount() );
