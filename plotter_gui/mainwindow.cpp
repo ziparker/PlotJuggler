@@ -118,6 +118,15 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     restoreGeometry(settings.value("MainWindow.geometry").toByteArray());
 
+    bool activate_grid = settings.value("MainWindow.activateGrid", false).toBool();
+    ui->pushButtonActivateGrid->setChecked(activate_grid);
+
+    int streaming_buffer_value = settings.value("MainWindow.streamingBufferValue", 5).toInt();
+    ui->streamingSpinBox->setValue(streaming_buffer_value);
+
+    bool datetime_display  = settings.value("MainWindow.dateTimeDisplay", false).toBool();
+    ui->checkBoxUseDateTime->setChecked( datetime_display );
+
     ui->widgetOptions->setVisible( ui->pushButtonOptions->isChecked() );
 }
 
@@ -130,6 +139,10 @@ MainWindow::~MainWindow()
     }
     QSettings settings( "IcarusTechnology", "PlotJuggler");
     settings.setValue("MainWindow.geometry", saveGeometry());
+    settings.setValue("MainWindow.activateGrid", ui->pushButtonActivateGrid->isChecked() );
+    settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value() );
+    settings.setValue("MainWindow.dateTimeDisplay",ui->checkBoxUseDateTime->isChecked() );
+
     delete ui;
 }
 
