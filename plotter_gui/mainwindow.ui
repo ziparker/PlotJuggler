@@ -395,7 +395,6 @@ background: white;
     </property>
     <addaction name="actionLoadData"/>
     <addaction name="actionLoadRecentDatafile"/>
-    <addaction name="actionReloadData"/>
     <addaction name="actionDeleteAllData"/>
     <addaction name="separator"/>
     <addaction name="actionLoadLayout"/>
@@ -439,11 +438,6 @@ background: white;
   <action name="actionLoadRecentDatafile">
    <property name="text">
     <string>Load recent datafile...</string>
-   </property>
-  </action>
-  <action name="actionReloadData">
-   <property name="text">
-    <string>Reload data</string>
    </property>
   </action>
   <action name="actionDeleteAllData">

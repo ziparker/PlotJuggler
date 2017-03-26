@@ -59,8 +59,6 @@ private slots:
 
     void onActionReloadDataFileFromSettings();
 
-    void onActionReloadSameDataFile();
-
     void onActionReloadRecentLayout();
 
     void onActionLoadStreamer(QString streamer_name);

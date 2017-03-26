@@ -341,7 +341,7 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
 
     const QMimeData *mimeData = event->mimeData();
     QStringList mimeFormats = mimeData->formats();
-    foreach(QString format, mimeFormats)
+    for(const QString& format: mimeFormats)
     {
         QByteArray encoded = mimeData->data( format );
         QDataStream stream(&encoded, QIODevice::ReadOnly);
@@ -374,7 +374,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
     const QMimeData *mimeData = event->mimeData();
     QStringList mimeFormats = mimeData->formats();
 
-    foreach(QString format, mimeFormats)
+    for(const QString& format: mimeFormats)
     {
         QByteArray encoded = mimeData->data( format );
         QDataStream stream(&encoded, QIODevice::ReadOnly);
