@@ -94,6 +94,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     connect(_streamer_signal_mapper, SIGNAL(mapped(QString)),
             this, SLOT(onActionLoadStreamer(QString)) );
 
+    ui->actionDeleteAllData->setEnabled( _test_option );
+
     if( _test_option )
     {
         buildData();
@@ -318,7 +320,6 @@ void MainWindow::createActions()
     connect(ui->actionLoadData,SIGNAL(triggered()),           this, SLOT(onActionLoadDataFile()) );
     connect(ui->actionLoadRecentDatafile,SIGNAL(triggered()), this, SLOT(onActionReloadDataFileFromSettings()) );
     connect(ui->actionLoadRecentLayout,SIGNAL(triggered()),   this, SLOT(onActionReloadRecentLayout()) );
-    connect(ui->actionReloadData,SIGNAL(triggered()),         this, SLOT(onActionReloadSameDataFile()) );
     connect(ui->actionDeleteAllData,SIGNAL(triggered()),      this, SLOT(onDeleteLoadedData()) );
 
     //---------------------------------------------
@@ -333,9 +334,6 @@ void MainWindow::createActions()
     else{
         ui->actionLoadRecentDatafile->setEnabled( false );
     }
-
-    ui->actionReloadData->setEnabled( false );
-    ui->actionDeleteAllData->setEnabled( false );
 
     if( settings.contains("MainWindow.recentlyLoadedLayout") )
     {
@@ -696,7 +694,6 @@ void MainWindow::deleteLoadedData(const QString& curve_name)
 
     if( _curvelist_widget->rowCount() == 0)
     {
-        ui->actionReloadData->setEnabled( false );
         ui->actionDeleteAllData->setEnabled( false );
     }
 }
@@ -720,7 +717,6 @@ void MainWindow::onDeleteLoadedData()
 
     forEachWidget( [](PlotWidget* plot) { plot->detachAllCurves(); } );
 
-    ui->actionReloadData->setEnabled( false );
     ui->actionDeleteAllData->setEnabled( false );
 
 }
@@ -814,6 +810,8 @@ void MainWindow::importPlotDataMap(const PlotDataMap& new_data)
                                       QMessageBox::Yes );
         if( reply == QMessageBox::Yes )
         {
+            _loaded_datafile = QString();
+
             bool repeat = true;
             while( repeat )
             {
@@ -906,7 +904,6 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
         file.close();
 
         _loaded_datafile = filename;
-        ui->actionReloadData->setEnabled( true );
         ui->actionDeleteAllData->setEnabled( true );
 
         std::string timeindex_name_empty;
@@ -933,10 +930,6 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
     _curvelist_widget->updateFilter();
 }
 
-void MainWindow::onActionReloadSameDataFile()
-{
-    onActionLoadDataFileImpl(_loaded_datafile, true );
-}
 
 void MainWindow::onActionReloadDataFileFromSettings()
 {
