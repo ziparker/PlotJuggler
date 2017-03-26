@@ -313,7 +313,7 @@ void PlotWidget::removeCurve(const QString &name)
         _point_marker[name]->detach();
         _point_marker.erase( name );
     }
-    if( _axisX && _axisX->name() == name.toStdString())
+    if( isXYPlot() && _axisX->name() == name.toStdString())
     {
         _axisX = PlotDataPtr();
         for(auto it : _curve_list)
@@ -413,6 +413,12 @@ void PlotWidget::detachAllCurves()
 {
     for(auto it: _curve_list)   { it.second->detach(); }
     for(auto it: _point_marker) { it.second->detach(); }
+
+    if( isXYPlot() )
+    {
+        _axisX = PlotDataPtr();
+        _action_noTransform->trigger();
+    }
 
     _curve_list.erase(_curve_list.begin(), _curve_list.end());
     _point_marker.erase(_point_marker.begin(), _point_marker.end());
