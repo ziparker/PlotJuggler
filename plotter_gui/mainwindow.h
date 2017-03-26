@@ -177,6 +177,11 @@ private:
 
     void importPlotDataMap(const PlotDataMap &new_data);
 
+    bool isStreamingActive() const { return _streaming_active; }
+
+    bool _streaming_active;
+    double _time_offset_during_streaming;
+
 protected:
 
     double _time_offset;

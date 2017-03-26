@@ -37,7 +37,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
     _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this),
     _current_streamer(nullptr),
-    _disable_undo_logging(false)
+    _disable_undo_logging(false),
+    _streaming_active(false)
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
@@ -159,7 +160,7 @@ void MainWindow::onUndoableChange()
             _undo_states.pop_back();
     }
 
-    if( ui->pushButtonStreaming->isChecked() == false)
+    if( isStreamingActive() == false)
     {
         while( _undo_states.size() >= 100 ) _undo_states.pop_front();
         _undo_states.push_back( xmlSaveState() );
@@ -307,7 +308,7 @@ void MainWindow::createTabbedDialog(PlotMatrix* first_tab)
 
     _floating_window.push_back( window );
 
-    window->tabbedWidget()->setStreamingMode( ui->pushButtonStreaming->isChecked() );
+    window->tabbedWidget()->setStreamingMode( isStreamingActive() );
 
     window->setAttribute( Qt::WA_DeleteOnClose, true );
     window->show();
@@ -543,7 +544,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
     plot->on_changeTimeOffset( _time_offset );
     plot->activateGrid( ui->pushButtonActivateGrid->isChecked() );
-    plot->activateTracker( ui->pushButtonStreaming->isChecked() == false);
+    plot->activateTracker( isStreamingActive() == false);
 }
 
 void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
@@ -728,7 +729,9 @@ void MainWindow::onDeleteLoadedData()
 
     _curvelist_widget->clear();
 
-    forEachWidget( [](PlotWidget* plot) { plot->detachAllCurves(); } );
+    forEachWidget( [](PlotWidget* plot) {
+        plot->detachAllCurves();
+    } );
 
     ui->actionDeleteAllData->setEnabled( false );
 
@@ -998,8 +1001,8 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
         ui->actionDeleteAllData->setEnabled( false );
         ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
 
-        ui->pushButtonStreaming->setChecked(true);
         ui->pushButtonStreaming->setEnabled(true);
+        ui->pushButtonStreaming->setChecked(true);
 
         on_streamingSpinBox_valueChanged( ui->streamingSpinBox->value() );
     }
@@ -1246,10 +1249,17 @@ void MainWindow::updateTimeSlider()
     // Update Time offset
     bool remove_offset = ui->checkBoxRemoveTimeOffset->isChecked();
 
-    _time_offset = 0;
-    if( remove_offset && ui->pushButtonStreaming->isChecked() == false)
+    if( remove_offset )
     {
-        _time_offset = min_time;
+        if( isStreamingActive() ){
+            _time_offset = _time_offset_during_streaming;
+        }
+        else {
+            _time_offset = min_time;
+        }
+    }
+    else{
+        _time_offset = 0.0;
     }
     forEachWidget( [&](PlotWidget* plot) {
         plot->on_changeTimeOffset( _time_offset );
@@ -1342,7 +1352,26 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
         _current_streamer->enableStreaming( checked ) ;
         _replot_timer->setSingleShot(true);
         _replot_timer->start( 5 );
+
+        double min_time = std::numeric_limits<double>::max();
+        for (auto it: _mapped_plot_data.numeric )
+        {
+            PlotDataPtr data = it.second;
+            data->flushAsyncBuffer();
+            if(data->size() > 0)
+            {
+                min_time  = std::min( min_time,  data->at(0).x);
+            }
+        }
+        _time_offset_during_streaming = min_time;
+
+        if( _time_offset_during_streaming ==  std::numeric_limits<double>::max())
+        {
+            _time_offset_during_streaming = 0.0;
+        }
+        _time_offset = _time_offset_during_streaming;
     }
+    _streaming_active = checked;
 
 }
 
@@ -1355,7 +1384,7 @@ void MainWindow::updateDataAndReplot()
         for(auto it : _mapped_plot_data.numeric)
         {
             PlotDataPtr data = ( it.second );
-            data_updated |= data->flushAsyncBuffer();
+            if( data->flushAsyncBuffer() ) data_updated = true;
         }
         PlotData::asyncPushMutex().unlock();
     }
@@ -1371,7 +1400,7 @@ void MainWindow::updateDataAndReplot()
     }
     //--------------------------------
     // trigger again the execution of this callback if steaming == true
-    if( ui->pushButtonStreaming->isChecked())
+    if( isStreamingActive())
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
@@ -1382,13 +1411,6 @@ void MainWindow::updateDataAndReplot()
             if( plot->isXYPlot()){
                 plot->setTrackerPosition( _max_slider_time + _time_offset);
             }
-           // plot->activateTracker( false );
-        } );
-    }
-    else{
-        forEachWidget( [&](PlotWidget* plot)
-        {
-           // plot->activateTracker( false );
         } );
     }
     //--------------------------------
@@ -1425,6 +1447,7 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionStopStreaming_triggered()
 {
+    _streaming_active = false;
     ui->pushButtonStreaming->setChecked(false);
     ui->pushButtonStreaming->setEnabled(false);
     _current_streamer->shutdown();
