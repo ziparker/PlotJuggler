@@ -107,6 +107,7 @@ QVariant LogsTableModel::data(const QModelIndex &index, int role) const
     else{
         return QVariant();
     }
+    return QVariant();
 }
 
 LogsTableModel::LogItem LogsTableModel::convertRosout( const rosgraph_msgs::Log &log)
