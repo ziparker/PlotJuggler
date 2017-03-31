@@ -205,5 +205,6 @@ bool ModelFilter::applyFilter(const QString& filter,
       int pos = 0;
       return validator->validate( message, pos ) == QValidator::Acceptable;
   }
+  return false;
 }
 
