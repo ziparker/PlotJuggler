@@ -208,10 +208,10 @@ void TabbedPlotWidget::on_savePlotsToFile()
     saveDialog.setNameFilter("Compatible formats (*.jpg *.jpeg *.png)");
 #endif
     saveDialog.exec();
-    QString fileName = saveDialog.selectedFiles().first();
 
     if( saveDialog.selectedFiles().empty() == false)
     {
+        QString fileName = saveDialog.selectedFiles().first();
 
         QPixmap pixmap (1200,900);
         QPainter * painter = new QPainter(&pixmap);
