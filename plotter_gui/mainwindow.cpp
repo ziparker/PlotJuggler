@@ -670,20 +670,25 @@ void MainWindow::onActionSaveLayout()
 
     QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
                                              QDir::currentPath() ). toString();
+    QFileDialog saveDialog;
+    saveDialog.setDirectory(directory_path);
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setDefaultSuffix("xml");
+    saveDialog.setNameFilter("*.xml");
+    saveDialog.exec();
 
-    QString filename = QFileDialog::getSaveFileName(this, "Save Layout", directory_path, "*.xml");
-    if (filename.isEmpty())
-        return;
-
-    if(filename.endsWith(".xml",Qt::CaseInsensitive) == false)
+    if(saveDialog.result() == QDialog::Accepted && !saveDialog.selectedFiles().empty())
     {
-        filename.append(".xml");
-    }
+        QString fileName = saveDialog.selectedFiles().first();
 
-    QFile file(filename);
-    if (file.open(QIODevice::WriteOnly)) {
-        QTextStream stream(&file);
-        stream << doc.toString() << endl;
+        if (fileName.isEmpty())
+            return;
+
+        QFile file(fileName);
+        if (file.open(QIODevice::WriteOnly)) {
+            QTextStream stream(&file);
+            stream << doc.toString() << endl;
+        }
     }
 }
 

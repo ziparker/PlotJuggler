@@ -170,6 +170,12 @@ void DataStreamROS::saveIntoRosbag()
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.setDefaultSuffix("bag");
     saveDialog.exec();
+
+    if(saveDialog.result() != QDialog::Accepted || saveDialog.selectedFiles().empty())
+    {
+        return;
+    }
+
     QString fileName = saveDialog.selectedFiles().first();
 
     if( fileName.size() > 0)
