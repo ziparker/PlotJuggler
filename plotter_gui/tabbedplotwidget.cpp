@@ -209,7 +209,7 @@ void TabbedPlotWidget::on_savePlotsToFile()
 #endif
     saveDialog.exec();
 
-    if( saveDialog.selectedFiles().empty() == false)
+    if(saveDialog.result() == QDialog::Accepted && !saveDialog.selectedFiles().empty())
     {
         QString fileName = saveDialog.selectedFiles().first();
 

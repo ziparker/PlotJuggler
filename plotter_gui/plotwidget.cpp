@@ -1077,7 +1077,7 @@ void PlotWidget::on_savePlotToFile()
 #endif
     saveDialog.exec();
 
-    if(saveDialog.selectedFiles().empty() == false)
+    if(saveDialog.result() == QDialog::Accepted && !saveDialog.selectedFiles().empty())
     {
         fileName = saveDialog.selectedFiles().first();
 
