@@ -7,7 +7,8 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
 endif()
 
 SET(PLOTJUGGLER_VERSION_MAJOR 0)
-SET(PLOTJUGGLER_VERSION_MINOR 16)
+SET(PLOTJUGGLER_VERSION_MINOR 17)
+SET(PLOTJUGGLER_VERSION_PATCH 0)
 
 add_definitions(
     -DPJ_MAJOR_VERSION=${PLOTJUGGLER_VERSION_MAJOR}
@@ -90,7 +91,7 @@ else()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-add_subdirectory(backward-cpp)
+#add_subdirectory(backward-cpp)
 
 add_subdirectory( color_widgets )
 add_subdirectory( qwt/src )
@@ -122,15 +123,15 @@ SET(CPACK_PACKAGE_VENDOR "Icarus Technology")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "PlotJuggler")
 
 INCLUDE(CPack)
-include(CPackIFW)
 
 IF (NOT WIN32)
     SET(CPACK_GENERATOR "TGZ;DEB")
     SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Davide Faconti")
     SET(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local/")
     SET(CPACK_DEBIAN_PACKAGE_DEPENDS "qt5-default, libqt5svg5-dev")
-else()
 
+else()
+    include(CPackIFW)
     get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
     get_filename_component(QT_DLL_DIR ${QtCore_LOCATION} PATH)
     install(FILES
