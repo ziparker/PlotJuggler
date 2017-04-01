@@ -1066,16 +1066,30 @@ void PlotWidget::on_savePlotToFile()
 {
     QString fileName;
 
-#ifndef QWT_NO_SVG
-    fileName = QFileDialog::getSaveFileName(this, tr("File to export"), QString(),"Compatible formats (*.jpg *.jpeg *.svg *.png)");
-#else
-    fileName = QFileDialog::getSaveFileName(this, tr("File to export"), QString(),"Compatible formats (*.jpg *.jpeg *.png)");
-#endif
+    QFileDialog saveDialog;
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setDefaultSuffix("png");
 
-    if ( !fileName.isEmpty() )
+#ifndef QWT_NO_SVG
+    saveDialog.setNameFilter("Compatible formats (*.jpg *.jpeg *.svg *.png)");
+#else
+    saveDialog.setNameFilter("Compatible formats (*.jpg *.jpeg *.png)");
+#endif
+    saveDialog.exec();
+
+    if(saveDialog.selectedFiles().empty() == false)
     {
-        QwtPlotRenderer rend;
-        rend.renderDocument(this,fileName, QSizeF(200,150), 150);
+        fileName = saveDialog.selectedFiles().first();
+
+        QPixmap pixmap (1200,900);
+        QPainter * painter = new QPainter(&pixmap);
+
+        if ( !fileName.isEmpty() )
+        {
+            QwtPlotRenderer rend;
+            rend.render(this, painter, QRect(0, 0, pixmap.width(), pixmap.height()));
+            pixmap.save(fileName);
+        }
     }
 }
 

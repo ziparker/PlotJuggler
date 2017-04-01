@@ -210,26 +210,30 @@ void TabbedPlotWidget::on_savePlotsToFile()
     saveDialog.exec();
     QString fileName = saveDialog.selectedFiles().first();
 
-    QPixmap pixmap (1500,1000);
-    QPainter * painter = new QPainter(&pixmap);
-
-    if ( !fileName.isEmpty() )
+    if( saveDialog.selectedFiles().empty() == false)
     {
-        QwtPlotRenderer rend;
 
-        int delta_X = 1500 /  matrix->colsCount();
-        int delta_Y = 1000 /  matrix->rowsCount();
+        QPixmap pixmap (1200,900);
+        QPainter * painter = new QPainter(&pixmap);
 
-        for (int c=0; c< matrix->colsCount(); c++)
+        if ( !fileName.isEmpty() )
         {
-            for (int r=0; r< matrix->rowsCount(); r++)
+            QwtPlotRenderer rend;
+
+            int delta_X = pixmap.width() /  matrix->colsCount();
+            int delta_Y = pixmap.height() /  matrix->rowsCount();
+
+            for (int c=0; c< matrix->colsCount(); c++)
             {
-                PlotWidget* widget = matrix->plotAt(r,c);
-                QRect rect(delta_X*c, delta_Y*r, delta_X, delta_Y);
-                rend.render(widget,painter, rect);
+                for (int r=0; r< matrix->rowsCount(); r++)
+                {
+                    PlotWidget* widget = matrix->plotAt(r,c);
+                    QRect rect(delta_X*c, delta_Y*r, delta_X, delta_Y);
+                    rend.render(widget,painter, rect);
+                }
             }
+            pixmap.save(fileName);
         }
-        pixmap.save(fileName);
     }
 }
 
