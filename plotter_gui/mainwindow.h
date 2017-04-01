@@ -35,9 +35,9 @@ public slots:
 
 private slots:
 
-    void onTrackerTimeUpdated(double current_time );
+    void onTrackerTimeUpdated(double absolute_time );
 
-    void onTrackerPositionUpdated(QPointF pos );
+    void onTrackerMovedFromWidget(QPointF pos );
 
     void onSplitterMoved(int, int);
 
@@ -59,8 +59,6 @@ private slots:
 
     void onActionReloadDataFileFromSettings();
 
-    void onActionReloadSameDataFile();
-
     void onActionReloadRecentLayout();
 
     void onActionLoadStreamer(QString streamer_name);
@@ -81,13 +79,11 @@ private slots:
 
     void on_pushButtonStreaming_toggled(bool checked);
 
-    void onReplotRequested();
+    void updateDataAndReplot();
 
     void on_streamingSpinBox_valueChanged(int value);
 
     void onDeleteLoadedData();
-
-    void on_pushButtonActivateTracker_toggled(bool checked);
 
     void on_actionAbout_triggered();
 
@@ -100,6 +96,16 @@ private slots:
     void on_horizontalSlider_valueChanged(int value);
 
     void updateLeftTableValues();
+
+    void deleteDataOfSingleCurve(const QString &curve_name);
+
+    void on_checkBoxRemoveTimeOffset_toggled(bool checked);
+
+    void on_pushButtonOptions_toggled(bool checked);
+
+    void on_checkBoxUseDateTime_toggled(bool checked);
+
+    void on_pushButtonActivateGrid_toggled(bool checked);
 
 private:
     Ui::MainWindow *ui;
@@ -117,17 +123,15 @@ private:
 
     FilterableListWidget* _curvelist_widget;
 
-   // std::vector<PlotMatrix*> _plot_matrix_list;
-
-    void updateInternalState();
+    void onLayoutChanged();
 
     void forEachWidget(std::function<void(PlotWidget*, PlotMatrix*, int, int)> op);
 
     void forEachWidget(std::function<void(PlotWidget*)> op);
 
-    void getMaximumRangeX(double* minX, double* maxX);
+    void updateTimeSlider();
 
-    void buildData();
+    void buildDummyData();
 
     PlotDataMap    _mapped_plot_data;
 
@@ -136,22 +140,32 @@ private:
     void loadPlugins(QString subdir_name);
 
     std::map<QString,DataLoader*>      _data_loader;
+
     std::map<QString,StatePublisher*>  _state_publisher;
+
     std::map<QString,DataStreamer*>    _data_streamer;
 
     DataStreamer* _current_streamer;
 
     QDomDocument xmlSaveState() const;
+
     bool xmlLoadState(QDomDocument state_document);
 
     std::deque<QDomDocument> _undo_states;
+
     std::deque<QDomDocument> _redo_states;
 
     QElapsedTimer _undo_timer;
+
     bool _disable_undo_logging;
+
     bool _test_option;
 
     double _tracker_time;
+
+    double _min_slider_time;
+
+    double _max_slider_time;
 
     QString _loaded_datafile;
 
@@ -159,16 +173,18 @@ private:
 
     QSignalMapper *_streamer_signal_mapper;
 
-    void createTabbedDialog(PlotMatrix *first_tab, bool undoable);
+    void createTabbedDialog(PlotMatrix *first_tab);
 
     void importPlotDataMap(const PlotDataMap &new_data);
 
+    bool isStreamingActive() const { return _streaming_active; }
+
+    bool _streaming_active;
+    double _time_offset_during_streaming;
+
 protected:
-    void mousePressEvent(QMouseEvent *event) ;
 
-    void dragEnterEvent(QDragEnterEvent *event) ;
-
-    void deleteLoadedData(const QString &curve_name);
+    double _time_offset;
 
     QTimer *_replot_timer;
 signals:
@@ -176,7 +192,7 @@ signals:
 
     void activateStreamingMode( bool active);
 
-    void trackerTimeUpdated(QPointF point);
+    void trackerTimeUpdated(double abs_point);
 
     void activateTracker(bool active);
 

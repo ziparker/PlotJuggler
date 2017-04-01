@@ -6,11 +6,14 @@
 #include <QListWidget>
 #include <QTableWidget>
 #include <QMouseEvent>
+#include <QStandardItemModel>
+
 
 namespace Ui {
 class FilterableListWidget;
 }
 
+class TreeModelCompleter;
 
 class FilterableListWidget : public QWidget
 {
@@ -30,14 +33,15 @@ public:
 
     QList<int> findRowsByName(const QString& text) const;
 
-    const QTableWidget *table() const;
-
-    QTableWidget *table();
+    void removeRow(int row);
 
     void updateFilter();
 
-private slots:
+    const QTableWidget * getTable() const;
 
+    virtual void keyPressEvent(QKeyEvent * event) override;
+
+private slots:
 
     void on_radioContains_toggled(bool checked);
 
@@ -51,17 +55,33 @@ private slots:
 
     void on_checkBoxHideSecondColumn_toggled(bool checked);
 
+    void removeSelectedCurves();
+
+    void on_radioPrefix_toggled(bool checked);
+
 private:
 
     Ui::FilterableListWidget *ui;
 
     QPoint _drag_start_pos;
 
+    bool _newX_modifier;
+
+    QStandardItemModel* _tree_model;
+
+    TreeModelCompleter* _completer;
+
     bool eventFilter(QObject *object, QEvent *event);
+
+    void updateTreeModel();
+    
+    void addToCompletionTree(QTableWidgetItem *item);
 
 signals:
 
     void hiddenItemsChanged();
+
+    void deleteCurve(QString curve_name);
 
 };
 

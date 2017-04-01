@@ -2,6 +2,62 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+0.16.0 (2017-03-22)
+-------------------
+* removed the normalization of time in ROS plugins
+* relative time seems to work properly
+* Contributors: Davide Faconti
+
+0.15.3 (2017-03-22)
+-------------------
+* multiple fixes
+* update related to backtrace
+* backward-cpp added
+* show coordinates when the left mouse is clicked (but not moved)
+* Contributors: Davide Faconti
+
+0.15.1 (2017-03-20)
+-------------------
+* adding some deadband to the zoomer
+* fixed a bug related to tabs and new windows
+* Contributors: Davide Faconti
+
+0.15.0 (2017-03-17)
+-------------------
+* Multiple problems fixed with streaming interface nd XY plots
+* Contributors: Davide Faconti
+
+0.14.2 (2017-03-16)
+-------------------
+* improve CurveColorPick
+* bugs fixed
+* crash fixed
+* Prevent compiler warning if compiling under ROS (#29)
+* Contributors: Davide Faconti, Tim Clephas
+
+0.14.1 (2017-03-15)
+-------------------
+* improved the time slider
+* bug fixes
+* Contributors: Davide Faconti
+
+0.14.0 (2017-03-15)
+-------------------
+* improved usability
+* adding XY plots (#26)
+* improving plot magnifier
+* changed key combination
+* file extension of saved images fixed
+* bug fixes
+* adding the ability to delete curves
+* Contributors: Davide Faconti
+
+0.13.1 (2017-03-14)
+-------------------
+* bug fix
+* Contributors: Davide Faconti
+
 0.13.0 (2017-03-12)
 -------------------
 * default range X for empty plots

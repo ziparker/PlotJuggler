@@ -29,7 +29,6 @@ DataStreamROS::DataStreamROS():
     _initial_time = std::numeric_limits<double>::max();
 
     _use_header_timestamp = true;
-    _normalize_time = true;
 }
 
 PlotDataMap& DataStreamROS::getDataMap()
@@ -39,8 +38,6 @@ PlotDataMap& DataStreamROS::getDataMap()
 
 void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg, const std::string &topic_name)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
-
     if( !_running ||  !_enabled){
         return;
     }
@@ -63,7 +60,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     const RosIntrospection::ROSTypeList& type_map = it->second;
 
     //------------------------------------
-    std::vector<uint8_t> buffer(msg->size()); // "64 KB ought to be enough for anybody"
+    std::vector<uint8_t> buffer(msg->size());
 
     // it is more efficient to recycle ROSTypeFlat
     static ROSTypeFlat flat_container;
@@ -102,7 +99,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         auto plot_pair = _plot_data.user_defined.find( md5sum );
         if( plot_pair == _plot_data.user_defined.end() )
         {
-            PlotDataAnyPtr temp(new PlotDataAny());
+            PlotDataAnyPtr temp(new PlotDataAny(topic_name.c_str()));
             auto res = _plot_data.user_defined.insert( std::make_pair( topic_name, temp ) );
             plot_pair = res.first;
         }
@@ -110,29 +107,21 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         user_defined_data->pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer)) ));
     }
 
-    if( _normalize_time )
-    {
-        _initial_time = std::min( _initial_time, msg_time );
-        msg_time -= _initial_time;
-    }
-
+    PlotData::asyncPushMutex().lock();
     for(auto& it: flat_container.renamed_value )
     {
         std::string field_name ( it.first.data(), it.first.size());
-        auto value = it.second;
-
-        auto plot = _plot_data.numeric.find( field_name );
-        if( plot == _plot_data.numeric.end() )
+        double value = it.second;
+        auto plot_it = _plot_data.numeric.find(field_name);
+        if( plot_it == _plot_data.numeric.end())
         {
-            PlotDataPtr temp(new PlotData());
-            temp->setMaximumRangeX( 4.0 );
-            auto res = _plot_data.numeric.insert( std::make_pair(field_name, temp ) );
-            plot = res.first;
+            auto res =   _plot_data.numeric.insert(
+                        std::make_pair( field_name, std::make_shared<PlotData>(field_name.c_str()) ));
+            plot_it = res.first;
         }
-
-        // IMPORTANT: don't use pushBack(), it may cause a segfault
-        plot->second->pushBackAsynchronously( PlotData::Point(msg_time, value));
+        plot_it->second->pushBackAsynchronously( PlotData::Point(msg_time, value));
     }
+    PlotData::asyncPushMutex().unlock();
 }
 
 void DataStreamROS::extractInitialSamples()
@@ -267,7 +256,7 @@ bool DataStreamROS::start()
     if( dialog.checkBoxUseRenamingRules()->isChecked() ){
         _rules = RuleEditing::getRenamingRules();
     }
-    _normalize_time       = dialog.checkBoxNormalizeTime()->isChecked();
+
     _use_header_timestamp = dialog.checkBoxUseHeaderStamp()->isChecked();
     //-------------------------
 
