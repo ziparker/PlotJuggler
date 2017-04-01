@@ -66,7 +66,7 @@
            <property name="minimumSize">
             <size>
              <width>40</width>
-             <height>0</height>
+             <height>34</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -79,7 +79,7 @@
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="toolTip">
-            <string>Show/hide legend</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show/hide the legend&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="whatsThis">
             <string/>
@@ -116,7 +116,7 @@
            <property name="minimumSize">
             <size>
              <width>40</width>
-             <height>0</height>
+             <height>34</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -162,52 +162,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButtonShowGrid">
-           <property name="minimumSize">
-            <size>
-             <width>40</width>
-             <height>34</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>40</width>
-             <height>34</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide/Show the grid&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icons/resources/grid.png</normaloff>:/icons/resources/grid.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="pushVerticalResize">
            <property name="minimumSize">
             <size>
              <width>40</width>
-             <height>0</height>
+             <height>34</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -251,7 +210,7 @@
            <property name="minimumSize">
             <size>
              <width>40</width>
-             <height>0</height>
+             <height>34</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -307,7 +266,7 @@ background: white;
          <item>
           <widget class="QPushButton" name="pushAddColumn">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -320,7 +279,7 @@ background: white;
            </property>
            <property name="maximumSize">
             <size>
-             <width>140</width>
+             <width>44</width>
              <height>34</height>
             </size>
            </property>
@@ -355,14 +314,14 @@ background: white;
             </size>
            </property>
            <property name="flat">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushAddRow">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -375,7 +334,7 @@ background: white;
            </property>
            <property name="maximumSize">
             <size>
-             <width>160</width>
+             <width>44</width>
              <height>34</height>
             </size>
            </property>
@@ -409,6 +368,9 @@ background: white;
              <height>32</height>
             </size>
            </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -421,7 +383,7 @@ background: white;
            </property>
            <property name="maximumSize">
             <size>
-             <width>90</width>
+             <width>44</width>
              <height>34</height>
             </size>
            </property>
@@ -470,7 +432,7 @@ background: white;
            </property>
            <property name="maximumSize">
             <size>
-             <width>120</width>
+             <width>44</width>
              <height>34</height>
             </size>
            </property>
@@ -500,8 +462,8 @@ background: white;
            </property>
            <property name="iconSize">
             <size>
-             <width>32</width>
-             <height>32</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
           </widget>

@@ -13,7 +13,7 @@
 #include "plotzoomer.h"
 #include <qwt_plot_panner.h>
 #include <QDomDocument>
-#include "plotdata_qwt.h"
+#include "timeseries_qwt.h"
 #include "customtracker.h"
 #include <qwt_plot_legenditem.h>
 #include <deque>
@@ -25,7 +25,8 @@ class PlotWidget : public QwtPlot
     Q_OBJECT
 
 public:
-    PlotWidget(const PlotDataMap* datamap, QWidget *parent=0);
+
+    PlotWidget(PlotDataMap* datamap, QWidget *parent=0);
     virtual ~PlotWidget();
 
     bool addCurve(const QString&  name, bool do_replot );
@@ -40,25 +41,24 @@ public:
 
     QRectF currentBoundingRect() const;
 
-    PlotData::RangeTime maximumRangeX() const;
+    PlotData::RangeTime getMaximumRangeX() const;
 
-    PlotData::RangeValue maximumRangeY( PlotData::RangeTime range_X ) const;
-
-    CurveTracker* tracker();
+    PlotData::RangeValue getMaximumRangeY( PlotData::RangeTime range_X, bool absolute_time ) const;
 
     void setScale( QRectF rect, bool emit_signal );
 
     void reloadPlotData( );
 
+    void changeAxisX(QString curve_name);
+
+    bool isXYPlot() const;
+
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) ;
     virtual void dragMoveEvent(QDragMoveEvent *event) ;
     virtual void dropEvent(QDropEvent *event) ;
-
-    virtual void mousePressEvent(QMouseEvent *event) ;
-    virtual void mouseReleaseEvent(QMouseEvent *event);
-
     virtual bool eventFilter(QObject *obj, QEvent *event);
+
 
 signals:
     void swapWidgetsRequested(PlotWidget* source, PlotWidget* destination);
@@ -67,6 +67,8 @@ signals:
     void trackerMoved(QPointF pos);
 
 public slots:
+
+    void updateCurves(bool force);
 
     void replot() ;
 
@@ -79,8 +81,12 @@ public slots:
     void on_zoomOutVertical_triggered(bool emit_signal = true);
 
     void on_noTransform_triggered(bool checked );
+
     void on_1stDerivativeTransform_triggered(bool checked);
+
     void on_2ndDerivativeTransform_triggered(bool checked);
+
+    void on_convertToXY_triggered(bool checked);
 
     void on_savePlotToFile();
 
@@ -90,26 +96,35 @@ public slots:
 
     void activateGrid(bool activate);
 
+    void activateTracker(bool activate);
+
+    void setTrackerPosition(double abs_time);
+
+    void on_changeTimeOffset(double offset);
+
 private slots:
     void launchRemoveCurveDialog();
     void canvasContextMenuTriggered(const QPoint &pos);
-    void on_changeColor_triggered();
+    void on_changeColorsDialog_triggered();
+    void on_changeColor(QString curve_name, QColor new_color);
     void on_showPoints_triggered(bool checked);
     void on_externallyResized(const QRectF &new_rect);
 
 
 private:
     std::map<QString, std::shared_ptr<QwtPlotCurve> > _curve_list;
+    std::map<QString, QwtPlotMarker*> _point_marker;
 
     QAction *_action_removeCurve;
     QAction *_action_removeAllCurves;
-    QAction *_action_changeColors;
+    QAction *_action_changeColorsDialog;
     QAction *_action_showPoints;
     QAction *_action_zoomOutHorizontally;
     QAction *_action_zoomOutVertically;
     QAction *_action_noTransform;
     QAction *_action_1stDerivativeTransform;
     QAction *_action_2ndDerivativeTransform;
+    QAction *_action_phaseXY;
     QAction *_action_saveToFile;
 
     PlotZoomer* _zoomer;
@@ -120,8 +135,8 @@ private:
     QwtPlotLegendItem* _legend;
     QwtPlotGrid* _grid;
 
-    const PlotDataMap* _mapped_data;
-    PlotDataQwt::Transform _current_transform;
+    PlotDataMap* _mapped_data;
+    TimeseriesQwt::Transform _current_transform;
 
     void buildActions();
     void buildLegend();
@@ -131,6 +146,10 @@ private:
     bool _show_line_and_points;
 
     void setDefaultRangeX();
+
+    PlotDataPtr _axisX;
+
+    double _time_offset;
 };
 
 #endif

@@ -19,6 +19,7 @@ public:
     typedef struct{} MainWindowArea;
 
     explicit TabbedPlotWidget(QMainWindow *main_window,
+                              PlotMatrix *first_tab,
                               PlotDataMap *mapped_data,
                               QMainWindow *parent );
 
@@ -68,8 +69,6 @@ private slots:
     void on_moveTabIntoNewWindow();
 
     void on_pushButtonShowLabel_toggled(bool checked);
-
-    void on_pushButtonShowGrid_toggled(bool checked);
 
 private:
     Ui::TabbedPlotWidget *ui;

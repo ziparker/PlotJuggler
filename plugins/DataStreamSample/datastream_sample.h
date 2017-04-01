@@ -36,6 +36,10 @@ public:
 
 private:
 
+    struct Parameters{
+        double A,B,C,D;
+    };
+
     void loop();
 
     PlotDataMap _plot_data;
@@ -44,13 +48,12 @@ private:
     std::thread _thread;
 
     bool _running;
-    double _simulated_time;
 
-    std::vector<double> vect_A;
-    std::vector<double> vect_B;
-    std::vector<double> vect_C;
-    std::vector<double> vect_D;
 
+    std::map<std::string,Parameters> _parameters;
+
+
+    void pushSingleCycle();
 };
 
 #endif // DATALOAD_CSV_H
