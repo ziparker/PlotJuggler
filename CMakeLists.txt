@@ -91,7 +91,7 @@ else()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-#add_subdirectory(backward-cpp)
+add_subdirectory(backward-cpp)
 
 add_subdirectory( color_widgets )
 add_subdirectory( qwt/src )
