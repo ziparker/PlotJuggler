@@ -68,9 +68,12 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     ros::serialization::OStream stream(buffer.data(), buffer.size());
     msg->write(stream);
 
-    SString topicname( topic_name.data(), topic_name.length() );
+    SString topicname_SS( topic_name.data(), topic_name.length() );
+    // WORKAROUND. There are some problems related to renaming when the character / is
+    // used as prefix. We will remove that here.
+    if( topicname_SS.at(0) == '/' ) topicname_SS = SString( topic_name.data() +1,  topic_name.size()-1 );
 
-    buildRosFlatType( type_map, datatype, topicname, buffer.data(), &flat_container);
+    buildRosFlatType( type_map, datatype, topicname_SS, buffer.data(), &flat_container);
     applyNameTransform( _rules[datatype], &flat_container );
 
     SString header_stamp_field( topic_name );
