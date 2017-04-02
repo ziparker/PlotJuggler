@@ -3,8 +3,8 @@ Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-Forthcoming
------------
+0.17.0 (2017-04-02)
+-------------------
 * more renaming rules and samples
 * feature request #31
 * fix QFileDialog (save)
