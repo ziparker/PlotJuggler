@@ -670,25 +670,17 @@ void MainWindow::onActionSaveLayout()
 
     QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
                                              QDir::currentPath() ). toString();
-    QFileDialog saveDialog;
-    saveDialog.setDirectory(directory_path);
-    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-    saveDialog.setDefaultSuffix("xml");
-    saveDialog.setNameFilter("*.xml");
-    saveDialog.exec();
 
-    if(saveDialog.result() == QDialog::Accepted && !saveDialog.selectedFiles().empty())
-    {
-        QString fileName = saveDialog.selectedFiles().first();
+    QString filter("*.xml");
+    QString fileName =  QFileDialog::getSaveFileName(this, tr("Save Layout to File"),
+                                                     directory_path, filter, &filter);
+    if (fileName.isEmpty())
+        return;
 
-        if (fileName.isEmpty())
-            return;
-
-        QFile file(fileName);
-        if (file.open(QIODevice::WriteOnly)) {
-            QTextStream stream(&file);
-            stream << doc.toString() << endl;
-        }
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly)) {
+        QTextStream stream(&file);
+        stream << doc.toString() << endl;
     }
 }
 
@@ -1246,9 +1238,9 @@ void MainWindow::updateTimeSlider()
 
     if( _mapped_plot_data.numeric.size() == 0)
     {
-       min_time = 0.0;
-       max_time = 0.0;
-       max_steps = 0;
+        min_time = 0.0;
+        max_time = 0.0;
+        max_steps = 0;
     }
     //----------------------------------
     // Update Time offset
@@ -1563,6 +1555,29 @@ void MainWindow::on_pushButtonActivateGrid_toggled(bool checked)
 {
     forEachWidget( [checked](PlotWidget* plot) {
         plot->activateGrid( checked );
+        plot->replot();
+    });
+}
+
+void MainWindow::on_actionClearBuffer_triggered()
+{
+    {
+        std::unique_lock<std::mutex> locker( PlotData::asyncPushMutex() );
+        for (auto it: _mapped_plot_data.numeric )
+        {
+            it.second->clear();
+        }
+    }
+
+    {
+        std::unique_lock<std::mutex> locker( PlotDataAny::asyncPushMutex() );
+        for (auto it: _mapped_plot_data.user_defined )
+        {
+            it.second->clear();
+        }
+    }
+    forEachWidget( [](PlotWidget* plot) {
+        plot->reloadPlotData();
         plot->replot();
     });
 }

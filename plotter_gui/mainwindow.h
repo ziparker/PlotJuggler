@@ -107,6 +107,8 @@ private slots:
 
     void on_pushButtonActivateGrid_toggled(bool checked);
 
+    void on_actionClearBuffer_triggered();
+
 private:
     Ui::MainWindow *ui;
 
