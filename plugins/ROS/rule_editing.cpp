@@ -6,7 +6,7 @@
 #include <QTimer>
 #include <QMessageBox>
 
-const char* DEFAULT =
+const char* DEFAULT_RULES =
         "<SubstitutionRules>\n"
         "\n"
         "<RosType name=\"sensor_msgs/JointState\">\n"
@@ -242,7 +242,7 @@ void RuleEditing::on_pushButtonReset_pressed()
                                   QMessageBox::No );
     if( reply == QMessageBox::Yes )
     {
-        ui->textEdit->setPlainText( DEFAULT );
+        ui->textEdit->setPlainText( DEFAULT_RULES );
     }
 }
 
@@ -254,7 +254,7 @@ QString RuleEditing::getRenamingXML()
         return settings.value("RuleEditing.text").toString();
     }
     else{
-        return DEFAULT;
+        return DEFAULT_RULES;
     }
 }
 
