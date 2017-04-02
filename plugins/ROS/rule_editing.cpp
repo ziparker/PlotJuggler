@@ -15,6 +15,18 @@ const char* DEFAULT =
         "  <rule pattern=\"effort.#\"   alias=\"name.#\" substitution=\"@/eff\" />\n"
         "</RosType>\n"
         "\n"
+        "<RosType name=\"tf/tfMessage\">"
+        "  <rule pattern=\"transforms.#/header\"                alias=\"transforms.#/child_frame_id\"  substitution=\"@/header\" />\n"
+        "  <rule pattern=\"transforms.#/transform/rotation\"    alias=\"transforms.#/child_frame_id\"  substitution=\"@/rotation\" />\n"
+        "  <rule pattern=\"transforms.#/transform/translation\" alias=\"transforms.#/child_frame_id\"  substitution=\"@/translation\" />\n"
+        "</RosType>\n"
+        "\n"
+        "<RosType name=\"tf2_msgs/TFMessage\">"
+        "  <rule pattern=\"transforms.#/header\"                alias=\"transforms.#/child_frame_id\"  substitution=\"@/header\" />\n"
+        "  <rule pattern=\"transforms.#/transform/rotation\"    alias=\"transforms.#/child_frame_id\"  substitution=\"@/rotation\" />\n"
+        "  <rule pattern=\"transforms.#/transform/translation\" alias=\"transforms.#/child_frame_id\"  substitution=\"@/translation\" />\n"
+        "</RosType>\n"
+        "\n"
         "</SubstitutionRules>\n"
         ;
 
