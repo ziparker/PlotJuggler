@@ -707,7 +707,6 @@ void PlotWidget::on_changeTimeOffset(double offset)
         series->setTimeOffset(offset);
     }
     zoomOut(false);
-    replot();
 }
 
 
