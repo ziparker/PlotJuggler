@@ -1401,7 +1401,7 @@ void MainWindow::updateDataAndReplot()
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
-        _replot_timer->start( 20 ); // 50 Hz at most
+        _replot_timer->start( 40 ); // 25 Hz at most
 
         forEachWidget( [&](PlotWidget* plot)
         {
