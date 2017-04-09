@@ -1,7 +1,7 @@
 
 include_directories( ./ ../  ../include  ../common)
 
-QT5_ADD_RESOURCES (RES_SRC  resource.qrc ../doc/doc_resources.qrc)
+QT5_ADD_RESOURCES (RES_SRC  resource.qrc )
 
 QT5_WRAP_UI ( UI_SRC
     aboutdialog.ui

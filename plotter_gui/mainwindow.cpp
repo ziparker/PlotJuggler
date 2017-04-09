@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <qwt_plot_canvas.h>
 #include <QDomDocument>
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QStringRef>
@@ -411,6 +412,8 @@ void MainWindow::loadPlugins(QString directory_name)
                     loaded_plugins.insert( publisher->name() );
                     _state_publisher.insert( std::make_pair(publisher->name(), publisher) );
 
+                    publisher->setParentMenu( ui->menuPublishers );
+
                     QAction* activatePublisher = new QAction( publisher->name() , this);
                     activatePublisher->setCheckable(true);
                     activatePublisher->setChecked(false);
@@ -437,7 +440,7 @@ void MainWindow::loadPlugins(QString directory_name)
                     ui->menuStreaming->setEnabled(true);
                     ui->menuStreaming->addAction(startStreamer);
 
-                    streamer->setMenu( ui->menuStreaming );
+                    streamer->setParentMenu( ui->menuStreaming );
 
                     connect(startStreamer, SIGNAL(triggered()), _streamer_signal_mapper, SLOT(map()));
                     _streamer_signal_mapper->setMapping(startStreamer, name );
@@ -1476,6 +1479,11 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionQuick_Help_triggered()
 {
+    QUrl url("file:///"  + tr(PJ_DOCUMENTATION_DIR) + "/index.html", QUrl::TolerantMode);
+    qDebug() << url;
+    QDesktopServices::openUrl(url);
+
+    /*
     QDialog*  dialog = new QDialog(this);
     Ui::HelpDialog *ui = new Ui::HelpDialog;
     ui->setupUi(dialog);
@@ -1504,7 +1512,7 @@ void MainWindow::on_actionQuick_Help_triggered()
     ui->label_6->setMovie(movie_6);
     movie_6->start();
 
-    dialog->exec();
+    dialog->exec();*/
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int position)
