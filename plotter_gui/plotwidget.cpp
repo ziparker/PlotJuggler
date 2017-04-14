@@ -26,11 +26,11 @@
 
 void PlotWidget::setDefaultRangeX()
 {
-    if( _mapped_data->numeric.size() > 0)
+    if( _mapped_data.numeric.size() > 0)
     {
         double min = std::numeric_limits<double>::max();
         double max = std::numeric_limits<double>::min();
-        for (auto it: _mapped_data->numeric )
+        for (auto it: _mapped_data.numeric )
         {
             const PlotDataPtr& data = it.second;
             if( data->size() > 0){
@@ -44,7 +44,7 @@ void PlotWidget::setDefaultRangeX()
     }
 }
 
-PlotWidget::PlotWidget(PlotDataMap *datamap, QWidget *parent):
+PlotWidget::PlotWidget(PlotDataMap &datamap, QWidget *parent):
     QwtPlot(parent),
     _zoomer( 0 ),
     _magnifier(0 ),
@@ -223,8 +223,8 @@ PlotWidget::~PlotWidget()
 
 bool PlotWidget::addCurve(const QString &name, bool do_replot)
 {
-    auto it = _mapped_data->numeric.find( name.toStdString() );
-    if( it == _mapped_data->numeric.end())
+    auto it = _mapped_data.numeric.find( name.toStdString() );
+    if( it == _mapped_data.numeric.end())
     {
         return false;
     }
@@ -510,7 +510,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
         int B = curve.attribute("B").toInt();
         QColor color(R,G,B);
 
-        if(  _mapped_data->numeric.find(curve_name.toStdString()) != _mapped_data->numeric.end() )
+        if(  _mapped_data.numeric.find(curve_name.toStdString()) != _mapped_data.numeric.end() )
         {
             addCurve(curve_name, false);
             _curve_list[curve_name]->setPen( color, 1.0);
@@ -629,8 +629,8 @@ void PlotWidget::reloadPlotData()
 {
     if( isXYPlot() )
     {
-        auto it = _mapped_data->numeric.find( _axisX->name() );
-        if( it != _mapped_data->numeric.end() ){
+        auto it = _mapped_data.numeric.find( _axisX->name() );
+        if( it != _mapped_data.numeric.end() ){
             _axisX = it->second;
         }
         else{
@@ -643,8 +643,8 @@ void PlotWidget::reloadPlotData()
         std::shared_ptr<QwtPlotCurve>& curve_data = curve_it.second;
         const std::string curve_name = curve_it.first.toStdString();
 
-        auto it = _mapped_data->numeric.find( curve_name );
-        if( it != _mapped_data->numeric.end())
+        auto it = _mapped_data.numeric.find( curve_name );
+        if( it != _mapped_data.numeric.end())
         {
             TimeseriesQwt* new_plotqwt = new TimeseriesQwt( it->second );
             new_plotqwt->setTimeOffset( _time_offset );
@@ -1050,8 +1050,8 @@ void PlotWidget::on_convertToXY_triggered(bool)
 
 void PlotWidget::changeAxisX(QString curve_name)
 {
-    auto it = _mapped_data->numeric.find( curve_name.toStdString() );
-    if( it != _mapped_data->numeric.end())
+    auto it = _mapped_data.numeric.find( curve_name.toStdString() );
+    if( it != _mapped_data.numeric.end())
     {
         _axisX = it->second;
         _action_phaseXY->trigger();

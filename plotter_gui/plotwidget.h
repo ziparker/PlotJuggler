@@ -26,7 +26,7 @@ class PlotWidget : public QwtPlot
 
 public:
 
-    PlotWidget(PlotDataMap* datamap, QWidget *parent=0);
+    PlotWidget(PlotDataMap& datamap, QWidget *parent=0);
     virtual ~PlotWidget();
 
     bool addCurve(const QString&  name, bool do_replot );
@@ -135,7 +135,7 @@ private:
     QwtPlotLegendItem* _legend;
     QwtPlotGrid* _grid;
 
-    PlotDataMap* _mapped_data;
+    PlotDataMap& _mapped_data;
     TimeseriesQwt::Transform _current_transform;
 
     void buildActions();

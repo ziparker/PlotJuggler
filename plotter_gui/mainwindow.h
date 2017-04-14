@@ -177,7 +177,7 @@ private:
 
     void createTabbedDialog(PlotMatrix *first_tab);
 
-    void importPlotDataMap(const PlotDataMap &new_data);
+    void importPlotDataMap(const PlotDataMap &new_data, bool delete_older);
 
     bool isStreamingActive() const { return _streaming_active; }
 
