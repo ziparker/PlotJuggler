@@ -1,6 +1,11 @@
 site_name: PlotJuggler
+
+repo_name: 'facontidavide/PlotJuggler'
 repo_url: https://github.com/facontidavide/PlotJuggler
+
 use_directory_urls: false
+theme: flatly
+
 pages:
     - Introduction: index.md
     - User Guide:

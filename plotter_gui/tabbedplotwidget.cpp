@@ -10,13 +10,13 @@
 
 
 TabbedPlotWidget::TabbedPlotWidget(QMainWindow *main_window,
-                                   PlotMatrix *first_tab,
-                                   PlotDataMap *mapped_data,
+                                   PlotMatrix  *first_tab,
+                                   PlotDataMap &mapped_data,
                                    QMainWindow *parent ) :
     QWidget(parent),
+    _mapped_data(mapped_data),
     ui(new Ui::TabbedPlotWidget)
 {
-    _mapped_data = mapped_data;
 
     if( main_window == parent){
         _parent_type = QString("main_window");

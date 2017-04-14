@@ -61,7 +61,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     connect(this, SIGNAL(trackerTimeUpdated(double)), this, SLOT(updateLeftTableValues()) );
 
-    _main_tabbed_widget = new TabbedPlotWidget( this, NULL, &_mapped_plot_data, this);
+    _main_tabbed_widget = new TabbedPlotWidget( this, NULL, _mapped_plot_data, this);
 
     ui->centralLayout->insertWidget(0, _main_tabbed_widget);
     ui->leftLayout->addWidget( _curvelist_widget );
@@ -197,7 +197,7 @@ void MainWindow::updateLeftTableValues()
         for (int row = 0; row < _curvelist_widget->rowCount(); row++)
         {
             int vertical_pos = table->rowViewportPosition(row);
-            if( vertical_pos < 0 || table->isRowHidden(row) ){   continue; }
+            if( vertical_pos < 0 || table->isRowHidden(row) ){ continue; }
             if( vertical_pos > vertical_height){ break; }
 
             const std::string name = table->item(row,0)->text().toStdString();
@@ -276,7 +276,7 @@ void MainWindow::onTrackerMovedFromWidget(QPointF relative_pos)
 
 void MainWindow::createTabbedDialog(PlotMatrix* first_tab)
 {
-    SubWindow* window = new SubWindow(first_tab, &_mapped_plot_data, this );
+    SubWindow* window = new SubWindow(first_tab, _mapped_plot_data, this );
     Qt::WindowFlags flags = window->windowFlags();
     window->setWindowFlags( flags | Qt::SubWindow );
 
@@ -793,7 +793,7 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
     onActionLoadDataFileImpl(filename, false );
 }
 
-void MainWindow::importPlotDataMap(const PlotDataMap& new_data)
+void MainWindow::importPlotDataMap(const PlotDataMap& new_data, bool delete_older)
 {
     // overwrite the old user_defined map
     _mapped_plot_data.user_defined = new_data.user_defined;
@@ -802,14 +802,12 @@ void MainWindow::importPlotDataMap(const PlotDataMap& new_data)
     {
         const std::string& name  = it.first;
         PlotDataPtr plot  = it.second;
-
-        QString qname = QString::fromStdString(name);
         auto plot_with_same_name = _mapped_plot_data.numeric.find(name);
 
         // this is a new plot
         if( plot_with_same_name == _mapped_plot_data.numeric.end() )
         {
-            _curvelist_widget->addItem( new QTableWidgetItem( qname ) );
+            _curvelist_widget->addItem( new QTableWidgetItem( name.c_str() ) );
             _mapped_plot_data.numeric.insert( std::make_pair(name, plot) );
         }
         else{ // a plot with the same name existed already, overwrite it
@@ -817,7 +815,7 @@ void MainWindow::importPlotDataMap(const PlotDataMap& new_data)
         }
     }
 
-    if( _mapped_plot_data.numeric.size() > new_data.numeric.size() )
+    if( delete_older && _mapped_plot_data.numeric.size() > new_data.numeric.size() )
     {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(0, tr("Warning"),
@@ -826,22 +824,18 @@ void MainWindow::importPlotDataMap(const PlotDataMap& new_data)
                                       QMessageBox::Yes );
         if( reply == QMessageBox::Yes )
         {
-            _loaded_datafile = QString();
+            std::vector<std::string> data_to_remove;
 
-            bool repeat = true;
-            while( repeat )
+            for (auto& it: _mapped_plot_data.numeric )
             {
-                repeat = false;
-                for (auto& it: _mapped_plot_data.numeric )
-                {
-                    auto& name = it.first;
-                    if( new_data.numeric.find( name ) == new_data.numeric.end() )
-                    {
-                        this->deleteDataOfSingleCurve( QString( name.c_str() ) );
-                        repeat = true;
-                        break;
-                    }
+                auto& name = it.first;
+                if( new_data.numeric.find( name ) == new_data.numeric.end() ){
+                    data_to_remove.push_back(name);
                 }
+            }
+            for (auto& to_remove: data_to_remove )
+            {
+                this->deleteDataOfSingleCurve( QString( to_remove.c_str() ) );
             }
         }
     }
@@ -936,7 +930,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
         _last_load_configuration = timeindex_name;
 
         // remap to different type
-        importPlotDataMap(mapped_data);
+        importPlotDataMap(mapped_data, true);
     }
     else{
         QMessageBox::warning(this, tr("Error"),
@@ -992,7 +986,8 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
     if( _current_streamer && _current_streamer->start() )
     {
         _current_streamer->enableStreaming( false );
-        importPlotDataMap( _current_streamer->getDataMap() );
+        importPlotDataMap( _current_streamer->getDataMap(), true );
+        _loaded_datafile = QString();
 
         for(auto& action: ui->menuStreaming->actions()) {
             action->setEnabled(false);
@@ -1367,7 +1362,9 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 
         if( _time_offset_during_streaming ==  std::numeric_limits<double>::max())
         {
-            _time_offset_during_streaming = 0.0;
+            using namespace std::chrono;
+            auto epoch = high_resolution_clock::now().time_since_epoch();
+            _time_offset_during_streaming = duration<double>(epoch).count();
         }
         _time_offset = _time_offset_during_streaming;
     }
@@ -1377,6 +1374,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
 
 void MainWindow::updateDataAndReplot()
 {
+
     // STEP 1: sync the data (usefull for streaming
     bool data_updated = false;
     {
@@ -1384,7 +1382,7 @@ void MainWindow::updateDataAndReplot()
         for(auto it : _mapped_plot_data.numeric)
         {
             PlotDataPtr data = ( it.second );
-            if( data->flushAsyncBuffer() ) data_updated = true;
+            data_updated |=  data->flushAsyncBuffer();
         }
         PlotData::asyncPushMutex().unlock();
     }
@@ -1396,22 +1394,29 @@ void MainWindow::updateDataAndReplot()
             plot->updateCurves(true);
         } );
         updateTimeSlider();
-        updateLeftTableValues();
     }
     //--------------------------------
     // trigger again the execution of this callback if steaming == true
     if( isStreamingActive())
     {
+        static auto prev_time = std::chrono::steady_clock::now();
+        auto time_now =  std::chrono::steady_clock::now();
+        if( (time_now - prev_time) > std::chrono::seconds(2) )
+        {
+            prev_time = time_now;
+            importPlotDataMap( _current_streamer->getDataMap(), false );
+        }
+
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
         _replot_timer->start( 40 ); // 25 Hz at most
 
+        _tracker_time = _max_slider_time + _time_offset;
         forEachWidget( [&](PlotWidget* plot)
         {
-            if( plot->isXYPlot()){
-                plot->setTrackerPosition( _max_slider_time + _time_offset);
-            }
+            plot->setTrackerPosition( _tracker_time );
         } );
+        updateLeftTableValues();
     }
     //--------------------------------
     // zoom out and replot
