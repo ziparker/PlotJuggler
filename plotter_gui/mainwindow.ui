@@ -227,7 +227,10 @@ background: white;
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="horizontalSlider">
+           <widget class="RealSlider" name="timeSlider">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="focusPolicy">
              <enum>Qt::WheelFocus</enum>
             </property>
@@ -386,7 +389,7 @@ background: white;
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -497,6 +500,13 @@ background: white;
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>RealSlider</class>
+   <extends>QSlider</extends>
+   <header location="global">realslider.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resource.qrc"/>
  </resources>

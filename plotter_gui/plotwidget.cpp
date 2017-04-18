@@ -40,7 +40,7 @@ void PlotWidget::setDefaultRangeX()
                 if( B > max) max = B;
             }
         }
-        this->setAxisScale( xBottom, min, max);
+        this->setAxisScale( xBottom, min - _time_offset, max - _time_offset);
     }
 }
 
@@ -908,6 +908,13 @@ void PlotWidget::on_externallyResized(const QRectF& rect)
 
 void PlotWidget::zoomOut(bool emit_signal)
 {
+    if( _curve_list.size() == 0)
+    {
+        QRectF rect(0, 1, 1, -1);
+        this->setScale(rect, false);
+        return;
+    }
+
     QRectF rect;
     auto rangeX = getMaximumRangeX();
 
