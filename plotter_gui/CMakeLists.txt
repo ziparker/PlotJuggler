@@ -34,6 +34,8 @@ SET( PLOTTER_SRC
     subwindow.cpp
 
     mainwindow.h
+    realslider.h
+    utils.h
     ../common/selectlistdialog.h
     ../include/PlotJuggler/plotdata.h
     )
