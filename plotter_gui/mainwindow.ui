@@ -487,7 +487,10 @@ background: white;
   </action>
   <action name="actionQuick_Help">
    <property name="text">
-    <string>Quick Help</string>
+    <string>Documentation</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the Documentation in a browser</string>
    </property>
    <property name="shortcut">
     <string>F1</string>
