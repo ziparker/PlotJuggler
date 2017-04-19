@@ -10,7 +10,7 @@ pages:
     - Introduction: index.md
     - User Guide:
         - 'Basics: how to visualize your data':      'visualization_howto.md'
-        - 'Data Sources: Loaded vs streamed data':   'data_sources.md'
+        - 'Data Sources: Static vs streamed data':   'data_sources.md'
         - 'Vertical tracker and publishers':         'tracker.md'
     - Plugins:
         - 'ROS plugins': 'ros_plugins.md'
