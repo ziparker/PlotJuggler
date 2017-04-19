@@ -18,7 +18,7 @@ The __MainWindow__ has a searchable __List of Timeseries__ on its left side.
 
 ![plotjuggler terms](images/PlotJuggler_terms.png)
 
-## How to display a simple timeseries curve
+## Add one or multiple timeseries to a PlotWidget
 
 To display a curve inside a PlotWidget, simply select the timeserie using the __Left Mouse__ button
  then drag-and-drop it inside the plotting area.
@@ -39,28 +39,37 @@ You can also add multiple Tabs and additional Windows.
 Even if PlotJuggler focuses mainly on timeseries, it is possible to mix two timeseries
 that share the same time axis.
 A classical example is the XY position of a robot.
+To activate this mode, drag and drop the curve that shall be used as X axis using the
+__RIGHT MOUSE__ button instead of the LEFT one.
 
 ![drag and drop](images/pj-xyplots.gif)
+
+## Undo / Redo
+
+Most of the time __CTRL + Z__ does just what you expect it to do: to revert the last action.
+This includes adding a plot, deleting it, add a row/column to the Tab, etc.
+Press  __CTRL + SHIFT + Z__ to redo the action.
 
 ## Swap Plots
 
 Drag and Drop an entire plot into another one to swap them. __CTRL + Right Mouse__. 
 ![swap plots](images/pj-swap-plots.gif)
-
-
-# How to Zoom/Pan your plots
-
+	
 ## Zoom area
 
 Zoom Into a user defined rectangle pressing the __Left Mouse__ button on the plot area.
+
 ![zoom area](images/pj-area-zoom.gif)
 
 ## Zoom In/Out
 Zoom In and Out using the __Middle Wheel__ of the Mouse. Alternatively, you can use the buttons
 __ Plus(+)__ and __Minus(-)__.
+
 ![zoom with wheel](images/pj-wheel-zoom.gif)
 
 ## Pan
 Panning is activated keeping pressed __CTRL + Left Mouse__.
+
+
 
 
