@@ -11,7 +11,6 @@ QT5_WRAP_UI ( UI_SRC
     curvecolorpick.ui
     filterablelistwidget.ui
     tabbedplotwidget.ui
-    help_dialog.ui
     ../common/selectlistdialog.ui
     )
 

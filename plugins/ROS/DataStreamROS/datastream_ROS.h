@@ -33,8 +33,6 @@ public:
 
     virtual const char* name() const override { return "ROS Topic Streamer";  }
 
-    virtual QObject* getObject() override { return this; }
-
     virtual void setParentMenu(QMenu* menu) override;
 
 private:

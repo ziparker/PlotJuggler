@@ -30,7 +30,6 @@
 #include "aboutdialog.h"
 #include <QMovie>
 #include <QScrollBar>
-#include "ui_help_dialog.h"
 
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :
     QMainWindow(parent),
@@ -49,17 +48,17 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     ui->setupUi(this);
 
-    connect( _curvelist_widget->getTable()->verticalScrollBar(), SIGNAL(sliderMoved(int)),
-             this, SLOT(updateLeftTableValues()) );
+    connect( _curvelist_widget->getTable()->verticalScrollBar(), &QScrollBar::sliderMoved,
+             this, &MainWindow::updateLeftTableValues );
 
-    connect( _curvelist_widget, SIGNAL(hiddenItemsChanged()),
-             this, SLOT(updateLeftTableValues()) );
+    connect( _curvelist_widget, &FilterableListWidget::hiddenItemsChanged,
+             this, &MainWindow::updateLeftTableValues );
 
-    connect(_curvelist_widget, SIGNAL(deleteCurve(QString)),
-            this, SLOT(deleteDataOfSingleCurve(QString)) );
+    connect(_curvelist_widget, &FilterableListWidget::deleteCurve,
+            this, &MainWindow::deleteDataOfSingleCurve );
 
-    connect( ui->timeSlider, SIGNAL( realValueChanged(double)),
-             this, SLOT(on_timeSlider_valueChanged(double)) );
+    connect( ui->timeSlider, &RealSlider::realValueChanged,
+             this, &MainWindow::onTimeSlider_valueChanged );
 
     _main_tabbed_widget = new TabbedPlotWidget( this, NULL, _mapped_plot_data, this);
 
@@ -83,7 +82,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     onUndoableChange();
 
     _replot_timer = new QTimer(this);
-    connect(_replot_timer, SIGNAL(timeout()), this, SLOT(updateDataAndReplot()));
+    connect(_replot_timer, &QTimer::timeout, this, &MainWindow::updateDataAndReplot);
 
     ui->menuFile->setToolTipsVisible(true);
     ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -254,7 +253,7 @@ void MainWindow::onTrackerMovedFromWidget(QPointF relative_pos)
     onTrackerTimeUpdated( _tracker_time );
 }
 
-void MainWindow::on_timeSlider_valueChanged(double relative_time)
+void MainWindow::onTimeSlider_valueChanged(double relative_time)
 {
     _tracker_time = relative_time + _time_offset.get();
     onTrackerTimeUpdated( _tracker_time );
@@ -328,17 +327,17 @@ void MainWindow::createActions()
     _undo_shortcut.setContext(Qt::ApplicationShortcut);
     _redo_shortcut.setContext(Qt::ApplicationShortcut);
 
-    connect( &_undo_shortcut, SIGNAL(activated()), this, SLOT(onUndoInvoked()) );
-    connect( &_redo_shortcut, SIGNAL(activated()), this, SLOT(onRedoInvoked()) );
+    connect( &_undo_shortcut, &QShortcut::activated, this, &MainWindow::onUndoInvoked );
+    connect( &_redo_shortcut, &QShortcut::activated, this, &MainWindow::onRedoInvoked );
 
     //---------------------------------------------
 
-    connect( ui->actionSaveLayout,SIGNAL(triggered()),        this, SLOT(onActionSaveLayout()) );
-    connect(ui->actionLoadLayout,SIGNAL(triggered()),         this, SLOT(onActionLoadLayout()) );
-    connect(ui->actionLoadData,SIGNAL(triggered()),           this, SLOT(onActionLoadDataFile()) );
-    connect(ui->actionLoadRecentDatafile,SIGNAL(triggered()), this, SLOT(onActionReloadDataFileFromSettings()) );
-    connect(ui->actionLoadRecentLayout,SIGNAL(triggered()),   this, SLOT(onActionReloadRecentLayout()) );
-    connect(ui->actionDeleteAllData,SIGNAL(triggered()),      this, SLOT(onDeleteLoadedData()) );
+    connect( ui->actionSaveLayout, &QAction::triggered,        this, &MainWindow::onActionSaveLayout );
+    connect(ui->actionLoadLayout, &QAction::triggered,         this, &MainWindow::onActionLoadLayout );
+    connect(ui->actionLoadData, &QAction::triggered,           this, &MainWindow::onActionLoadDataFile );
+    connect(ui->actionLoadRecentDatafile, &QAction::triggered, this, &MainWindow::onActionReloadDataFileFromSettings );
+    connect(ui->actionLoadRecentLayout, &QAction::triggered,   this, &MainWindow::onActionReloadRecentLayout );
+    connect(ui->actionDeleteAllData, &QAction::triggered,      this, &MainWindow::onDeleteLoadedData );
 
     //---------------------------------------------
 
@@ -423,8 +422,8 @@ void MainWindow::loadPlugins(QString directory_name)
                     ui->menuPublishers->setEnabled(true);
                     ui->menuPublishers->addAction(activatePublisher);
 
-                    connect(activatePublisher, SIGNAL( toggled(bool)),
-                            publisher->getObject(), SLOT(setEnabled(bool)) );
+                    connect(activatePublisher, &QAction::toggled,
+                           [=](bool enable) { publisher->setEnabled( enable ); } );
                 }
             }
             else if (streamer)
@@ -445,7 +444,8 @@ void MainWindow::loadPlugins(QString directory_name)
 
                     streamer->setParentMenu( ui->menuStreaming );
 
-                    connect(startStreamer, SIGNAL(triggered()), _streamer_signal_mapper, SLOT(map()));
+                    connect(startStreamer, SIGNAL(triggered()),
+                            _streamer_signal_mapper, SLOT(map()) );
                     _streamer_signal_mapper->setMapping(startStreamer, name );
                 }
             }
@@ -539,17 +539,17 @@ void MainWindow::resizeEvent(QResizeEvent *)
 
 void MainWindow::onPlotAdded(PlotWidget* plot)
 {
-    connect( plot, SIGNAL(undoableChange()),
-             this, SLOT(onUndoableChange()) );
+    connect( plot, &PlotWidget::undoableChange,
+             this, &MainWindow::onUndoableChange );
 
-    connect( plot, SIGNAL(trackerMoved(QPointF)),
-             this, SLOT(onTrackerMovedFromWidget(QPointF)));
+    connect( plot, &PlotWidget::trackerMoved,
+             this, &MainWindow::onTrackerMovedFromWidget);
 
-    connect( plot, SIGNAL(swapWidgetsRequested(PlotWidget*,PlotWidget*)),
-             this, SLOT(onSwapPlots(PlotWidget*,PlotWidget*)) );
+    connect( plot, &PlotWidget::swapWidgetsRequested,
+             this, &MainWindow::onSwapPlots);
 
-    connect( this, SIGNAL(requestRemoveCurveByName(const QString&)),
-             plot, SLOT(removeCurve(const QString&))) ;
+    connect( this, &MainWindow::requestRemoveCurveByName,
+             plot, &PlotWidget::removeCurve) ;
 
     connect( &_time_offset, SIGNAL( valueChanged(double)),
              plot, SLOT(on_changeTimeOffset(double)) );
@@ -561,8 +561,8 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
 void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
 {
-    connect( matrix, SIGNAL(plotAdded(PlotWidget*)), this, SLOT( onPlotAdded(PlotWidget*)));
-    connect( matrix, SIGNAL(undoableChange()),       this, SLOT( onUndoableChange()) );
+    connect( matrix, &PlotMatrix::plotAdded,      this, &MainWindow:: onPlotAdded);
+    connect( matrix, &PlotMatrix::undoableChange, this, &MainWindow:: onUndoableChange );
 }
 
 QDomDocument MainWindow::xmlSaveState() const

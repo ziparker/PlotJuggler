@@ -25,8 +25,6 @@ public:
     virtual ~RosoutPublisher();
 
     virtual bool enabled() const override { return enabled_; }
-    virtual QObject* getObject() override { return this; }
-
 
 public slots:
     virtual void setEnabled(bool enabled) override;

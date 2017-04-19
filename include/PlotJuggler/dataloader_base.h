@@ -11,7 +11,6 @@ enum { TIME_INDEX_NOT_DEFINED = -2 };
 
 class DataLoader{
 
-
 public:
 
     virtual const std::vector<const char*>& compatibleFileExtensions() const = 0;
@@ -23,11 +22,11 @@ public:
 
     virtual ~DataLoader() {}
 
-    virtual QObject* getObject() { return nullptr;  }
-
     virtual bool isDebugPlugin() { return false; }
 
     virtual void setParentMenu(QMenu* menu) { _menu = menu; }
+
+    virtual QWidget* embeddedWidget() { return nullptr; }
 
 protected:
     QMenu* _menu;
