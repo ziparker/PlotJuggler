@@ -32,8 +32,8 @@ void RosoutPublisher::setEnabled(bool to_enable)
         Qt::WindowFlags flags = _log_window->windowFlags();
         _log_window->setWindowFlags( flags | Qt::SubWindow );
 
-        connect( this, SIGNAL(timeRangeChanged(TimePoint,TimePoint)),
-                 logwidget, SLOT(on_timeRangeChanged(TimePoint,TimePoint)) );
+        connect( this, &RosoutPublisher::timeRangeChanged,
+                 logwidget, &rqt_console_plus::LogWidget::on_timeRangeChanged );
 
         QSettings settings( "IcarusTechnology", "PlotJuggler");
         _log_window->restoreGeometry(settings.value("RosoutPublisher.geometry").toByteArray());
@@ -133,9 +133,8 @@ void RosoutPublisher::updateState(PlotDataMap *datamap, double current_time)
 
     using namespace std::chrono;
     TimePoint p_min  = TimePoint() + microseconds(_minimum_time_usec);
-    TimePoint p_max  = TimePoint() + microseconds(_maximum_time_usec);
+    //TimePoint p_max  = TimePoint() + microseconds(_maximum_time_usec);
     TimePoint p_curr = TimePoint() + microseconds( (int64_t)(current_time*1000000));
 
     emit timeRangeChanged(p_min, p_curr);
-
 }

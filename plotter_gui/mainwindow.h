@@ -96,7 +96,7 @@ private slots:
 
     void on_actionQuick_Help_triggered();
 
-    void on_timeSlider_valueChanged(double value);
+    void onTimeSlider_valueChanged(double value);
 
     void updateLeftTableValues();
 

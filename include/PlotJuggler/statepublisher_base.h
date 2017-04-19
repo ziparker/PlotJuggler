@@ -21,11 +21,11 @@ public:
 
     virtual void setEnabled(bool enabled) = 0;
 
-    virtual QObject* getObject()  { return nullptr;  }
-
     virtual bool isDebugPlugin() { return false; }
 
     virtual void setParentMenu(QMenu* menu) { _menu = menu; }
+
+    virtual QWidget* embeddedWidget() { return nullptr; }
 
 protected:
     QMenu* _menu;
