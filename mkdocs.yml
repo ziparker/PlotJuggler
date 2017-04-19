@@ -14,5 +14,5 @@ pages:
         - 'Vertical tracker and publishers':         'tracker.md'
     - Plugins:
         - 'ROS plugins': 'ros_plugins.md'
-    - About: about.md
+
  

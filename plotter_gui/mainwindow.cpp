@@ -1493,9 +1493,31 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionQuick_Help_triggered()
 {
-    QUrl url("file:///"  + tr(PJ_DOCUMENTATION_DIR) + "/index.html", QUrl::TolerantMode);
-    qDebug() << url;
-    QDesktopServices::openUrl(url);
+    QUrl url_LOC("file:///"  + tr(PJ_DOCUMENTATION_DIR_LOCAL) + "/index.html", QUrl::TolerantMode);
+    QUrl url_SYS("file:///"  + tr(PJ_DOCUMENTATION_DIR_SYSTEM) + "/index.html", QUrl::TolerantMode);
+
+    if( url_LOC.isValid() )
+    {
+        if(!QDesktopServices::openUrl(url_LOC))
+        {
+            QMessageBox::warning(this, "Can't find Documentation",
+                                 QString("Can't open the file %1").arg( url_LOC.path()) );
+        }
+    }
+    else if( url_LOC.path() != url_SYS.path())
+    {
+        if( url_SYS.isValid() )
+        {
+            if(!QDesktopServices::openUrl(url_SYS))
+            {
+                QMessageBox::warning(this, "Can't find Documentation",
+                                     QString("Can't open the file %1").arg( url_SYS.path()) );
+            }
+        }
+        else{
+            QMessageBox::warning(this, "Can't find Documentation", "Can't find documentation" );
+        }
+    }
 }
 
 
