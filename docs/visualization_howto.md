@@ -53,6 +53,7 @@ Press  __CTRL + SHIFT + Z__ to redo the action.
 ## Swap Plots
 
 Drag and Drop an entire plot into another one to swap them. __CTRL + Right Mouse__. 
+
 ![swap plots](images/pj-swap-plots.gif)
 	
 ## Zoom area

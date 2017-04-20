@@ -1,0 +1,638 @@
+
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.5.4">
+    
+    
+      
+        <title>Basics: how to visualize your data - PlotJuggler</title>
+      
+    
+    
+      <script src="../assets/javascripts/modernizr-56ade86843.js"></script>
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application-b1a1975878.css">
+      
+        <link rel="stylesheet" href="../assets/stylesheets/application-f78e5cb881.palette.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+    
+  </head>
+  
+  
+  
+  
+    <body data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../index.html" title="PlotJuggler" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  User Guide
+                </span>
+              
+            
+            Basics: how to visualize your data
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search">
+  <div class="md-search__overlay"></div>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" accesskey="s" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">close</button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <div class="md-header-nav__source">
+          
+            
+
+
+  
+
+
+  <a href="https://github.com/facontidavide/PlotJuggler" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      facontidavide/PlotJuggler
+    </div>
+  </a>
+
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+        
+
+  
+
+<nav class="md-tabs md-tabs--active" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  <li class="md-tabs__item">
+    
+      <a href="../index.html" title="Introduction" class="md-tabs__link">
+        Introduction
+      </a>
+    
+  </li>
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="index.html" title="User Guide" class="md-tabs__link md-tabs__link--active">
+          User Guide
+        </a>
+      
+    </li>
+  
+
+      
+        
+  
+  
+    <li class="md-tabs__item">
+      
+        <a href="../ros_plugins/index.html" title="Plugins" class="md-tabs__link">
+          Plugins
+        </a>
+      
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    PlotJuggler
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/facontidavide/PlotJuggler" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      facontidavide/PlotJuggler
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../index.html" title="Introduction" class="md-nav__link">
+      Introduction
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
+    
+    <label class="md-nav__link" for="nav-2">
+      User Guide
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        User Guide
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Basics: how to visualize your data
+      </label>
+    
+    <a href="index.html" title="Basics: how to visualize your data" class="md-nav__link md-nav__link--active">
+      Basics: how to visualize your data
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#add-one-or-multiple-timeseries-to-a-plotwidget" title="Add one or multiple timeseries to a PlotWidget" class="md-nav__link">
+    Add one or multiple timeseries to a PlotWidget
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-multiple-plots" title="Create multiple Plots" class="md-nav__link">
+    Create multiple Plots
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#display-a-xy-curve" title="Display a XY curve" class="md-nav__link">
+    Display a XY curve
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#undo-redo" title="Undo / Redo" class="md-nav__link">
+    Undo / Redo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swap-plots" title="Swap Plots" class="md-nav__link">
+    Swap Plots
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zoom-area" title="Zoom area" class="md-nav__link">
+    Zoom area
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zoom-inout" title="Zoom In/Out" class="md-nav__link">
+    Zoom In/Out
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pan" title="Pan" class="md-nav__link">
+    Pan
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../data_sources/index.html" title="Data Sources: Static vs streamed data" class="md-nav__link">
+      Data Sources: Static vs streamed data
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../tracker/index.html" title="Time tracker and publishers" class="md-nav__link">
+      Time tracker and publishers
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Plugins
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        Plugins
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../ros_plugins/index.html" title="ROS plugins" class="md-nav__link">
+      ROS plugins
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#add-one-or-multiple-timeseries-to-a-plotwidget" title="Add one or multiple timeseries to a PlotWidget" class="md-nav__link">
+    Add one or multiple timeseries to a PlotWidget
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-multiple-plots" title="Create multiple Plots" class="md-nav__link">
+    Create multiple Plots
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#display-a-xy-curve" title="Display a XY curve" class="md-nav__link">
+    Display a XY curve
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#undo-redo" title="Undo / Redo" class="md-nav__link">
+    Undo / Redo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swap-plots" title="Swap Plots" class="md-nav__link">
+    Swap Plots
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zoom-area" title="Zoom area" class="md-nav__link">
+    Zoom area
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zoom-inout" title="Zoom In/Out" class="md-nav__link">
+    Zoom In/Out
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pan" title="Pan" class="md-nav__link">
+    Pan
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="main-concepts">Main concepts</h1>
+<p>Further we will use the following terms to describe some items and concepts of 
+PlotJuggler.</p>
+<p>The application consists in 1 or more <strong>Windows</strong>.</p>
+<p>These is a single <strong>MainWindow</strong> and 0 or more <strong>SubWindows</strong>.</p>
+<p>A window can have 1 or more <strong>Tabs.</strong></p>
+<p>A tab can have 1 or more <strong>PlotWidgets</strong>. These widgets are arranged in 
+a table of N&gt;=1 columns and M&gt;=1 rows. </p>
+<p>A plot can have 0 or more <strong>Curves.</strong> Each curve corresponds to a single <strong>Timeserie</strong>.</p>
+<p>The <strong>MainWindow</strong> has a searchable <strong>List of Timeseries</strong> on its left side.</p>
+<p><img alt="plotjuggler terms" src="../images/PlotJuggler_terms.png" /></p>
+<h2 id="add-one-or-multiple-timeseries-to-a-plotwidget">Add one or multiple timeseries to a PlotWidget</h2>
+<p>To display a curve inside a PlotWidget, simply select the timeserie using the <strong>Left Mouse</strong> button
+ then drag-and-drop it inside the plotting area.</p>
+<p>You can select multiple curves pressing <strong>CTRL</strong> or <strong>SHIFT</strong>. </p>
+<p><img alt="drag and drop" src="../images/pj-drag-curve.gif" /></p>
+<h2 id="create-multiple-plots">Create multiple Plots</h2>
+<p>Use the <strong>Add Column</strong> and <strong>Add Row</strong> buttons to create a table of PlotWidgets. 
+You can also add multiple Tabs and additional Windows.</p>
+<p><img alt="add rows and columns" src="../images/pj-multiplot.gif" /></p>
+<h2 id="display-a-xy-curve">Display a XY curve</h2>
+<p>Even if PlotJuggler focuses mainly on timeseries, it is possible to mix two timeseries
+that share the same time axis.
+A classical example is the XY position of a robot.
+To activate this mode, drag and drop the curve that shall be used as X axis using the
+<strong>RIGHT MOUSE</strong> button instead of the LEFT one.</p>
+<p><img alt="drag and drop" src="../images/pj-xyplots.gif" /></p>
+<h2 id="undo-redo">Undo / Redo</h2>
+<p>Most of the time <strong>CTRL + Z</strong> does just what you expect it to do: to revert the last action.
+This includes adding a plot, deleting it, add a row/column to the Tab, etc.
+Press  <strong>CTRL + SHIFT + Z</strong> to redo the action.</p>
+<h2 id="swap-plots">Swap Plots</h2>
+<p>Drag and Drop an entire plot into another one to swap them. <strong>CTRL + Right Mouse</strong>. </p>
+<p><img alt="swap plots" src="../images/pj-swap-plots.gif" /></p>
+<h2 id="zoom-area">Zoom area</h2>
+<p>Zoom Into a user defined rectangle pressing the <strong>Left Mouse</strong> button on the plot area.</p>
+<p><img alt="zoom area" src="../images/pj-area-zoom.gif" /></p>
+<h2 id="zoom-inout">Zoom In/Out</h2>
+<p>Zoom In and Out using the <strong>Middle Wheel</strong> of the Mouse. Alternatively, you can use the buttons
+<strong> Plus(+)</strong> and <strong>Minus(-)</strong>.</p>
+<p><img alt="zoom with wheel" src="../images/pj-wheel-zoom.gif" /></p>
+<h2 id="pan">Pan</h2>
+<p>Panning is activated keeping pressed <strong>CTRL + Left Mouse</strong>.</p>
+                
+                  
+                
+              
+              
+                
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../index.html" title="Introduction" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Introduction
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../data_sources/index.html" title="Data Sources: Static vs streamed data" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Data Sources: Static vs streamed data
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application-0b7df094bf.js"></script>
+      <script>app.initialize({url:{base:".."}})</script>
+      
+    
+    
+      
+    
+  </body>
+</html>
