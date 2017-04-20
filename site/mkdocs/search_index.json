@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/index.html", 
-            "text": "Welcome to Plotjuggler\n\n\nPlotJuggler is an application to plot logged data, in particular timeseries.\n\n\nThe design focus on simplicty of use rather than completeness. It you want to\nsubmit a issue report or a suggestion, don't hesitate to visit the \n\nofficial webpage\n.\n\n\n\n\nArchitecture\n\n\nThe functionalities of the application can be extended using \nplugins\n. \nThere are three types of plugins:\n\n\n\n\nDataLoaders\n: they are used to load static data from log files.\n\n\nDataStreamers\n: used to load and plot data that is continously streamed to the user.\n\n\nStatePublishers\n: provide a way to publish data that was previously loaded.\n\n\n\n\n\n\nNote\n\n\nROS\n funtionalities are implemented exclusively through plugins.\nThe core of PlotJuggler does not (and will not) depend on ROS.", 
+            "text": "Welcome to Plotjuggler\n\n\nPlotJuggler is an application to plot logged data, in particular timeseries.\n\n\nThe design focus on simplicty of use rather than completeness. It you want to\nsubmit a issue report or a suggestion, don't hesitate to visit the \n\nofficial webpage\n.\n\n\n\n\nArchitecture\n\n\nThe functionalities of the application can be extended using \nplugins\n. \nThere are three types of plugins:\n\n\n\n\nDataLoaders\n: they are used to load static data from log files.\n\n\nDataStreamers\n: used to load and plot data that is continously streamed to the user.\n\n\nStatePublishers\n: provide a way to publish data that was previously loaded.\n\n\n\n\nNote\n: \nROS\n funtionalities are implemented exclusively \nthrough plugins. The core of PlotJuggler does not (and will not) depend on ROS.", 
             "title": "Introduction"
         }, 
         {
@@ -12,7 +12,7 @@
         }, 
         {
             "location": "/index.html#architecture", 
-            "text": "The functionalities of the application can be extended using  plugins . \nThere are three types of plugins:   DataLoaders : they are used to load static data from log files.  DataStreamers : used to load and plot data that is continously streamed to the user.  StatePublishers : provide a way to publish data that was previously loaded.    Note  ROS  funtionalities are implemented exclusively through plugins.\nThe core of PlotJuggler does not (and will not) depend on ROS.", 
+            "text": "The functionalities of the application can be extended using  plugins . \nThere are three types of plugins:   DataLoaders : they are used to load static data from log files.  DataStreamers : used to load and plot data that is continously streamed to the user.  StatePublishers : provide a way to publish data that was previously loaded.   Note :  ROS  funtionalities are implemented exclusively \nthrough plugins. The core of PlotJuggler does not (and will not) depend on ROS.", 
             "title": "Architecture"
         }, 
         {

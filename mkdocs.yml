@@ -1,10 +1,15 @@
 site_name: PlotJuggler
+site_description: 'The time series visualization tool'
+site_author: 'Davide Faconti'
 
 repo_name: 'facontidavide/PlotJuggler'
 repo_url: https://github.com/facontidavide/PlotJuggler
 
+# Copyright
+copyright: 'Copyright &copy; 2016 - 2017 Davide Faconti'
+
 use_directory_urls: false
-theme: material
+theme: flatly
 
 extra:
   palette:
@@ -12,7 +17,7 @@ extra:
     accent: 'cyan'
     logo: 'images/plotjuggler.svg'
   feature:
-    tabs: true
+    tabs: false
 
 # Extensions
 markdown_extensions:
