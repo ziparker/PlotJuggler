@@ -674,9 +674,14 @@ void PlotWidget::activateGrid(bool activate)
     _grid->attach(this);
 }
 
-void PlotWidget::activateTracker(bool activate)
+void PlotWidget::configureTracker(CurveTracker::Parameter val)
 {
-    _tracker->setEnabled( activate && !isXYPlot());
+    _tracker->setParameter( val );
+}
+
+void PlotWidget::enableTracker(bool enable)
+{
+    _tracker->setEnabled( enable && !isXYPlot() );
 }
 
 void PlotWidget::setTrackerPosition(double abs_time)
@@ -949,7 +954,7 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 
 void PlotWidget::on_noTransform_triggered(bool checked )
 {
-    activateTracker(true);
+    enableTracker(true);
     if(_current_transform ==  TimeseriesQwt::noTransform) return;
 
     for (auto it :_curve_list)
@@ -967,7 +972,7 @@ void PlotWidget::on_noTransform_triggered(bool checked )
 
 void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
 {
-    activateTracker(true);
+    enableTracker(true);
     if(_current_transform ==  TimeseriesQwt::firstDerivative) return;
 
     for (auto it :_curve_list)
@@ -991,7 +996,7 @@ void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
 
 void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
 {
-    activateTracker(true);
+    enableTracker(true);
     if(_current_transform ==  TimeseriesQwt::secondDerivative) return;
 
     for (auto it :_curve_list)
@@ -1021,7 +1026,8 @@ bool PlotWidget::isXYPlot() const
 
 void PlotWidget::on_convertToXY_triggered(bool)
 {
-    activateTracker(true);
+    enableTracker(false);
+
     if( !_axisX )
     {
         QMessageBox::warning(0, tr("Warning"),
@@ -1030,8 +1036,6 @@ void PlotWidget::on_convertToXY_triggered(bool)
                                 "instead of the left mouse button.") );
         return;
     }
-
-    _tracker->setEnabled(false);
 
     _current_transform = TimeseriesQwt::XYPlot;
 

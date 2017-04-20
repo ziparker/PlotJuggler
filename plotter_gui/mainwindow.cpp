@@ -31,13 +31,16 @@
 #include <QMovie>
 #include <QScrollBar>
 
+QIcon trackerIconA, trackerIconB, trackerIconC;
+
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
     _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this),
     _current_streamer(nullptr),
-    _disable_undo_logging(false)
+    _disable_undo_logging(false),
+    _tracker_param( CurveTracker::VALUE )
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
@@ -126,9 +129,16 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     ui->streamingSpinBox->setValue(streaming_buffer_value);
 
     bool datetime_display  = settings.value("MainWindow.dateTimeDisplay", false).toBool();
-    ui->checkBoxUseDateTime->setChecked( datetime_display );
+    ui->pushButtonUseDateTime->setChecked( datetime_display );
 
     ui->widgetOptions->setVisible( ui->pushButtonOptions->isChecked() );
+    ui->line->setVisible( ui->pushButtonOptions->isChecked() );
+
+    trackerIconA.addFile(QStringLiteral(":/icons/resources/line_tracker.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
+    trackerIconB.addFile(QStringLiteral(":/icons/resources/line_tracker_1.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
+    trackerIconC.addFile(QStringLiteral(":/icons/resources/line_tracker_a.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
+
+    ui->pushButtonTimeTracker->setIcon(trackerIconB);
 }
 
 MainWindow::~MainWindow()
@@ -142,7 +152,7 @@ MainWindow::~MainWindow()
     settings.setValue("MainWindow.geometry", saveGeometry());
     settings.setValue("MainWindow.activateGrid", ui->pushButtonActivateGrid->isChecked() );
     settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value() );
-    settings.setValue("MainWindow.dateTimeDisplay",ui->checkBoxUseDateTime->isChecked() );
+    settings.setValue("MainWindow.dateTimeDisplay",ui->pushButtonUseDateTime->isChecked() );
 
     delete ui;
 }
@@ -264,16 +274,9 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time)
     updatedDisplayTime();
     updateLeftTableValues();
 
-    for ( auto it: _state_publisher) {
-        try{
-                it.second->updateState( &_mapped_plot_data, absolute_time);
-        }
-        catch(std::exception& ex)
-        {
-            QMessageBox::warning(this, tr("Exception Thrown"),
-                                 tr( "State publisher [%1] thrown the following exception:\n\n%2")
-                                 .arg(it.first).arg( ex.what()) );
-        }
+    for ( auto it: _state_publisher)
+    {
+        it.second->updateState( &_mapped_plot_data, absolute_time);
     }
 
     forEachWidget( [&](PlotWidget* plot)
@@ -563,7 +566,8 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
     plot->on_changeTimeOffset( _time_offset.get() );
     plot->activateGrid( ui->pushButtonActivateGrid->isChecked() );
-    plot->activateTracker( !isStreamingActive() );
+    plot->enableTracker( !isStreamingActive() );
+    plot->configureTracker( _tracker_param );
 }
 
 void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
@@ -594,7 +598,7 @@ QDomDocument MainWindow::xmlSaveState() const
     doc.appendChild(root);
 
     QDomElement relative_time = doc.createElement( "use_relative_time_offset" );
-    relative_time.setAttribute("enabled", ui->checkBoxRemoveTimeOffset->isChecked() );
+    relative_time.setAttribute("enabled", ui->pushButtonRemoveTimeOffset->isChecked() );
     root.appendChild( relative_time );
 
     return doc;
@@ -654,7 +658,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     if( !relative_time.isNull())
     {
         bool remove_offset = (relative_time.attribute("enabled") == QString("1"));
-        ui->checkBoxRemoveTimeOffset->setChecked(remove_offset);
+        ui->pushButtonRemoveTimeOffset->setChecked(remove_offset);
     }
     onLayoutChanged();
 
@@ -941,15 +945,9 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
             timeindex_name = _last_load_configuration;
         }
 
-        PlotDataMap mapped_data;
-        try{
-            mapped_data = loader->readDataFromFile( filename.toStdString(), timeindex_name );
-        }
-        catch(std::exception& ex)
-        {
-            QMessageBox::warning(this, tr("Exception Thrown"), tr(ex.what()) );
-            return;
-        }
+        PlotDataMap mapped_data = loader->readDataFromFile(
+                    filename.toStdString(),
+                    timeindex_name   );
 
         _last_load_configuration = timeindex_name;
 
@@ -960,7 +958,6 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
         QMessageBox::warning(this, tr("Error"),
                              tr("Cannot read files with extension %1.\n No plugin can handle that!\n")
                              .arg(filename) );
-        return;
     }
     _curvelist_widget->updateFilter();
 }
@@ -1010,17 +1007,7 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
 
     if( _current_streamer && _current_streamer->start() )
     {
-        try{
-           _current_streamer->enableStreaming( false );
-        }
-        catch(std::exception& ex)
-        {
-            QMessageBox::warning(this, tr("Exception Thrown"),
-                                 tr( "%1->enableStreaming thrown the following exception:\n\n%2")
-                                 .arg(_current_streamer->name()).arg( ex.what()) );
-            return;
-        }
-
+        _current_streamer->enableStreaming( false );
         importPlotDataMap( _current_streamer->getDataMap(), true );
         _loaded_datafile = QString();
 
@@ -1279,7 +1266,7 @@ void MainWindow::updateTimeSlider()
     // Update Time offset
     //if( update_timeoffset)
     {
-        bool remove_offset = ui->checkBoxRemoveTimeOffset->isChecked();
+        bool remove_offset = ui->pushButtonRemoveTimeOffset->isChecked();
 
         if( remove_offset )
         {
@@ -1343,25 +1330,17 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
     onUndoableChange();
 }
 
-void MainWindow::on_pushButtonStreaming_toggled(bool checked)
+void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
 {
     if( !_current_streamer )
     {
-        checked = false;
+        streaming = false;
     }
     else{
-        try{
-           _current_streamer->enableStreaming( checked );
-        }
-        catch(std::exception& ex)
-        {
-            QMessageBox::warning(this, tr("Exception Thrown"),
-                                 tr( "%1->enableStreaming thrown the following exception:\n\n%2")
-                                 .arg(_current_streamer->name()).arg( ex.what()) );
-        }
+        _current_streamer->enableStreaming( streaming ) ;
     }
 
-    if( checked )
+    if( streaming )
     {
         ui->horizontalSpacer->changeSize(1,1, QSizePolicy::Expanding, QSizePolicy::Fixed);
         ui->pushButtonStreaming->setText("Streaming ON");
@@ -1371,20 +1350,20 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
         ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
         ui->pushButtonStreaming->setText("Streaming OFF");
     }
-    ui->streamingLabel->setHidden( !checked );
-    ui->streamingSpinBox->setHidden( !checked );
-    ui->timeSlider->setHidden( checked );
+    ui->streamingLabel->setHidden( !streaming );
+    ui->streamingSpinBox->setHidden( !streaming );
+    ui->timeSlider->setHidden( streaming );
 
     forEachWidget( [&](PlotWidget* plot)
     {
-        plot->activateTracker( !checked );
+        plot->enableTracker( !streaming );
     } );
 
-    emit activateStreamingMode( checked );
+    emit activateStreamingMode( streaming );
 
     this->repaint();
 
-    if( _current_streamer && checked)
+    if( _current_streamer && streaming)
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->start( 5 );
@@ -1553,7 +1532,7 @@ void MainWindow::on_actionQuick_Help_triggered()
 }
 
 
-void MainWindow::on_checkBoxRemoveTimeOffset_toggled(bool )
+void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool )
 {
     updateTimeSlider();
     updatedDisplayTime();
@@ -1569,7 +1548,7 @@ void MainWindow::on_pushButtonOptions_toggled(bool checked)
 void MainWindow::updatedDisplayTime()
 {
     const double relative_time = _tracker_time - _time_offset.get();
-    if( ui->checkBoxUseDateTime->isChecked() )
+    if( ui->pushButtonUseDateTime->isChecked() )
     {
         if( _time_offset.get() > 0 )
         {
@@ -1617,7 +1596,30 @@ void MainWindow::on_actionClearBuffer_triggered()
     });
 }
 
-void MainWindow::on_checkBoxUseDateTime_toggled(bool checked)
+void MainWindow::on_pushButtonUseDateTime_toggled(bool checked)
 {
     updatedDisplayTime();
+}
+
+void MainWindow::on_pushButtonTimeTracker_pressed()
+{
+    if( _tracker_param == CurveTracker::LINE_ONLY)
+    {
+        _tracker_param = CurveTracker::VALUE;
+        ui->pushButtonTimeTracker->setIcon( trackerIconB );
+    }
+    else if( _tracker_param == CurveTracker::VALUE)
+    {
+        _tracker_param = CurveTracker::VALUE_NAME;
+        ui->pushButtonTimeTracker->setIcon( trackerIconC );
+    }
+    else if( _tracker_param == CurveTracker::VALUE_NAME)
+    {
+        _tracker_param = CurveTracker::LINE_ONLY;
+        ui->pushButtonTimeTracker->setIcon( trackerIconA );
+    }
+    forEachWidget( [&](PlotWidget* plot) {
+        plot->configureTracker(_tracker_param);
+        plot->replot();
+    });
 }

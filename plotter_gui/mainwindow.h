@@ -80,7 +80,7 @@ private slots:
 
     void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
-    void on_pushButtonStreaming_toggled(bool checked);
+    void on_pushButtonStreaming_toggled(bool streaming);
 
     void updateDataAndReplot();
 
@@ -102,7 +102,7 @@ private slots:
 
     void deleteDataOfSingleCurve(const QString &curve_name);
 
-    void on_checkBoxRemoveTimeOffset_toggled(bool checked);
+    void on_pushButtonRemoveTimeOffset_toggled(bool checked);
 
     void on_pushButtonOptions_toggled(bool checked);
 
@@ -110,7 +110,9 @@ private slots:
 
     void on_actionClearBuffer_triggered();
 
-    void on_checkBoxUseDateTime_toggled(bool checked);
+    void on_pushButtonUseDateTime_toggled(bool checked);
+
+    void on_pushButtonTimeTracker_pressed();
 
 private:
 
@@ -182,6 +184,8 @@ private:
     void importPlotDataMap(const PlotDataMap &new_data, bool delete_older);
 
     bool isStreamingActive() const ;
+
+    CurveTracker::Parameter _tracker_param;
 
 protected:
 

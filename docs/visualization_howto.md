@@ -18,6 +18,7 @@ The __MainWindow__ has a searchable __List of Timeseries__ on its left side.
 
 ![plotjuggler terms](images/PlotJuggler_terms.png)
 
+
 ## Add one or multiple timeseries to a PlotWidget
 
 To display a curve inside a PlotWidget, simply select the timeserie using the __Left Mouse__ button
@@ -39,6 +40,7 @@ You can also add multiple Tabs and additional Windows.
 Even if PlotJuggler focuses mainly on timeseries, it is possible to mix two timeseries
 that share the same time axis.
 A classical example is the XY position of a robot.
+
 To activate this mode, drag and drop the curve that shall be used as X axis using the
 __RIGHT MOUSE__ button instead of the LEFT one.
 
@@ -70,7 +72,5 @@ __ Plus(+)__ and __Minus(-)__.
 
 ## Pan
 Panning is activated keeping pressed __CTRL + Left Mouse__.
-
-
 
 
