@@ -17,9 +17,8 @@ There are three types of plugins:
 - __DataStreamers__: used to load and plot data that is continously streamed to the user.
 - __StatePublishers__: provide a way to publish data that was previously loaded.
 
-!!! note
-    [ROS](www.ros.org) funtionalities are implemented exclusively through plugins.
-    The core of PlotJuggler does not (and will not) depend on ROS.
+__Note__: [ROS](www.ros.org) funtionalities are implemented exclusively 
+through plugins. The core of PlotJuggler does not (and will not) depend on ROS.
 
 
 
