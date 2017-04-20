@@ -17,7 +17,6 @@
 #include <QHeaderView>
 #include <iostream>
 #include "logwidget.hpp"
-#include <QDomDocument>
 
 namespace rqt_console_plus {
 
