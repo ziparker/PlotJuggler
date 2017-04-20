@@ -1136,7 +1136,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 
         if( mouse_event->button() == Qt::LeftButton )
         {
-            if( mouse_event->modifiers() == Qt::ShiftModifier) // vertical tracker
+            if( mouse_event->modifiers() == Qt::ShiftModifier) // time tracker
             {
                 const QPoint point = mouse_event->pos();
                 QPointF pointF ( invTransform( xBottom, point.x()),

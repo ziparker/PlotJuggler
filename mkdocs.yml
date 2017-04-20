@@ -4,14 +4,26 @@ repo_name: 'facontidavide/PlotJuggler'
 repo_url: https://github.com/facontidavide/PlotJuggler
 
 use_directory_urls: false
-theme: flatly
+theme: material
 
+extra:
+  palette:
+    primary: 'indigo'
+    accent: 'cyan'
+    logo: 'images/plotjuggler.svg'
+  feature:
+    tabs: true
+
+# Extensions
+markdown_extensions:
+  - admonition
+  
 pages:
     - Introduction: index.md
     - User Guide:
         - 'Basics: how to visualize your data':      'visualization_howto.md'
         - 'Data Sources: Static vs streamed data':   'data_sources.md'
-        - 'Vertical tracker and publishers':         'tracker.md'
+        - 'Time tracker and publishers':         'tracker.md'
     - Plugins:
         - 'ROS plugins': 'ros_plugins.md'
 
