@@ -264,9 +264,16 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time)
     updatedDisplayTime();
     updateLeftTableValues();
 
-    for ( auto it: _state_publisher)
-    {
-        it.second->updateState( &_mapped_plot_data, absolute_time);
+    for ( auto it: _state_publisher) {
+        try{
+                it.second->updateState( &_mapped_plot_data, absolute_time);
+        }
+        catch(std::exception& ex)
+        {
+            QMessageBox::warning(this, tr("Exception Thrown"),
+                                 tr( "State publisher [%1] thrown the following exception:\n\n%2")
+                                 .arg(it.first).arg( ex.what()) );
+        }
     }
 
     forEachWidget( [&](PlotWidget* plot)
@@ -934,9 +941,15 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
             timeindex_name = _last_load_configuration;
         }
 
-        PlotDataMap mapped_data = loader->readDataFromFile(
-                    filename.toStdString(),
-                    timeindex_name   );
+        PlotDataMap mapped_data;
+        try{
+            mapped_data = loader->readDataFromFile( filename.toStdString(), timeindex_name );
+        }
+        catch(std::exception& ex)
+        {
+            QMessageBox::warning(this, tr("Exception Thrown"), tr(ex.what()) );
+            return;
+        }
 
         _last_load_configuration = timeindex_name;
 
@@ -947,6 +960,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_time
         QMessageBox::warning(this, tr("Error"),
                              tr("Cannot read files with extension %1.\n No plugin can handle that!\n")
                              .arg(filename) );
+        return;
     }
     _curvelist_widget->updateFilter();
 }
@@ -996,7 +1010,17 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
 
     if( _current_streamer && _current_streamer->start() )
     {
-        _current_streamer->enableStreaming( false );
+        try{
+           _current_streamer->enableStreaming( false );
+        }
+        catch(std::exception& ex)
+        {
+            QMessageBox::warning(this, tr("Exception Thrown"),
+                                 tr( "%1->enableStreaming thrown the following exception:\n\n%2")
+                                 .arg(_current_streamer->name()).arg( ex.what()) );
+            return;
+        }
+
         importPlotDataMap( _current_streamer->getDataMap(), true );
         _loaded_datafile = QString();
 
@@ -1326,7 +1350,15 @@ void MainWindow::on_pushButtonStreaming_toggled(bool checked)
         checked = false;
     }
     else{
-        _current_streamer->enableStreaming( checked ) ;
+        try{
+           _current_streamer->enableStreaming( checked );
+        }
+        catch(std::exception& ex)
+        {
+            QMessageBox::warning(this, tr("Exception Thrown"),
+                                 tr( "%1->enableStreaming thrown the following exception:\n\n%2")
+                                 .arg(_current_streamer->name()).arg( ex.what()) );
+        }
     }
 
     if( checked )
