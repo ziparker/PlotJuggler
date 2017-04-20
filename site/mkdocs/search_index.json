@@ -87,13 +87,33 @@
         }, 
         {
             "location": "/ros_plugins/index.html", 
-            "text": "TODO", 
+            "text": "Data sources\n\n\nDataLoadROS\n\n\nThis plugin is used to load rosbags.\nWhen the user load a \n.bag\n file, the following dialog is displayed:\n\n\n\n\nThis allows to select one or multiple topics stored inside the file.\n\n\nAdditionally, it is possible to activate an option called \"Enable renaming of ROS field\".\nThis option is used to rename a field in a vector using the value of a string stored in\nanother field of the message.\n\n\nFor example, we can use it to rename topic such as \nsensor_msgs/JointState\n\nand \ntf/tfMessage\n.\n\n\nThe user can add additional rules editing the corresponding XML (Edit Rules).\n\n\nFor more informations, see the documentation of the package \n\nros-type-introspection\n.\n\n\nDataStreamROS\n\n\nWhen activated, it will show the same Dialog used by DataLoadROS to select \nthe available topics.\n\n\nIt must be noted that a topic message can be parsed only if at least one \nmessage was received.\n\n\nOnce stopped, it provides also the ability to saved the received (and cached) \nROS messages inside a rosbag.\n\n\nPublishers\n\n\nRosoutPublisher\n\n\nSince PlotJuggler can only visualize time series, we need a convenient way to \nmatch the data with the output of \nrosout\n messages.\n\n\nThis plugin creates a separate window with a GUI very similar to \n\nrqt_console\n.\n\n\nIt allows to filter messages by severity, node name or text of the message.\n\n\n\n\nBeing a StatePublisher, it is activated by the \nTimeTracker\n.\nIt will display only those message stored before the timestamp that corresponds\nto the current position of the TimeTracker.", 
             "title": "ROS plugins"
         }, 
         {
-            "location": "/ros_plugins/index.html#todo", 
+            "location": "/ros_plugins/index.html#data-sources", 
             "text": "", 
-            "title": "TODO"
+            "title": "Data sources"
+        }, 
+        {
+            "location": "/ros_plugins/index.html#dataloadros", 
+            "text": "This plugin is used to load rosbags.\nWhen the user load a  .bag  file, the following dialog is displayed:   This allows to select one or multiple topics stored inside the file.  Additionally, it is possible to activate an option called \"Enable renaming of ROS field\".\nThis option is used to rename a field in a vector using the value of a string stored in\nanother field of the message.  For example, we can use it to rename topic such as  sensor_msgs/JointState \nand  tf/tfMessage .  The user can add additional rules editing the corresponding XML (Edit Rules).  For more informations, see the documentation of the package  ros-type-introspection .", 
+            "title": "DataLoadROS"
+        }, 
+        {
+            "location": "/ros_plugins/index.html#datastreamros", 
+            "text": "When activated, it will show the same Dialog used by DataLoadROS to select \nthe available topics.  It must be noted that a topic message can be parsed only if at least one \nmessage was received.  Once stopped, it provides also the ability to saved the received (and cached) \nROS messages inside a rosbag.", 
+            "title": "DataStreamROS"
+        }, 
+        {
+            "location": "/ros_plugins/index.html#publishers", 
+            "text": "", 
+            "title": "Publishers"
+        }, 
+        {
+            "location": "/ros_plugins/index.html#rosoutpublisher", 
+            "text": "Since PlotJuggler can only visualize time series, we need a convenient way to \nmatch the data with the output of  rosout  messages.  This plugin creates a separate window with a GUI very similar to  rqt_console .  It allows to filter messages by severity, node name or text of the message.   Being a StatePublisher, it is activated by the  TimeTracker .\nIt will display only those message stored before the timestamp that corresponds\nto the current position of the TimeTracker.", 
+            "title": "RosoutPublisher"
         }
     ]
 }

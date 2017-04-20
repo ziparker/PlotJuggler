@@ -133,14 +133,54 @@
             <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
     
-        <li class="main active"><a href="#todo">TODO</a></li>
+        <li class="main active"><a href="#data-sources">Data sources</a></li>
+        
+            <li><a href="#dataloadros">DataLoadROS</a></li>
+        
+            <li><a href="#datastreamros">DataStreamROS</a></li>
+        
+    
+        <li class="main "><a href="#publishers">Publishers</a></li>
+        
+            <li><a href="#rosoutpublisher">RosoutPublisher</a></li>
         
     
     </ul>
 </div></div>
             <div class="col-md-9" role="main">
 
-<h2 id="todo">TODO</h2></div>
+<h1 id="data-sources">Data sources</h1>
+<h2 id="dataloadros">DataLoadROS</h2>
+<p>This plugin is used to load rosbags.
+When the user load a <strong>.bag</strong> file, the following dialog is displayed:</p>
+<p><img alt="dialog topics" src="../images/ros-topics.png" /></p>
+<p>This allows to select one or multiple topics stored inside the file.</p>
+<p>Additionally, it is possible to activate an option called "Enable renaming of ROS field".
+This option is used to rename a field in a vector using the value of a string stored in
+another field of the message.</p>
+<p>For example, we can use it to rename topic such as <strong>sensor_msgs/JointState</strong>
+and <strong>tf/tfMessage</strong>.</p>
+<p>The user can add additional rules editing the corresponding XML (Edit Rules).</p>
+<p>For more informations, see the documentation of the package 
+<a href="http://wiki.ros.org/ros_type_introspection#The_Renamer">ros-type-introspection</a>.</p>
+<h2 id="datastreamros">DataStreamROS</h2>
+<p>When activated, it will show the same Dialog used by DataLoadROS to select 
+the available topics.</p>
+<p>It must be noted that a topic message can be parsed only if at least one 
+message was received.</p>
+<p>Once stopped, it provides also the ability to saved the received (and cached) 
+ROS messages inside a rosbag.</p>
+<h1 id="publishers">Publishers</h1>
+<h2 id="rosoutpublisher">RosoutPublisher</h2>
+<p>Since PlotJuggler can only visualize time series, we need a convenient way to 
+match the data with the output of <a href="http://wiki.ros.org/rosout">rosout</a> messages.</p>
+<p>This plugin creates a separate window with a GUI very similar to 
+<a href="http://wiki.ros.org/rqt_console">rqt_console</a>.</p>
+<p>It allows to filter messages by severity, node name or text of the message.</p>
+<p><img alt="rosout" src="../images/ros-console.png" /></p>
+<p>Being a StatePublisher, it is activated by the <a href="data_source.md">TimeTracker</a>.
+It will display only those message stored before the timestamp that corresponds
+to the current position of the TimeTracker.   </p></div>
         </div>
 
         <footer class="col-md-12">
