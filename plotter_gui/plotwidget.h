@@ -96,7 +96,9 @@ public slots:
 
     void activateGrid(bool activate);
 
-    void activateTracker(bool activate);
+    void configureTracker(CurveTracker::Parameter val);
+
+    void enableTracker(bool enable);
 
     void setTrackerPosition(double abs_time);
 
