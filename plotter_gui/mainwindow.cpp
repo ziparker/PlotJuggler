@@ -78,7 +78,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     ui->splitter->setCollapsible(0,true);
     ui->splitter->setStretchFactor(0,2);
-    ui->splitter->setStretchFactor(1,5);
+    ui->splitter->setStretchFactor(1,6);
 
     connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
 
