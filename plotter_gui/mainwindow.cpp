@@ -50,6 +50,15 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     ui->setupUi(this);
 
+    {
+        QIcon icon(":/icons/resources/office_chart_line_stacked.png");
+        if (!icon.isNull())
+        {
+            this->setWindowIcon(icon);
+            QApplication::setWindowIcon(icon);
+        }
+    }
+
     connect( _curvelist_widget->getTable()->verticalScrollBar(), &QScrollBar::sliderMoved,
              this, &MainWindow::updateLeftTableValues );
 
@@ -136,9 +145,9 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     //----------------------------------------------------------
     QIcon trackerIconA, trackerIconB, trackerIconC;
 
-    trackerIconA.addFile(QStringLiteral(":/icons/resources/line_tracker.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
-    trackerIconB.addFile(QStringLiteral(":/icons/resources/line_tracker_1.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
-    trackerIconC.addFile(QStringLiteral(":/icons/resources/line_tracker_a.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
+    trackerIconA.addFile(QStringLiteral(":/icons/resources/line_tracker.png"), QSize(36, 36));
+    trackerIconB.addFile(QStringLiteral(":/icons/resources/line_tracker_1.png"), QSize(36, 36));
+    trackerIconC.addFile(QStringLiteral(":/icons/resources/line_tracker_a.png"), QSize(36, 36));
 
     _tracker_button_icons[CurveTracker::LINE_ONLY]  = trackerIconA;
     _tracker_button_icons[CurveTracker::VALUE]      = trackerIconB;
@@ -1552,6 +1561,7 @@ void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool )
 void MainWindow::on_pushButtonOptions_toggled(bool checked)
 {
     ui->widgetOptions->setVisible( checked );
+    ui->line->setVisible( checked );
 }
 
 void MainWindow::updatedDisplayTime()
