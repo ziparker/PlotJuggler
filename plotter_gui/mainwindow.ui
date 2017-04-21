@@ -120,53 +120,6 @@ border-radius: 4px;
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButtonAddSubwindow">
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>40</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="toolTip">
-             <string>Add new subwindow</string>
-            </property>
-            <property name="whatsThis">
-             <string>Add new subwindow</string>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border: 1px solid black;
-border-radius: 6px;
-background: white;
-</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="resource.qrc">
-              <normaloff>:/icons/resources/stacks_32px.png</normaloff>:/icons/resources/stacks_32px.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>30</width>
-              <height>30</height>
-             </size>
-            </property>
-            <property name="flat">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QLineEdit" name="displayTime">
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">

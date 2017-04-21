@@ -76,8 +76,6 @@ private slots:
 
     void onCreateFloatingWindow(PlotMatrix* first_tab = NULL);
 
-    void on_pushButtonAddSubwindow_pressed();
-
     void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
     void on_pushButtonStreaming_toggled(bool streaming);
@@ -186,6 +184,8 @@ private:
     bool isStreamingActive() const ;
 
     CurveTracker::Parameter _tracker_param;
+
+    std::map<CurveTracker::Parameter, QIcon> _tracker_button_icons;
 
 protected:
 

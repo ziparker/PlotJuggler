@@ -31,7 +31,6 @@
 #include <QMovie>
 #include <QScrollBar>
 
-QIcon trackerIconA, trackerIconB, trackerIconC;
 
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :
     QMainWindow(parent),
@@ -134,11 +133,25 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     ui->widgetOptions->setVisible( ui->pushButtonOptions->isChecked() );
     ui->line->setVisible( ui->pushButtonOptions->isChecked() );
 
+    //----------------------------------------------------------
+    QIcon trackerIconA, trackerIconB, trackerIconC;
+
     trackerIconA.addFile(QStringLiteral(":/icons/resources/line_tracker.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
     trackerIconB.addFile(QStringLiteral(":/icons/resources/line_tracker_1.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
     trackerIconC.addFile(QStringLiteral(":/icons/resources/line_tracker_a.png"), QSize(36, 36), QIcon::Normal, QIcon::Off);
 
-    ui->pushButtonTimeTracker->setIcon(trackerIconB);
+    _tracker_button_icons[CurveTracker::LINE_ONLY]  = trackerIconA;
+    _tracker_button_icons[CurveTracker::VALUE]      = trackerIconB;
+    _tracker_button_icons[CurveTracker::VALUE_NAME] = trackerIconC;
+
+    int tracker_setting = settings.value("MainWindow.timeTrackerSetting", (int)CurveTracker::VALUE ).toInt();
+    _tracker_param = static_cast<CurveTracker::Parameter>(tracker_setting);
+
+    ui->pushButtonTimeTracker->setIcon( _tracker_button_icons[_tracker_param] );
+
+    forEachWidget( [&](PlotWidget* plot) {
+        plot->configureTracker(_tracker_param);
+    });
 }
 
 MainWindow::~MainWindow()
@@ -153,6 +166,7 @@ MainWindow::~MainWindow()
     settings.setValue("MainWindow.activateGrid", ui->pushButtonActivateGrid->isChecked() );
     settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value() );
     settings.setValue("MainWindow.dateTimeDisplay",ui->pushButtonUseDateTime->isChecked() );
+    settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param );
 
     delete ui;
 }
@@ -1285,11 +1299,6 @@ void MainWindow::updateTimeSlider()
                               max_steps);
 }
 
-void MainWindow::on_pushButtonAddSubwindow_pressed()
-{
-    createTabbedDialog( NULL );
-}
-
 void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 {
     if( !source || !destination ) return;
@@ -1606,18 +1615,17 @@ void MainWindow::on_pushButtonTimeTracker_pressed()
     if( _tracker_param == CurveTracker::LINE_ONLY)
     {
         _tracker_param = CurveTracker::VALUE;
-        ui->pushButtonTimeTracker->setIcon( trackerIconB );
     }
     else if( _tracker_param == CurveTracker::VALUE)
     {
         _tracker_param = CurveTracker::VALUE_NAME;
-        ui->pushButtonTimeTracker->setIcon( trackerIconC );
     }
     else if( _tracker_param == CurveTracker::VALUE_NAME)
     {
         _tracker_param = CurveTracker::LINE_ONLY;
-        ui->pushButtonTimeTracker->setIcon( trackerIconA );
     }
+    ui->pushButtonTimeTracker->setIcon( _tracker_button_icons[ _tracker_param ] );
+
     forEachWidget( [&](PlotWidget* plot) {
         plot->configureTracker(_tracker_param);
         plot->replot();
