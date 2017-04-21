@@ -3,8 +3,8 @@ Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-Forthcoming
------------
+0.18.0 (2017-04-21)
+-------------------
 * added visualization policy to the TimeTracker
 * bug fix in RosoutPublisher
 * added try-catch guard to third party plugins method invokation
