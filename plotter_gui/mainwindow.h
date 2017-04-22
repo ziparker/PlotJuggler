@@ -187,6 +187,8 @@ private:
 
     std::map<CurveTracker::Parameter, QIcon> _tracker_button_icons;
 
+    void closeEvent(QCloseEvent *event);
+
 protected:
 
     MonitoredValue _time_offset;
@@ -200,5 +202,7 @@ signals:
     void activateTracker(bool active);
 
 };
+
+
 
 #endif // MAINWINDOW_H

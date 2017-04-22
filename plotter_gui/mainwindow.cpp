@@ -1,11 +1,12 @@
 #include <functional>
+#include <stdio.h>
+#include <set>
 #include <QMouseEvent>
 #include <QDebug>
 #include <numeric>
 #include <QMimeData>
 #include <QMenu>
 #include <QStringListModel>
-#include <stdio.h>
 #include <qwt_plot_canvas.h>
 #include <QDomDocument>
 #include <QDesktopServices>
@@ -16,9 +17,10 @@
 #include <QPluginLoader>
 #include <QSettings>
 #include <QWindow>
-#include <set>
 #include <QInputDialog>
 #include <QCommandLineParser>
+#include <QMovie>
+#include <QScrollBar>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -28,8 +30,6 @@
 #include "tabbedplotwidget.h"
 #include "selectlistdialog.h"
 #include "aboutdialog.h"
-#include <QMovie>
-#include <QScrollBar>
 
 
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :
@@ -165,18 +165,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
 MainWindow::~MainWindow()
 {
-    if( _current_streamer )
-    {
-        _current_streamer->shutdown();
-        _current_streamer = nullptr;
-    }
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
-    settings.setValue("MainWindow.geometry", saveGeometry());
-    settings.setValue("MainWindow.activateGrid", ui->pushButtonActivateGrid->isChecked() );
-    settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value() );
-    settings.setValue("MainWindow.dateTimeDisplay",ui->pushButtonUseDateTime->isChecked() );
-    settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param );
-
     delete ui;
 }
 
@@ -1640,4 +1628,19 @@ void MainWindow::on_pushButtonTimeTracker_pressed()
         plot->configureTracker(_tracker_param);
         plot->replot();
     });
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if( _current_streamer )
+    {
+        _current_streamer->shutdown();
+        _current_streamer = nullptr;
+    }
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    settings.setValue("MainWindow.geometry", saveGeometry());
+    settings.setValue("MainWindow.activateGrid", ui->pushButtonActivateGrid->isChecked() );
+    settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value() );
+    settings.setValue("MainWindow.dateTimeDisplay",ui->pushButtonUseDateTime->isChecked() );
+    settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param );
 }
