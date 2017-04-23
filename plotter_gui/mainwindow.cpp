@@ -702,9 +702,19 @@ void MainWindow::onActionSaveLayout()
     QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
                                              QDir::currentPath() ). toString();
 
-    QString filter("*.xml");
-    QString fileName =  QFileDialog::getSaveFileName(this, tr("Save Layout to File"),
-                                                     directory_path, filter, &filter);
+    QFileDialog saveDialog;
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setDefaultSuffix("xml");
+    saveDialog.setDirectory(directory_path);
+    saveDialog.exec();
+
+    if(saveDialog.result() != QDialog::Accepted || saveDialog.selectedFiles().empty())
+    {
+        return;
+    }
+
+    QString fileName = saveDialog.selectedFiles().first();
+
     if (fileName.isEmpty())
         return;
 
