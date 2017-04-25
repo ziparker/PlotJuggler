@@ -23,7 +23,11 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Set the Vertical Limits</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resource.qrc">
+    <normaloff>:/icons/resources/resize_vertical.png</normaloff>:/icons/resources/resize_vertical.png</iconset>
   </property>
   <property name="modal">
    <bool>false</bool>
@@ -92,6 +96,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

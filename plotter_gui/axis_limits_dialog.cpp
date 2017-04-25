@@ -15,7 +15,6 @@ AxisLimitsDialog::AxisLimitsDialog(QWidget *parent) :
     _limits.min = ( -numeric_limits<double>::max() / 2 );
     _limits.max = (  numeric_limits<double>::max() / 2 );
 
-
     ui->lineEditMinY->setValidator( new QDoubleValidator( this) );
     ui->lineEditMaxY->setValidator( new QDoubleValidator( this) );
 
@@ -30,14 +29,33 @@ void AxisLimitsDialog::setDefaultRange(PlotData::RangeValue range)
 {
     _parent_limits = range;
 
-    if( ui->lineEditMinY->text().isEmpty())
+    if( !ui->checkBoxMinY->isChecked() )
     {
         ui->lineEditMinY->setText( QString::number( _parent_limits.min ));
     }
-    if( ui->lineEditMaxY->text().isEmpty())
+    if( !ui->checkBoxMaxY->isChecked() )
     {
         ui->lineEditMaxY->setText( QString::number( _parent_limits.max ));
     }
+}
+
+void AxisLimitsDialog::enableMin(bool enabled, double value)
+{
+    _parent_limits.min = value;
+    ui->lineEditMinY->setText( QString::number( _parent_limits.min ));
+    ui->checkBoxMinY->setChecked(enabled);
+}
+
+void AxisLimitsDialog::enableMax(bool enabled, double value)
+{
+    _parent_limits.max = value;
+    ui->lineEditMaxY->setText( QString::number( _parent_limits.max ));
+    ui->checkBoxMaxY->setChecked(enabled);
+}
+
+bool AxisLimitsDialog::limitsEnabled() const
+{
+    return ui->checkBoxMinY->isChecked() || ui->checkBoxMaxY->isChecked();
 }
 
 void AxisLimitsDialog::on_checkBoxMinY_toggled(bool checked)
@@ -88,4 +106,9 @@ void AxisLimitsDialog::on_pushButtonMinY_pressed()
 void AxisLimitsDialog::on_pushButtonMaxY_pressed()
 {
     ui->lineEditMaxY->setText( QString::number( _parent_limits.max) );
+}
+
+void AxisLimitsDialog::closeEvent(QCloseEvent *event)
+{
+    on_pushButtonDone_pressed();
 }

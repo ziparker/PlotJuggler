@@ -198,6 +198,10 @@ void PlotWidget::buildActions()
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 {
+    QString edit("&Edit Axis Limits ");
+    edit.append( _axis_limits_dialog->limitsEnabled() ? tr("(ENABLED)") : tr("(disabled)") ) ;
+    _action_editLimits->setText( edit );
+
     QMenu menu(this);
     menu.addAction(_action_removeCurve);
     menu.addAction(_action_removeAllCurves);
@@ -471,6 +475,11 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
     range_el.setAttribute("left", QString::number(rect.left(), 'f', 6));
     range_el.setAttribute("right", QString::number(rect.right() ,'f', 6));
     plot_el.appendChild(range_el);
+
+    QDomElement limitY_el = doc.createElement("limitY");
+    limitY_el.setAttribute("min", QString::number( _user_defined_Y_limits.min) );
+    limitY_el.setAttribute("max", QString::number( _user_defined_Y_limits.max) );
+    plot_el.appendChild(limitY_el);
 
     for(auto it=_curve_list.begin(); it != _curve_list.end(); ++it)
     {

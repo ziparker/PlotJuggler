@@ -19,7 +19,13 @@ public:
 
     void setDefaultRange(PlotData::RangeValue range);
 
-     PlotData::RangeValue rangeY() const { return _limits; }
+    void enableMin(bool enabled, double value);
+
+    void enableMax(bool enabled, double value);
+
+    bool limitsEnabled() const;
+
+    PlotData::RangeValue rangeY() const { return _limits; }
 
 private slots:
     void on_checkBoxMinY_toggled(bool checked);
@@ -32,7 +38,11 @@ private slots:
 
     void on_pushButtonMaxY_pressed();
 
+
 private:
+
+    virtual void closeEvent(QCloseEvent *event) override;
+
     Ui::AxisLimitsDialog *ui;
 
     PlotData::RangeValue _parent_limits;
