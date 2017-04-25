@@ -1260,8 +1260,8 @@ void MainWindow::updateTimeSlider()
     //----------------------------------
     // find min max time
 
-    double min_time = std::numeric_limits<double>::max();
-    double max_time = std::numeric_limits<double>::min();
+    double min_time =  std::numeric_limits<double>::max();
+    double max_time = -std::numeric_limits<double>::max();
     size_t max_steps = 10;
 
     for (auto it: _mapped_plot_data.numeric )
