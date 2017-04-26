@@ -705,6 +705,7 @@ void MainWindow::onActionSaveLayout()
     QFileDialog saveDialog;
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.setDefaultSuffix("xml");
+    saveDialog.setNameFilter("XML (*.xml)");
     saveDialog.setDirectory(directory_path);
     saveDialog.exec();
 
