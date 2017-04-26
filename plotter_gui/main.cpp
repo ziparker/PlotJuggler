@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
      * You, fearless code reviewer, decided to start a journey into my source code.
      * For your bravery, you deserve to know the truth, no matter how hard it is to accept it.
      * The splashscreen is useless; not only it is useless, it will make your start-up
-     * time slower by a couple of seconds for abasolutely no reason.
+     * time slower by a couple of seconds for absolutely no reason.
      * But what are two seconds compared with the time that PlotJuggler will save you?
      * The splashscreen is the connection between me and my users, the glue that keep
      * together our invisible relationship.
