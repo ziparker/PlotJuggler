@@ -23,6 +23,7 @@
 #include "qwt_plot_renderer.h"
 #include <PlotJuggler/random_color.h>
 
+const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2 ;
 
 void PlotWidget::setDefaultRangeX()
 {
@@ -114,8 +115,8 @@ PlotWidget::PlotWidget(PlotDataMap &datamap, QWidget *parent):
 
     _axis_limits_dialog = new AxisLimitsDialog(this);
 
-    _user_defined_Y_limits.min = (-std::numeric_limits<double>::max() / 2 );
-    _user_defined_Y_limits.max = ( std::numeric_limits<double>::max() / 2 );
+    _custom_Y_limits.min = (-MAX_DOUBLE );
+    _custom_Y_limits.max = ( MAX_DOUBLE );
 
 }
 
@@ -477,8 +478,8 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
     plot_el.appendChild(range_el);
 
     QDomElement limitY_el = doc.createElement("limitY");
-    limitY_el.setAttribute("min", QString::number( _user_defined_Y_limits.min) );
-    limitY_el.setAttribute("max", QString::number( _user_defined_Y_limits.max) );
+    limitY_el.setAttribute("min", QString::number( _custom_Y_limits.min) );
+    limitY_el.setAttribute("max", QString::number( _custom_Y_limits.max) );
     plot_el.appendChild(limitY_el);
 
     for(auto it=_curve_list.begin(); it != _curve_list.end(); ++it)
@@ -833,18 +834,38 @@ PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X,
         }
     }
 
+    double margin = 0.1;
+
     if( bottom > top ){
         bottom  = 0;
         top = 0;
     }
 
-    double margin = 0.1;
     if( top - bottom > std::numeric_limits<double>::epsilon() )
     {
         margin = (top-bottom) * 0.025;
     }
-    top    += margin;
-    bottom -= margin;
+
+    const bool lower_limit = _custom_Y_limits.min > -MAX_DOUBLE;
+    const bool upper_limit = _custom_Y_limits.max <  MAX_DOUBLE;
+
+    if(lower_limit)
+    {
+        bottom = _custom_Y_limits.min;
+        if( top < bottom ) top = bottom + margin;
+    }
+
+    if( upper_limit )
+    {
+        top = _custom_Y_limits.max;
+        if( top < bottom ) bottom = top - margin;
+    }
+
+    if( !lower_limit && !upper_limit )
+    {
+        top    += margin;
+        bottom -= margin;
+    }
 
     return PlotData::RangeValue({ bottom,  top});
 }
@@ -969,9 +990,6 @@ void PlotWidget::zoomOut(bool emit_signal)
 
     auto rangeY = getMaximumRangeY( rangeX, false );
 
-    rangeY.min = std::max( rangeY.min, _user_defined_Y_limits.min);
-    rangeY.max = std::min( rangeY.max, _user_defined_Y_limits.max);
-
     rect.setBottom( rangeY.min   );
     rect.setTop(  rangeY.max  );
 
@@ -995,9 +1013,6 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 {
     QRectF rect = currentBoundingRect();
     auto rangeY = getMaximumRangeY( {rect.left(), rect.right()}, false );
-
-    rangeY.min = std::max( rangeY.min, _user_defined_Y_limits.min);
-    rangeY.max = std::min( rangeY.max, _user_defined_Y_limits.max);
 
     rect.setBottom(  rangeY.min );
     rect.setTop(     rangeY.max );
@@ -1160,12 +1175,17 @@ void PlotWidget::on_savePlotToFile()
 void PlotWidget::on_editAxisLimits_triggered()
 {
     auto rangeX = this->getMaximumRangeX();
+
+    //temproty reset the limit during editing
+    _custom_Y_limits.min = -MAX_DOUBLE;
+    _custom_Y_limits.max =  MAX_DOUBLE;
+
     auto rangeY = getMaximumRangeY(rangeX, false);
 
     _axis_limits_dialog->setDefaultRange(rangeY);
     _axis_limits_dialog->exec();
 
-    _user_defined_Y_limits = _axis_limits_dialog->rangeY();
+    _custom_Y_limits = _axis_limits_dialog->rangeY();
 
     on_zoomOutVertical_triggered(false);
     replot();

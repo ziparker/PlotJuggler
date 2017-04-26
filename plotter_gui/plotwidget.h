@@ -159,7 +159,7 @@ private:
 
     double _time_offset;
 
-    PlotData::RangeValue _user_defined_Y_limits;
+    PlotData::RangeValue _custom_Y_limits;
 
     AxisLimitsDialog* _axis_limits_dialog;
 
