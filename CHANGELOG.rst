@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.2 (2017-04-26)
+------------------
 * set axis Y limit is undoable now
 * added the command line option "buffer_size"
 * filter xml extension for save layout
