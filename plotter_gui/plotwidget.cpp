@@ -478,8 +478,12 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
     plot_el.appendChild(range_el);
 
     QDomElement limitY_el = doc.createElement("limitY");
-    limitY_el.setAttribute("min", QString::number( _custom_Y_limits.min) );
-    limitY_el.setAttribute("max", QString::number( _custom_Y_limits.max) );
+    if( _custom_Y_limits.min > -MAX_DOUBLE){
+        limitY_el.setAttribute("min", QString::number( _custom_Y_limits.min) );
+    }
+    if( _custom_Y_limits.max < MAX_DOUBLE){
+        limitY_el.setAttribute("max", QString::number( _custom_Y_limits.max) );
+    }
     plot_el.appendChild(limitY_el);
 
     for(auto it=_curve_list.begin(); it != _curve_list.end(); ++it)
@@ -541,6 +545,28 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget, QMessageBox::StandardBut
             if( axisX_name.size()>0){
                 changeAxisX( axisX_name );
             }
+        }
+    }
+
+    QDomElement limitY_el = plot_widget.firstChildElement("limitY");
+    if( !limitY_el.isNull() )
+    {
+        if( limitY_el.hasAttribute("min") ) {
+            _custom_Y_limits.min = limitY_el.attribute("min").toDouble();
+            _axis_limits_dialog->enableMin( true, _custom_Y_limits.min);
+        }
+        else{
+            _custom_Y_limits.max = -MAX_DOUBLE;
+            _axis_limits_dialog->enableMin( false, _custom_Y_limits.min);
+        }
+
+        if( limitY_el.hasAttribute("max") ) {
+            _custom_Y_limits.max = limitY_el.attribute("max").toDouble();
+            _axis_limits_dialog->enableMax( true, _custom_Y_limits.max);
+        }
+        else{
+            _custom_Y_limits.max  = MAX_DOUBLE;
+            _axis_limits_dialog->enableMax( false, _custom_Y_limits.max);
         }
     }
 
@@ -1189,6 +1215,7 @@ void PlotWidget::on_editAxisLimits_triggered()
 
     on_zoomOutVertical_triggered(false);
     replot();
+    emit undoableChange();
 }
 
 
