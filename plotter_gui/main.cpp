@@ -70,6 +70,11 @@ int main(int argc, char *argv[])
                                      QCoreApplication::translate("main", "file") );
     parser.addOption(config_option);
 
+    QCommandLineOption buffersize_option(QStringList() << "buffer_size",
+                                     QCoreApplication::translate("main", "Change the maximum size of the streaming buffer (minimum: 10 default: 60)"),
+                                     QCoreApplication::translate("main", "seconds") );
+    parser.addOption(buffersize_option);
+
     parser.process( *qApp );
 
     /*

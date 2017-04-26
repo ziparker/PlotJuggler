@@ -1176,7 +1176,7 @@ void PlotWidget::on_editAxisLimits_triggered()
 {
     auto rangeX = this->getMaximumRangeX();
 
-    //temproty reset the limit during editing
+    //temporary reset the limit during editing
     _custom_Y_limits.min = -MAX_DOUBLE;
     _custom_Y_limits.max =  MAX_DOUBLE;
 

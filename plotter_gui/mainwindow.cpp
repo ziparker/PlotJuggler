@@ -50,6 +50,12 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     ui->setupUi(this);
 
+    if( commandline_parser.isSet("buffer_size"))
+    {
+        int buffer_size = std::max(10, commandline_parser.value("buffer_size").toInt() );
+        ui->streamingSpinBox->setMaximum(buffer_size);
+    }
+
     {
         QIcon icon(":/icons/resources/office_chart_line_stacked.png");
         if (!icon.isNull())
