@@ -2,6 +2,11 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fixed window management
+* Contributors: Davide Faconti
+
 1.0.2 (2017-04-26)
 ------------------
 * set axis Y limit is undoable now
