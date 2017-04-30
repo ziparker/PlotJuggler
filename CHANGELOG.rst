@@ -2,6 +2,11 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* save/restore the selected topics in the layout file
+* Contributors: Davide Faconti
+
 1.0.3 (2017-04-28)
 ------------------
 * fixed window management
