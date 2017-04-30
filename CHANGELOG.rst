@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.4 (2017-04-30)
+------------------
 * save/restore the selected topics in the layout file
 * Contributors: Davide Faconti
 
