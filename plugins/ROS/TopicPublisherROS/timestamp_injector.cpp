@@ -55,7 +55,10 @@ void injectTimeImpl(const ROSTypeList& type_list,
                                     msg.type().msgName() == "Header" &&
                                     msg.type().pkgName() == "std_msgs" );
 
-                            if( !is_header_timestamp && field.type().isNumericBuiltin() && field.type().arraySize() == 1)
+                            if( !is_header_timestamp &&
+                                    field.type().typeID() != OTHER &&
+                                    field.type().typeID() != STRING
+                                    && field.type().arraySize() == 1)
                             {
                                 //quick skip
                                 *buffer_ptr += BuiltinTypeSize[ static_cast<int>(field.type().typeID()) ];
