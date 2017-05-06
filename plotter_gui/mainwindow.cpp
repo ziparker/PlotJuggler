@@ -424,15 +424,18 @@ void MainWindow::loadPlugins(QString directory_name)
                 else
                 {
                     loaded_plugins.insert( publisher->name() );
+
                     _state_publisher.insert( std::make_pair(publisher->name(), publisher) );
 
-                    publisher->setParentMenu( ui->menuPublishers );
-
-                    QAction* activatePublisher = new QAction( publisher->name() , this);
+                    QAction* activatePublisher = new QAction(tr("Start: ") + publisher->name() , this);
                     activatePublisher->setCheckable(true);
                     activatePublisher->setChecked(false);
                     ui->menuPublishers->setEnabled(true);
                     ui->menuPublishers->addAction(activatePublisher);
+
+                    publisher->setParentMenu( ui->menuPublishers );
+
+                    ui->menuPublishers->addSeparator();
 
                     connect(activatePublisher, &QAction::toggled,
                            [=](bool enable) { publisher->setEnabled( enable ); } );
@@ -455,6 +458,7 @@ void MainWindow::loadPlugins(QString directory_name)
                     ui->menuStreaming->addAction(startStreamer);
 
                     streamer->setParentMenu( ui->menuStreaming );
+                    ui->menuStreaming->addSeparator();
 
                     connect(startStreamer, SIGNAL(triggered()),
                             _streamer_signal_mapper, SLOT(map()) );

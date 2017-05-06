@@ -1,5 +1,6 @@
 #include "qnodedialog.h"
 #include "ui_qnodedialog.h"
+#include <boost/make_shared.hpp>
 #include <QSettings>
 #include <QMessageBox>
 
@@ -95,34 +96,24 @@ void QNodeDialog::on_pushButtonConnect_pressed()
 
 void QNodeDialog::on_checkBoxUseEnvironment_toggled(bool checked)
 {
-  ui->lineEditMaster->setEnabled( !checked );
-  ui->lineEditHost->setEnabled( !checked );
+    ui->lineEditMaster->setEnabled( !checked );
+    ui->lineEditHost->setEnabled( !checked );
 }
 
-ros::NodeHandlePtr getGlobalRosNode()
+bool StartROS()
 {
-  static ros::NodeHandlePtr node_ptr;
-
-  if( !node_ptr )
-  {
-    if( !ros::master::check() )
+    if(!ros::isInitialized() || !ros::master::check() )
     {
         std::string master_uri = getDefaultMasterURI();
         bool connected = QNodeDialog::Connect(master_uri, "localhost" );
         if ( ! connected )
         {
-           //as a fallback strategy, launch the QNodeDialog
-          QNodeDialog dialog;
-          dialog.exec();
+            //as a fallback strategy, launch the QNodeDialog
+            QNodeDialog dialog;
+            dialog.exec();
         }
     }
-
-    if( ros::master::check() && ros::isInitialized()  )
-    {
-      node_ptr.reset( new ros::NodeHandle );
-    }
-  }
-  return node_ptr;
+    return ros::master::check() && ros::isInitialized();
 }
 
 

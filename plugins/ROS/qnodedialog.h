@@ -31,6 +31,13 @@ private:
 
 };
 
-ros::NodeHandlePtr getGlobalRosNode();
+bool StartROS();
+
+//    if(ros::isStarted() )
+//    {
+//        ros::shutdown(); // explicitly needed since we use ros::start();;
+//        ros::waitForShutdown();
+//    }
+
 
 #endif // QNODEDIALOG_H

@@ -48,14 +48,12 @@ private:
 
     std::thread _thread;
 
-    std::map<std::string, RosIntrospection::ROSTypeList> _ros_type_map;
-
     void extractInitialSamples();
 
     double _initial_time;
     bool _use_header_timestamp;
 
-    ros::NodeHandlePtr _node;
+    ros::NodeHandle* _node;
     std::vector<ros::Subscriber> _subscribers;
     RosIntrospection::SubstitutionRuleMap _rules;
 

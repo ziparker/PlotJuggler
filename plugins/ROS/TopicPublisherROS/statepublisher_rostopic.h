@@ -23,13 +23,17 @@ public:
 
     virtual bool enabled() const override { return enabled_; }
 
+    void setParentMenu(QMenu *menu);
+
 public slots:
     virtual void setEnabled(bool enabled) override;
 
 private:
     std::map<std::string, ros::Publisher> publishers_;
     bool enabled_;
-    ros::NodeHandlePtr node_;
+    ros::NodeHandle* _node;
+
+    QAction* _current_time;
 };
 
 #endif // DATALOAD_CSV_H
