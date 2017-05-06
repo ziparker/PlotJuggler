@@ -121,3 +121,38 @@ void QNodeDialog::on_pushButtonCancel_pressed()
 {
     this->close();
 }
+
+RosManager::~RosManager()
+{
+    _node->shutdown();
+    if(ros::isStarted() )
+    {
+        ros::shutdown(); // explicitly needed since we use ros::start();;
+        ros::waitForShutdown();
+    }
+    delete _node;
+}
+
+ros::NodeHandle *RosManager::getNode()
+{
+    static RosManager ros_manager;
+
+    if(!ros::isInitialized() || !ros::master::check() )
+    {
+        std::string master_uri = getDefaultMasterURI();
+        bool connected = QNodeDialog::Connect(master_uri, "localhost" );
+        if ( ! connected )
+        {
+            //as a fallback strategy, launch the QNodeDialog
+            QNodeDialog dialog;
+            dialog.exec();
+        }
+    }
+    if( ros::master::check() && ros::isInitialized())
+    {
+        if( !ros_manager._node ){
+            ros_manager._node = new ros::NodeHandle();
+        }
+    }
+    return ros_manager._node;
+}

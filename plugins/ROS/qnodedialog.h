@@ -31,13 +31,18 @@ private:
 
 };
 
-bool StartROS();
 
-//    if(ros::isStarted() )
-//    {
-//        ros::shutdown(); // explicitly needed since we use ros::start();;
-//        ros::waitForShutdown();
-//    }
+class RosManager
+{
+private:
+    ros::NodeHandle* _node;
+    RosManager(): _node(nullptr) {}
+
+public:
+    ~RosManager();
+    static ros::NodeHandle *getNode();
+};
+
 
 
 #endif // QNODEDIALOG_H

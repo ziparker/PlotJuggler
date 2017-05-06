@@ -46,26 +46,27 @@ void injectTimeImpl(const ROSTypeList& type_list,
                 {
                     for (const ROSField& field : msg.fields() )
                     {
+                        const auto& field_type = field.type();
                         if( !field.isConstant()) {
 
                             bool is_header_timestamp = (
-                                    field.type().typeID()  == TIME &&
-                                    field.type().isArray() == false &&
+                                    field_type.typeID()  == TIME &&
+                                    field_type.isArray() == false &&
                                     field.name() == "stamp" &&
                                     msg.type().msgName() == "Header" &&
                                     msg.type().pkgName() == "std_msgs" );
 
                             if( !is_header_timestamp &&
-                                    field.type().typeID() != OTHER &&
-                                    field.type().typeID() != STRING
-                                    && field.type().arraySize() == 1)
+                                    field_type.typeID() != OTHER &&
+                                    field_type.typeID() != STRING
+                                    && field_type.arraySize() == 1)
                             {
                                 //quick skip
-                                *buffer_ptr += BuiltinTypeSize[ static_cast<int>(field.type().typeID()) ];
+                                *buffer_ptr += BuiltinTypeSize[ static_cast<int>(field_type.typeID()) ];
                             }
                             else{
                                 //recursion
-                                injectTimeImpl(type_list, field.type(), is_header_timestamp, buffer_ptr, new_timestamp);
+                                injectTimeImpl(type_list, field_type, is_header_timestamp, buffer_ptr, new_timestamp);
                             }
                         }
                     }

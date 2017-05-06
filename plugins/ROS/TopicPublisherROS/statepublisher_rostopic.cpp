@@ -15,7 +15,6 @@ TopicPublisherROS::TopicPublisherROS():
 TopicPublisherROS::~TopicPublisherROS()
 {
     enabled_ = false;
-    _node->shutdown();
 }
 
 void TopicPublisherROS::setParentMenu(QMenu *menu)
@@ -31,8 +30,7 @@ void TopicPublisherROS::setEnabled(bool to_enable)
 {  
     if( !_node )
     {
-        if( !StartROS() ) return;
-        _node = new ros::NodeHandle();
+        _node = RosManager::getNode();
     }
     enabled_ = (to_enable && _node);
 }
@@ -80,17 +78,16 @@ void TopicPublisherROS::updateState(PlotDataMap *datamap, double current_time)
     ros::serialization::IStream stream( raw_buffer.data(), raw_buffer.size() );
     shapeshifted_msg.read( stream );
 
-//    auto publisher_it = publishers_.find( topic_name );
-//    if( publisher_it == publishers_.end())
-//    {
-//       auto res = publishers_.insert( std::make_pair(topic_name, shapeshifted_msg.advertise( *node_, topic_name, 10, true) ) );
-//        publisher_it = res.first;
-//    }
+    auto publisher_it = publishers_.find( topic_name );
+    if( publisher_it == publishers_.end())
+    {
+       auto res = publishers_.insert( std::make_pair(topic_name,
+                                                     shapeshifted_msg.advertise( *_node, topic_name, 10, true) ) );
+        publisher_it = res.first;
+    }
 
-    //const ros::Publisher& publisher = publisher_it->second;
-   // publisher.publish( shapeshifted_msg );
-
-    qDebug() << "publishing. Time " << current_time; ;
+    const ros::Publisher& publisher = publisher_it->second;
+    publisher.publish( shapeshifted_msg );
   }
 
 }

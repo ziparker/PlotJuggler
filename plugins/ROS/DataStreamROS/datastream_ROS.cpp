@@ -223,8 +223,7 @@ bool DataStreamROS::start(QString& default_configuration)
 {
     if( !_node )
     {
-        if( !StartROS() ) return false;
-        _node = new ros::NodeHandle();
+        _node = RosManager::getNode();
     }
 
     _plot_data.numeric.clear();
@@ -269,7 +268,7 @@ bool DataStreamROS::start(QString& default_configuration)
     _use_header_timestamp = dialog.checkBoxUseHeaderStamp()->isChecked();
     //-------------------------
 
-    ros::start(); // needed because node will go out of scope
+    ros::start();
 
     _subscribers.clear();
     for (int i=0; i<topic_selected.size(); i++ )
