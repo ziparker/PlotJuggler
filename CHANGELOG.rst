@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.5 (2017-05-07)
+------------------
 * fixed an issue with ROS during destruction
 * allow timestamp injection
 * Create ISSUE_TEMPLATE.md
