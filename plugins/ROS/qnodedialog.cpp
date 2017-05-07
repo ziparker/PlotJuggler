@@ -100,42 +100,35 @@ void QNodeDialog::on_checkBoxUseEnvironment_toggled(bool checked)
     ui->lineEditHost->setEnabled( !checked );
 }
 
-bool StartROS()
-{
-    if(!ros::isInitialized() || !ros::master::check() )
-    {
-        std::string master_uri = getDefaultMasterURI();
-        bool connected = QNodeDialog::Connect(master_uri, "localhost" );
-        if ( ! connected )
-        {
-            //as a fallback strategy, launch the QNodeDialog
-            QNodeDialog dialog;
-            dialog.exec();
-        }
-    }
-    return ros::master::check() && ros::isInitialized();
-}
-
 
 void QNodeDialog::on_pushButtonCancel_pressed()
 {
     this->close();
 }
 
-RosManager::~RosManager()
+RosManager &RosManager::get()
 {
-    _node->shutdown();
+    static RosManager manager;
+    return manager;
+}
+
+void RosManager::stopROS()
+{
     if(ros::isStarted() )
     {
         ros::shutdown(); // explicitly needed since we use ros::start();;
         ros::waitForShutdown();
     }
-    delete _node;
 }
 
-ros::NodeHandle *RosManager::getNode()
+RosManager::~RosManager()
 {
-    static RosManager ros_manager;
+
+}
+
+ros::NodeHandlePtr RosManager::getNode()
+{
+    RosManager& manager = RosManager::get();
 
     if(!ros::isInitialized() || !ros::master::check() )
     {
@@ -148,11 +141,15 @@ ros::NodeHandle *RosManager::getNode()
             dialog.exec();
         }
     }
-    if( ros::master::check() && ros::isInitialized())
+    if ( ros::master::check() && ros::isInitialized())
     {
-        if( !ros_manager._node ){
-            ros_manager._node = new ros::NodeHandle();
+        if( !manager._node ){
+            manager._node = ros::NodeHandlePtr(new ros::NodeHandle, [](ros::NodeHandle* node)
+            {
+                    RosManager::get().stopROS();
+            }  );
         }
+        ros::start();
     }
-    return ros_manager._node;
+    return manager._node;
 }

@@ -393,7 +393,7 @@ void MainWindow::loadPlugins(QString directory_name)
             continue;
         }
 
-        QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(filename));
+        QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(filename), this);
 
         QObject *plugin = pluginLoader.instance();
         if (plugin)
@@ -1645,4 +1645,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value() );
     settings.setValue("MainWindow.dateTimeDisplay",ui->pushButtonUseDateTime->isChecked() );
     settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param );
+
+    // clean up all the plugins
+    for(auto& it : _data_loader ) { delete it.second; }
+    for(auto& it : _state_publisher ) { delete it.second; }
+    for(auto& it : _data_streamer ) { delete it.second; }
+
 }

@@ -35,12 +35,14 @@ private:
 class RosManager
 {
 private:
-    ros::NodeHandle* _node;
+    ros::NodeHandlePtr _node;
     RosManager(): _node(nullptr) {}
+    void stopROS();
 
 public:
+    static RosManager& get();
     ~RosManager();
-    static ros::NodeHandle *getNode();
+    static ros::NodeHandlePtr getNode();
 };
 
 

@@ -53,7 +53,7 @@ private:
     double _initial_time;
     bool _use_header_timestamp;
 
-    ros::NodeHandle* _node;
+    ros::NodeHandlePtr _node;
     std::vector<ros::Subscriber> _subscribers;
     RosIntrospection::SubstitutionRuleMap _rules;
 
