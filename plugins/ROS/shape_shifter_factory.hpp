@@ -4,11 +4,12 @@
 #include <ros_type_introspection/shape_shifter.hpp>
 #include <PlotJuggler/any.hpp>
 
+
 class RosIntrospectionFactory{
 public:
   static RosIntrospectionFactory &get();
 
-  bool registerMessage(const std::string& topic_name, const std::string &md5sum, const std::string& datatype, const std::string& definition );
+  void registerMessage(const std::string& topic_name, const std::string &md5sum, const std::string& datatype, const std::string& definition );
 
   const RosIntrospection::ShapeShifter* getShapeShifter(const std::string& topic_name);
 
@@ -32,28 +33,25 @@ inline RosIntrospectionFactory& RosIntrospectionFactory::get()
 }
 
 // return true if added
-inline bool RosIntrospectionFactory::registerMessage(const std::string &topic_name,
+inline void RosIntrospectionFactory::registerMessage(const std::string &topic_name,
                                                  const std::string &md5sum,
                                                  const std::string &datatype,
                                                  const std::string &definition)
 {
 
-  auto itA = _ss_map.find(topic_name);
-  if( itA == _ss_map.end() )
-  {
-      RosIntrospection::ShapeShifter msg;
-      msg.morph(md5sum, datatype,definition);
-      _ss_map.insert( std::make_pair(topic_name, std::move(msg) ));
-      topics_.push_back( topic_name );
+    if( _ss_map.find(topic_name) == _ss_map.end() )
+    {
+        RosIntrospection::ShapeShifter msg;
+        msg.morph(md5sum, datatype,definition);
+        _ss_map.insert( std::make_pair(topic_name, std::move(msg) ));
+        topics_.push_back( topic_name );
+    }
 
-      if( _tl_map.find(md5sum) == _tl_map.end())
-      {
-          auto topic_map = RosIntrospection::buildROSTypeMapFromDefinition( datatype, definition);
-          _tl_map.insert( std::make_pair(md5sum,topic_map));
-      }
-      return true;
-  }
-  return false;
+    if( _tl_map.find(md5sum) == _tl_map.end())
+    {
+        auto topic_map = RosIntrospection::buildROSTypeMapFromDefinition( datatype, definition);
+        _tl_map.insert( std::make_pair(md5sum,topic_map));
+    }
 }
 
 inline const RosIntrospection::ShapeShifter* RosIntrospectionFactory::getShapeShifter(const std::string &topic_name)
