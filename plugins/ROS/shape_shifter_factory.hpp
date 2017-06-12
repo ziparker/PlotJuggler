@@ -13,7 +13,7 @@ public:
 
   const RosIntrospection::ShapeShifter* getShapeShifter(const std::string& topic_name);
 
-  const RosIntrospection::ROSTypeList*  getRosTypeList(const std::string& md5sum);
+  const RosIntrospection::ROSTypeList*  getRosTypeList(const std::string& topic_name);
 
   const std::vector<std::string>& getTopicList() const;
 
@@ -47,10 +47,10 @@ inline void RosIntrospectionFactory::registerMessage(const std::string &topic_na
         topics_.push_back( topic_name );
     }
 
-    if( _tl_map.find(md5sum) == _tl_map.end())
+    if( _tl_map.find(topic_name) == _tl_map.end())
     {
         auto topic_map = RosIntrospection::buildROSTypeMapFromDefinition( datatype, definition);
-        _tl_map.insert( std::make_pair(md5sum,topic_map));
+        _tl_map.insert( std::make_pair(topic_name,topic_map));
     }
 }
 
@@ -60,9 +60,9 @@ inline const RosIntrospection::ShapeShifter* RosIntrospectionFactory::getShapeSh
   return ( it == _ss_map.end()) ? nullptr :  &(it->second);
 }
 
-inline const RosIntrospection::ROSTypeList* RosIntrospectionFactory::getRosTypeList(const std::string &md5sum)
+inline const RosIntrospection::ROSTypeList* RosIntrospectionFactory::getRosTypeList(const std::string &topic_name)
 {
-  auto it = _tl_map.find( md5sum );
+  auto it = _tl_map.find( topic_name );
   return ( it == _tl_map.end()) ? nullptr :  &(it->second);
 }
 
