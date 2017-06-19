@@ -2,14 +2,16 @@
 #include <QTextStream>
 #include <QFile>
 #include <QMessageBox>
-#include "selectlistdialog.h"
 #include <QDebug>
 #include <QProgressDialog>
+#include "selectlistdialog.h"
 
 DataLoadCSV::DataLoadCSV()
 {
     _extensions.push_back( "csv");
 }
+
+const QRegExp csv_separator("(\\,|\\;|\\ |\\t|\\|)");
 
 const std::vector<const char*> &DataLoadCSV::compatibleFileExtensions() const
 {
@@ -26,8 +28,8 @@ int DataLoadCSV::parseHeader(QFile *file,
 
     int linecount = 1;
 
-    QStringList string_items = first_line.split(',');
-    QStringList secondline_items = second_line.split(',');
+    QStringList string_items = first_line.split(csv_separator);
+    QStringList secondline_items = second_line.split(csv_separator);
 
     for (int i=0; i < string_items.size(); i++ )
     {
@@ -188,7 +190,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name,
     {
         QString line = inB.readLine();
 
-        QStringList string_items = line.split(',');
+        QStringList string_items = line.split(csv_separator);
         double t = linecount;
 
         if( time_index >= 0)
