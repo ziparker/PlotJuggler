@@ -39,6 +39,10 @@ int DataLoadCSV::parseHeader(QFile *file,
         }
 
         QString qname = field_name.toString();
+        if( qname.isEmpty())
+        {
+            qname = QString("_Column_%1").arg(i);
+        }
         ordered_names.push_back( std::make_pair(true,qname) );
     }
 
@@ -95,6 +99,8 @@ int DataLoadCSV::parseHeader(QFile *file,
 PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name,
                                           QString &load_configuration )
 {
+    const int TIME_INDEX_NOT_DEFINED = -2;
+
     int time_index = TIME_INDEX_NOT_DEFINED;
 
     PlotDataMap plot_data;
@@ -126,107 +132,100 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name,
     progress_dialog.show();
 
     double prev_time = -1;
-    bool first_line = true;
+
+    // remove first line (header
+    inB.readLine();
+
+    //---- build plots_vector from header  ------
+    QStringList valid_field_names;
+
+    for (unsigned i=0; i < ordered_names.size(); i++ )
+    {
+        bool valid = ordered_names[i].first;
+        if( valid )
+        {
+            QString&   qname = ( ordered_names[i].second );
+            std::string name = qname.toStdString();
+
+            PlotDataPtr plot( new PlotData(name.c_str()) );
+            plot_data.numeric.insert( std::make_pair( name, plot ) );
+
+            valid_field_names.push_back( qname );
+            plots_vector.push_back( plot );
+
+            if (time_index == TIME_INDEX_NOT_DEFINED)
+            {
+                if( load_configuration == qname )
+                {
+                    time_index = valid_field_names.size() ;
+                }
+            }
+        }
+    }
+
+    if( time_index == TIME_INDEX_NOT_DEFINED)
+    {
+        QStringList field_names;
+        field_names.push_back( "INDEX (auto-generated)" );
+        field_names.append( valid_field_names );
+
+        SelectFromListDialog* dialog = new SelectFromListDialog( &field_names );
+        dialog->setWindowTitle("Select the time axis");
+        int res = dialog->exec();
+
+        if (res == QDialog::Rejected )
+        {
+            return PlotDataMap();
+        }
+
+        // vector is supposed to have only one element
+        time_index = dialog->getSelectedRowNumber().at(0) -1;
+        load_configuration = field_names.at( time_index + 1 ) ;
+    }
+    //-----------------
 
     while (!inB.atEnd())
     {
         QString line = inB.readLine();
 
         QStringList string_items = line.split(',');
-        QStringList valid_field_names;
+        double t = linecount;
 
-        if( first_line )
+        if( time_index >= 0)
         {
-            for (unsigned i=0; i < ordered_names.size(); i++ )
+            t = string_items[ time_index ].toDouble();
+            if( t <= prev_time)
             {
-                bool valid = ordered_names[i].first;
-                if( valid )
-                {
-                    QString& qname = ( ordered_names[i].second );
-                    std::string name = qname.toStdString();
+                QMessageBox::StandardButton reply;
+                reply = QMessageBox::question(0, tr("Error reading file"),
+                                              tr("Selected time in notstrictly  monotonic. Do you want to abort?\n"
+                                                 "(Clicking \"NO\" you continue loading)") );
 
-                    PlotDataPtr plot( new PlotData(name.c_str()) );
-                    plot_data.numeric.insert( std::make_pair( name, plot ) );
-
-                    valid_field_names.push_back( qname );
-
-                    plots_vector.push_back( plot );
-
-                    if (time_index == TIME_INDEX_NOT_DEFINED)
-                    {
-                        if( load_configuration== qname )
-                        {
-                            time_index = valid_field_names.size() ;
-                        }
-                    }
-                }
+                interrupted = (reply == QMessageBox::Yes);
+                break;
             }
-
-            if( load_configuration.compare( "INDEX (auto-generated)" ) == 0)
-            {
-                  time_index = -1;
-            }
-
-            if( time_index == TIME_INDEX_NOT_DEFINED)
-            {
-                QStringList field_names;
-                field_names.push_back( "INDEX (auto-generated)" );
-                field_names.append( valid_field_names );
-
-                SelectFromListDialog* dialog = new SelectFromListDialog( &field_names );
-                dialog->setWindowTitle("Select the time axis");
-                int res = dialog->exec();
-
-                if (res == QDialog::Rejected )
-                {
-                    return PlotDataMap();
-                }
-
-                time_index = dialog->getSelectedRowNumber().at(0) -1; // vector is supposed to have only one element
-                load_configuration = field_names.at( time_index + 1 ) ;
-            }
-
-            first_line = false;
+            prev_time = t;
         }
-        else{
-            double t = linecount;
 
-            if( time_index >= 0)
+        int index = 0;
+        for (int i=0; i < string_items.size(); i++ )
+        {
+            if( ordered_names[i].first )
             {
-                t = string_items[ time_index].toDouble();
-                if( t <= prev_time)
-                {
-                    QMessageBox::StandardButton reply;
-                    reply = QMessageBox::question(0, tr("Error reading file"),
-                                                  tr("Selected time in notstrictly  monotonic. Do you want to abort?\n"
-                                                     "(Clicking \"NO\" you continue loading)") );
-
-                    interrupted = (reply == QMessageBox::Yes);
-                    break;
-                }
-                prev_time = t;
+                double y = string_items[i].toDouble();
+                PlotData::Point point( t,y );
+                plots_vector[index]->pushBack( point );
+                index++;
             }
+        }
 
-            int index = 0;
-            for (int i=0; i < string_items.size(); i++ )
-            {
-                if( ordered_names[i].first )
-                {
-                    double y = string_items[i].toDouble();
-                    PlotData::Point point( t,y );
-                    plots_vector[index]->pushBack( point );
-                    index++;
-                }
-            }
-
-            if(linecount++ %100 == 0)
-            { 
-                progress_dialog.setValue( linecount );
-                QApplication::processEvents();
-                if( progress_dialog.wasCanceled() ) {
-                    interrupted = true;
-                    break;
-                }
+        if(linecount++ %100 == 0)
+        {
+            progress_dialog.setValue( linecount );
+            QApplication::processEvents();
+            if( progress_dialog.wasCanceled() ) {
+                interrupted = true;
+                break;
             }
         }
     }
