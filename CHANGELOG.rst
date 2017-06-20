@@ -2,6 +2,11 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fixing bug `#47 <https://github.com/facontidavide/PlotJuggler/issues/47>`_
+* Contributors: Davide Faconti
+
 1.0.8 (2017-06-20)
 ------------------
 * update to be compatible with ros_type_introspection 0.6
