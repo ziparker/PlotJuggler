@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.8 (2017-06-20)
+------------------
 * update to be compatible with ros_type_introspection 0.6
 * setting uninitialized variable (thanks valgrind)
 * improvement `#48 <https://github.com/facontidavide/PlotJuggler/issues/48>`_
