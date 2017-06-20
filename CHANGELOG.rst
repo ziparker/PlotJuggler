@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2017-06-20)
+------------------
 * fixing bug `#47 <https://github.com/facontidavide/PlotJuggler/issues/47>`_
 * Contributors: Davide Faconti
 
