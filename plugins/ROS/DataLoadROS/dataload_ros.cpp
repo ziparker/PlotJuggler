@@ -115,6 +115,9 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         {
             _rules = RuleEditing::getRenamingRules();
         }
+        else{
+            _rules.clear();
+        }
     }
 
     //-----------------------------------
@@ -135,6 +138,9 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     timer.start();
 
     ROSTypeFlat flat_container;
+
+    std::vector<ros::Time> all_timestamps;
+    all_timestamps.reserve( bag_view_selected.size());
 
     for(const rosbag::MessageInstance& msg: bag_view_selected )
     {
@@ -174,10 +180,20 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
             throw std::runtime_error("Can't retrieve the ROSTypeList from RosIntrospectionFactory");
         }
         buildRosFlatType( *typelist, datatype, topicname_SS, buffer.data(), &flat_container);
-        applyNameTransform( _rules[datatype], &flat_container );
+
+        auto rules_it = _rules.find(datatype);
+        if(rules_it != _rules.end())
+        {
+            applyNameTransform( _rules[datatype], &flat_container );
+        }
+        else{
+            applyNameTransform( std::vector<SubstitutionRule>(), &flat_container );
+        }
 
         // apply time offsets
-        double msg_time;
+        double msg_time = 0;
+
+        all_timestamps.push_back(msg.getTime());
 
         if(dialog->checkBoxUseHeaderStamp()->isChecked() == false)
         {
