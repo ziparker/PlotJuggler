@@ -128,7 +128,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     rosbag::View bag_view_selected ( true );
     bag_view_selected.addQuery(bag, [&topic_selected](rosbag::ConnectionInfo const* connection)
     {
-        return topic_selected.count( QString( connection->topic.c_str()) ) > 0;
+        return topic_selected.find( QString( connection->topic.c_str()) ) != topic_selected.end();
     } );
     progress_dialog.setRange(0, bag_view_selected.size()-1);
 
@@ -139,27 +139,25 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 
     ROSTypeFlat flat_container;
 
-    std::vector<ros::Time> all_timestamps;
-    all_timestamps.reserve( bag_view_selected.size());
+    SString topicname_SS;
+    std::vector<uint8_t> buffer;
 
     for(const rosbag::MessageInstance& msg: bag_view_selected )
     {
         const std::string& topic  = msg.getTopic();
 
-        SString topicname_SS;
         // WORKAROUND. There are some problems related to renaming when the character / is
         // used as prefix. We will remove that here.
         if( topic.at(0) == '/' )
-            topicname_SS = SString( topic.data() +1,  topic.size()-1 );
+            topicname_SS.assign( topic.data() +1,  topic.size()-1 );
         else
-            topicname_SS = SString( topic.data(),  topic.size() );
+            topicname_SS.assign( topic.data(),  topic.size() );
 
         const auto& datatype   = msg.getDataType();
-        auto msg_size = msg.size();
+        const auto msg_size = msg.size();
+        buffer.resize(msg_size);
 
-        std::vector<uint8_t> buffer ( msg_size );
-
-        if( count++ %1000 == 0)
+        if( count++ %100 == 0)
         {
             progress_dialog.setValue( count );
             QApplication::processEvents();
@@ -184,7 +182,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         auto rules_it = _rules.find(datatype);
         if(rules_it != _rules.end())
         {
-            applyNameTransform( _rules[datatype], &flat_container );
+            applyNameTransform( rules_it->second, &flat_container );
         }
         else{
             applyNameTransform( std::vector<SubstitutionRule>(), &flat_container );
@@ -192,8 +190,6 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 
         // apply time offsets
         double msg_time = 0;
-
-        all_timestamps.push_back(msg.getTime());
 
         if(dialog->checkBoxUseHeaderStamp()->isChecked() == false)
         {
@@ -211,7 +207,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 
         for(const auto& it: flat_container.renamed_value )
         {
-            std::string field_name( it.first.data(), it.first.size());
+            const std::string& field_name( it.first );
 
             auto plot_pair = plot_map.numeric.find( field_name );
             if( plot_pair == plot_map.numeric.end() )
