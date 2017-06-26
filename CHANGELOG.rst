@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.1 (2017-06-26)
+------------------
 * store rosbag::MessageInstance to replay data with the publisher
 * avoid allocation
 * minor optimizations
