@@ -41,31 +41,9 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     std::vector<std::pair<QString,QString>> all_topics;
     PlotDataMap plot_map;
 
-    QFileInfo file_info(file_name);
-    bool disable_caching = false;
-
-    if(  file_info.size() > getAvailableRAM())
-    {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(0, tr("Carefull"),
-                                      QString("Your system has %1 MB for free memory (RAM)\n"
-                                              "You are trying to load file that is %2 MB.\n\n"
-                                              "If you load all the topics, you might experience problems.\n\n"
-                                              "Do you want to DISABLE caching for messages which exceed 100 KB?\n"
-                                              "Typically this includes images, maps, pointclouds, etc.\n\n"
-                                              "If you select [YES], those messages cannot be republished.")
-                                      .arg(getAvailableRAM() / (1024*1024))
-                                      .arg(file_info.size() / (1024*1024)) ,
-                                      QMessageBox::Yes|QMessageBox::No);
-
-        if (reply == QMessageBox::Yes) {
-            disable_caching = true;
-        }
-    }
-
-    rosbag::Bag bag;
     try{
-        bag.open( file_name.toStdString(), rosbag::bagmode::Read );
+        _bag.close();
+        _bag.open( file_name.toStdString(), rosbag::bagmode::Read );
     }
     catch( rosbag::BagException&  ex)
     {
@@ -75,7 +53,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         return plot_map;
     }
 
-    rosbag::View bag_view ( bag, ros::TIME_MIN, ros::TIME_MAX, true );
+    rosbag::View bag_view ( _bag, ros::TIME_MIN, ros::TIME_MAX, true );
     std::vector<const rosbag::ConnectionInfo *> connections = bag_view.getConnections();
 
     for(unsigned i=0;  i<connections.size(); i++)
@@ -126,7 +104,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     progress_dialog.setWindowModality( Qt::ApplicationModal );
 
     rosbag::View bag_view_selected ( true );
-    bag_view_selected.addQuery(bag, [&topic_selected](rosbag::ConnectionInfo const* connection)
+    bag_view_selected.addQuery( _bag, [&topic_selected](rosbag::ConnectionInfo const* connection)
     {
         return topic_selected.find( QString( connection->topic.c_str()) ) != topic_selected.end();
     } );
@@ -142,9 +120,9 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     SString topicname_SS;
     std::vector<uint8_t> buffer;
 
-    for(const rosbag::MessageInstance& msg: bag_view_selected )
+    for(rosbag::MessageInstance msg_instance: bag_view_selected )
     {
-        const std::string& topic  = msg.getTopic();
+        const std::string& topic  = msg_instance.getTopic();
 
         // WORKAROUND. There are some problems related to renaming when the character / is
         // used as prefix. We will remove that here.
@@ -153,8 +131,8 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         else
             topicname_SS.assign( topic.data(),  topic.size() );
 
-        const auto& datatype   = msg.getDataType();
-        const auto msg_size = msg.size();
+        const auto& datatype   = msg_instance.getDataType();
+        const auto msg_size = msg_instance.size();
         buffer.resize(msg_size);
 
         if( count++ %100 == 0)
@@ -170,7 +148,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         ros::serialization::OStream stream(buffer.data(), buffer.size());
 
         // this single line takes almost the entire time of the loop
-        msg.write(stream);
+        msg_instance.write(stream);
 
         auto typelist = RosIntrospectionFactory::get().getRosTypeList( topic );
         if( !typelist )
@@ -193,7 +171,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 
         if(dialog->checkBoxUseHeaderStamp()->isChecked() == false)
         {
-            msg_time = msg.getTime().toSec();
+            msg_time = msg_instance.getTime().toSec();
         }
         else{
             auto offset = FlatContainedContainHeaderStamp(flat_container);
@@ -201,7 +179,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
                 msg_time = offset.value();
             }
             else{
-                msg_time = msg.getTime().toSec();
+                msg_time = msg_instance.getTime().toSec();
             }
         }
 
@@ -224,7 +202,6 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 
         //-----------------------------------------
         // adding raw serialized topic for future uses.
-        if( !disable_caching &&  msg_size > 100*1024*1024)
         {
             auto plot_pair = plot_map.user_defined.find( topic );
 
@@ -235,7 +212,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
                 plot_pair = res.first;
             }
             PlotDataAnyPtr& plot_raw = plot_pair->second;
-            plot_raw->pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer)) ));
+            plot_raw->pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(msg_instance)) ));
         }
     }
 
