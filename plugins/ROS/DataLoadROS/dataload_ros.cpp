@@ -207,12 +207,13 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 
         for(const auto& it: flat_container.renamed_value )
         {
-            const std::string& field_name( it.first );
+            static std::string field_name; //allocate memory only once
+            field_name.assign( it.first.data(), it.first.size() );
 
             auto plot_pair = plot_map.numeric.find( field_name );
             if( plot_pair == plot_map.numeric.end() )
             {
-                PlotDataPtr temp(new PlotData(field_name.c_str()));
+                PlotDataPtr temp(new PlotData(field_name.data()));
                 auto res = plot_map.numeric.insert( std::make_pair(field_name, temp ) );
                 plot_pair = res.first;
             }
