@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.2 (2017-06-28)
+------------------
 * bug-fix in DataLoadROS (multi-selection from layout)
 * Merge branch 'master' of github.com:facontidavide/PlotJuggler
 * minor change
