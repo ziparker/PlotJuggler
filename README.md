@@ -50,7 +50,7 @@ Alternatively, just execute the binary __PlotJuggler__.
 
 A mandatory dependency is the package: https://github.com/facontidavide/ros_type_introspection 
 
-__IMPORTANT__: there is a critical bug in version 0.3.x of ros_type_introspection. Use version 0.4.3 or later.
+__IMPORTANT__: you need version 0.6.3 or later.
 
 You can easily install the Indigo, Jade or Kinetic package with the command:
 
