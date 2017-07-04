@@ -11,7 +11,7 @@ QT5 based application to display time series in plots. This is under heavy devel
 
 To understand what PlotJuggler can do for you, take a look to the following video.
 
-[PlotJuggler: a desktop application to plot time series](https://vimeo.com/174120477) 
+[Short video introducing PlotJuggler](https://vimeo.com/214389001) 
 
 ![PlotJuggler](docs/images/PlotJuggler.gif)
 
