@@ -35,6 +35,12 @@ QNodeDialog::QNodeDialog( QWidget *parent) :
   ui->lineEditHost->setText( host_ip );
 }
 
+namespace ros {
+    namespace master {
+        void init(const M_string& remappings);
+    }
+}
+
 bool QNodeDialog::Connect(const std::string& ros_master_uri,
                           const std::string& hostname)
 {
@@ -42,7 +48,16 @@ bool QNodeDialog::Connect(const std::string& ros_master_uri,
   remappings["__master"] = ros_master_uri;
   remappings["__hostname"] = hostname;
 
-  ros::init(remappings, "PlotJugglerListener");
+  static bool first_time = true;
+  if( first_time)
+  {
+      ros::init(remappings,"PlotJugglerListener");
+      first_time = false;
+  }
+  else{
+      ros::master::init(remappings);
+  }
+
   bool connected = ros::master::check();
   if ( ! connected ) {
       QMessageBox msgBox;
