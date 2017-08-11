@@ -8,7 +8,22 @@ description: |
 grade: devel # must be 'stable' to release into candidate/stable channels
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
+plugs:
+  platform:
+    interface: content
+    content: ubuntu-app-platform1
+    target: ubuntu-app-platform
+    default-provider: ubuntu-app-platform
+
 parts:
-  my-part:
-    # See 'snapcraft plugins'
-    plugin: nil
+  qt-app:    
+    source: .
+    plugin: qmake cmake
+    qt-version: qt5 
+    prime:  
+      - -usr/share/doc  
+      - -usr/include
+    after: [desktop-ubuntu-app-platform]
+    install: |
+      # Create directory to serve as mount point for ubuntu-app-platform
+      mkdir $SNAPCRAFT_PART_INSTALL/ubuntu-app-platform
