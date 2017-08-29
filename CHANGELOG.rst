@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.0 (2017-08-29)
+------------------
 * Ros introspection updated (`#52 <https://github.com/facontidavide/PlotJuggler/issues/52>`_)
 * Potential fix for precision issue when adding time_offset
 * Update snap/snapcraft.yaml
