@@ -5,7 +5,8 @@
 #include <QSettings>
 
 RosoutPublisher::RosoutPublisher():
-    enabled_(false )
+    enabled_(false ),
+    _tablemodel(nullptr)
 {
 
 }
