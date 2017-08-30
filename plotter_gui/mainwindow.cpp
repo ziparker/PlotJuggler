@@ -1284,18 +1284,23 @@ void MainWindow::updateTimeSlider()
     double max_time = -std::numeric_limits<double>::max();
     size_t max_steps = 10;
 
-    for (auto it: _mapped_plot_data.numeric )
+    forEachWidget([&](PlotWidget* widget)
     {
-        PlotDataPtr data = it.second;
+      for (auto it: widget->curveList())
+      {
+        const auto& curve_name = it.first.toStdString();
+
+        const PlotDataPtr data = _mapped_plot_data.numeric[curve_name];
         if(data->size() >=1)
         {
-            const double t0 = data->at(0).x;
-            const double t1 = data->at( data->size() -1).x;
-            min_time  = std::min( min_time, t0);
-            max_time  = std::max( max_time, t1);
-            max_steps = std::max( max_steps, data->size());
+          const double t0 = data->at(0).x;
+          const double t1 = data->at( data->size() -1).x;
+          min_time  = std::min( min_time, t0);
+          max_time  = std::max( max_time, t1);
+          max_steps = std::max( max_steps, data->size());
         }
-    }
+      }
+    });
 
     if( _mapped_plot_data.numeric.size() == 0)
     {
