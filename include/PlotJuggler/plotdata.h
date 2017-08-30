@@ -7,8 +7,8 @@
 #include <map>
 #include <mutex>
 #include <deque>
-#include <PlotJuggler/optional.hpp>
-#include <PlotJuggler/any.hpp>
+#include "PlotJuggler/optional.hpp"
+#include "PlotJuggler/any.hpp"
 #include <QDebug>
 #include <QColor>
 #include <type_traits>

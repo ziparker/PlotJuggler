@@ -30,6 +30,7 @@
 #include "tabbedplotwidget.h"
 #include "selectlistdialog.h"
 #include "aboutdialog.h"
+#include "PlotJuggler/plotdata.h"
 
 
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :

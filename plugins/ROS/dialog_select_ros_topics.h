@@ -6,7 +6,7 @@
 #include <QFile>
 #include <QStringList>
 #include <QCheckBox>
-#include <PlotJuggler/optional.hpp>
+#include "PlotJuggler/optional.hpp"
 #include <ros_type_introspection/ros_introspection.hpp>
 #include <ros_type_introspection/string.hpp>
 
