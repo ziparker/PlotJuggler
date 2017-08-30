@@ -1282,7 +1282,7 @@ void MainWindow::updateTimeSlider()
 
     double min_time =  std::numeric_limits<double>::max();
     double max_time = -std::numeric_limits<double>::max();
-    size_t max_steps = 10;
+    size_t max_steps = 0;
 
     forEachWidget([&](PlotWidget* widget)
     {
@@ -1302,11 +1302,29 @@ void MainWindow::updateTimeSlider()
       }
     });
 
-    if( _mapped_plot_data.numeric.size() == 0)
+    // needed if all the plots are empty
+    if( max_steps == 0 || max_time < min_time)
     {
-        min_time = 0.0;
-        max_time = 0.0;
-        max_steps = 1;
+      for (auto it: _mapped_plot_data.numeric)
+      {
+        const PlotDataPtr data = it.second;
+        if(data->size() >=1)
+        {
+          const double t0 = data->at(0).x;
+          const double t1 = data->at( data->size() -1).x;
+          min_time  = std::min( min_time, t0);
+          max_time  = std::max( max_time, t1);
+          max_steps = std::max( max_steps, data->size());
+        }
+      }
+    }
+
+    // last opportunity. Everuthing else failed
+    if( max_steps == 0 || max_time < min_time)
+    {
+      min_time = 0.0;
+      max_time = 1.0;
+      max_steps = 1;
     }
     //----------------------------------
     // Update Time offset
