@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.1 (2017-08-30)
+------------------
 * better limits for timeSlider
 * fix a potential issue with ranges
 * set explicitly the max vector size
