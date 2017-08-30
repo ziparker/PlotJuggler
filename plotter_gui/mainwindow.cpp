@@ -488,8 +488,9 @@ void MainWindow::buildDummyData()
                << "data_1" << "data_2" << "data_3" << "data_10";
 
     for(auto& word: words_list){
-        _curvelist_widget->addItem( word );
+        _curvelist_widget->addItem( word, true );
     }
+
 
     for( const QString& name: words_list)
     {
@@ -524,8 +525,8 @@ void MainWindow::buildDummyData()
     _mapped_plot_data.numeric.insert( std::make_pair( sin_plot->name(), sin_plot) );
     _mapped_plot_data.numeric.insert( std::make_pair( cos_plot->name(), cos_plot) );
 
-    _curvelist_widget->addItem( QString::fromStdString(sin_plot->name()) );
-    _curvelist_widget->addItem( QString::fromStdString(cos_plot->name()) );
+    _curvelist_widget->addItem( QString::fromStdString(sin_plot->name()), true );
+    _curvelist_widget->addItem( QString::fromStdString(cos_plot->name()), true );
     //--------------------------------------
 
     updateTimeSlider();
@@ -857,13 +858,14 @@ void MainWindow::importPlotDataMap(const PlotDataMap& new_data, bool delete_olde
         // this is a new plot
         if( plot_with_same_name == _mapped_plot_data.numeric.end() )
         {
-            _curvelist_widget->addItem( QString::fromStdString( name ) );
+            _curvelist_widget->addItem( QString::fromStdString( name ), false );
             _mapped_plot_data.numeric.insert( std::make_pair(name, plot) );
         }
         else{ // a plot with the same name existed already, overwrite it
             plot_with_same_name->second = plot;
         }
     }
+    _curvelist_widget->sortColumns();
 
     if( delete_older && _mapped_plot_data.numeric.size() > new_data.numeric.size() )
     {
