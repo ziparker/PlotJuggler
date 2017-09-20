@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QColor>
 #include <type_traits>
+#include <unordered_map>
 
 template <typename Time, typename Value> class PlotDataGeneric
 {
@@ -101,8 +102,8 @@ typedef std::shared_ptr<PlotData>     PlotDataPtr;
 typedef std::shared_ptr<PlotDataAny>  PlotDataAnyPtr;
 
 typedef struct{
-  std::map<std::string, PlotDataPtr>     numeric;
-  std::map<std::string, PlotDataAnyPtr>  user_defined;
+  std::unordered_map<std::string, PlotDataPtr>     numeric;
+  std::unordered_map<std::string, PlotDataAnyPtr>  user_defined;
 } PlotDataMap;
 
 
