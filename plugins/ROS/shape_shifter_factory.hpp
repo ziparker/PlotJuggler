@@ -1,7 +1,7 @@
 #ifndef SHAPE_SHIFTER_FACTORY_HPP
 #define SHAPE_SHIFTER_FACTORY_HPP
 
-#include <ros_type_introspection/shape_shifter.hpp>
+#include <ros_type_introspection/utils/shape_shifter.hpp>
 #include "PlotJuggler/any.hpp"
 
 
@@ -49,7 +49,7 @@ inline void RosIntrospectionFactory::registerMessage(const std::string &topic_na
 
     if( _tl_map.find(topic_name) == _tl_map.end())
     {
-        auto topic_map = RosIntrospection::buildROSTypeMapFromDefinition( datatype, definition);
+        auto topic_map = RosIntrospection::BuildROSTypeMapFromDefinition( datatype, definition );
         _tl_map.insert( std::make_pair(topic_name,topic_map));
     }
 }

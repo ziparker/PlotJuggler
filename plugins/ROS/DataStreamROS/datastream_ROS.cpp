@@ -74,10 +74,10 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     // used as prefix. We will remove that here.
     if( topicname_SS.at(0) == '/' ) topicname_SS = SString( topic_name.data() +1,  topic_name.size()-1 );
 
-    buildRosFlatType( *type_map, datatype, topicname_SS,
-                      buffer.data(), &flat_container, 250);
+    BuildRosFlatType( *type_map, datatype, topicname_SS,
+                      buffer, &flat_container, 250);
 
-    applyNameTransform( _rules[datatype], flat_container, renamed_value );
+    ApplyNameTransform( _rules[datatype], flat_container, renamed_value );
 
     SString header_stamp_field( topic_name );
     header_stamp_field.append(".header.stamp");
@@ -117,7 +117,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     for(auto& it: renamed_value )
     {
         const std::string& field_name ( it.first.data() );
-        const RosIntrospection::VarNumber& var_value = it.second;
+        const RosIntrospection::Variant& var_value = it.second;
         const double value = var_value.convert<double>();
         auto plot_it = _plot_data.numeric.find(field_name);
         if( plot_it == _plot_data.numeric.end())

@@ -19,7 +19,7 @@ inline void SkipBytesInBuffer( uint8_t** buffer, int vector_size, const BuiltinT
         }
     }
     else{
-        *buffer += vector_size * BuiltinTypeSize[ static_cast<int>(type) ];
+        *buffer += vector_size * builtinSize( type );
     }
 }
 //------------------------------------------------
@@ -62,7 +62,7 @@ void injectTimeImpl(const ROSTypeList& type_list,
                                     && field_type.arraySize() == 1)
                             {
                                 //quick skip
-                                *buffer_ptr += BuiltinTypeSize[ static_cast<int>(field_type.typeID()) ];
+                                *buffer_ptr += builtinSize( field_type.typeID() );
                             }
                             else{
                                 //recursion

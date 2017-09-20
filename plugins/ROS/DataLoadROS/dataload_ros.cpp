@@ -157,18 +157,18 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         {
             throw std::runtime_error("Can't retrieve the ROSTypeList from RosIntrospectionFactory");
         }
-        buildRosFlatType( *typelist, rostype[datatype], topicname_SS,
-                          buffer.data(), &flat_container, 250);
+        BuildRosFlatType( *typelist, rostype[datatype], topicname_SS,
+                          buffer, &flat_container, 250);
 
         static RenamedValues renamed_value;
  
         auto rules_it = _rules.find(datatype);
         if(rules_it != _rules.end())
         {
-            applyNameTransform( rules_it->second, flat_container, renamed_value );
+            ApplyNameTransform( rules_it->second, flat_container, renamed_value );
         }
         else{
-            applyNameTransform( std::vector<SubstitutionRule>(), flat_container, renamed_value );
+            ApplyNameTransform( std::vector<SubstitutionRule>(), flat_container, renamed_value );
         }
 
         // apply time offsets
@@ -201,7 +201,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
             }
 
             PlotDataPtr& plot_data = plot_pair->second;
-            const RosIntrospection::VarNumber& var_value = it.second;
+            const RosIntrospection::Variant& var_value = it.second;
             plot_data->pushBack( PlotData::Point(msg_time, var_value.convert<double>() ));
         } //end of for renamed_value
 

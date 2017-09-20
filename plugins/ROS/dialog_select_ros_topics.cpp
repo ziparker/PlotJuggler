@@ -181,7 +181,7 @@ nonstd::optional<double> FlatContainedContainHeaderStamp(const RosIntrospection:
         if( field_name.size() > OFF &&
             strcmp( &field_name.data()[ field_name.size() -OFF], ID) == 0)
         {
-            const RosIntrospection::VarNumber& var_value = renamed_value[first_index].second;
+            const RosIntrospection::Variant& var_value = renamed_value[first_index].second;
             return var_value.convert<double>();
         }
     }
@@ -195,7 +195,7 @@ nonstd::optional<double> FlatContainedContainHeaderStamp(const RosIntrospection:
             strcmp( &field_name.data()[ field_name.size() -OFF], ID) == 0)
         {
             first_indexes[&renamed_value] = i;
-            const RosIntrospection::VarNumber& var_value = renamed_value[i].second;
+            const RosIntrospection::Variant& var_value = renamed_value[i].second;
             return var_value.convert<double>();
         }
     }
