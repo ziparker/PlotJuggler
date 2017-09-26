@@ -35,6 +35,7 @@ private:
 
     std::vector<const char*> _extensions;
 
+    RosIntrospection::Parser _parser;
 
 };
 

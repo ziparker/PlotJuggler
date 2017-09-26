@@ -51,54 +51,54 @@ add_dependencies(DataLoadROS
     )
 
 #############
-SET( DATASTREAM_SRC
-    DataStreamROS/datastream_ROS.cpp
-    DataStreamROS/datastream_ROS.h
-    )
+#SET( DATASTREAM_SRC
+#    DataStreamROS/datastream_ROS.cpp
+#    DataStreamROS/datastream_ROS.h
+#    )
 
-add_library( DataStreamROS SHARED ${DATASTREAM_SRC} )
-target_link_libraries( DataStreamROS  commonROS )
+#add_library( DataStreamROS SHARED ${DATASTREAM_SRC} )
+#target_link_libraries( DataStreamROS  commonROS )
 
-add_dependencies(DataStreamROS
-    ${${PROJECT_NAME}_EXPORTED_TARGETS}
-    ${catkin_EXPORTED_TARGETS}
-    )
-
-#############
-SET( PUBLISHER_SRC
-    TopicPublisherROS/statepublisher_rostopic.cpp
-    TopicPublisherROS/timestamp_injector.cpp
-    TopicPublisherROS/statepublisher_rostopic.h
-    )
-
-QT5_WRAP_UI ( PUBLISHER_UI_SRC  )
-
-add_library( RosTopicPublisher SHARED ${PUBLISHER_SRC} ${PUBLISHER_UI_SRC} )
-target_link_libraries( RosTopicPublisher  ${catkin_LIBRARIES} commonROS )
-
-add_dependencies(RosTopicPublisher
-    ${${PROJECT_NAME}_EXPORTED_TARGETS}
-    ${catkin_EXPORTED_TARGETS}
-    )
+#add_dependencies(DataStreamROS
+#    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#    ${catkin_EXPORTED_TARGETS}
+#    )
 
 #############
-SET( ROSOUT_SRC
-    RosoutPublisher/rosout_publisher.cpp
-    RosoutPublisher/rosout_publisher.h
-    RosoutPublisher/logs_table_model.cpp
-    RosoutPublisher/logwidget.cpp
-    RosoutPublisher/modelfilter.cpp
-    )
+#SET( PUBLISHER_SRC
+#    TopicPublisherROS/statepublisher_rostopic.cpp
+#    TopicPublisherROS/timestamp_injector.cpp
+#    TopicPublisherROS/statepublisher_rostopic.h
+#    )
 
-QT5_WRAP_UI ( ROSOUT_UI RosoutPublisher/logwidget.ui )
+#QT5_WRAP_UI ( PUBLISHER_UI_SRC  )
 
-add_library( RosoutPublisher SHARED ${ROSOUT_SRC}  ${ROSOUT_UI})
-target_link_libraries( RosoutPublisher  ${catkin_LIBRARIES} commonROS )
+#add_library( RosTopicPublisher SHARED ${PUBLISHER_SRC} ${PUBLISHER_UI_SRC} )
+#target_link_libraries( RosTopicPublisher  ${catkin_LIBRARIES} commonROS )
 
-add_dependencies(RosoutPublisher
-    ${${PROJECT_NAME}_EXPORTED_TARGETS}
-    ${catkin_EXPORTED_TARGETS}
-    )
+#add_dependencies(RosTopicPublisher
+#    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#    ${catkin_EXPORTED_TARGETS}
+#    )
+
+#############
+#SET( ROSOUT_SRC
+#    RosoutPublisher/rosout_publisher.cpp
+#    RosoutPublisher/rosout_publisher.h
+#    RosoutPublisher/logs_table_model.cpp
+#    RosoutPublisher/logwidget.cpp
+#    RosoutPublisher/modelfilter.cpp
+#    )
+
+#QT5_WRAP_UI ( ROSOUT_UI RosoutPublisher/logwidget.ui )
+
+#add_library( RosoutPublisher SHARED ${ROSOUT_SRC}  ${ROSOUT_UI})
+#target_link_libraries( RosoutPublisher  ${catkin_LIBRARIES} commonROS )
+
+#add_dependencies(RosoutPublisher
+#    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#    ${catkin_EXPORTED_TARGETS}
+#    )
 
 #############
 ## Install ##
@@ -110,11 +110,12 @@ add_dependencies(RosoutPublisher
 ## Mark executables and/or libraries for installation
 
 if(COMPILING_WITH_CATKIN)
-    install(TARGETS DataLoadROS DataStreamROS RosTopicPublisher RosoutPublisher
+    install(TARGETS DataLoadROS    #RosTopicPublisher DataStreamROS RosoutPublisher
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 elseif()
-    install(TARGETS DataLoadROS DataStreamROS RosTopicPublisher RosoutPublisher DESTINATION bin  )
+    install(TARGETS DataLoadROS # RosTopicPublisher RosoutPublisher DataStreamROS
+        DESTINATION bin  )
 endif()

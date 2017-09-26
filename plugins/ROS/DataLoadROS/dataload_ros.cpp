@@ -62,12 +62,17 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     {
         const auto&  topic      =  connections[i]->topic;
         const auto&  md5sum     =  connections[i]->md5sum;
-        const auto&  datatype  =  connections[i]->datatype;
+        const auto&  datatype   =  connections[i]->datatype;
         const auto&  definition =  connections[i]->msg_def;
 
         all_topics.push_back( std::make_pair(QString( topic.c_str()), QString( datatype.c_str()) ) );
         RosIntrospectionFactory::get().registerMessage(topic, md5sum, datatype, definition);
         rostype.insert( std::make_pair(datatype, ROSType(datatype)) );
+
+        if( _parser.getMessageInfo( topic ) == nullptr)
+        {
+          _parser.registerMessageDefinition( topic, ROSType(datatype), definition );
+        }
     }
 
     int count = 0;
@@ -99,6 +104,10 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         else{
             _rules.clear();
         }
+        for(const auto& it: _rules)
+        {
+          _parser.registerRenamingRules( ROSType(it.first) , it.second );
+        }
     }
 
     //-----------------------------------
@@ -119,19 +128,18 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 
     ROSTypeFlat flat_container;
 
-    SString topicname_SS;
     std::vector<uint8_t> buffer;
 
     for(rosbag::MessageInstance msg_instance: bag_view_selected )
     {
-        const std::string& topic  = msg_instance.getTopic();
+        const std::string& topic_name  = msg_instance.getTopic();
 
         // WORKAROUND. There are some problems related to renaming when the character / is
         // used as prefix. We will remove that here.
-        if( topic.at(0) == '/' )
-            topicname_SS.assign( topic.data() +1,  topic.size()-1 );
-        else
-            topicname_SS.assign( topic.data(),  topic.size() );
+//        if( topic.at(0) == '/' )
+//            topicname_SS.assign( topic.data() +1,  topic.size()-1 );
+//        else
+//            topicname_SS.assign( topic.data(),  topic.size() );
 
         const auto& datatype = msg_instance.getDataType();
         const auto msg_size  = msg_instance.size();
@@ -148,28 +156,12 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         }
 
         ros::serialization::OStream stream(buffer.data(), buffer.size());
-
-        // this single line takes almost the entire time of the loop
         msg_instance.write(stream);
 
-        auto typelist = RosIntrospectionFactory::get().getRosTypeList( topic );
-        if( !typelist )
-        {
-            throw std::runtime_error("Can't retrieve the ROSTypeList from RosIntrospectionFactory");
-        }
-        BuildRosFlatType( *typelist, rostype[datatype], topicname_SS,
-                          buffer, &flat_container, 250);
+        _parser.deserializeIntoFlatContainer( topic_name, buffer, &flat_container, 250 );
 
         static RenamedValues renamed_value;
- 
-        auto rules_it = _rules.find(datatype);
-        if(rules_it != _rules.end())
-        {
-            ApplyNameTransform( rules_it->second, flat_container, renamed_value );
-        }
-        else{
-            ApplyNameTransform( std::vector<SubstitutionRule>(), flat_container, renamed_value );
-        }
+        _parser.applyNameTransform( topic_name, flat_container, &renamed_value );
 
         // apply time offsets
         double msg_time = 0;
@@ -193,7 +185,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
             const std::string& field_name = it.first;
 
             auto plot_pair = plot_map.numeric.find( field_name );
-            if( plot_pair == plot_map.numeric.end() )
+            if( !(plot_pair != plot_map.numeric.end()) )
             {
                 PlotDataPtr temp(new PlotData(field_name.data()));
                 auto res = plot_map.numeric.insert( std::make_pair(field_name, temp ) );
@@ -208,12 +200,12 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         //-----------------------------------------
         // adding raw serialized topic for future uses.
         {
-            auto plot_pair = plot_map.user_defined.find( topic );
+            auto plot_pair = plot_map.user_defined.find( topic_name );
 
             if( plot_pair == plot_map.user_defined.end() )
             {
-                PlotDataAnyPtr temp(new PlotDataAny(topic.c_str()));
-                auto res = plot_map.user_defined.insert( std::make_pair( topic, temp ) );
+                PlotDataAnyPtr temp(new PlotDataAny(topic_name.c_str()));
+                auto res = plot_map.user_defined.insert( std::make_pair( topic_name, temp ) );
                 plot_pair = res.first;
             }
             PlotDataAnyPtr& plot_raw = plot_pair->second;

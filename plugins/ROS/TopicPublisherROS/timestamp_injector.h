@@ -5,9 +5,9 @@
 #include <ros/time.h>
 
 
-void injectTime(const RosIntrospection::ROSTypeList& type_map,
-                RosIntrospection::ROSType type,
-                uint8_t *buffer_ptr,
-                const ros::Time& new_timestamp);
+//void injectTime(const RosIntrospection::ROSTypeList& type_map,
+//                RosIntrospection::ROSType type,
+//                uint8_t *buffer_ptr,
+//                const ros::Time& new_timestamp);
 
 #endif // TIMESTAMP_INJECTOR_H
