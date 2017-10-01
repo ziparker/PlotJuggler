@@ -63,6 +63,8 @@ private:
 
     std::map<std::string, int> _msg_index;
 
+    RosIntrospection::Parser _parser;
+
 private slots:
 
     void saveIntoRosbag();

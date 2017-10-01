@@ -177,7 +177,7 @@ nonstd::optional<double> FlatContainedContainHeaderStamp(const RosIntrospection:
 
     if( first_index >= 0 && first_index < renamed_count)
     {
-        const RosIntrospection::SString& field_name = renamed_value[first_index].first;
+        const auto& field_name = renamed_value[first_index].first;
         if( field_name.size() > OFF &&
             strcmp( &field_name.data()[ field_name.size() -OFF], ID) == 0)
         {
@@ -190,7 +190,7 @@ nonstd::optional<double> FlatContainedContainHeaderStamp(const RosIntrospection:
     {
         if( i == first_index ) continue;
 
-        const RosIntrospection::SString& field_name = renamed_value[i].first;
+        const auto& field_name = renamed_value[i].first;
         if( field_name.size() > OFF &&
             strcmp( &field_name.data()[ field_name.size() -OFF], ID) == 0)
         {

@@ -51,17 +51,23 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     // register the message type
     RosIntrospectionFactory::get().registerMessage(topic_name, md5sum, datatype, definition);
 
-    const RosIntrospection::ROSTypeList* type_map = RosIntrospectionFactory::get().getRosTypeList(topic_name);
-    if( !type_map )
-    {
-        throw std::runtime_error("Can't retrieve the ROSTypeList from RosIntrospectionFactory");
-    }
+    ROSType main_type(datatype);
 
+
+    if( _parser.getMessageInfo(topic_name) == nullptr)
+    {
+       _parser.registerMessageDefinition( topic_name, main_type, definition);
+
+       for(const auto& it: _rules)
+       {
+         _parser.registerRenamingRules( ROSType(it.first) , it.second );
+       }
+    }
     //------------------------------------
 
     // it is more efficient to recycle this elements
     static std::vector<uint8_t> buffer;
-    static ROSTypeFlat flat_container;
+    static FlatMessage flat_container;
     static RenamedValues renamed_value;
     
     buffer.resize( msg->size() );
@@ -69,18 +75,12 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     ros::serialization::OStream stream(buffer.data(), buffer.size());
     msg->write(stream);
 
-    SString topicname_SS( topic_name.data(), topic_name.length() );
     // WORKAROUND. There are some problems related to renaming when the character / is
     // used as prefix. We will remove that here.
-    if( topicname_SS.at(0) == '/' ) topicname_SS = SString( topic_name.data() +1,  topic_name.size()-1 );
+    //if( topicname_SS.at(0) == '/' ) topicname_SS = SString( topic_name.data() +1,  topic_name.size()-1 );
 
-    BuildRosFlatType( *type_map, datatype, topicname_SS,
-                      buffer, &flat_container, 250);
-
-    ApplyNameTransform( _rules[datatype], flat_container, renamed_value );
-
-    SString header_stamp_field( topic_name );
-    header_stamp_field.append(".header.stamp");
+    _parser.deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, 250);
+    _parser.applyNameTransform( topic_name, flat_container, &renamed_value );
 
     double msg_time = 0;
 

@@ -54,11 +54,11 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     }
 
     rosbag::View bag_view ( _bag, ros::TIME_MIN, ros::TIME_MAX, true );
-    std::vector<const rosbag::ConnectionInfo *> connections = bag_view.getConnections();
+    std::vector<const rosbag::ConnectionInfo*> connections = bag_view.getConnections();
 
     std::map<std::string,ROSType> rostype;
 
-    for(unsigned i=0;  i<connections.size(); i++)
+    for(unsigned i=0; i<connections.size(); i++)
     {
         const auto&  topic      =  connections[i]->topic;
         const auto&  md5sum     =  connections[i]->md5sum;
@@ -126,20 +126,12 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     QElapsedTimer timer;
     timer.start();
 
-    ROSTypeFlat flat_container;
-
-    std::vector<uint8_t> buffer;
+    FlatMessage flat_container;
+    static std::vector<uint8_t> buffer;
 
     for(rosbag::MessageInstance msg_instance: bag_view_selected )
     {
         const std::string& topic_name  = msg_instance.getTopic();
-
-        // WORKAROUND. There are some problems related to renaming when the character / is
-        // used as prefix. We will remove that here.
-//        if( topic.at(0) == '/' )
-//            topicname_SS.assign( topic.data() +1,  topic.size()-1 );
-//        else
-//            topicname_SS.assign( topic.data(),  topic.size() );
 
         const auto& datatype = msg_instance.getDataType();
         const auto msg_size  = msg_instance.size();
@@ -158,7 +150,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         ros::serialization::OStream stream(buffer.data(), buffer.size());
         msg_instance.write(stream);
 
-        _parser.deserializeIntoFlatContainer( topic_name, buffer, &flat_container, 250 );
+        _parser.deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, 250 );
 
         static RenamedValues renamed_value;
         _parser.applyNameTransform( topic_name, flat_container, &renamed_value );
