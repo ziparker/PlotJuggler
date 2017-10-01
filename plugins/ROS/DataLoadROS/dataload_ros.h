@@ -35,8 +35,6 @@ private:
 
     std::vector<const char*> _extensions;
 
-    RosIntrospection::Parser _parser;
-
 };
 
 #endif // DATALOAD_CSV_H

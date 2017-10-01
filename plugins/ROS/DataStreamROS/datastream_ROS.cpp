@@ -43,25 +43,19 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     }
 
     using namespace RosIntrospection;
+    auto& parser = RosIntrospectionFactory::parser();
 
     const auto&  md5sum     =  msg->getMD5Sum();
     const auto&  datatype   =  msg->getDataType();
     const auto&  definition =  msg->getMessageDefinition() ;
 
     // register the message type
-    RosIntrospectionFactory::get().registerMessage(topic_name, md5sum, datatype, definition);
-
-    ROSType main_type(datatype);
+    RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition);
 
 
-    if( _parser.getMessageInfo(topic_name) == nullptr)
+    if( parser.getMessageInfo(topic_name) == nullptr)
     {
-       _parser.registerMessageDefinition( topic_name, main_type, definition);
-
-       for(const auto& it: _rules)
-       {
-         _parser.registerRenamingRules( ROSType(it.first) , it.second );
-       }
+       parser.registerMessageDefinition( topic_name, ROSType(datatype), definition);
     }
     //------------------------------------
 
@@ -79,8 +73,8 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     // used as prefix. We will remove that here.
     //if( topicname_SS.at(0) == '/' ) topicname_SS = SString( topic_name.data() +1,  topic_name.size()-1 );
 
-    _parser.deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, 250);
-    _parser.applyNameTransform( topic_name, flat_container, &renamed_value );
+    parser.deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, 250);
+    parser.applyNameTransform( topic_name, flat_container, &renamed_value );
 
     double msg_time = 0;
 

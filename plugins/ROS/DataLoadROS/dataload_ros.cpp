@@ -56,7 +56,6 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     rosbag::View bag_view ( _bag, ros::TIME_MIN, ros::TIME_MAX, true );
     std::vector<const rosbag::ConnectionInfo*> connections = bag_view.getConnections();
 
-    std::map<std::string,ROSType> rostype;
 
     for(unsigned i=0; i<connections.size(); i++)
     {
@@ -66,13 +65,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         const auto&  definition =  connections[i]->msg_def;
 
         all_topics.push_back( std::make_pair(QString( topic.c_str()), QString( datatype.c_str()) ) );
-        RosIntrospectionFactory::get().registerMessage(topic, md5sum, datatype, definition);
-        rostype.insert( std::make_pair(datatype, ROSType(datatype)) );
-
-        if( _parser.getMessageInfo( topic ) == nullptr)
-        {
-          _parser.registerMessageDefinition( topic, ROSType(datatype), definition );
-        }
+        RosIntrospectionFactory::registerMessage(topic, md5sum, datatype, definition);
     }
 
     int count = 0;
@@ -106,7 +99,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         }
         for(const auto& it: _rules)
         {
-          _parser.registerRenamingRules( ROSType(it.first) , it.second );
+          RosIntrospectionFactory::parser().registerRenamingRules( ROSType(it.first) , it.second );
         }
     }
 
@@ -150,10 +143,10 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
         ros::serialization::OStream stream(buffer.data(), buffer.size());
         msg_instance.write(stream);
 
-        _parser.deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, 250 );
-
         static RenamedValues renamed_value;
-        _parser.applyNameTransform( topic_name, flat_container, &renamed_value );
+
+        RosIntrospectionFactory::parser().deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, 250 );
+        RosIntrospectionFactory::parser().applyNameTransform( topic_name, flat_container, &renamed_value );
 
         // apply time offsets
         double msg_time = 0;

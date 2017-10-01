@@ -6,19 +6,27 @@
 
 
 class RosIntrospectionFactory{
+
 public:
   static RosIntrospectionFactory &get();
 
-  void registerMessage(const std::string& topic_name, const std::string &md5sum, const std::string& datatype, const std::string& definition );
+  static void registerMessage(const std::string& topic_name, const std::string &md5sum, const std::string& datatype, const std::string& definition );
 
-  const RosIntrospection::ShapeShifter* getShapeShifter(const std::string& topic_name);
+  static const RosIntrospection::ShapeShifter* getShapeShifter(const std::string& topic_name);
 
-  const std::vector<std::string>& getTopicList() const;
+  static const std::vector<std::string>& getTopicList();
+
+  static RosIntrospection::Parser& parser()
+  {
+      return get()._parser;
+  }
+
 
 private:
   RosIntrospectionFactory() = default;
   std::map<std::string, RosIntrospection::ShapeShifter> _ss_map;
-  std::vector<std::string> topics_;
+  std::vector<std::string> _topics;
+  RosIntrospection::Parser _parser;
 
 };
 //---------------------------------------------
@@ -35,25 +43,27 @@ inline void RosIntrospectionFactory::registerMessage(const std::string &topic_na
                                                  const std::string &datatype,
                                                  const std::string &definition)
 {
-
-    if( _ss_map.find(topic_name) == _ss_map.end() )
+    auto& instance = get();
+    if( instance._ss_map.find(topic_name) == instance._ss_map.end() )
     {
         RosIntrospection::ShapeShifter msg;
         msg.morph(md5sum, datatype,definition);
-        _ss_map.insert( std::make_pair(topic_name, std::move(msg) ));
-        topics_.push_back( topic_name );
+        instance._ss_map.insert( std::make_pair(topic_name, std::move(msg) ));
+        instance._topics.push_back( topic_name );
+        parser().registerMessageDefinition( topic_name, RosIntrospection::ROSType(datatype), definition);
     }
 }
 
 inline const RosIntrospection::ShapeShifter* RosIntrospectionFactory::getShapeShifter(const std::string &topic_name)
 {
-  auto it = _ss_map.find( topic_name );
-  return ( it == _ss_map.end()) ? nullptr :  &(it->second);
+    auto& instance = get();
+    auto it = instance._ss_map.find( topic_name );
+    return ( it == instance._ss_map.end()) ? nullptr :  &(it->second);
 }
 
-inline const std::vector<std::string> &RosIntrospectionFactory::getTopicList() const
+inline const std::vector<std::string> &RosIntrospectionFactory::getTopicList()
 {
-  return topics_;
+  return get()._topics;
 }
 
 #endif // SHAPE_SHIFTER_FACTORY_HPP
