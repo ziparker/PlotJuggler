@@ -36,24 +36,27 @@ size_t getAvailableRAM()
 PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
                                           QString &load_configuration  )
 {
+    if( _bag ) _bag->close();
+
+    _bag = std::make_shared<rosbag::Bag>();
+
     using namespace RosIntrospection;
 
     std::vector<std::pair<QString,QString>> all_topics;
     PlotDataMap plot_map;
 
     try{
-        _bag.close();
-        _bag.open( file_name.toStdString(), rosbag::bagmode::Read );
+        _bag->open( file_name.toStdString(), rosbag::bagmode::Read );
     }
     catch( rosbag::BagException&  ex)
     {
         QMessageBox::warning(0, tr("Error"),
                              QString("rosbag::open thrown an exception:\n")+
                              QString(ex.what()) );
-        return plot_map;
+        return PlotDataMap{};
     }
 
-    rosbag::View bag_view ( _bag, ros::TIME_MIN, ros::TIME_MAX, true );
+    rosbag::View bag_view ( *_bag, ros::TIME_MIN, ros::TIME_MAX, true );
     std::vector<const rosbag::ConnectionInfo*> connections = bag_view.getConnections();
 
 
@@ -109,7 +112,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     progress_dialog.setWindowModality( Qt::ApplicationModal );
 
     rosbag::View bag_view_selected ( true );
-    bag_view_selected.addQuery( _bag, [&topic_selected](rosbag::ConnectionInfo const* connection)
+    bag_view_selected.addQuery( *_bag, [topic_selected](rosbag::ConnectionInfo const* connection)
     {
         return topic_selected.find( connection->topic ) != topic_selected.end();
     } );
@@ -120,14 +123,15 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     timer.start();
 
     FlatMessage flat_container;
-    static std::vector<uint8_t> buffer;
+    std::vector<uint8_t> buffer;
+    RenamedValues renamed_value;
 
     for(rosbag::MessageInstance msg_instance: bag_view_selected )
     {
         const std::string& topic_name  = msg_instance.getTopic();
+        const std::string& datatype = msg_instance.getDataType();
+        const size_t msg_size  = msg_instance.size();
 
-        const auto& datatype = msg_instance.getDataType();
-        const auto msg_size  = msg_instance.size();
         buffer.resize(msg_size);
 
         if( count++ %100 == 0)
@@ -142,8 +146,6 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 
         ros::serialization::OStream stream(buffer.data(), buffer.size());
         msg_instance.write(stream);
-
-        static RenamedValues renamed_value;
 
         RosIntrospectionFactory::parser().deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, 250 );
         RosIntrospectionFactory::parser().applyNameTransform( topic_name, flat_container, &renamed_value );
