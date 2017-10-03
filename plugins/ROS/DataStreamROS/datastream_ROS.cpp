@@ -49,14 +49,17 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     const auto&  datatype   =  msg->getDataType();
     const auto&  definition =  msg->getMessageDefinition() ;
 
-    // register the message type
-    RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition);
-
-
-    if( parser.getMessageInfo(topic_name) == nullptr)
+    if( RosIntrospectionFactory::isRegistered(topic_name ) == false)
     {
-       parser.registerMessageDefinition( topic_name, ROSType(datatype), definition);
+      // register the message type
+      RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition);
+
+      for (auto it: _rules)
+      {
+        RosIntrospectionFactory::parser().registerRenamingRules( it.first, it.second );
+      }
     }
+
     //------------------------------------
 
     // it is more efficient to recycle this elements

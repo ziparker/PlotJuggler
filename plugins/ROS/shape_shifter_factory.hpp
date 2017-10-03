@@ -14,18 +14,19 @@ public:
 
   static const RosIntrospection::ShapeShifter* getShapeShifter(const std::string& topic_name);
 
-  static const std::vector<std::string>& getTopicList();
+  static const std::set<std::string> &getTopicList();
 
   static RosIntrospection::Parser& parser()
   {
       return get()._parser;
   }
 
+  static bool isRegistered(const std::string& topic_name) { return get()._topics.count(topic_name) != 0; }
 
 private:
   RosIntrospectionFactory() = default;
   std::map<std::string, RosIntrospection::ShapeShifter> _ss_map;
-  std::vector<std::string> _topics;
+  std::set<std::string> _topics;
   RosIntrospection::Parser _parser;
 
 };
@@ -49,7 +50,7 @@ inline void RosIntrospectionFactory::registerMessage(const std::string &topic_na
         RosIntrospection::ShapeShifter msg;
         msg.morph(md5sum, datatype,definition);
         instance._ss_map.insert( std::make_pair(topic_name, std::move(msg) ));
-        instance._topics.push_back( topic_name );
+        instance._topics.insert( topic_name );
         parser().registerMessageDefinition( topic_name, RosIntrospection::ROSType(datatype), definition);
     }
 }
@@ -61,7 +62,7 @@ inline const RosIntrospection::ShapeShifter* RosIntrospectionFactory::getShapeSh
     return ( it == instance._ss_map.end()) ? nullptr :  &(it->second);
 }
 
-inline const std::vector<std::string> &RosIntrospectionFactory::getTopicList()
+inline const std::set<std::string> &RosIntrospectionFactory::getTopicList()
 {
   return get()._topics;
 }
