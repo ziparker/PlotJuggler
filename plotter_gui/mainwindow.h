@@ -152,6 +152,7 @@ private:
 
     std::map<QString,DataStreamer*>    _data_streamer;
 
+    DataLoader*   _last_dataloader;
     DataStreamer* _current_streamer;
 
     QDomDocument xmlSaveState() const;
@@ -172,10 +173,6 @@ private:
 
     QString _loaded_datafile;
 
-    QString _last_load_configuration;
-
-    QString _last_stream_configuration;
-
     QSignalMapper *_streamer_signal_mapper;
 
     void createTabbedDialog(QString suggest_win_name, PlotMatrix *first_tab);
@@ -190,6 +187,10 @@ private:
 
     void closeEvent(QCloseEvent *event);
 
+    void loadPluginState(const QDomElement &root);
+    
+    void savePluginState(QDomDocument &doc);
+    
 protected:
 
     MonitoredValue _time_offset;

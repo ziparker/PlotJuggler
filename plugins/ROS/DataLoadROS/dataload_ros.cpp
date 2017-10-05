@@ -10,6 +10,7 @@
 #include <QProcess>
 #include <rosbag/view.h>
 #include <sys/sysinfo.h>
+#include <QSettings>
 
 #include "../dialog_select_ros_topics.h"
 #include "../shape_shifter_factory.hpp"
@@ -33,8 +34,7 @@ size_t getAvailableRAM()
     return info.freeram;
 }
 
-PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
-                                          QString &load_configuration  )
+PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name)
 {
     if( _bag ) _bag->close();
 
@@ -74,15 +74,26 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
     int count = 0;
 
     //----------------------------------
-    QStringList default_topic_names = load_configuration.split(' ',QString::SkipEmptyParts);
-    load_configuration.clear();
+    QSettings settings( "IcarusTechnology", "PlotJuggler");
 
-    DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topics, default_topic_names );
+    if( _default_topic_names.empty())
+    {
+        // if _default_topic_names is empty (xmlLoad didn't work) use QSettings.
+        QVariant def = settings.value("DataLoadROS/default_topics");
+        if( !def.isNull() && def.isValid())
+        {
+            _default_topic_names = def.toStringList();
+        }
+    }
+
+    DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topics, _default_topic_names );
 
     std::set<std::string> topic_selected;
 
     if( dialog->exec() == static_cast<int>(QDialog::Accepted) )
     {
+        _default_topic_names.clear();
+
         const auto& selected_items = dialog->getSelectedItems();
         for(const auto& item: selected_items)
         {
@@ -90,7 +101,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
             topic_selected.insert( ss_topic );
 
             // change the names in load_configuration
-            load_configuration.append( item ).append(" ");
+            _default_topic_names.push_back( item );
         }
         // load the rules
         if( dialog->checkBoxUseRenamingRules()->isChecked())
@@ -105,6 +116,8 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
           RosIntrospectionFactory::parser().registerRenamingRules( ROSType(it.first) , it.second );
         }
     }
+
+    settings.setValue("DataLoadROS/default_topics", _default_topic_names);
 
     //-----------------------------------
     QProgressDialog progress_dialog;
@@ -208,6 +221,29 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name,
 DataLoadROS::~DataLoadROS()
 {
 
+}
+
+QDomElement DataLoadROS::xmlSaveState(QDomDocument &doc) const
+{
+    QString topics_list = _default_topic_names.join(";");
+    QDomElement list_elem = doc.createElement("selected_topics");
+    list_elem.setAttribute("list", topics_list );
+    return list_elem;
+}
+
+bool DataLoadROS::xmlLoadState(QDomElement &parent_element)
+{
+    QDomElement list_elem = parent_element.firstChildElement( "selected_topics" );
+    if( !list_elem.isNull()    )
+    {
+        if( list_elem.hasAttribute("list") )
+        {
+            QString topics_list = list_elem.attribute("list");
+            _default_topic_names = topics_list.split(";", QString::SkipEmptyParts);
+            return true;
+        }
+    }
+    return false;
 }
 
 

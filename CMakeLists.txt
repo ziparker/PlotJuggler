@@ -63,17 +63,16 @@ IF (NOT WIN32)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fPIC")
 ENDIF()
 
-IF (CMAKE_VERSION LESS 2.8.9)
-    include_directories(
-        ${Qt5Core_INCLUDE_DIRS}
-        ${Qt5Gui_INCLUDE_DIRS}
-        ${Qt5Widgets_INCLUDE_DIRS}
-        ${Qt5Concurrent_INCLUDE_DIRS}
-        ${Qt5PrintSupport_INCLUDE_DIRS}
-        ${Qt5Xml_INCLUDE_DIRS}
-        ${Qt5Svg_INCLUDE_DIRS}
+
+include_directories(
+    ${Qt5Core_INCLUDE_DIRS}
+    ${Qt5Gui_INCLUDE_DIRS}
+    ${Qt5Widgets_INCLUDE_DIRS}
+    ${Qt5Concurrent_INCLUDE_DIRS}
+    ${Qt5PrintSupport_INCLUDE_DIRS}
+    ${Qt5Xml_INCLUDE_DIRS}
+    ${Qt5Svg_INCLUDE_DIRS}
     )
-ENDIF()
 
 include_directories( ./qwt/src
     ./include
