@@ -116,6 +116,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
             this, SLOT(onActionLoadStreamer(QString)) );
 
     ui->actionDeleteAllData->setEnabled( _test_option );
+    ui->actionReloadPrevious->setEnabled( false );
 
     if( _test_option )
     {
@@ -351,9 +352,11 @@ void MainWindow::createActions()
     connect(ui->actionSaveLayout, &QAction::triggered,         this, &MainWindow::onActionSaveLayout );
     connect(ui->actionLoadLayout, &QAction::triggered,         this, &MainWindow::onActionLoadLayout );
     connect(ui->actionLoadData, &QAction::triggered,           this, &MainWindow::onActionLoadDataFile );
-    connect(ui->actionLoadRecentDatafile, &QAction::triggered, this, &MainWindow::onActionReloadDataFileFromSettings );
+    connect(ui->actionLoadRecentDatafile, &QAction::triggered, this, &MainWindow::onActionReloadRecentDataFile );
     connect(ui->actionLoadRecentLayout, &QAction::triggered,   this, &MainWindow::onActionReloadRecentLayout );
     connect(ui->actionDeleteAllData, &QAction::triggered,      this, &MainWindow::onDeleteLoadedData );
+
+    connect(ui->actionReloadPrevious, &QAction::triggered,     this, &MainWindow::onReloadDatafile );
 
     //---------------------------------------------
 
@@ -859,6 +862,11 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
     onActionLoadDataFileImpl(filename, false );
 }
 
+void MainWindow::onReloadDatafile()
+{
+
+}
+
 void MainWindow::importPlotDataMap(const PlotDataMap& new_data, bool delete_older)
 {
     // overwrite the old user_defined map
@@ -987,10 +995,11 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
 
         _loaded_datafile = filename;
         ui->actionDeleteAllData->setEnabled( true );
+        ui->actionReloadPrevious->setEnabled( true );
 
         PlotDataMap mapped_data;
         try{
-            mapped_data = _last_dataloader->readDataFromFile( filename );
+            mapped_data = _last_dataloader->readDataFromFile( filename, reuse_last_configuration );
         }
         catch(std::exception &ex)
         {
@@ -1012,7 +1021,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
 }
 
 
-void MainWindow::onActionReloadDataFileFromSettings()
+void MainWindow::onActionReloadRecentDataFile()
 {
     onActionLoadDataFile( true );
 }
@@ -1066,6 +1075,7 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
         ui->actionStopStreaming->setEnabled(true);
         ui->actionDeleteAllData->setEnabled( false );
         ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
+        ui->actionReloadPrevious->setEnabled( false );
 
         ui->pushButtonStreaming->setEnabled(true);
         ui->pushButtonStreaming->setChecked(true);
@@ -1229,13 +1239,16 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
 
             QMessageBox::StandardButton reload_previous;
             reload_previous = QMessageBox::question(0, tr("Wait!"),
-                                                    tr("Do you want to reload the previous datafile and its configuration?\n\n[%1]\n").arg(filename),
-                                                    QMessageBox::Yes | QMessageBox::No,
+                                                    tr("Do you want to reload the previous datafile and its configuration?\n\n %1 \n\n"
+                                                       "Yes:       reload both the file and the previous configuration.\n"
+                                                       "YesToAll:  reload the file but change the previous configuration.\n"
+                                                       "No:        use the already loaded data.\n").arg(filename),
+                                                    QMessageBox::YesToAll | QMessageBox::Yes  | QMessageBox::No,
                                                     QMessageBox::Yes );
 
-            if( reload_previous == QMessageBox::Yes )
+            if( reload_previous != QMessageBox::No )
             {
-                onActionLoadDataFileImpl( filename, true );
+                onActionLoadDataFileImpl( filename, reload_previous == QMessageBox::YesToAll );
             }
         }
 

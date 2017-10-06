@@ -99,7 +99,7 @@ int DataLoadCSV::parseHeader(QFile *file,
     return linecount;
 }
 
-PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name)
+PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name, bool use_previous_configuration)
 {
     const int TIME_INDEX_NOT_DEFINED = -2;
 
@@ -175,7 +175,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name)
         }
     }
 
-    if( time_index == TIME_INDEX_NOT_DEFINED)
+    if( time_index == TIME_INDEX_NOT_DEFINED && !use_previous_configuration)
     {
         QStringList field_names;
         field_names.push_back( "INDEX (auto-generated)" );
@@ -193,9 +193,9 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name)
         // vector is supposed to have only one element
         time_index = dialog->getSelectedRowNumber().at(0) -1;
         _default_time_axis = field_names.at( time_index + 1 ) ;
+        settings.setValue("DataLoadCSV/default_time_axis", _default_time_axis);
     }
 
-    settings.setValue("DataLoadCSV/default_time_axis", _default_time_axis);
     //-----------------
 
     while (!inB.atEnd())

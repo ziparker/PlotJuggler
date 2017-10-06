@@ -34,7 +34,7 @@ size_t getAvailableRAM()
     return info.freeram;
 }
 
-PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name)
+PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_previous_configuration)
 {
     if( _bag ) _bag->close();
 
@@ -88,38 +88,33 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name)
 
     DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topics, _default_topic_names );
 
-    std::set<std::string> topic_selected;
-
-    if( dialog->exec() == static_cast<int>(QDialog::Accepted) )
+    if( !use_previous_configuration )
     {
-        _default_topic_names.clear();
+        if( dialog->exec() == static_cast<int>(QDialog::Accepted) )
+        {
+            _default_topic_names = dialog->getSelectedItems();
 
-        const auto& selected_items = dialog->getSelectedItems();
-        for(const auto& item: selected_items)
-        {
-            std::string ss_topic = item.toStdString();
-            topic_selected.insert( ss_topic );
-
-            // change the names in load_configuration
-            _default_topic_names.push_back( item );
+            // load the rules
+            if( dialog->checkBoxUseRenamingRules()->isChecked())
+            {
+                _rules = RuleEditing::getRenamingRules();
+            }
+            else{
+                _rules.clear();
+            }
+            for(const auto& it: _rules) {
+                RosIntrospectionFactory::parser().registerRenamingRules( ROSType(it.first) , it.second );
+            }
         }
-        // load the rules
-        if( dialog->checkBoxUseRenamingRules()->isChecked())
-        {
-            _rules = RuleEditing::getRenamingRules();
-        }
-        else{
-            _rules.clear();
-        }
-        for(const auto& it: _rules)
-        {
-          RosIntrospectionFactory::parser().registerRenamingRules( ROSType(it.first) , it.second );
-        }
+        settings.setValue("DataLoadROS/default_topics", _default_topic_names);
+    }
+    //-----------------------------------
+    std::set<std::string> topic_selected;
+    for(const auto& topic: _default_topic_names)
+    {
+        topic_selected.insert( topic.toStdString() );
     }
 
-    settings.setValue("DataLoadROS/default_topics", _default_topic_names);
-
-    //-----------------------------------
     QProgressDialog progress_dialog;
     progress_dialog.setLabelText("Loading... please wait");
     progress_dialog.setWindowModality( Qt::ApplicationModal );

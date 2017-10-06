@@ -58,9 +58,11 @@ private slots:
 
     void onActionLoadDataFile(bool reload_from_settings = false);
 
+    void onReloadDatafile();
+
     void onActionLoadDataFileImpl(QString filename, bool reuse_last_configuration = false );
 
-    void onActionReloadDataFileFromSettings();
+    void onActionReloadRecentDataFile();
 
     void onActionReloadRecentLayout();
 
