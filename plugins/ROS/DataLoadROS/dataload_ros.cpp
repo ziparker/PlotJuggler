@@ -59,7 +59,6 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
     rosbag::View bag_view ( *_bag, ros::TIME_MIN, ros::TIME_MAX, true );
     std::vector<const rosbag::ConnectionInfo*> connections = bag_view.getConnections();
 
-
     for(unsigned i=0; i<connections.size(); i++)
     {
         const auto&  topic      =  connections[i]->topic;
@@ -130,9 +129,9 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
     QElapsedTimer timer;
     timer.start();
 
-    FlatMessage flat_container;
-    std::vector<uint8_t> buffer;
-    RenamedValues renamed_value;
+    static FlatMessage flat_container;
+    static std::vector<uint8_t> buffer;
+    static RenamedValues renamed_value;
 
     for(rosbag::MessageInstance msg_instance: bag_view_selected )
     {
@@ -188,8 +187,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
             }
 
             PlotDataPtr& plot_data = plot_pair->second;
-            const RosIntrospection::Variant& var_value = it.second;
-            plot_data->pushBack( PlotData::Point(msg_time, var_value.convert<double>() ));
+            plot_data->pushBack( PlotData::Point(msg_time, it.second.convert<double>() ));
         } //end of for renamed_value
 
         //-----------------------------------------
