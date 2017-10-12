@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.0 (2017-10-12)
+------------------
 * added xmlLoadState and xmlSaveState to ALL plugins
 * works with newer ros_type_introspection
 * speed up
