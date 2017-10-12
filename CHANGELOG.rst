@@ -2,6 +2,15 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* added xmlLoadState and xmlSaveState to ALL plugins
+* works with newer ros_type_introspection
+* speed up
+* fix potential confision with #include
+* minor fix in timeSlider
+* Contributors: Davide Faconti
+
 1.2.1 (2017-08-30)
 ------------------
 * better limits for timeSlider
