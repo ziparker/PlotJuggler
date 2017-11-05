@@ -7,6 +7,9 @@ ROS Indigo build (Travis): [![Build Status](https://travis-ci.org/facontidavide/
 
 # PlotJuggler 1.3.0
 
+[![Faircode](https://faircode.io/product/PlotJuggler/badge)](https://faircode.io/product/PlotJuggler?utm_source=badge&utm_medium=badgelarge&utm_campaign=PlotJuggler)
+
+
 QT5 based application to display time series in plots. 
 
 To understand what PlotJuggler can do for you, take a look to the following video [PlotJuggler on Vimeo](https://vimeo.com/214389001) 
