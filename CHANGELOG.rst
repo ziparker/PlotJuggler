@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.0 (2017-11-14)
+------------------
 * added the ability to set max_array_size in the GUI
 * Contributors: Davide Faconti
 
