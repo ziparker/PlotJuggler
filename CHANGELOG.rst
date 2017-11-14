@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.1 (2017-11-14)
+------------------
 * warnings added
 * License updated
 * Fix build failures on Archlinux (#57)
