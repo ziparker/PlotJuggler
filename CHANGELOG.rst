@@ -2,6 +2,14 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* warnings added
+* License updated
+* Fix build failures on Archlinux (#57)
+* Update README.md
+* Contributors: Davide Faconti, Kartik Mohta
+
 1.3.0 (2017-10-12)
 ------------------
 * added xmlLoadState and xmlSaveState to ALL plugins
