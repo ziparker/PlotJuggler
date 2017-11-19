@@ -76,7 +76,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     // used as prefix. We will remove that here.
     //if( topicname_SS.at(0) == '/' ) topicname_SS = SString( topic_name.data() +1,  topic_name.size()-1 );
 
-    _parser->deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, 250);
+    _parser->deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, _max_array_size);
     _parser->applyNameTransform( topic_name, flat_container, &renamed_value );
 
     double msg_time = 0;
@@ -331,6 +331,7 @@ bool DataStreamROS::start()
     }
 
     _use_header_timestamp = dialog.checkBoxUseHeaderStamp()->isChecked();
+    _max_array_size = dialog.maxArraySize();
     //-------------------------
 
     _subscribers.clear();

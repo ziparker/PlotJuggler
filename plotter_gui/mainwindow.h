@@ -82,6 +82,8 @@ private slots:
 
     void on_pushButtonStreaming_toggled(bool streaming);
 
+    void on_ToggleStreaming();
+
     void updateDataAndReplot();
 
     void on_streamingSpinBox_valueChanged(int value);
@@ -125,6 +127,7 @@ private:
     QShortcut _undo_shortcut;
     QShortcut _redo_shortcut;
     QShortcut _minimize_view;
+    QShortcut _toggle_streaming;
 
     bool _minimized;
 

@@ -38,6 +38,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     ui(new Ui::MainWindow),
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
     _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this),
+    _toggle_streaming(QKeySequence(Qt::CTRL + Qt::Key_Space), this),
     _minimize_view(Qt::Key_F10, this),
     _minimized(false),
     _current_streamer(nullptr),
@@ -347,6 +348,7 @@ void MainWindow::createActions()
     connect( &_undo_shortcut, &QShortcut::activated, this, &MainWindow::onUndoInvoked );
     connect( &_redo_shortcut, &QShortcut::activated, this, &MainWindow::onRedoInvoked );
     connect( &_minimize_view, &QShortcut::activated, this, &MainWindow::on_minimizeView);
+    connect( &_toggle_streaming, &QShortcut::activated, this, &MainWindow::on_ToggleStreaming );
     //---------------------------------------------
 
     connect(ui->actionSaveLayout, &QAction::triggered,         this, &MainWindow::onActionSaveLayout );
@@ -1537,6 +1539,11 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     else{
         onUndoableChange();
     }
+}
+
+void MainWindow::on_ToggleStreaming()
+{
+  ui->pushButtonStreaming->setChecked( !ui->pushButtonStreaming->isChecked() );
 }
 
 void MainWindow::updateDataAndReplot()
