@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.1 (2017-11-19)
+------------------
 * fixed some issue with reloading rosbags and addressing issue #54
 * adding improvement #55
 * Contributors: Davide Faconti
