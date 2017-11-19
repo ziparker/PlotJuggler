@@ -56,7 +56,7 @@ private slots:
 
     void onActionLoadLayoutFromFile(QString filename, bool load_data);
 
-    void onActionLoadDataFile(bool reload_from_settings = false);
+    void onActionLoadDataFile();
 
     void onReloadDatafile();
 

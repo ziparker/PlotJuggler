@@ -806,7 +806,7 @@ void MainWindow::onDeleteLoadedData()
 
 }
 
-void MainWindow::onActionLoadDataFile(bool reload_from_settings)
+void MainWindow::onActionLoadDataFile()
 {
     if( _data_loader.empty())
     {
@@ -837,18 +837,10 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
     QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
 
-    QString filename;
-    if( reload_from_settings && settings.contains("MainWindow.recentlyLoadedDatafile") )
-    {
-        filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
-    }
-    else{
-        filename = QFileDialog::getOpenFileName(this, "Open Datafile",
+    QString filename = QFileDialog::getOpenFileName(this, "Open Datafile",
                                                 directory_path,
                                                 file_extension_filter);
-    }
-
-    if (filename.isEmpty()) {
+     if (filename.isEmpty()) {
         return;
     }
 
@@ -864,8 +856,24 @@ void MainWindow::onActionLoadDataFile(bool reload_from_settings)
 
 void MainWindow::onReloadDatafile()
 {
-
+  QSettings settings( "IcarusTechnology", "PlotJuggler");
+  if( settings.contains("MainWindow.recentlyLoadedDatafile") )
+  {
+      QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
+      onActionLoadDataFileImpl(filename, true);
+  }
 }
+
+void MainWindow::onActionReloadRecentDataFile()
+{
+  QSettings settings( "IcarusTechnology", "PlotJuggler");
+  if( settings.contains("MainWindow.recentlyLoadedDatafile") )
+  {
+      QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
+      onActionLoadDataFileImpl(filename, false);
+  }
+}
+
 
 void MainWindow::importPlotDataMap(const PlotDataMap& new_data, bool delete_older)
 {
@@ -1018,12 +1026,6 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
                              .arg(filename) );
     }
     _curvelist_widget->updateFilter();
-}
-
-
-void MainWindow::onActionReloadRecentDataFile()
-{
-    onActionLoadDataFile( true );
 }
 
 void MainWindow::onActionReloadRecentLayout()
