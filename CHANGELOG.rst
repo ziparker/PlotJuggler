@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.2 (2017-11-20)
+------------------
 * bug fix in getIndexFromX that affected the vertical axis range calculation
 * fix issue #61
 * Contributors: Davide Faconti
