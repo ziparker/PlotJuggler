@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.0 (2017-11-28)
+------------------
 * using AsyncSpinner as it ought to be
 * fixing the mutex problem in streaming
 * Contributors: Davide Faconti
