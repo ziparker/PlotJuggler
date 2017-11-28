@@ -349,7 +349,8 @@ bool DataStreamROS::start()
 
     extractInitialSamples();
 
-    _thread = std::thread([this](){ this->updateLoop();} );
+    _spinner = std::make_shared<ros::AsyncSpinner>(1);
+    _spinner->start();
 
     return true;
 }
@@ -363,7 +364,7 @@ void DataStreamROS::shutdown()
 {
     if( _running ){
         _running = false;
-        _thread.join();
+        _spinner->stop();
     }
 
     for(ros::Subscriber& sub: _subscribers)
@@ -415,11 +416,3 @@ bool DataStreamROS::xmlLoadState(QDomElement &parent_element)
     return false;
 }
 
-
-void DataStreamROS::updateLoop()
-{
-    while (ros::ok() && _running)
-    {
-        ros::spinOnce();
-    }
-}
