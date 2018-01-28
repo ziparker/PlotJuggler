@@ -15,16 +15,16 @@ SET( SRC
     ../../include/PlotJuggler/datastreamer_base.h
     )
 
-add_library(DataStreamServer SHARED ${SRC} ${UI_SRC}  )
+add_library(DataStreamWebSocket SHARED ${SRC} ${UI_SRC}  )
 
 
-target_link_libraries(DataStreamServer  ${Qt5Widgets_LIBRARIES} Qt5::WebSockets Qt5::Xml)
+target_link_libraries(DataStreamWebSocket  ${Qt5Widgets_LIBRARIES} Qt5::WebSockets Qt5::Xml)
 
 if(COMPILING_WITH_CATKIN)
-    install(TARGETS DataStreamServer
+    install(TARGETS DataStreamWebSocket
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} )
 else()
-    install(TARGETS DataStreamServer DESTINATION bin  )
+    install(TARGETS DataStreamWebSocket DESTINATION bin  )
 endif()
