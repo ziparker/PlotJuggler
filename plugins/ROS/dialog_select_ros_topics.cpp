@@ -19,7 +19,8 @@ DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString
                                              QStringList default_selected_topics,
                                              QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::dialogSelectRosTopics)
+    ui(new Ui::dialogSelectRosTopics),
+    _default_selected_topics(default_selected_topics)
 {
 
     auto flags = this->windowFlags();
@@ -32,10 +33,10 @@ DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString
     ui->checkBoxUseHeaderStamp->setChecked(  settings.value("DialogSelectRosTopics.useHeaderStamp", true ).toBool());
     restoreGeometry(settings.value("DialogSelectRosTopics.geometry").toByteArray());
 
-    if( default_selected_topics.isEmpty())
+    if( _default_selected_topics.isEmpty())
     {
         QString default_topics = settings.value("DialogSelectRosTopics.selectedItems", "" ).toString();
-        default_selected_topics = default_topics.split(' ', QString::SkipEmptyParts);
+        _default_selected_topics = default_topics.split(' ', QString::SkipEmptyParts);
     }
 
     QStringList labels;
@@ -45,24 +46,10 @@ DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString
     ui->listRosTopics->setHorizontalHeaderLabels(labels);
     ui->listRosTopics->verticalHeader()->setVisible(false);
 
-    updateTopicList(topic_list);
-
-    if( ui->listRosTopics->rowCount() == 1)
-    {
-        ui->listRosTopics->selectRow(0);
-    }
-    else{
-        for(int row=0; row < ui->listRosTopics->rowCount(); row++ )
-        {
-            const QTableWidgetItem *item = ui->listRosTopics->item(row,0);
-            if(default_selected_topics.contains( item->text() ) ){
-                ui->listRosTopics->selectRow(row);
-            }
-        }
-    }
+    updateTopicList(topic_list); 
 }
 
-void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QString> > topic_list)
+void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QString> > topic_list )
 {
     // add if not present
     for (const auto& it: topic_list)
@@ -94,6 +81,36 @@ void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QStri
     ui->listRosTopics->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->listRosTopics->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     ui->listRosTopics->sortByColumn(0, Qt::AscendingOrder);
+    //----------------------------------------------
+
+    if( ui->listRosTopics->rowCount() == 1)
+    {
+        ui->listRosTopics->selectRow(0);
+    }
+    else{
+        QModelIndexList selection = ui->listRosTopics->selectionModel()->selectedRows();
+
+        for(int row=0; row < ui->listRosTopics->rowCount(); row++ )
+        {
+            const QTableWidgetItem *item = ui->listRosTopics->item(row,0);
+
+            if(_default_selected_topics.contains( item->text() ) )
+            {
+                bool selected = false;
+                for (const auto& selected_item: selection)
+                {
+                    if( selected_item.row() == row)
+                    {
+                        selected = true;
+                        break;
+                    }
+                }
+                if( !selected ){
+                    ui->listRosTopics->selectRow(row);
+                }
+            }
+        }
+    }
 
 }
 

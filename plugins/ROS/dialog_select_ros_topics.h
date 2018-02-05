@@ -52,6 +52,7 @@ private:
     void closeEvent(QCloseEvent *event) override;
 
     QStringList _topic_list;
+    QStringList _default_selected_topics;
 
     Ui::dialogSelectRosTopics *ui;
 
