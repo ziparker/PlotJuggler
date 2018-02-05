@@ -187,16 +187,17 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
                 msg_time = msg_instance.getTime().toSec();
             }
         }
+        const std::string prefix = dialog->prefix().toStdString();
 
         for(const auto& it: renamed_value )
         {
-            const std::string& field_name = it.first;
+            const std::string key = prefix + it.first;
 
-            auto plot_pair = plot_map.numeric.find( field_name );
+            auto plot_pair = plot_map.numeric.find( key );
             if( !(plot_pair != plot_map.numeric.end()) )
             {
-                PlotDataPtr temp(new PlotData(field_name.data()));
-                auto res = plot_map.numeric.insert( std::make_pair(field_name, temp ) );
+                PlotDataPtr temp(new PlotData(key.data()));
+                auto res = plot_map.numeric.insert( std::make_pair(key, temp ) );
                 plot_pair = res.first;
             }
 
@@ -207,12 +208,13 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
         //-----------------------------------------
         // adding raw serialized topic for future uses.
         {
-            auto plot_pair = plot_map.user_defined.find( topic_name );
+            const std::string key = prefix + topic_name;
+            auto plot_pair = plot_map.user_defined.find( key );
 
             if( plot_pair == plot_map.user_defined.end() )
             {
-                PlotDataAnyPtr temp(new PlotDataAny(topic_name.c_str()));
-                auto res = plot_map.user_defined.insert( std::make_pair( topic_name, temp ) );
+                PlotDataAnyPtr temp(new PlotDataAny(key.c_str()));
+                auto res = plot_map.user_defined.insert( std::make_pair( key, temp ) );
                 plot_pair = res.first;
             }
             PlotDataAnyPtr& plot_raw = plot_pair->second;

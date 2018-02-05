@@ -141,6 +141,11 @@ const QCheckBox* DialogSelectRosTopics::checkBoxUseRenamingRules()
     return ui->checkBoxEnableRules;
 }
 
+QString DialogSelectRosTopics::prefix()
+{
+    return (ui->checkBoxPrefix->isChecked()) ? ui->linePrefix->text() : QString();
+}
+
 
 void DialogSelectRosTopics::on_buttonBox_accepted()
 {
@@ -220,4 +225,9 @@ nonstd::optional<double> FlatContainedContainHeaderStamp(const RosIntrospection:
         }
     }
     return nonstd::optional<double>();
+}
+
+void DialogSelectRosTopics::on_checkBoxPrefix_toggled(bool checked)
+{
+    ui->linePrefix->setEnabled(checked);
 }

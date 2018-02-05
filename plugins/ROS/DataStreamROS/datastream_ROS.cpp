@@ -99,11 +99,12 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     // adding raw serialized msg for future uses.
     // do this before msg_time normalization
     {
+        const std::string key = _prefix + topic_name;
         auto plot_pair = _plot_data.user_defined.find( md5sum );
         if( plot_pair == _plot_data.user_defined.end() )
         {
-            PlotDataAnyPtr temp(new PlotDataAny(topic_name.c_str()));
-            auto res = _plot_data.user_defined.insert( std::make_pair( topic_name, temp ) );
+            PlotDataAnyPtr temp(new PlotDataAny(key.c_str()));
+            auto res = _plot_data.user_defined.insert( std::make_pair( key, temp ) );
             plot_pair = res.first;
         }
         PlotDataAnyPtr& user_defined_data = plot_pair->second;
@@ -112,13 +113,13 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
 
     for(auto& it: renamed_value )
     {
-        const std::string& field_name ( it.first.data() );
+        const std::string key = ( _prefix + it.first  );
         const double value = it.second.convert<double>();
-        auto plot_it = _plot_data.numeric.find(field_name);
+        auto plot_it = _plot_data.numeric.find(key);
         if( plot_it == _plot_data.numeric.end())
         {
             auto res =   _plot_data.numeric.insert(
-                        std::make_pair( field_name, std::make_shared<PlotData>(field_name.c_str()) ));
+                        std::make_pair( key, std::make_shared<PlotData>(key.c_str()) ));
             plot_it = res.first;
         }
         plot_it->second->pushBackAsynchronously( PlotData::Point(msg_time, value));
@@ -128,12 +129,12 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     {
         int& index = _msg_index[topic_name];
         index++;
-        const std::string index_name = topic_name + ("/_MSG_INDEX_") ;
-        auto index_it = _plot_data.numeric.find(index_name);
+        const std::string key = _prefix + topic_name + ("/_MSG_INDEX_") ;
+        auto index_it = _plot_data.numeric.find(key);
         if( index_it == _plot_data.numeric.end())
         {
             auto res = _plot_data.numeric.insert(
-                        std::make_pair( index_name, std::make_shared<PlotData>(index_name.c_str()) ));
+                        std::make_pair( key, std::make_shared<PlotData>(key.c_str()) ));
             index_it = res.first;
         }
         index_it->second->pushBackAsynchronously( PlotData::Point(msg_time, index) );
@@ -327,6 +328,8 @@ bool DataStreamROS::start()
     if( dialog.checkBoxUseRenamingRules()->isChecked() ){
         _rules = RuleEditing::getRenamingRules();
     }
+
+    _prefix = dialog.prefix().toStdString();
 
     _use_header_timestamp = dialog.checkBoxUseHeaderStamp()->isChecked();
     _max_array_size = dialog.maxArraySize();
