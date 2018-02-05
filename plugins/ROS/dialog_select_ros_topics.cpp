@@ -46,11 +46,19 @@ DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString
     ui->listRosTopics->setHorizontalHeaderLabels(labels);
     ui->listRosTopics->verticalHeader()->setVisible(false);
 
-    updateTopicList(topic_list); 
+    updateTopicList(topic_list);
+
+    if( ui->listRosTopics->rowCount() == 1)
+    {
+        ui->listRosTopics->selectRow(0);
+    }
+    ui->listRosTopics->setFocus();
 }
 
 void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QString> > topic_list )
 {
+    std::set<QString> newly_added;
+
     // add if not present
     for (const auto& it: topic_list)
     {
@@ -75,6 +83,7 @@ void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QStri
             // order IS important, don't change it
             ui->listRosTopics->setItem(new_row, 1, new QTableWidgetItem( type_name ));
             ui->listRosTopics->setItem(new_row, 0, new QTableWidgetItem( topic_name ));
+            newly_added.insert(topic_name);
         }
     }
 
@@ -83,31 +92,26 @@ void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QStri
     ui->listRosTopics->sortByColumn(0, Qt::AscendingOrder);
     //----------------------------------------------
 
-    if( ui->listRosTopics->rowCount() == 1)
+    QModelIndexList selection = ui->listRosTopics->selectionModel()->selectedRows();
+
+    for(int row=0; row < ui->listRosTopics->rowCount(); row++ )
     {
-        ui->listRosTopics->selectRow(0);
-    }
-    else{
-        QModelIndexList selection = ui->listRosTopics->selectionModel()->selectedRows();
+        const QTableWidgetItem *item = ui->listRosTopics->item(row,0);
+        QString topic_name = item->text();
 
-        for(int row=0; row < ui->listRosTopics->rowCount(); row++ )
+        if(newly_added.count(topic_name) &&  _default_selected_topics.contains( topic_name ) )
         {
-            const QTableWidgetItem *item = ui->listRosTopics->item(row,0);
-
-            if(_default_selected_topics.contains( item->text() ) )
+            bool selected = false;
+            for (const auto& selected_item: selection)
             {
-                bool selected = false;
-                for (const auto& selected_item: selection)
+                if( selected_item.row() == row)
                 {
-                    if( selected_item.row() == row)
-                    {
-                        selected = true;
-                        break;
-                    }
+                    selected = true;
+                    break;
                 }
-                if( !selected ){
-                    ui->listRosTopics->selectRow(row);
-                }
+            }
+            if( !selected ){
+                ui->listRosTopics->selectRow(row);
             }
         }
     }
