@@ -50,21 +50,24 @@ Alternatively, just execute the binary __PlotJuggler__.
 
 A mandatory dependency is https://github.com/facontidavide/ros_type_introspection 
 
-__IMPORTANT__: you need version 1.0.1 or later.
+__IMPORTANT__: you need version 1.0.2 or later.
 
 You can easily install it in Indigo, Jade, Kinetic or Lunar using the command:
 
        sudo apt-get install ros-YOUR_ROS_DISTRO-ros-type-introspection
 
-# You can help
+# How you may help
 
 PlotJuggler required many hundreds of man/hours to be developed, with the goal to be the most
 intuitive tool to visualize data and time series.
 
 If you believe that I achieved this goal, consider making a donation here: [Paypal](https://www.paypal.me/facontidavide).
 
-If you have any problem, you found a bug or you need help, feel free to sumbit an issue.
+If you have any problem, you found a bug or you need help, feel free to submit an issue.
 
-If you need a custom plugin of functionality to be implemented, you can hire me as a freelancer. My email is davide.faconti@gmail.com
+If you need a custom plugin or functionality to be implemented don't hesitate to ask; if I believe that the entire 
+community may benefit from it, I will be happy to implement it in my spare time.
+If your requirements are very specific or you want and issue or enhancement to be moved into the "fast track", consider
+hiring me as a freelancer. For further details, my email is davide.faconti@gmail.com
       
 
