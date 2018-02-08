@@ -1695,11 +1695,11 @@ void MainWindow::updatedDisplayTime()
     {
         if( _time_offset.get() > 0 )
         {
-            QTime time = QTime::fromMSecsSinceStartOfDay( std::round(relative_time*1000.0));
+            QTime time = QTime::fromMSecsSinceStartOfDay( Round(relative_time*1000.0));
             ui->displayTime->setText( time.toString("HH:mm::ss.zzz") );
         }
         else{
-            QDateTime datetime = QDateTime::fromMSecsSinceEpoch( std::round(relative_time*1000.0) );
+            QDateTime datetime = QDateTime::fromMSecsSinceEpoch( Round(relative_time*1000.0) );
             ui->displayTime->setText( datetime.toString("d/M/yy HH:mm::ss.zzz") );
         }
     }
