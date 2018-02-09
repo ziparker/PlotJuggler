@@ -118,7 +118,8 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
         _parser->registerRenamingRules( ROSType(it.first) , it.second );
       }
     }
-    int max_array_size = dialog->maxArraySize();
+    const int max_array_size = dialog->maxArraySize();
+    const std::string prefix = dialog->prefix().toStdString();
 
     //-----------------------------------
     std::set<std::string> topic_selected;
@@ -171,23 +172,15 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
         parsed &= _parser->deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, max_array_size );
         _parser->applyNameTransform( topic_name, flat_container, &renamed_value );
 
-        // apply time offsets
-        double msg_time = 0;
+        double msg_time = msg_instance.getTime().toSec();
 
-        if(dialog->checkBoxUseHeaderStamp()->isChecked() == false)
+        if(dialog->checkBoxUseHeaderStamp()->isChecked())
         {
-            msg_time = msg_instance.getTime().toSec();
-        }
-        else{
-            auto offset = FlatContainedContainHeaderStamp(renamed_value);
-            if(offset){
-                msg_time = offset.value();
-            }
-            else{
-                msg_time = msg_instance.getTime().toSec();
+            auto header_stamp = FlatContainedContainHeaderStamp(renamed_value);
+            if(header_stamp){
+                msg_time = header_stamp.value();
             }
         }
-        const std::string prefix = dialog->prefix().toStdString();
 
         for(const auto& it: renamed_value )
         {
@@ -204,23 +197,34 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
             PlotDataPtr& plot_data = plot_pair->second;
             plot_data->pushBack( PlotData::Point(msg_time, it.second.convert<double>() ));
         } //end of for renamed_value
-
-        //-----------------------------------------
-        // adding raw serialized topic for future uses.
-        {
-            const std::string key = prefix + topic_name;
-            auto plot_pair = plot_map.user_defined.find( key );
-
-            if( plot_pair == plot_map.user_defined.end() )
-            {
-                PlotDataAnyPtr temp(new PlotDataAny(key.c_str()));
-                auto res = plot_map.user_defined.insert( std::make_pair( key, temp ) );
-                plot_pair = res.first;
-            }
-            PlotDataAnyPtr& plot_raw = plot_pair->second;
-            plot_raw->pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(msg_instance)) ));
-        }
     }
+
+    for(rosbag::MessageInstance msg_instance: bag_view )
+    {
+        const std::string& topic_name  = msg_instance.getTopic();
+        const std::string key = prefix + topic_name;
+        double msg_time = msg_instance.getTime().toSec();
+
+        if(dialog->checkBoxUseHeaderStamp()->isChecked())
+        {
+            auto header_stamp = FlatContainedContainHeaderStamp(renamed_value);
+            if(header_stamp){
+                msg_time = header_stamp.value();
+            }
+        }
+
+        auto plot_pair = plot_map.user_defined.find( key );
+
+        if( plot_pair == plot_map.user_defined.end() )
+        {
+            PlotDataAnyPtr temp(new PlotDataAny(key.c_str()));
+            auto res = plot_map.user_defined.insert( std::make_pair( key, temp ) );
+            plot_pair = res.first;
+        }
+        PlotDataAnyPtr& plot_raw = plot_pair->second;
+        plot_raw->pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(msg_instance)) ));
+    }
+
     if( !parsed )
     {
       QMessageBox::warning(0, tr("Warning"),
