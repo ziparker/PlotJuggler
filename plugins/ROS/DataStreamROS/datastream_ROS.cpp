@@ -79,20 +79,14 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     _parser->deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, _max_array_size);
     _parser->applyNameTransform( topic_name, flat_container, &renamed_value );
 
-    double msg_time = 0;
+    double msg_time = msg_time = ros::Time::now().toSec();
 
     // detrmine the time offset
-    if(_use_header_timestamp == false)
+    if(_use_header_timestamp)
     {
-        msg_time = ros::Time::now().toSec();
-    }
-    else{
         auto offset = FlatContainedContainHeaderStamp(renamed_value);
         if(offset){
             msg_time = offset.value();
-        }
-        else{
-            msg_time = ros::Time::now().toSec();
         }
     }
 
@@ -100,7 +94,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     // do this before msg_time normalization
     {
         const std::string key = _prefix + topic_name;
-        auto plot_pair = _plot_data.user_defined.find( md5sum );
+        auto plot_pair = _plot_data.user_defined.find( key );
         if( plot_pair == _plot_data.user_defined.end() )
         {
             PlotDataAnyPtr temp(new PlotDataAny(key.c_str()));
