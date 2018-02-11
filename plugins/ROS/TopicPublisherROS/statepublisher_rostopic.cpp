@@ -3,12 +3,19 @@
 #include "../shape_shifter_factory.hpp"
 #include "../qnodedialog.h"
 #include "ros_type_introspection/ros_introspection.hpp"
+#include <QDialog>
+#include <QFormLayout>
+#include <QCheckBox>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QDialogButtonBox>
 #include <rosbag/bag.h>
 #include <std_msgs/Header.h>
 
 TopicPublisherROS::TopicPublisherROS():
   enabled_(false ),
-  _node(nullptr)
+  _node(nullptr),
+  _filter_topics(false)
 {
 }
 
@@ -20,10 +27,14 @@ TopicPublisherROS::~TopicPublisherROS()
 void TopicPublisherROS::setParentMenu(QMenu *menu)
 {
   _menu = menu;
-  _current_time = new QAction(QString("use current time in std_msg/Header "), _menu);
+  _current_time = new QAction(QString("Overwrite std_msg/Header/stamp"), _menu);
   _current_time->setCheckable(true);
   _current_time->setChecked(true);
   _menu->addAction( _current_time );
+
+  _select_topics_to_pulish = new QAction(QString("Select topics to be published"), _menu);
+  _menu->addAction( _select_topics_to_pulish );
+  connect(_select_topics_to_pulish, SIGNAL(triggered(bool)), this, SLOT(ChangeFilter(bool)));
 }
 
 void TopicPublisherROS::setEnabled(bool to_enable)
@@ -33,6 +44,60 @@ void TopicPublisherROS::setEnabled(bool to_enable)
     _node = RosManager::getNode();
   }
   enabled_ = (to_enable && _node);
+  if( !_filter_topics )
+  {
+     ChangeFilter();
+  }
+}
+
+void TopicPublisherROS::ChangeFilter(bool)
+{
+    const std::set<std::string> all_topics = RosIntrospectionFactory::get().getTopicList();
+    if( all_topics.empty() ) return;
+
+    QDialog* dialog = new QDialog();
+    QVBoxLayout* vertical_layout = new QVBoxLayout(dialog);
+    QFormLayout* grid_layout = new QFormLayout(dialog);
+
+    std::map<std::string, QCheckBox*> checkbox;
+
+    for (const auto topic: all_topics)
+    {
+        auto cb = new QCheckBox(dialog);
+        if( _filter_topics == false )
+        {
+            cb->setChecked( true );
+        }
+        else{
+            cb->setChecked( _topics_to_publish.count(topic) != 0 );
+        }
+        grid_layout->addRow( new QLabel( QString::fromStdString(topic)), cb);
+        checkbox.insert( std::make_pair(topic, cb));
+    }
+
+    vertical_layout->addLayout(grid_layout);
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+
+    vertical_layout->addWidget( buttons );
+
+    connect(buttons, SIGNAL(accepted()), dialog, SLOT(accept()));
+    connect(buttons, SIGNAL(rejected()), dialog, SLOT(reject()));
+
+    dialog->setLayout(vertical_layout);
+    auto result = dialog->exec();
+
+    if(result == QDialog::Accepted)
+    {
+        _topics_to_publish.clear();
+        for(const auto& it: checkbox )
+        {
+            if( it.second->isChecked() )
+            {
+                _topics_to_publish.insert(it.first);
+            }
+        }
+        _filter_topics = true;
+    }
 }
 
 
@@ -44,13 +109,16 @@ void TopicPublisherROS::updateState(PlotDataMap *datamap, double current_time)
 
   for(const auto& data_it:  datamap->user_defined )
   {
-    const std::string&    topic_name = data_it.first;
+    const std::string& topic_name = data_it.first;
 
+    if( _filter_topics && _topics_to_publish.count(topic_name) == 0)
+    {
+        continue;// Not selected
+    }
     const RosIntrospection::ShapeShifter* registered_shapeshifted_msg = RosIntrospectionFactory::get().getShapeShifter( topic_name );
     if( ! registered_shapeshifted_msg )
     {
-      // Not registered, just skip
-      continue;
+      continue;// Not registered, just skip
     }
 
     RosIntrospection::ShapeShifter shapeshifted_msg = *registered_shapeshifted_msg;
