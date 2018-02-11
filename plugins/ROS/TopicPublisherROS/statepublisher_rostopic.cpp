@@ -56,6 +56,8 @@ void TopicPublisherROS::ChangeFilter(bool)
     if( all_topics.empty() ) return;
 
     QDialog* dialog = new QDialog();
+    dialog->setWindowTitle("Select topics to be published");
+    dialog->setMinimumWidth(300);
     QVBoxLayout* vertical_layout = new QVBoxLayout(dialog);
     QFormLayout* grid_layout = new QFormLayout(dialog);
 
