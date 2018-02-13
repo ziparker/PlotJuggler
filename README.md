@@ -65,9 +65,5 @@ If you believe that I achieved this goal, consider making a donation here: [Payp
 
 If you have any problem, you found a bug or you need help, feel free to submit an issue.
 
-If you need a custom plugin or functionality to be implemented don't hesitate to ask; if I believe that the entire 
-community may benefit from it, I will be happy to implement it in my spare time.
-If your requirements are very specific or you want and issue or enhancement to be moved into the "fast track", consider
-hiring me as a freelancer. For further details, my email is davide.faconti@gmail.com
       
 
