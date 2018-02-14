@@ -119,6 +119,19 @@ void TopicPublisherROS::ChangeFilter(bool)
             }
         }
         _filter_topics = true;
+
+        //remove already created publisher if not needed anymore
+        for (auto it= _publishers.begin(); it != _publishers.end(); /* no increment */)
+        {
+            const std::string& topic_name = it->first;
+            if( _topics_to_publish.count(topic_name) == 0)
+            {
+                it = _publishers.erase(it);
+            }
+            else{
+                it++;
+            }
+        }
     }
 }
 
@@ -196,10 +209,10 @@ void TopicPublisherROS::updateState(PlotDataMap *datamap, double current_time)
     ros::serialization::IStream stream( raw_buffer.data(), raw_buffer.size() );
     shapeshifted_msg.read( stream );
 
-    auto publisher_it = publishers_.find( topic_name );
-    if( publisher_it == publishers_.end())
+    auto publisher_it = _publishers.find( topic_name );
+    if( publisher_it == _publishers.end())
     {
-      auto res = publishers_.insert( std::make_pair(topic_name,
+      auto res = _publishers.insert( std::make_pair(topic_name,
                                                     shapeshifted_msg.advertise( *_node, topic_name, 10, true) ) );
       publisher_it = res.first;
     }
