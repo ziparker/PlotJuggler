@@ -128,6 +128,8 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
         topic_selected.insert( topic.toStdString() );
     }
 
+    const bool use_header_stamp = dialog->checkBoxUseHeaderStamp()->isChecked();
+
     QProgressDialog progress_dialog;
     progress_dialog.setLabelText("Loading... please wait");
     progress_dialog.setWindowModality( Qt::ApplicationModal );
@@ -148,6 +150,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
     RenamedValues renamed_value;
     
     bool parsed = true;
+    bool monotonic_time = true;
 
     for(rosbag::MessageInstance msg_instance: bag_view_selected )
     {
@@ -174,7 +177,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
 
         double msg_time = msg_instance.getTime().toSec();
 
-        if(dialog->checkBoxUseHeaderStamp()->isChecked())
+        if(use_header_stamp)
         {
             auto header_stamp = FlatContainedContainHeaderStamp(renamed_value);
             if(header_stamp){
@@ -195,6 +198,12 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
             }
 
             PlotDataPtr& plot_data = plot_pair->second;
+            size_t data_size = plot_data->size();
+            if( monotonic_time  && data_size>0 )
+            {
+              const double last_time = plot_data->at(data_size-1).x;
+              monotonic_time = (msg_time > last_time);
+            }
             plot_data->pushBack( PlotData::Point(msg_time, it.second.convert<double>() ));
         } //end of for renamed_value
     }
@@ -205,7 +214,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
         const std::string key = prefix + topic_name;
         double msg_time = msg_instance.getTime().toSec();
 
-        if(dialog->checkBoxUseHeaderStamp()->isChecked())
+        if(use_header_stamp)
         {
             auto header_stamp = FlatContainedContainHeaderStamp(renamed_value);
             if(header_stamp){
@@ -230,6 +239,20 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
       QMessageBox::warning(0, tr("Warning"),
                            tr("Some fields were not parsed, because they contain\n"
                               "one or more vectors having more than %1 elements.").arg(max_array_size) );
+    }
+
+    if( !monotonic_time )
+    {
+      QString message = "The time of one or more fields in not strictly monotonic.\n"
+                         "Some plots will not be displayed correctly\n";
+
+      if( use_header_stamp)
+      {
+        message += "NOTE: you might want to disable this option:\n\n"
+                   "[If present, use the timestamp in the field header.stamp]";
+      }
+
+      QMessageBox::warning(0, tr("Warning"), message );
     }
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
