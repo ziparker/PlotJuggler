@@ -129,6 +129,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
     }
 
     const bool use_header_stamp = dialog->checkBoxUseHeaderStamp()->isChecked();
+    bool warning_use_header_stamp_ignored = false;
 
     QProgressDialog progress_dialog;
     progress_dialog.setLabelText("Loading... please wait");
@@ -223,6 +224,9 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
                 if( time > 0 ) {
                   msg_time = time;
                 }
+                else{
+                  warning_use_header_stamp_ignored = true;
+                }
             }
         }
 
@@ -256,6 +260,14 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
                    "[If present, use the timestamp in the field header.stamp]";
       }
 
+      QMessageBox::warning(0, tr("Warning"), message );
+    }
+
+    if( warning_use_header_stamp_ignored )
+    {
+      QString message = "You checked the option:\n\n"
+          "[If present, use the timestamp in the field header.stamp]\n\n"
+          "But the [header.stamp] of one or more messages was NOT initialized correctly.\n";
       QMessageBox::warning(0, tr("Warning"), message );
     }
 
