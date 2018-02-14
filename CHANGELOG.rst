@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.1 (2018-02-14)
+------------------
 * Ignore not initialized timestamps (#75)
 * added a warning as suggested in issue #75
 * Housekeeping of publishers in StatePublisher
