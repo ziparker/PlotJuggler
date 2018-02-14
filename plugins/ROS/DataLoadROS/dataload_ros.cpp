@@ -216,9 +216,13 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
 
         if(use_header_stamp)
         {
-            auto header_stamp = FlatContainedContainHeaderStamp(renamed_value);
-            if(header_stamp){
-                msg_time = header_stamp.value();
+            const auto header_stamp = FlatContainedContainHeaderStamp(renamed_value);
+            if(header_stamp)
+            {
+                const double time = header_stamp.value();
+                if( time > 0 ) {
+                  msg_time = time;
+                }
             }
         }
 

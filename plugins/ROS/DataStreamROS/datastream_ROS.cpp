@@ -81,12 +81,15 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
 
     double msg_time = msg_time = ros::Time::now().toSec();
 
-    // detrmine the time offset
     if(_use_header_timestamp)
     {
-        auto offset = FlatContainedContainHeaderStamp(renamed_value);
-        if(offset){
-            msg_time = offset.value();
+        const auto header_stamp = FlatContainedContainHeaderStamp(renamed_value);
+        if(header_stamp){
+            const double time = header_stamp.value();
+            if( time > 0 )
+            {
+              msg_time = time;
+            }
         }
     }
 
