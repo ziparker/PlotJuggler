@@ -248,7 +248,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
 
       if( use_header_stamp)
       {
-        message += "NOTE: you might want to disable this option:\n\n"
+        message += "\nNOTE: you should probably DISABLE this checkbox:\n\n"
                    "[If present, use the timestamp in the field header.stamp]";
       }
 
