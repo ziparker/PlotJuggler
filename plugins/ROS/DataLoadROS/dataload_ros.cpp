@@ -247,7 +247,7 @@ PlotDataMap DataLoadROS::readDataFromFile(const QString &file_name, bool use_pre
 
     if( !monotonic_time )
     {
-      QString message = "The time of one or more fields in not strictly monotonic.\n"
+      QString message = "The time of one or more fields is not strictly monotonic.\n"
                          "Some plots will not be displayed correctly\n";
 
       if( use_header_stamp)
