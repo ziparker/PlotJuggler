@@ -7,10 +7,14 @@
 #include <QFormLayout>
 #include <QCheckBox>
 #include <QLabel>
+#include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QDialogButtonBox>
+#include <QScrollArea>
+#include <QPushButton>
 #include <rosbag/bag.h>
 #include <std_msgs/Header.h>
+
 
 TopicPublisherROS::TopicPublisherROS():
   enabled_(false ),
@@ -57,11 +61,15 @@ void TopicPublisherROS::ChangeFilter(bool)
 
     QDialog* dialog = new QDialog();
     dialog->setWindowTitle("Select topics to be published");
-    dialog->setMinimumWidth(300);
+    dialog->setMinimumWidth(350);
     QVBoxLayout* vertical_layout = new QVBoxLayout(dialog);
     QFormLayout* grid_layout = new QFormLayout(dialog);
 
     std::map<std::string, QCheckBox*> checkbox;
+
+    QFrame* frame = new QFrame;
+    QPushButton* select_button = new QPushButton("Select all");
+    QPushButton* deselect_button = new QPushButton("Deselect all");
 
     for (const auto topic: all_topics)
     {
@@ -75,11 +83,23 @@ void TopicPublisherROS::ChangeFilter(bool)
         }
         grid_layout->addRow( new QLabel( QString::fromStdString(topic)), cb);
         checkbox.insert( std::make_pair(topic, cb));
+        connect( select_button,   &QPushButton::pressed, [cb](){ cb->setChecked(true);} );
+        connect( deselect_button, &QPushButton::pressed, [cb](){ cb->setChecked(false);} );
     }
 
-    vertical_layout->addLayout(grid_layout);
+    frame->setLayout(grid_layout);
+
+    QScrollArea* scrollArea = new QScrollArea;
+    scrollArea->setWidget(frame);
+
     QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
+    QHBoxLayout* select_buttons_layout = new QHBoxLayout;
+    select_buttons_layout->addWidget( select_button );
+    select_buttons_layout->addWidget( deselect_button );
+
+    vertical_layout->addWidget(scrollArea);
+    vertical_layout->addLayout(select_buttons_layout);
     vertical_layout->addWidget( buttons );
 
     connect(buttons, SIGNAL(accepted()), dialog, SLOT(accept()));
