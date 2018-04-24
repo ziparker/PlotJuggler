@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.2 (2018-04-24)
+------------------
 * bug fix #78
 * Fix typo (#76)
 * Fix QmessageBox
