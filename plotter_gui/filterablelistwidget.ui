@@ -330,10 +330,13 @@ border: 1px solid rgb(150, 150, 150);</string>
         <bool>false</bool>
        </property>
        <property name="dragEnabled">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="dragDropOverwriteMode">
         <bool>false</bool>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::NoDragDrop</enum>
        </property>
        <property name="selectionMode">
         <enum>QAbstractItemView::ExtendedSelection</enum>
