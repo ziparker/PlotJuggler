@@ -83,7 +83,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, NULL, _mapped_plot_data, this);
 
-    ui->centralLayout->insertWidget(0, _main_tabbed_widget);
+    ui->plottingLayout->insertWidget(0, _main_tabbed_widget,1);
     ui->leftLayout->addWidget( _curvelist_widget );
 
     ui->splitter->setCollapsible(0,true);
