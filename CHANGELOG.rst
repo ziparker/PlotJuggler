@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.0 (2018-05-01)
+------------------
 * fixed the most annoying bug ever (erroneus DragLeave). issue #80
 * fine tuning the widget spacing
 * added feature #83
