@@ -346,6 +346,27 @@ void MainWindow::createActions()
     connect( &_redo_shortcut, &QShortcut::activated, this, &MainWindow::onRedoInvoked );
     connect( &_minimize_view, &QShortcut::activated, this, &MainWindow::on_minimizeView);
     connect( &_toggle_streaming, &QShortcut::activated, this, &MainWindow::on_ToggleStreaming );
+
+    QShortcut* open_menu_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_F), this);
+    connect( open_menu_shortcut, &QShortcut::activated, [this](){
+        ui->menuFile->exec( ui->menuBar->mapToGlobal(QPoint(0,25)));
+    } );
+
+    QShortcut* open_streaming_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_S), this);
+    connect( open_streaming_shortcut, &QShortcut::activated, [this](){
+        ui->menuStreaming->exec( ui->menuBar->mapToGlobal(QPoint(50,25)));
+    } );
+
+    QShortcut* open_publish_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_P), this);
+    connect( open_publish_shortcut, &QShortcut::activated, [this](){
+        ui->menuPublishers->exec( ui->menuBar->mapToGlobal(QPoint(140,25)));
+    } );
+
+    QShortcut* open_help_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_H), this);
+    connect( open_help_shortcut, &QShortcut::activated, [this](){
+        ui->menuHelp->exec( ui->menuBar->mapToGlobal(QPoint(230,25)));
+    } );
+
     //---------------------------------------------
 
     connect(ui->actionSaveLayout, &QAction::triggered,         this, &MainWindow::onActionSaveLayout );
@@ -1796,4 +1817,3 @@ void MainWindow::closeEvent(QCloseEvent *event)
     for(auto& it : _state_publisher ) { delete it.second; }
     for(auto& it : _data_streamer ) { delete it.second; }
 }
-
