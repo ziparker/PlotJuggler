@@ -1535,6 +1535,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
         _time_offset.set(min_time);
     }
     else{
+        updateDataAndReplot();
         onUndoableChange();
     }
 }
