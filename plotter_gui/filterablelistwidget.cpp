@@ -250,7 +250,7 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
         }
 
         drag->setMimeData(mimeData);
-        drag->exec(Qt::CopyAction | Qt::MoveAction);
+        drag->start(Qt::CopyAction | Qt::MoveAction);
       }
       return true;
     }

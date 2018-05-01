@@ -240,6 +240,16 @@ void QwtPlot::setCanvas( QWidget *canvas )
 */
 bool QwtPlot::event( QEvent *event )
 {
+    if( event->type() == QEvent::DragLeave )
+    {
+        QPoint local_pos =  canvas()->mapFromGlobal(QCursor::pos()) ;
+        if( canvas()->rect().contains( local_pos ) )
+        {
+            qDebug() << event->type();
+            event->ignore();
+            return false;
+        }
+    }
     bool ok = QFrame::event( event );
     switch ( event->type() )
     {
