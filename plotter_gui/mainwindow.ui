@@ -439,6 +439,9 @@ background: white;
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
+    <property name="toolTip">
+     <string>File Menu (ALT+F)</string>
+    </property>
     <property name="title">
      <string>File</string>
     </property>
@@ -454,6 +457,9 @@ background: white;
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuStreaming">
+    <property name="toolTip">
+     <string>Streaming Plugins (ALT+S)</string>
+    </property>
     <property name="title">
      <string>Streaming</string>
     </property>
@@ -465,11 +471,17 @@ background: white;
     <property name="enabled">
      <bool>false</bool>
     </property>
+    <property name="toolTip">
+     <string>Publisher plugins (ALT+P)</string>
+    </property>
     <property name="title">
      <string>Publishers</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuHelp">
+    <property name="toolTip">
+     <string>Help (ALT+H)</string>
+    </property>
     <property name="title">
      <string>Help</string>
     </property>
@@ -483,6 +495,9 @@ background: white;
   </widget>
   <action name="actionLoadData">
    <property name="text">
+    <string>Load Data</string>
+   </property>
+   <property name="toolTip">
     <string>Load Data</string>
    </property>
   </action>
