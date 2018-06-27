@@ -207,6 +207,7 @@ void DataStreamROS::timerCallback()
 
             _running = true;
             _enabled = true;
+            _spinner = std::make_shared<ros::AsyncSpinner>(1);
             _spinner->start();
             _periodic_timer->start();
         }
@@ -311,6 +312,7 @@ bool DataStreamROS::start()
         return false;
     }
 
+
     _plot_data.numeric.clear();
     _plot_data.user_defined.clear();
     _initial_time = std::numeric_limits<double>::max();
@@ -409,7 +411,10 @@ bool DataStreamROS::isStreamingRunning() const { return _running; }
 void DataStreamROS::shutdown()
 {
     _periodic_timer->stop();
-    _spinner->stop();
+    if(_spinner)
+    {
+        _spinner->stop();
+    }
     for(auto& it: _subscribers)
     {
         it.second.shutdown();
@@ -418,6 +423,7 @@ void DataStreamROS::shutdown()
     _running = false;
     _enabled = false;
     _node.reset();
+    _spinner.reset();
 }
 
 DataStreamROS::~DataStreamROS()
