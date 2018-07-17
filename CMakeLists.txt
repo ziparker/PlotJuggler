@@ -21,6 +21,10 @@ SET(CMAKE_AUTOUIC ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 
+if (NOT WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread")
+endif()
+
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets PrintSupport Concurrent Xml)
 find_package(Qt5 QUIET COMPONENTS Svg)
 find_package(Qt5 QUIET COMPONENTS WebSockets)
@@ -96,6 +100,7 @@ include_directories( ./qwt/src
     ./include
     ./color_widgets/include )
 
+set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined" )
 
 if(COMPILING_WITH_CATKIN)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
