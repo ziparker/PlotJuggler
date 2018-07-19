@@ -36,15 +36,10 @@ DataStreamROS::DataStreamROS():
              this, &DataStreamROS::timerCallback);
 }
 
-PlotDataMap& DataStreamROS::getDataMap()
-{
-    return _plot_data;
-}
-
 void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg,
                                   const std::string &topic_name)
 {
-    if( !_running ||  !_enabled){
+    if( !_running || !_enabled){
         return;
     }
 
@@ -63,7 +58,6 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         _parser->registerRenamingRules( it.first, it.second );
       }
     }
-
 
     //------------------------------------
 
@@ -98,15 +92,17 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         }
     }
 
+    std::lock_guard<std::mutex> lock( mutex() );
+
     // adding raw serialized msg for future uses.
     // do this before msg_time normalization
     {
         const std::string key = _prefix + topic_name;
-        auto plot_pair = _plot_data.user_defined.find( key );
-        if( plot_pair == _plot_data.user_defined.end() )
+        auto plot_pair = dataMap().user_defined.find( key );
+        if( plot_pair == dataMap().user_defined.end() )
         {
             PlotDataAnyPtr temp(new PlotDataAny(key.c_str()));
-            auto res = _plot_data.user_defined.insert( std::make_pair( key, temp ) );
+            auto res = dataMap().user_defined.insert( std::make_pair( key, temp ) );
             plot_pair = res.first;
         }
         PlotDataAnyPtr& user_defined_data = plot_pair->second;
@@ -117,14 +113,14 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     {
         const std::string key = ( _prefix + it.first  );
         const double value = it.second.convert<double>();
-        auto plot_it = _plot_data.numeric.find(key);
-        if( plot_it == _plot_data.numeric.end())
+        auto plot_it = dataMap().numeric.find(key);
+        if( plot_it == dataMap().numeric.end())
         {
-            auto res =   _plot_data.numeric.insert(
+            auto res =   dataMap().numeric.insert(
                         std::make_pair( key, std::make_shared<PlotData>(key.c_str()) ));
             plot_it = res.first;
         }
-        plot_it->second->pushBackAsynchronously( PlotData::Point(msg_time, value));
+        plot_it->second->pushBack( PlotData::Point(msg_time, value));
     }
 
     //------------------------------
@@ -132,14 +128,14 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         int& index = _msg_index[topic_name];
         index++;
         const std::string key = _prefix + topic_name + ("/_MSG_INDEX_") ;
-        auto index_it = _plot_data.numeric.find(key);
-        if( index_it == _plot_data.numeric.end())
+        auto index_it = dataMap().numeric.find(key);
+        if( index_it == dataMap().numeric.end())
         {
-            auto res = _plot_data.numeric.insert(
+            auto res = dataMap().numeric.insert(
                         std::make_pair( key, std::make_shared<PlotData>(key.c_str()) ));
             index_it = res.first;
         }
-        index_it->second->pushBackAsynchronously( PlotData::Point(msg_time, index) );
+        index_it->second->pushBack( PlotData::Point(msg_time, index) );
     }
 }
 
@@ -221,7 +217,8 @@ void DataStreamROS::timerCallback()
 
 void DataStreamROS::saveIntoRosbag()
 {
-    if( _plot_data.user_defined.empty()){
+    std::lock_guard<std::mutex> lock( mutex() );
+    if( dataMap().user_defined.empty()){
         QMessageBox::warning(0, tr("Warning"), tr("Your buffer is empty. Nothing to save.\n") );
         return;
     }
@@ -242,7 +239,7 @@ void DataStreamROS::saveIntoRosbag()
     {
         rosbag::Bag rosbag(fileName.toStdString(), rosbag::bagmode::Write );
 
-        for (auto it: _plot_data.user_defined )
+        for (auto it: dataMap().user_defined )
         {
             const std::string& topicname = it.first;
             const PlotDataAnyPtr& plotdata = it.second;
@@ -312,9 +309,11 @@ bool DataStreamROS::start()
         return false;
     }
 
-
-    _plot_data.numeric.clear();
-    _plot_data.user_defined.clear();
+    {
+        std::lock_guard<std::mutex> lock( mutex() );
+        dataMap().numeric.clear();
+        dataMap().user_defined.clear();
+    }
     _initial_time = std::numeric_limits<double>::max();
 
     using namespace RosIntrospection;

@@ -43,7 +43,7 @@ DataStreamSample::DataStreamSample():
         const std::string name_str = name.toStdString();
         PlotDataPtr plot( new PlotData(name_str.c_str()) );
 
-        _plot_data.numeric.insert( std::make_pair( name_str, plot) );
+        dataMap().numeric.insert( std::make_pair( name_str, plot) );
         _parameters.insert( std::make_pair( name_str, param) );
     }
 }
@@ -88,7 +88,7 @@ void DataStreamSample::pushSingleCycle()
     const double offset = duration_cast< duration<double>>( initial_time.time_since_epoch() ).count() ;
 
     auto now =  high_resolution_clock::now();
-    for (auto& it: _plot_data.numeric )
+    for (auto& it: dataMap().numeric )
     {
         auto par = _parameters[it.first];
 
@@ -97,7 +97,7 @@ void DataStreamSample::pushSingleCycle()
         double y =  par.A*sin(par.B*t + par.C) + par.D*t*0.05;
 
         // IMPORTANT: don't use pushBack(), it may cause a segfault
-        plot->pushBackAsynchronously( PlotData::Point( t + offset, y ) );
+        plot->pushBack( PlotData::Point( t + offset, y ) );
     }
 }
 

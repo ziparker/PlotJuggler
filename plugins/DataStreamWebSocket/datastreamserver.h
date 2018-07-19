@@ -31,8 +31,6 @@ public:
 
 	virtual void shutdown() override;
 
-    virtual PlotDataMap& getDataMap() override { return _plot_data; }
-
     virtual void enableStreaming(bool enable) override { _enabled = enable; }
 
     virtual bool isStreamingRunning() const override { return _running; }
@@ -48,7 +46,6 @@ private:
 	QList<QWebSocket *> _clients;
 	QWebSocketServer _server;    
 
-    PlotDataMap _plot_data;
     bool _enabled;
     bool _running;
 

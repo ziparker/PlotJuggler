@@ -16,8 +16,6 @@ public:
 
     DataStreamSample();
 
-    virtual PlotDataMap& getDataMap() override { return _plot_data; }
-
     virtual bool start() override;
 
     virtual void shutdown() override;
@@ -44,7 +42,6 @@ private:
 
     void loop();
 
-    PlotDataMap _plot_data;
     bool _enabled;
 
     std::thread _thread;
