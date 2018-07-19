@@ -83,6 +83,8 @@ bool DataStreamSample::xmlLoadState(QDomElement &parent_element)
 
 void DataStreamSample::pushSingleCycle()
 {
+    std::lock_guard<std::mutex> lock( mutex() );
+
     using namespace std::chrono;
     static std::chrono::high_resolution_clock::time_point initial_time = high_resolution_clock::now();
     const double offset = duration_cast< duration<double>>( initial_time.time_since_epoch() ).count() ;
@@ -96,7 +98,6 @@ void DataStreamSample::pushSingleCycle()
         const double t = duration_cast< duration<double>>( now - initial_time ).count() ;
         double y =  par.A*sin(par.B*t + par.C) + par.D*t*0.05;
 
-        // IMPORTANT: don't use pushBack(), it may cause a segfault
         plot->pushBack( PlotData::Point( t + offset, y ) );
     }
 }

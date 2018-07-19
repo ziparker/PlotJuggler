@@ -80,6 +80,8 @@ void DataStreamServer::onNewConnection()
 
 void DataStreamServer::processMessage(QString message)
 {
+    std::lock_guard<std::mutex> lock( mutex() );
+
 	//qDebug() << "DataStreamServer: processMessage: "<< message;
 	QStringList lst = message.split(':');
 	if (lst.size() == 3) {
