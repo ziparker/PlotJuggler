@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.7.0 (2018-07-19)
+------------------
 * fixing issue #93 (thread safety in XYPlot and streaming)
 * fix issue #92
 * bug fix
