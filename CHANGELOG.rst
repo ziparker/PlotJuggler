@@ -2,6 +2,12 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* catch exceptions
+* fix resize of PlotData size. Reported in issue #94
+* Contributors: Davide Faconti
+
 1.7.0 (2018-07-19)
 ------------------
 * fixing issue #93 (thread safety in XYPlot and streaming)
