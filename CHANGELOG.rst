@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.7.1 (2018-07-22)
+------------------
 * catch exceptions
 * fix resize of PlotData size. Reported in issue #94
 * Contributors: Davide Faconti
