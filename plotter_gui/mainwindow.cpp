@@ -1677,6 +1677,9 @@ void MainWindow::updateDataAndReplot()
 
 void MainWindow::on_streamingSpinBox_valueChanged(int value)
 {
+    if( _current_streamer ) {
+        _current_streamer->mutex().lock();
+    }
     for (auto it : _mapped_plot_data.numeric )
     {
         PlotDataPtr plot = it.second;
@@ -1687,6 +1690,10 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
     {
         PlotDataAnyPtr plot = it.second;
         plot->setMaximumRangeX( value );
+    }
+
+    if( _current_streamer ) {
+        _current_streamer->mutex().unlock();
     }
 }
 
