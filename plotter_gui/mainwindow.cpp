@@ -790,8 +790,8 @@ void MainWindow::onActionSaveLayout()
     if( !_loaded_datafile.isEmpty() || _current_streamer )
     {
         auto reply = QMessageBox::question(0, tr("Hey!"),
-                                      tr("Do you want to remember the source of your data,\n"
-                                         "i.e. the datafile of the the streaming plugin used ?"),
+                                      tr("Do you want the layout to remember the source of your data,\n"
+                                         "i.e. the Datafile used or the Streaming Plugin loaded ?"),
                                       QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
         if( reply == QMessageBox::Yes )
         {
