@@ -574,7 +574,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         }
     }
 
-    bool warning_message_shown = false;
+    static bool warning_message_shown = false;
 
     for (  curve = plot_widget.firstChildElement( "curve" )  ;
            !curve.isNull();
@@ -595,7 +595,8 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         else if( ! warning_message_shown )
         {
             QMessageBox::warning(this, "Warning",
-                                 tr("Can't find the curve with name %1.").arg(curve_name) );
+                                 tr("Can't find one or more curves.\n"
+                                    "This message will be shown only once.").arg(curve_name) );
             warning_message_shown = true;
         }
     }

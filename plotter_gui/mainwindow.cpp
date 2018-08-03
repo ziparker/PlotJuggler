@@ -137,7 +137,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
         onActionLoadLayoutFromFile( commandline_parser.value("layout"), file_loaded);
     }
 
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
     restoreGeometry(settings.value("MainWindow.geometry").toByteArray());
 
     bool activate_grid = settings.value("MainWindow.activateGrid", false).toBool();
@@ -382,7 +382,7 @@ void MainWindow::createActions()
 
     //---------------------------------------------
 
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
     if( settings.contains("MainWindow.recentlyLoadedDatafile") )
     {
         QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
@@ -813,7 +813,7 @@ void MainWindow::onActionSaveLayout()
     }
     //------------------------------------
 
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
 
     QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
                                              QDir::currentPath() ).toString();
@@ -901,7 +901,7 @@ void MainWindow::onActionLoadDataFile()
         return;
     }
 
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
 
     QString file_extension_filter;
 
@@ -942,7 +942,7 @@ void MainWindow::onActionLoadDataFile()
 
 void MainWindow::onReloadDatafile()
 {
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
     if( settings.contains("MainWindow.recentlyLoadedDatafile") )
     {
         QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
@@ -952,7 +952,7 @@ void MainWindow::onReloadDatafile()
 
 void MainWindow::onActionReloadRecentDataFile()
 {
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
     if( settings.contains("MainWindow.recentlyLoadedDatafile") )
     {
         QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
@@ -1188,7 +1188,7 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
 
 void MainWindow::onActionLoadLayout(bool reload_previous)
 {
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
 
     QString directory_path = QDir::currentPath();
 
@@ -1284,7 +1284,7 @@ void MainWindow::savePluginState(QDomDocument& doc)
 
 void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
 {
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
 
     QString directory_path = QFileInfo(filename).absolutePath();
     settings.setValue("MainWindow.lastLayoutDirectory",  directory_path);
@@ -1863,7 +1863,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         _current_streamer->shutdown();
         _current_streamer = nullptr;
     }
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
     settings.setValue("MainWindow.geometry", saveGeometry());
     settings.setValue("MainWindow.activateGrid", ui->pushButtonActivateGrid->isChecked() );
     settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value() );
