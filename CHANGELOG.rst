@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.7.2 (2018-08-10)
+------------------
 * Update .travis.yml
 * fixed potential thread safety problem
 * trying to apply changes discussed in issue #96
