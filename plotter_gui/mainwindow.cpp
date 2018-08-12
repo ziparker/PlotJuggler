@@ -1633,12 +1633,14 @@ void MainWindow::on_ToggleStreaming()
 void MainWindow::updateDataAndReplot()
 {
     {
-        std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
+        if( _current_streamer )  _current_streamer->mutex().lock();
+
         forEachWidget( [](PlotWidget* plot)
         {
             plot->updateCurves();
         } );
         updateTimeSlider();
+        if( _current_streamer )  _current_streamer->mutex().unlock();
     }
     //--------------------------------
     // trigger again the execution of this callback if steaming == true
