@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.7.3 (2018-08-12)
+------------------
 * enhancement discussed in #104 Can clear buffer while streaming is active
 * adding enhancements 4 and 5 from issue #105
 * fixed bug reported in  #105
