@@ -1081,11 +1081,10 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
         }
     }
 
-    forEachWidget( [](PlotWidget* plot) {
-        plot->reloadPlotData();
-    } );
-
-    updateTimeSlider();
+    if( curvelist_modified )
+    {
+        _curvelist_widget->sortColumns();
+    }
 }
 
 bool MainWindow::isStreamingActive() const
