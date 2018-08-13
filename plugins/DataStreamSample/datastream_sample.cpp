@@ -41,9 +41,8 @@ DataStreamSample::DataStreamSample():
         }
 
         const std::string name_str = name.toStdString();
-        PlotDataPtr plot( new PlotData(name_str.c_str()) );
 
-        dataMap().numeric.insert( std::make_pair( name_str, plot) );
+        dataMap().numeric.insert( std::make_pair( name_str, PlotData(name_str)) );
         _parameters.insert( std::make_pair( name_str, param) );
     }
 }
@@ -98,7 +97,7 @@ void DataStreamSample::pushSingleCycle()
         const double t = duration_cast< duration<double>>( now - initial_time ).count() ;
         double y =  par.A*sin(par.B*t + par.C) + par.D*t*0.05;
 
-        plot->pushBack( PlotData::Point( t + offset, y ) );
+        plot.pushBack( PlotData::Point( t + offset, y ) );
     }
 }
 

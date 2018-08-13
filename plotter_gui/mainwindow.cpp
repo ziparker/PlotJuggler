@@ -297,7 +297,7 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time)
 
     for ( auto it: _state_publisher)
     {
-        it.second->updateState( &_mapped_plot_data, absolute_time);
+        it.second->updateState( _mapped_plot_data, absolute_time);
     }
 
     forEachWidget( [&](PlotWidget* plot)
@@ -540,7 +540,7 @@ void MainWindow::buildDummyData()
         double C =  3* ((double)qrand()/(double)RAND_MAX)  ;
         double D =  20* ((double)qrand()/(double)RAND_MAX)  ;
 
-        PlotDataPtr plot ( new PlotData( name.toStdString().c_str() ) );
+        PlotDataPtr plot ( new PlotData( name.toStdString() ) );
 
         double t = 0;
         for (unsigned indx=0; indx<SIZE; indx++)
@@ -870,65 +870,48 @@ void MainWindow::deleteDataOfSingleCurve(const QString& curve_name)
 
 void MainWindow::onDeleteLoadedData()
 {
-    if( isStreamingActive() )
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Warning");
+    msgBox.setText(tr("Do you really want to REMOVE the loaded data?\n"));
+    msgBox.addButton(QMessageBox::No);
+    msgBox.addButton(QMessageBox::Yes);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    QPushButton* buttonPlaceholder = msgBox.addButton(tr("Keep empty placeholders"), QMessageBox::NoRole);
+    auto reply = msgBox.exec();
+
+    if( reply == QMessageBox::No ) {
+        return;
+    }
+
+    if( msgBox.clickedButton() == buttonPlaceholder )
     {
-        _current_streamer->mutex().lock();
-        for( auto& it: _current_streamer->dataMap().numeric )
+        for( auto& it: _mapped_plot_data.numeric )
         {
             it.second->clear();
         }
-        for( auto& it: _current_streamer->dataMap().user_defined )
+        for( auto& it: _mapped_plot_data.user_defined )
         {
             it.second->clear();
         }
-        _current_streamer->mutex().unlock();
-        importPlotDataMap(_current_streamer->dataMap(), true);
+        _main_tabbed_widget->currentTab()->maximumZoomOut() ;
+
+        for(const auto& it: TabbedPlotWidget::instances())
+        {
+            PlotMatrix* matrix =  it.second->currentTab() ;
+            matrix->maximumZoomOut(); // includes replot
+        }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Warning");
-        msgBox.setText(tr("Do you really want to REMOVE the loaded data?\n"));
-        msgBox.addButton(QMessageBox::No);
-        msgBox.addButton(QMessageBox::Yes);
-        msgBox.setDefaultButton(QMessageBox::Yes);
-        QPushButton* buttonPlaceholder = msgBox.addButton(tr("Keep empty placeholders"), QMessageBox::NoRole);
-        auto reply = msgBox.exec();
+        _mapped_plot_data.numeric.clear();
+        _mapped_plot_data.user_defined.clear();
 
-        if( reply == QMessageBox::No ) {
-            return;
-        }
+        _curvelist_widget->clear();
 
-        if( msgBox.clickedButton() == buttonPlaceholder )
-        {
-            for( auto& it: _mapped_plot_data.numeric )
-            {
-                it.second->clear();
-            }
-            for( auto& it: _mapped_plot_data.user_defined )
-            {
-                it.second->clear();
-            }
-            _main_tabbed_widget->currentTab()->maximumZoomOut() ;
-
-            for(const auto& it: TabbedPlotWidget::instances())
-            {
-                PlotMatrix* matrix =  it.second->currentTab() ;
-                matrix->maximumZoomOut(); // includes replot
-            }
-        }
-        else
-        {
-            _mapped_plot_data.numeric.clear();
-            _mapped_plot_data.user_defined.clear();
-
-            _curvelist_widget->clear();
-
-            forEachWidget( [](PlotWidget* plot) {
-                plot->detachAllCurves();
-            } );
-            ui->actionDeleteAllData->setEnabled( false );
-        }
+        forEachWidget( [](PlotWidget* plot) {
+            plot->detachAllCurves();
+        } );
+        ui->actionDeleteAllData->setEnabled( false );
     }
 }
 
@@ -1000,33 +983,57 @@ void MainWindow::onActionReloadRecentDataFile()
     }
 }
 
+template <typename T>
+void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
+                             std::unordered_map<std::string,std::shared_ptr<T>>& destination,
+                             bool delete_older)
+{
+    for (auto& it: source)
+    {
+        const std::string& name  = it.first;
+        T& source_plot  = it.second;
+        auto plot_with_same_name = destination.find(name);
 
-void MainWindow::importPlotDataMap(const PlotDataMap& new_data, bool delete_older)
+        // this is a new plot
+        if( plot_with_same_name == destination.end() )
+        {
+            plot_with_same_name = destination.insert( {name, std::make_shared<T>(name) } ).first;
+        }
+        else{
+            if( delete_older ){
+                plot_with_same_name->second->clear();
+            }
+        }
+
+        for (int i=0; i< source_plot.size(); i++)
+        {
+            plot_with_same_name->second->pushBack( source_plot.front() );
+        }
+        source_plot.clear();
+    }
+}
+
+void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
 {
     if( new_data.user_defined.empty() && new_data.numeric.empty() )
     {
-        return;    
+        return;
     }
-    // overwrite the old user_defined map
-    _mapped_plot_data.user_defined = new_data.user_defined;
 
+    bool curvelist_modified = false;
     for (auto& it: new_data.numeric)
     {
         const std::string& name  = it.first;
-        PlotDataPtr plot  = it.second;
-        auto plot_with_same_name = _mapped_plot_data.numeric.find(name);
-
-        // this is a new plot
-        if( plot_with_same_name == _mapped_plot_data.numeric.end() )
+        if( _mapped_plot_data.numeric.count(name) == 0)
         {
             _curvelist_widget->addItem( QString::fromStdString( name ), false );
-            _mapped_plot_data.numeric.insert( std::make_pair(name, plot) );
-        }
-        else{ // a plot with the same name existed already, overwrite it
-            plot_with_same_name->second = plot;
+            curvelist_modified = true;
         }
     }
-    _curvelist_widget->sortColumns();
+    //---------------------------------------------
+    importPlotDataMapHelper( new_data.user_defined, _mapped_plot_data.user_defined, delete_older );
+    importPlotDataMapHelper( new_data.numeric, _mapped_plot_data.numeric, delete_older );
+    //---------------------------------------------
 
     if( delete_older && _mapped_plot_data.numeric.size() > new_data.numeric.size() )
     {
@@ -1135,9 +1142,11 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
         ui->actionDeleteAllData->setEnabled( true );
         ui->actionReloadPrevious->setEnabled( true );
 
-        PlotDataMap mapped_data;
+
         try{
-            mapped_data = _last_dataloader->readDataFromFile( filename, reuse_last_configuration );
+            PlotDataMapRef mapped_data = _last_dataloader->readDataFromFile( filename, reuse_last_configuration );
+            // remap to different type
+            importPlotDataMap(mapped_data, true);
         }
         catch(std::exception &ex)
         {
@@ -1146,9 +1155,6 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
                                  .arg(_last_dataloader->name()).arg(ex.what()) );
             return;
         }
-
-        // remap to different type
-        importPlotDataMap(mapped_data, true);
     }
     else{
         QMessageBox::warning(this, tr("Error"),
@@ -1215,9 +1221,11 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
         for(auto& action: ui->menuStreaming->actions()) {
             action->setEnabled(false);
         }
+        ui->actionClearBuffer->setEnabled(true);
+
         ui->actionStopStreaming->setEnabled(true);
-        ui->actionDeleteAllData->setEnabled( true );
-       // ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
+        ui->actionDeleteAllData->setEnabled( false );
+        ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
         ui->actionReloadPrevious->setEnabled( false );
 
         ui->pushButtonStreaming->setEnabled(true);
@@ -1678,28 +1686,23 @@ void MainWindow::on_ToggleStreaming()
 
 void MainWindow::updateDataAndReplot()
 {
+    if( _current_streamer )
     {
-        if( _current_streamer )  _current_streamer->mutex().lock();
-
-        forEachWidget( [](PlotWidget* plot)
-        {
-            plot->updateCurves();
-        } );
-        updateTimeSlider();
-        if( _current_streamer )  _current_streamer->mutex().unlock();
+        std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
+        importPlotDataMap( _current_streamer->dataMap(), false );
     }
+
+    forEachWidget( [](PlotWidget* plot)
+    {
+        plot->updateCurves();
+    } );
+
+    updateTimeSlider();
+
     //--------------------------------
     // trigger again the execution of this callback if steaming == true
     if( isStreamingActive() )
     {
-        static auto prev_time = std::chrono::steady_clock::now();
-        auto time_now =  std::chrono::steady_clock::now();
-        if( (time_now - prev_time) > std::chrono::seconds(2) )
-        {
-            prev_time = time_now;
-            importPlotDataMap( _current_streamer->dataMap(), false );
-        }
-
         _replot_timer->setSingleShot(true);
         _replot_timer->stop( );
         _replot_timer->start( 40 ); // 25 Hz at most
@@ -1711,7 +1714,6 @@ void MainWindow::updateDataAndReplot()
         } );
 
         onTrackerTimeUpdated(_tracker_time);
-        ui->actionDeleteAllData->setEnabled( true );
     }
     //--------------------------------
     // zoom out and replot
@@ -1726,23 +1728,29 @@ void MainWindow::updateDataAndReplot()
 
 void MainWindow::on_streamingSpinBox_valueChanged(int value)
 {
-    if( _current_streamer ) {
-        _current_streamer->mutex().lock();
-    }
-    for (auto it : _mapped_plot_data.numeric )
+    for (auto& it : _mapped_plot_data.numeric )
     {
-        PlotDataPtr plot = it.second;
-        plot->setMaximumRangeX( value );
+        it.second->setMaximumRangeX( value );
     }
 
-    for (auto it: _mapped_plot_data.user_defined)
+    for (auto& it: _mapped_plot_data.user_defined)
     {
-        PlotDataAnyPtr plot = it.second;
-        plot->setMaximumRangeX( value );
+        it.second->setMaximumRangeX( value );
     }
 
-    if( _current_streamer ) {
-        _current_streamer->mutex().unlock();
+    if( _current_streamer )
+    {
+        std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
+
+        for (auto& it : _current_streamer->dataMap().numeric )
+        {
+            it.second.setMaximumRangeX( value );
+        }
+
+        for (auto& it: _current_streamer->dataMap().user_defined)
+        {
+            it.second.setMaximumRangeX( value );
+        }
     }
 }
 

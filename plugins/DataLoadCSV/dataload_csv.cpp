@@ -55,13 +55,13 @@ QSize DataLoadCSV::parseHeader(QFile *file, std::vector<std::string>& ordered_na
     return table_size;
 }
 
-PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name, bool use_previous_configuration)
+PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_previous_configuration)
 {
     const int TIME_INDEX_NOT_DEFINED = -2;
 
     int time_index = TIME_INDEX_NOT_DEFINED;
 
-    PlotDataMap plot_data;
+    PlotDataMapRef plot_data;
 
     QFile file( file_name );
     file.open(QFile::ReadOnly);
@@ -76,7 +76,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name, bool use_pre
     file.open(QFile::ReadOnly);
     QTextStream inB( &file );
 
-    std::vector<PlotDataPtr> plots_vector;
+    std::vector<PlotData*> plots_vector;
 
     bool interrupted = false;
 
@@ -100,11 +100,10 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name, bool use_pre
     {
         const std::string& field_name = ( column_names[i] );
 
-        PlotDataPtr plot( new PlotData(field_name.c_str()) );
-        plot_data.numeric.insert( std::make_pair( field_name, plot ) );
+        auto it = plot_data.numeric.insert( std::make_pair( field_name, PlotData(field_name)) );
 
         valid_field_names.push_back( field_name );
-        plots_vector.push_back( plot );
+        plots_vector.push_back( &(it.first->second) );
 
         if (time_index == TIME_INDEX_NOT_DEFINED && use_previous_configuration)
         {
@@ -125,7 +124,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name, bool use_pre
 
         if (res == QDialog::Rejected )
         {
-            return PlotDataMap();
+            return PlotDataMapRef();
         }
 
         const int selected_item = dialog->getSelectedRowNumber().at(0);
@@ -168,7 +167,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name, bool use_pre
                 reply = QMessageBox::warning(0, tr("Error reading file"),
                                               tr("One of the timestamps is not a valid number. Abort\n") );
 
-                return PlotDataMap();
+                return PlotDataMapRef();
             }
             if( t <= prev_time )
             {
@@ -176,7 +175,7 @@ PlotDataMap DataLoadCSV::readDataFromFile(const QString &file_name, bool use_pre
                 reply = QMessageBox::warning(0, tr("Error reading file"),
                                               tr("Selected time in not strictly  monotonic. Loading will be aborted\n") );
 
-                return PlotDataMap();
+                return PlotDataMapRef();
             }
             prev_time = t;
         }

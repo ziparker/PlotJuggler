@@ -34,7 +34,7 @@ class  RosoutPublisher: public QObject, StatePublisher
 public:
     RosoutPublisher();
 
-    virtual void updateState(PlotDataMap* datamap, double current_time) override;
+    virtual void updateState(const PlotDataMapPtr& datamap, double current_time) override;
     virtual const char* name() const override { return "RosoutPublisherROS"; }
     virtual ~RosoutPublisher();
 
@@ -55,7 +55,7 @@ private:
     LogsTableModel* _tablemodel;
     rqt_console_plus::LogWidget* _log_widget;
 
-    std::vector<const PlotDataAny *> findRosoutTimeseries(PlotDataMap *datamap);
+    std::vector<const PlotDataAny *> findRosoutTimeseries(const PlotDataMapPtr &datamap);
     void syncWithTableModel(const std::vector<const PlotDataAny *> &logs_timeseries);
 
     RosoutWindow* _log_window;

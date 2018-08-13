@@ -96,11 +96,11 @@ void DataStreamServer::processMessage(QString message)
 		
         if (plotIt == numeric_plots.end())
         {
-			PlotDataPtr plot(new PlotData(name_str.c_str()));
-            numeric_plots.insert(std::make_pair(name_str, plot));
+
+            numeric_plots.insert(std::make_pair(name_str, PlotData(name_str)));
 		}
         else{
-            numeric_plots[name_str]->pushBack(PlotData::Point(time, value));
+            plotIt->second.pushBack( {time, value} );
         }
 	}	
 }

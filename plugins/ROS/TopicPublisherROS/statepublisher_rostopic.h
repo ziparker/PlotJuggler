@@ -19,7 +19,7 @@ public:
     TopicPublisherROS();
     virtual ~TopicPublisherROS();
 
-    virtual void updateState(PlotDataMap* datamap, double current_time) override;
+    virtual void updateState(const PlotDataMapPtr& datamap, double current_time) override;
     virtual const char* name() const override { return "TopicPublisherROS"; }
 
     virtual bool enabled() const override { return enabled_; }

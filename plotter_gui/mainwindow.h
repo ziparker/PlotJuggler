@@ -145,7 +145,7 @@ private:
 
     void buildDummyData();
 
-    PlotDataMap    _mapped_plot_data;
+    PlotDataMapPtr  _mapped_plot_data;
 
     void rearrangeGridLayout();
 
@@ -184,7 +184,7 @@ private:
 
     void createTabbedDialog(QString suggest_win_name, PlotMatrix *first_tab);
 
-    void importPlotDataMap(const PlotDataMap &new_data, bool delete_older);
+    void importPlotDataMap(PlotDataMapRef &new_data, bool delete_older);
 
     bool isStreamingActive() const ;
 

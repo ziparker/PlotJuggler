@@ -13,7 +13,7 @@ std::map<QString,TabbedPlotWidget*> TabbedPlotWidget::_instances;
 TabbedPlotWidget::TabbedPlotWidget(QString name,
                                    QMainWindow *main_window,
                                    PlotMatrix  *first_tab,
-                                   PlotDataMap &mapped_data,
+                                   PlotDataMapPtr &mapped_data,
                                    QMainWindow *parent ) :
     QWidget(parent),
     _mapped_data(mapped_data),

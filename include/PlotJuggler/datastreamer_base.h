@@ -47,7 +47,12 @@ public:
         return _mutex;
     }
 
-    PlotDataMap& dataMap()
+    PlotDataMapRef& dataMap()
+    {
+        return _data_map;
+    }
+
+    const PlotDataMapRef& dataMap() const
     {
         return _data_map;
     }
@@ -62,7 +67,7 @@ protected:
     QMenu* _menu;
 private:
     std::mutex _mutex;
-    PlotDataMap _data_map;
+    PlotDataMapRef _data_map;
 };
 
 QT_BEGIN_NAMESPACE

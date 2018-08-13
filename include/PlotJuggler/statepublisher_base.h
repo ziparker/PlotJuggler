@@ -16,7 +16,7 @@ public:
 
     virtual const char* name() const = 0;
 
-    virtual void updateState(PlotDataMap* datamap, double current_time) = 0;
+    virtual void updateState(const PlotDataMapPtr& datamap, double current_time) = 0;
 
     virtual ~StatePublisher() {}
 
