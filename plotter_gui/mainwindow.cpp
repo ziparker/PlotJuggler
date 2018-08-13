@@ -296,7 +296,7 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time)
 
     for ( auto& it: _state_publisher)
     {
-        it.second->updateState( _mapped_plot_data, absolute_time);
+        it.second->updateState( absolute_time);
     }
 
     forEachWidget( [&](PlotWidget* plot)
@@ -460,6 +460,7 @@ void MainWindow::loadPlugins(QString directory_name)
             }
             else if (publisher)
             {
+                publisher->setDataMap( &_mapped_plot_data );
                 qDebug() << filename << ": is a StatePublisher plugin";
                 if( !_test_option && publisher->isDebugPlugin())
                 {
@@ -1060,6 +1061,23 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
             {
                 this->deleteDataOfSingleCurve( QString( to_remove.c_str() ) );
             }
+        }
+    }
+
+    if( delete_older && _mapped_plot_data.user_defined.size() > new_data.user_defined.size() )
+    {
+        std::vector<std::string> data_to_remove;
+
+        for (auto& it: _mapped_plot_data.user_defined )
+        {
+            auto& name = it.first;
+            if( new_data.user_defined.find( name ) == new_data.user_defined.end() ){
+                data_to_remove.push_back(name);
+            }
+        }
+        for (auto& to_remove: data_to_remove )
+        {
+            _mapped_plot_data.user_defined.erase( to_remove );
         }
     }
 
