@@ -54,6 +54,8 @@ public:
 
     bool isXYPlot() const;
 
+    void changeBackgroundColor(QColor color);
+
 protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
     virtual void dropEvent(QDropEvent *event) override;

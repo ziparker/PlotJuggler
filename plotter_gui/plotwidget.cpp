@@ -45,6 +45,15 @@ void PlotWidget::setDefaultRangeX()
     }
 }
 
+void PlotWidget::changeBackgroundColor(QColor color)
+{
+    if( this->canvasBackground().color() != color)
+    {
+        this->setCanvasBackground( color );
+        this->replot();
+    }
+}
+
 PlotWidget::PlotWidget(PlotDataMap &datamap, QWidget *parent):
     QwtPlot(parent),
     _zoomer( 0 ),
@@ -374,8 +383,7 @@ const std::map<QString, std::shared_ptr<QwtPlotCurve> > &PlotWidget::curveList()
 
 void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
 {
-    this->setCanvasBackground( QColor( 230, 230, 230 ) );
-    replot();
+    changeBackgroundColor( QColor( 230, 230, 230 ) );
 
     const QMimeData *mimeData = event->mimeData();
     QStringList mimeFormats = mimeData->formats();
@@ -401,15 +409,14 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
 }
 
 
-void PlotWidget::dragLeaveEvent(QDragLeaveEvent *event)
+void PlotWidget::dragLeaveEvent(QDragLeaveEvent*)
 {
-  this->setCanvasBackground( QColor( 250, 250, 250 ) );
-  replot();
+    changeBackgroundColor( QColor( 250, 250, 250 ) );
 }
 
 void PlotWidget::dropEvent(QDropEvent *event)
 {
-    this->setCanvasBackground( QColor( 250, 250, 250 ) );
+    changeBackgroundColor( QColor( 250, 250, 250 ) );
 
     const QMimeData *mimeData = event->mimeData();
     QStringList mimeFormats = mimeData->formats();
@@ -446,6 +453,7 @@ void PlotWidget::dropEvent(QDropEvent *event)
             QString source_name;
             stream >> source_name;
             PlotWidget* source_plot = static_cast<PlotWidget*>( event->source() );
+
             emit swapWidgetsRequested( source_plot, this );
             event->acceptProposedAction();
         }
@@ -635,14 +643,14 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         {
             _action_noTransform->trigger();
         }
-//        else if(trans_value == "XYPlot")
-//        {
-//            QString axisX_name = transform.attribute("axisX");
-//            if( axisX_name.size()>0)
-//            {
-//                changeAxisX( axisX_name );
-//            }
-//        }
+        //        else if(trans_value == "XYPlot")
+        //        {
+        //            QString axisX_name = transform.attribute("axisX");
+        //            if( axisX_name.size()>0)
+        //            {
+        //                changeAxisX( axisX_name );
+        //            }
+        //        }
     }
     //-----------------------------------------
 
@@ -1265,7 +1273,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
             }
         }
     }break;
-    //---------------------------------
+        //---------------------------------
     case QEvent::MouseMove:
     {
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
@@ -1279,18 +1287,24 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
             emit trackerMoved(pointF);
         }
     }break;
-    //---------------------------------
+
+    case QEvent::Leave:
+    {
+        changeBackgroundColor( QColor( 250, 250, 250 ) );
+    }break;
+        //---------------------------------
     case QEvent::MouseButtonRelease :
     {
+        changeBackgroundColor( QColor( 250, 250, 250 ) );
         QApplication::restoreOverrideCursor();
     }break;
-    //---------------------------------
+        //---------------------------------
     case QEvent::KeyPress:
     {
-//        QKeyEvent *key_event = static_cast<QKeyEvent*>(event);
-//        qDebug() << key_event->key();
-     }break;
-    //---------------------------------
+        //        QKeyEvent *key_event = static_cast<QKeyEvent*>(event);
+        //        qDebug() << key_event->key();
+    }break;
+        //---------------------------------
     case QEvent::Paint :
     {
         if ( obj == this->canvas())
@@ -1320,16 +1334,16 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     }break;
 
     case QEvent::DragEnter: {
-      this->dragEnterEvent( static_cast<QDragEnterEvent*>(event) );
+        this->dragEnterEvent( static_cast<QDragEnterEvent*>(event) );
     } break;                         // drag moves into widget
     case QEvent::DragMove:  {
-      this->dragMoveEvent(  static_cast<QDragMoveEvent*>(event ) );
+        this->dragMoveEvent(  static_cast<QDragMoveEvent*>(event ) );
     } break;
     case QEvent::DragLeave: {
-      this->dragLeaveEvent( static_cast<QDragLeaveEvent*>(event ) );
+        this->dragLeaveEvent( static_cast<QDragLeaveEvent*>(event ) );
     } break;
     case QEvent::Drop:      {
-      this->dropEvent( static_cast<QDropEvent*>(event ) );
+        this->dropEvent( static_cast<QDropEvent*>(event ) );
     } break;
 
 
