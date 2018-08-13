@@ -94,7 +94,7 @@ void DataStreamServer::processMessage(QString message)
 		
         if (plotIt == numeric_plots.end())
         {
-            numeric_plots.insert(std::make_pair(name_str, PlotData(name_str)));
+            dataMap().addNumeric(name_str);
 		}
         else{
             plotIt->second.pushBack( {time, value} );

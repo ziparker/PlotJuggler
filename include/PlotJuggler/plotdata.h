@@ -51,6 +51,10 @@ public:
 
   PlotDataGeneric(const std::string& name);
 
+  PlotDataGeneric( const PlotDataGeneric<Time,Value>& other) = delete;
+
+  PlotDataGeneric& operator = (const PlotDataGeneric<Time,Value>& other) = delete;
+
   virtual ~PlotDataGeneric() {}
 
   std::string name() const { return _name; }
@@ -99,6 +103,24 @@ typedef PlotDataGeneric<double, nonstd::any> PlotDataAny;
 typedef struct{
   std::unordered_map<std::string, PlotData>     numeric;
   std::unordered_map<std::string, PlotDataAny>  user_defined;
+
+  std::unordered_map<std::string, PlotData>::iterator addNumeric(const std::string& name)
+  {
+      return numeric.emplace( std::piecewise_construct,
+                       std::forward_as_tuple(name),
+                       std::forward_as_tuple(name)
+                       ).first;
+  }
+
+
+  std::unordered_map<std::string, PlotDataAny>::iterator addUserDefined(const std::string& name)
+  {
+      return user_defined.emplace( std::piecewise_construct,
+                                   std::forward_as_tuple(name),
+                                   std::forward_as_tuple(name)
+                                   ).first;
+  }
+
 } PlotDataMapRef;
 
 

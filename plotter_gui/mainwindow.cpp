@@ -1,28 +1,28 @@
 #include <functional>
 #include <stdio.h>
 #include <set>
-#include <QMouseEvent>
-#include <QDebug>
 #include <numeric>
-#include <QMimeData>
-#include <QMenu>
-#include <QStringListModel>
 #include <qwt_plot_canvas.h>
-#include <QDomDocument>
-#include <QDesktopServices>
-#include <QFileDialog>
 #include <QCheckBox>
+#include <QCommandLineParser>
+#include <QDebug>
+#include <QDesktopServices>
+#include <QDomDocument>
+#include <QFileDialog>
+#include <QInputDialog>
+#include <QMenu>
 #include <QMessageBox>
+#include <QMimeData>
+#include <QMouseEvent>
+#include <QMovie>
+#include <QPluginLoader>
+#include <QPushButton>
+#include <QScrollBar>
+#include <QStringListModel>
 #include <QStringRef>
 #include <QThread>
-#include <QPluginLoader>
 #include <QSettings>
 #include <QWindow>
-#include <QInputDialog>
-#include <QCommandLineParser>
-#include <QMovie>
-#include <QScrollBar>
-#include <QPushButton>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -540,7 +540,8 @@ void MainWindow::buildDummyData()
         double C =  3* ((double)qrand()/(double)RAND_MAX)  ;
         double D =  20* ((double)qrand()/(double)RAND_MAX)  ;
 
-        PlotData plot(name.toStdString());
+        auto it = _mapped_plot_data.addNumeric( name.toStdString() );
+        PlotData& plot = it->second;
 
         double t = 0;
         for (unsigned indx=0; indx<SIZE; indx++)
@@ -548,12 +549,11 @@ void MainWindow::buildDummyData()
             t += 0.001;
             plot.pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
         }
-        _mapped_plot_data.numeric.insert( { name.toStdString(), std::move(plot)} );
     }
 
     //---------------------------------------
-    PlotData sin_plot ( "_sin" );
-    PlotData cos_plot ( "_cos" );
+    PlotData& sin_plot =  _mapped_plot_data.addNumeric( "_sin" )->second;
+    PlotData& cos_plot =  _mapped_plot_data.addNumeric( "_cos" )->second;
 
     double t = 0;
     for (unsigned indx=0; indx<SIZE; indx++)
@@ -565,9 +565,6 @@ void MainWindow::buildDummyData()
 
     _curvelist_widget->addItem( QString::fromStdString(sin_plot.name()), true );
     _curvelist_widget->addItem( QString::fromStdString(cos_plot.name()), true );
-
-    _mapped_plot_data.numeric.insert( { sin_plot.name(), std::move(sin_plot)} );
-    _mapped_plot_data.numeric.insert( { cos_plot.name(), std::move(cos_plot)} );
 
     //--------------------------------------
 
@@ -707,7 +704,7 @@ void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
             for(auto& name: missing_curves )
             {
                 _curvelist_widget->addItem( QString::fromStdString( name ), false );
-                _mapped_plot_data.numeric.insert( {name,  PlotData( name ) });
+                _mapped_plot_data.addNumeric(name);
             }
             _curvelist_widget->sortColumns();
         }
@@ -1001,7 +998,10 @@ void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
         // this is a new plot
         if( plot_with_same_name == destination.end() )
         {
-            plot_with_same_name = destination.insert( {name, T(name) } ).first;
+            plot_with_same_name = destination.emplace( std::piecewise_construct,
+                                                       std::forward_as_tuple(name),
+                                                       std::forward_as_tuple(name)
+                                                       ).first;
         }
         else{
             if( delete_older ){

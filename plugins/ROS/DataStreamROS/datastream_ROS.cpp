@@ -102,8 +102,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         auto plot_pair = dataMap().user_defined.find( key );
         if( plot_pair == dataMap().user_defined.end() )
         {
-            auto res = dataMap().user_defined.insert( {key, PlotDataAny(key)} );
-            plot_pair = res.first;
+            plot_pair = dataMap().addUserDefined( key );
         }
         PlotDataAny& user_defined_data = plot_pair->second;
         user_defined_data.pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer)) ));
@@ -116,8 +115,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         auto plot_it = dataMap().numeric.find(key);
         if( plot_it == dataMap().numeric.end())
         {
-            auto res =   dataMap().numeric.insert({ key, PlotData(key)} );
-            plot_it = res.first;
+            plot_it = dataMap().addNumeric( key );
         }
         plot_it->second.pushBack( PlotData::Point(msg_time, value));
     }
@@ -130,8 +128,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         auto index_it = dataMap().numeric.find(key);
         if( index_it == dataMap().numeric.end())
         {
-            auto res = dataMap().numeric.insert( { key, PlotData(key)} );
-            index_it = res.first;
+            index_it = dataMap().addNumeric( key );
         }
         index_it->second.pushBack( PlotData::Point(msg_time, index) );
     }

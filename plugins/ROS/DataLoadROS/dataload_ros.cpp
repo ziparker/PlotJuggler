@@ -203,8 +203,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
             auto plot_pair = plot_map.numeric.find( key );
             if( (plot_pair == plot_map.numeric.end()) )
             {
-                auto res = plot_map.numeric.insert( {key, PlotData(key)} );
-                plot_pair = res.first;
+                plot_pair = plot_map.addNumeric( key );
             }
 
             PlotData& plot_data = plot_pair->second;
@@ -245,8 +244,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
 
         if( plot_pair == plot_map.user_defined.end() )
         {
-            auto res = plot_map.user_defined.insert( {key, PlotDataAny(key)} );
-            plot_pair = res.first;
+            plot_pair = plot_map.addUserDefined( key );
         }
         PlotDataAny& plot_raw = plot_pair->second;
         plot_raw.pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(msg_instance)) ));
