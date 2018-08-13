@@ -71,7 +71,7 @@ void TopicPublisherROS::ChangeFilter(bool)
     QPushButton* select_button = new QPushButton("Select all");
     QPushButton* deselect_button = new QPushButton("Deselect all");
 
-    for (const auto topic: all_topics)
+    for (const auto& topic: all_topics)
     {
         auto cb = new QCheckBox(dialog);
         if( _filter_topics == false )
@@ -136,7 +136,7 @@ void TopicPublisherROS::ChangeFilter(bool)
 }
 
 
-void TopicPublisherROS::updateState(const PlotDataMapPtr &datamap, double current_time)
+void TopicPublisherROS::updateState(const PlotDataMapRef &datamap, double current_time)
 {
   if(!enabled_ || !_node) return;
 
@@ -157,9 +157,9 @@ void TopicPublisherROS::updateState(const PlotDataMapPtr &datamap, double curren
     }
 
     RosIntrospection::ShapeShifter shapeshifted_msg = *registered_shapeshifted_msg;
-    const PlotDataAnyPtr& plot_any = data_it.second;
+    const PlotDataAny& plot_any = data_it.second;
 
-    nonstd::optional<nonstd::any> any_value = plot_any->getYfromX( current_time );
+    nonstd::optional<nonstd::any> any_value = plot_any.getYfromX( current_time );
 
     if(!any_value)
     {

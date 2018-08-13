@@ -21,7 +21,7 @@ public:
     explicit TabbedPlotWidget(QString name,
                               QMainWindow *main_window,
                               PlotMatrix* first_tab,
-                              PlotDataMapPtr &mapped_data,
+                              PlotDataMapRef &mapped_data,
                               QMainWindow *parent );
 
     PlotMatrix* currentTab();
@@ -87,7 +87,7 @@ private:
 
     const QString _name;
 
-    PlotDataMapPtr& _mapped_data;
+    PlotDataMapRef& _mapped_data;
 
     bool _horizontal_link;
 

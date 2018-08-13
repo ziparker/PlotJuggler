@@ -54,7 +54,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition );
 
     if( _using_renaming_rules ){
-      for (auto it: _rules)
+      for (auto& it: _rules)
       {
         _parser->registerRenamingRules( it.first, it.second );
       }

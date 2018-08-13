@@ -232,24 +232,23 @@ void MainWindow::updateLeftTableValues()
             auto it = _mapped_plot_data.numeric.find(name);
             if( it !=  _mapped_plot_data.numeric.end())
             {
-                nonstd::optional<PlotData::TimeType> value;
-                PlotDataPtr data = it->second;
+                auto& data = it->second;
 
                 double num = 0.0;
                 bool valid = false;
 
                 if( _tracker_time < std::numeric_limits<double>::max())
                 {
-                    auto value = data->getYfromX( _tracker_time );
+                    auto value = data.getYfromX( _tracker_time );
                     if(value){
                         valid = true;
                         num = value.value();
                     }
                 }
                 else{
-                    if( data->size() > 0) {
+                    if( data.size() > 0) {
                         valid = true;
-                        num = (data->at( data->size()-1 )).y;
+                        num = data.back().y;
                     }
                 }
                 if( valid)
@@ -295,7 +294,7 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time)
     updatedDisplayTime();
     updateLeftTableValues();
 
-    for ( auto it: _state_publisher)
+    for ( auto& it: _state_publisher)
     {
         it.second->updateState( _mapped_plot_data, absolute_time);
     }
@@ -540,34 +539,35 @@ void MainWindow::buildDummyData()
         double C =  3* ((double)qrand()/(double)RAND_MAX)  ;
         double D =  20* ((double)qrand()/(double)RAND_MAX)  ;
 
-        PlotDataPtr plot ( new PlotData( name.toStdString() ) );
+        PlotData plot(name.toStdString());
 
         double t = 0;
         for (unsigned indx=0; indx<SIZE; indx++)
         {
             t += 0.001;
-            plot->pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
+            plot.pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
         }
-        _mapped_plot_data.numeric.insert( std::make_pair( name.toStdString(), plot) );
+        _mapped_plot_data.numeric.insert( { name.toStdString(), std::move(plot)} );
     }
 
     //---------------------------------------
-    PlotDataPtr sin_plot ( new PlotData( "_sin" ) );
-    PlotDataPtr cos_plot ( new PlotData( "_cos" ) );
+    PlotData sin_plot ( "_sin" );
+    PlotData cos_plot ( "_cos" );
 
     double t = 0;
     for (unsigned indx=0; indx<SIZE; indx++)
     {
         t += 0.001;
-        sin_plot->pushBack( PlotData::Point( t,  1.0*sin(t*0.4) ) ) ;
-        cos_plot->pushBack( PlotData::Point( t,  2.0*cos(t*0.4) ) ) ;
+        sin_plot.pushBack( PlotData::Point( t,  1.0*sin(t*0.4) ) ) ;
+        cos_plot.pushBack( PlotData::Point( t,  2.0*cos(t*0.4) ) ) ;
     }
 
-    _mapped_plot_data.numeric.insert( std::make_pair( sin_plot->name(), sin_plot) );
-    _mapped_plot_data.numeric.insert( std::make_pair( cos_plot->name(), cos_plot) );
+    _curvelist_widget->addItem( QString::fromStdString(sin_plot.name()), true );
+    _curvelist_widget->addItem( QString::fromStdString(cos_plot.name()), true );
 
-    _curvelist_widget->addItem( QString::fromStdString(sin_plot->name()), true );
-    _curvelist_widget->addItem( QString::fromStdString(cos_plot->name()), true );
+    _mapped_plot_data.numeric.insert( { sin_plot.name(), std::move(sin_plot)} );
+    _mapped_plot_data.numeric.insert( { cos_plot.name(), std::move(cos_plot)} );
+
     //--------------------------------------
 
     updateTimeSlider();
@@ -612,6 +612,9 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
     connect( this, &MainWindow::requestRemoveCurveByName,
              plot, &PlotWidget::removeCurve) ;
+
+    connect( plot, &PlotWidget::curveListChanged,
+             this, &MainWindow::updateTimeSlider) ;
 
     connect( &_time_offset, SIGNAL( valueChanged(double)),
              plot, SLOT(on_changeTimeOffset(double)) );
@@ -703,7 +706,7 @@ void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
             for(auto& name: missing_curves )
             {
                 _curvelist_widget->addItem( QString::fromStdString( name ), false );
-                _mapped_plot_data.numeric.insert( {name,  PlotDataPtr(new PlotData( name.c_str())) });
+                _mapped_plot_data.numeric.insert( {name,  PlotData( name ) });
             }
             _curvelist_widget->sortColumns();
         }
@@ -887,11 +890,11 @@ void MainWindow::onDeleteLoadedData()
     {
         for( auto& it: _mapped_plot_data.numeric )
         {
-            it.second->clear();
+            it.second.clear();
         }
         for( auto& it: _mapped_plot_data.user_defined )
         {
-            it.second->clear();
+            it.second.clear();
         }
         _main_tabbed_widget->currentTab()->maximumZoomOut() ;
 
@@ -939,9 +942,9 @@ void MainWindow::onActionLoadDataFile()
         }
     }
 
-    for (auto it = extensions.begin(); it != extensions.end(); it++)
+    for (const auto& it: extensions)
     {
-        file_extension_filter.append( QString(" *.") + *it );
+        file_extension_filter.append( QString(" *.") + it );
     }
 
     QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
@@ -985,7 +988,7 @@ void MainWindow::onActionReloadRecentDataFile()
 
 template <typename T>
 void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
-                             std::unordered_map<std::string,std::shared_ptr<T>>& destination,
+                             std::unordered_map<std::string,T>& destination,
                              bool delete_older)
 {
     for (auto& it: source)
@@ -997,17 +1000,17 @@ void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
         // this is a new plot
         if( plot_with_same_name == destination.end() )
         {
-            plot_with_same_name = destination.insert( {name, std::make_shared<T>(name) } ).first;
+            plot_with_same_name = destination.insert( {name, T(name) } ).first;
         }
         else{
             if( delete_older ){
-                plot_with_same_name->second->clear();
+                plot_with_same_name->second.clear();
             }
         }
 
         for (int i=0; i< source_plot.size(); i++)
         {
-            plot_with_same_name->second->pushBack( source_plot.front() );
+            plot_with_same_name->second.pushBack( source_plot.at(i) );
         }
         source_plot.clear();
     }
@@ -1104,7 +1107,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
         static QString last_plugin_name_used;
 
         QStringList names;
-        for (auto cl: compatible_loaders)
+        for (auto& cl: compatible_loaders)
         {
             const auto& name = cl->first;
 
@@ -1516,18 +1519,18 @@ void MainWindow::updateTimeSlider()
 
     forEachWidget([&](PlotWidget* widget)
     {
-        for (auto it: widget->curveList())
+        for (auto& it: widget->curveList())
         {
             const auto& curve_name = it.first.toStdString();
 
-            const PlotDataPtr data = _mapped_plot_data.numeric[curve_name];
-            if(data->size() >=1)
+            const auto& data = _mapped_plot_data.numeric.find(curve_name)->second;
+            if(data.size() >=1)
             {
-                const double t0 = data->at(0).x;
-                const double t1 = data->at( data->size() -1).x;
+                const double t0 = data.front().x;
+                const double t1 = data.back().x;
                 min_time  = std::min( min_time, t0);
                 max_time  = std::max( max_time, t1);
-                max_steps = std::max( max_steps, data->size());
+                max_steps = std::max( max_steps, data.size());
             }
         }
     });
@@ -1535,16 +1538,16 @@ void MainWindow::updateTimeSlider()
     // needed if all the plots are empty
     if( max_steps == 0 || max_time < min_time)
     {
-        for (auto it: _mapped_plot_data.numeric)
+        for (const auto& it: _mapped_plot_data.numeric)
         {
-            const PlotDataPtr data = it.second;
-            if(data->size() >=1)
+            const PlotData& data = it.second;
+            if(data.size() >=1)
             {
-                const double t0 = data->at(0).x;
-                const double t1 = data->at( data->size() -1).x;
+                const double t0 = data.front().x;
+                const double t1 = data.back().x;
                 min_time  = std::min( min_time, t0);
                 max_time  = std::max( max_time, t1);
-                max_steps = std::max( max_steps, data->size());
+                max_steps = std::max( max_steps, data.size());
             }
         }
     }
@@ -1656,12 +1659,12 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
         _replot_timer->start( 5 );
 
         double min_time = std::numeric_limits<double>::max();
-        for (auto it: _mapped_plot_data.numeric )
+        for (auto& it: _mapped_plot_data.numeric )
         {
-            PlotDataPtr& data = it.second;
-            if(data->size() > 0)
+            const PlotData& data = it.second;
+            if(data.size() > 0)
             {
-                min_time  = std::min( min_time,  data->at(0).x);
+                min_time  = std::min( min_time,  data.front().x);
             }
         }
 
@@ -1730,12 +1733,12 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
 {
     for (auto& it : _mapped_plot_data.numeric )
     {
-        it.second->setMaximumRangeX( value );
+        it.second.setMaximumRangeX( value );
     }
 
     for (auto& it: _mapped_plot_data.user_defined)
     {
-        it.second->setMaximumRangeX( value );
+        it.second.setMaximumRangeX( value );
     }
 
     if( _current_streamer )
@@ -1854,14 +1857,14 @@ void MainWindow::on_pushButtonActivateGrid_toggled(bool checked)
 
 void MainWindow::on_actionClearBuffer_triggered()
 {
-    for (auto it: _mapped_plot_data.numeric )
+    for (auto& it: _mapped_plot_data.numeric )
     {
-        it.second->clear();
+        it.second.clear();
     }
 
-    for (auto it: _mapped_plot_data.user_defined )
+    for (auto& it: _mapped_plot_data.user_defined )
     {
-        it.second->clear();
+        it.second.clear();
     }
 
     forEachWidget( [](PlotWidget* plot) {
@@ -1906,7 +1909,7 @@ void MainWindow::on_minimizeView()
     ui->widgetTimescale->setVisible(!_minimized);
     ui->menuBar->setVisible(!_minimized);
 
-    for (auto it: TabbedPlotWidget::instances() )
+    for (auto& it: TabbedPlotWidget::instances() )
     {
         it.second->setControlsVisible( !_minimized );
     }

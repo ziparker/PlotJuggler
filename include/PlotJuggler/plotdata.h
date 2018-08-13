@@ -75,7 +75,9 @@ public:
 
   const Point& front() const { return _points.front(); }
 
- void popFront() { _points.pop_front(); }
+  const Point& back() const { return _points.back(); }
+
+  void popFront() { _points.pop_front(); }
 
 protected:
 
@@ -94,18 +96,11 @@ typedef PlotDataGeneric<double,double>  PlotData;
 typedef PlotDataGeneric<double, nonstd::any> PlotDataAny;
 
 
-typedef std::shared_ptr<PlotData>     PlotDataPtr;
-typedef std::shared_ptr<PlotDataAny>  PlotDataAnyPtr;
-
 typedef struct{
   std::unordered_map<std::string, PlotData>     numeric;
   std::unordered_map<std::string, PlotDataAny>  user_defined;
 } PlotDataMapRef;
 
-typedef struct{
-  std::unordered_map<std::string, PlotDataPtr>     numeric;
-  std::unordered_map<std::string, PlotDataAnyPtr>  user_defined;
-} PlotDataMapPtr;
 
 //-----------------------------------
 

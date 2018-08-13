@@ -7,7 +7,7 @@
 
 bool if_xy_plot_failed_show_dialog = true;
 
-TimeseriesQwt::TimeseriesQwt(PlotDataPtr base):
+TimeseriesQwt::TimeseriesQwt(const PlotData *base):
     _plot_data(base),
     _subsample(1),
     _transform( noTransform ),
@@ -214,7 +214,7 @@ PlotData::RangeValueOpt TimeseriesQwt::getVisualizationRangeY(int first_index, i
     return PlotData::RangeValueOpt( { y_min, y_max } );
 }
 
-void TimeseriesQwt::setAlternativeAxisX(PlotDataPtr new_x_data)
+void TimeseriesQwt::setAlternativeAxisX(const PlotData *new_x_data)
 {
     _alternative_X_axis = new_x_data;
 }

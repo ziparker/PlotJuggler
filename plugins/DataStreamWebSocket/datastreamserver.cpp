@@ -63,8 +63,6 @@ void DataStreamServer::shutdown()
 		_server.close();
 		_running = false;
 	}
-	else
-		qDebug() << "Nothing to shutdown";
 }
 
 void DataStreamServer::onNewConnection()
@@ -96,7 +94,6 @@ void DataStreamServer::processMessage(QString message)
 		
         if (plotIt == numeric_plots.end())
         {
-
             numeric_plots.insert(std::make_pair(name_str, PlotData(name_str)));
 		}
         else{

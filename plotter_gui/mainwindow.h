@@ -118,6 +118,8 @@ private slots:
 
     void on_minimizeView();
 
+    void updateTimeSlider();
+
 private:
 
     Ui::MainWindow *ui;
@@ -141,11 +143,9 @@ private:
 
     void forEachWidget(std::function<void(PlotWidget*)> op);
 
-    void updateTimeSlider();
-
     void buildDummyData();
 
-    PlotDataMapPtr  _mapped_plot_data;
+    PlotDataMapRef  _mapped_plot_data;
 
     void rearrangeGridLayout();
 

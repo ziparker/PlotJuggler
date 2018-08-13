@@ -42,7 +42,7 @@ DataStreamSample::DataStreamSample():
 
         const std::string name_str = name.toStdString();
 
-        dataMap().numeric.insert( std::make_pair( name_str, PlotData(name_str)) );
+        dataMap().numeric.insert( {name_str, std::move(PlotData(name_str))} );
         _parameters.insert( std::make_pair( name_str, param) );
     }
 }

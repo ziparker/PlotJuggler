@@ -27,7 +27,7 @@ class PlotWidget : public QwtPlot
 
 public:
 
-    PlotWidget(PlotDataMapPtr& datamap, QWidget *parent=0);
+    PlotWidget(PlotDataMapRef& datamap, QWidget *parent=0);
     virtual ~PlotWidget();
 
     bool addCurve(const QString&  name, bool do_replot );
@@ -67,6 +67,7 @@ signals:
     void rectChanged(PlotWidget* self, QRectF rect );
     void undoableChange();
     void trackerMoved(QPointF pos);
+    void curveListChanged();
 
 public slots:
 
@@ -144,7 +145,7 @@ private:
     QwtPlotLegendItem* _legend;
     QwtPlotGrid* _grid;
 
-    PlotDataMapPtr& _mapped_data;
+    PlotDataMapRef& _mapped_data;
     TimeseriesQwt::Transform _current_transform;
 
     void buildActions();
@@ -156,7 +157,7 @@ private:
 
     void setDefaultRangeX();
 
-    PlotDataPtr _axisX;
+    const PlotData* _axisX;
 
     double _time_offset;
 

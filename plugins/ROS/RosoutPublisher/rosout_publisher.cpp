@@ -74,7 +74,7 @@ void RosoutPublisher::onWindowClosed()
 }
 
 
-std::vector<const PlotDataAny *> RosoutPublisher::findRosoutTimeseries(const PlotDataMapPtr &datamap)
+std::vector<const PlotDataAny *> RosoutPublisher::findRosoutTimeseries(const PlotDataMapRef &datamap)
 {
     std::vector<const PlotDataAny*> logs_timeseries;
 
@@ -94,7 +94,7 @@ std::vector<const PlotDataAny *> RosoutPublisher::findRosoutTimeseries(const Plo
             continue; // it is NOT a rosgraph_msgs::Log
         }
 
-        logs_timeseries.push_back( data_it.second.get() );
+        logs_timeseries.push_back(  &data_it.second );
     }
 
     return logs_timeseries;
@@ -157,7 +157,7 @@ void RosoutPublisher::syncWithTableModel(const std::vector<const PlotDataAny*>& 
     _tablemodel->push_back( logs );
 }
 
-void RosoutPublisher::updateState(const PlotDataMapPtr &datamap, double current_time)
+void RosoutPublisher::updateState(const PlotDataMapRef &datamap, double current_time)
 {
     if(!enabled_ && !_tablemodel) return;
 
