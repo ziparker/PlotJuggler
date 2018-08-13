@@ -1003,6 +1003,10 @@ void MainWindow::onActionReloadRecentDataFile()
 
 void MainWindow::importPlotDataMap(const PlotDataMap& new_data, bool delete_older)
 {
+    if( new_data.user_defined.empty() && new_data.numeric.empty() )
+    {
+        return;    
+    }
     // overwrite the old user_defined map
     _mapped_plot_data.user_defined = new_data.user_defined;
 
