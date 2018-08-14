@@ -65,7 +65,9 @@ public:
 
   nonstd::optional<Value> getYfromX(Time x ) const;
 
-  const Point& at(size_t index) const;
+  const Point &at(size_t index) const;
+
+  Point &at(size_t index);
 
   void clear();
 
@@ -204,6 +206,13 @@ inline nonstd::optional<Value> PlotDataGeneric<Time, Value>::getYfromX(Time x) c
 template < typename Time, typename Value>
 inline const typename PlotDataGeneric<Time, Value>::Point&
 PlotDataGeneric<Time, Value>::at(size_t index) const
+{
+    return _points[index];
+}
+
+template < typename Time, typename Value>
+inline typename PlotDataGeneric<Time, Value>::Point&
+PlotDataGeneric<Time, Value>::at(size_t index)
 {
     return _points[index];
 }

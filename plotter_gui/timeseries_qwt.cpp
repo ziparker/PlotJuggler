@@ -72,10 +72,10 @@ void TimeseriesQwt::updateData()
         for (size_t i=0; i < data_size; i++ )
         {
             auto p = _plot_data->at( i );
-            p.x -= _time_offset;
-
             updateMinMax( p.x, p.y );
         }
+        min_x -= _time_offset;
+        max_x -= _time_offset;
     }
     else if(_transform == firstDerivative)
     {
@@ -108,7 +108,7 @@ void TimeseriesQwt::updateData()
             _cached_transformed_curve.resize( data_size - 2 );
         }
 
-        for (size_t i=0; i< _cached_transformed_curve.size(); i++ )
+        for (size_t i=0; i < data_size - 2; i++ )
         {
             const auto& p0 = _plot_data->at( i );
             const auto& p1 = _plot_data->at( i+1 );
@@ -252,11 +252,24 @@ void TimeseriesQwt::setTransform(TimeseriesQwt::Transform trans)
     }
 }
 
-void TimeseriesQwt::setTimeOffset(double offset)
+void TimeseriesQwt::setTimeOffset(double new_offset)
 {
-    if( std::abs( offset - _time_offset) > std::numeric_limits<double>::epsilon())
+    double delta = new_offset - _time_offset;
+    if( std::abs( delta ) > std::numeric_limits<double>::epsilon())
     {
-        _time_offset = offset;
-        updateData();
+        if( _transform == firstDerivative || _transform == secondDerivative)
+        {
+            for (auto& p: _cached_transformed_curve )
+            {
+                p.setX( p.x() - delta );
+            }
+        }
+        _time_offset = new_offset;
+
+        if( _transform != XYPlot && _plot_data->size() >=2 )
+        {
+           _bounding_box.setLeft( sample(0).x() );
+           _bounding_box.setRight( sample( size()-1 ).x() );
+        }
     }
 }
