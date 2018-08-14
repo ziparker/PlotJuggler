@@ -842,6 +842,7 @@ void MainWindow::deleteDataOfSingleCurve(const QString& curve_name)
         return;
     }
 
+    emit requestRemoveCurveByName( curve_name );
     _mapped_plot_data.numeric.erase( plot_curve );
 
     auto rows_to_remove = _curvelist_widget->findRowsByName( curve_name );
@@ -849,8 +850,6 @@ void MainWindow::deleteDataOfSingleCurve(const QString& curve_name)
     {
         _curvelist_widget->removeRow(row);
     }
-
-    emit requestRemoveCurveByName( curve_name );
 
     if( _curvelist_widget->rowCount() == 0)
     {
