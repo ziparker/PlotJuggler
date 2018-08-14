@@ -152,7 +152,7 @@ inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
   _points.push_back( point );
 
   while( _points.size()>2 &&
-         _points.back().x - _points.front().x > _max_range_X)
+         (_points.back().x - _points.front().x) > _max_range_X)
   {
         _points.pop_front();
   }

@@ -998,7 +998,7 @@ void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
             }
         }
 
-        for (int i=0; i< source_plot.size(); i++)
+        for (size_t i=0; i< source_plot.size(); i++)
         {
             plot_with_same_name->second.pushBack( source_plot.at(i) );
         }
@@ -1224,7 +1224,11 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
     if( started )
     {
         _current_streamer->enableStreaming( false );
-        importPlotDataMap( _current_streamer->dataMap(), true );
+
+        {
+            std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
+            importPlotDataMap( _current_streamer->dataMap(), true );
+        }
 
         for(auto& action: ui->menuStreaming->actions()) {
             action->setEnabled(false);
