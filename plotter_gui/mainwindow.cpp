@@ -861,7 +861,6 @@ void MainWindow::deleteDataOfSingleCurve(const QString& curve_name)
 
     emit requestRemoveCurveByName( curve_name );
 
-
     if( _curvelist_widget->rowCount() == 0)
     {
         ui->actionDeleteAllData->setEnabled( false );
@@ -888,6 +887,7 @@ void MainWindow::onDeleteLoadedData()
     {
         for( auto& it: _mapped_plot_data.numeric )
         {
+            emit requestRemoveCurveByName( QString::fromStdString(it.first) );
             it.second.clear();
         }
         for( auto& it: _mapped_plot_data.user_defined )
@@ -904,14 +904,14 @@ void MainWindow::onDeleteLoadedData()
     }
     else
     {
+        forEachWidget( [](PlotWidget* plot) {
+            plot->detachAllCurves();
+        } );
         _mapped_plot_data.numeric.clear();
         _mapped_plot_data.user_defined.clear();
 
         _curvelist_widget->clear();
 
-        forEachWidget( [](PlotWidget* plot) {
-            plot->detachAllCurves();
-        } );
         ui->actionDeleteAllData->setEnabled( false );
     }
 }
