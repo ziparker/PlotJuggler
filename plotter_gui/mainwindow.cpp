@@ -639,9 +639,6 @@ QDomDocument MainWindow::xmlSaveState() const
 
     QDomElement root = doc.createElement( "root" );
 
-    QDomElement main_area =_main_tabbed_widget->xmlSaveState(doc);
-    root.appendChild( main_area );
-
     for (auto& it: TabbedPlotWidget::instances() )
     {
         QDomElement tabbed_area = it.second->xmlSaveState(doc);
@@ -759,14 +756,8 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
           tw.isNull() == false;
           tw = tw.nextSiblingElement( "tabbed_widget" ) )
     {
-        if( tw.attribute("parent") == ("main_window") )
-        {
-            _main_tabbed_widget->xmlLoadState( tw );
-        }
-        else{
-            TabbedPlotWidget* tabwidget = TabbedPlotWidget::instance( tw.attribute("name"));
-            tabwidget->xmlLoadState( tw );
-        }
+        TabbedPlotWidget* tabwidget = TabbedPlotWidget::instance( tw.attribute("name"));
+        tabwidget->xmlLoadState( tw );
     }
 
     QDomElement relative_time = root.firstChildElement( "use_relative_time_offset" );
@@ -894,7 +885,6 @@ void MainWindow::onDeleteLoadedData()
         {
             it.second.clear();
         }
-        _main_tabbed_widget->currentTab()->maximumZoomOut() ;
 
         for(const auto& it: TabbedPlotWidget::instances())
         {
@@ -1512,7 +1502,6 @@ void MainWindow::forEachWidget(std::function<void (PlotWidget*, PlotMatrix*, int
         }
     };
 
-    func( _main_tabbed_widget->tabWidget() );
     for(const auto& it: TabbedPlotWidget::instances())
     {
         func( it.second->tabWidget() );
@@ -1735,9 +1724,6 @@ void MainWindow::updateDataAndReplot()
         onTrackerTimeUpdated(_tracker_time);
     }
     //--------------------------------
-    // zoom out and replot
-    _main_tabbed_widget->currentTab()->maximumZoomOut() ;
-
     for(const auto& it: TabbedPlotWidget::instances())
     {
         PlotMatrix* matrix =  it.second->currentTab() ;
