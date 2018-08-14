@@ -257,19 +257,36 @@ void TimeseriesQwt::setTimeOffset(double new_offset)
     double delta = new_offset - _time_offset;
     if( std::abs( delta ) > std::numeric_limits<double>::epsilon())
     {
-        if( _transform == firstDerivative || _transform == secondDerivative)
+        double min_x =( std::numeric_limits<double>::max() );
+        double max_x =(-std::numeric_limits<double>::max() );
+        _time_offset = new_offset;
+
+        if( _transform == noTransform)
+        {
+            const size_t data_size = _plot_data->size();
+            for (size_t i=0; i<data_size; i++  )
+            {
+                auto p = _plot_data->at(i);
+                min_x = std::min( min_x, p.x );
+                max_x = std::max( max_x, p.x );
+            }
+            min_x -= _time_offset;
+            max_x -= _time_offset;
+        }
+        else if( _transform == firstDerivative || _transform == secondDerivative)
         {
             for (auto& p: _cached_transformed_curve )
             {
                 p.setX( p.x() - delta );
+                min_x = std::min( min_x, p.x() );
+                max_x = std::max( max_x, p.x() );
             }
         }
-        _time_offset = new_offset;
 
         if( _transform != XYPlot && _plot_data->size() >=2 )
         {
-           _bounding_box.setLeft( sample(0).x() );
-           _bounding_box.setRight( sample( size()-1 ).x() );
+           _bounding_box.setLeft( min_x );
+           _bounding_box.setRight( max_x );
         }
     }
 }
