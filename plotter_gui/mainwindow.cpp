@@ -1165,7 +1165,6 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
 
         try{
             PlotDataMapRef mapped_data = _last_dataloader->readDataFromFile( filename, reuse_last_configuration );
-            // remap to different type
             importPlotDataMap(mapped_data, true);
         }
         catch(std::exception &ex)
@@ -1795,6 +1794,16 @@ void MainWindow::on_actionStopStreaming_triggered()
     if( !_mapped_plot_data.numeric.empty()){
         ui->actionDeleteAllData->setEnabled( true );
         ui->actionDeleteAllData->setToolTip("");
+    }
+
+    // reset this.
+    for(auto& it: _mapped_plot_data.numeric)
+    {
+        it.second.setMaximumRangeX( std::numeric_limits<double>::max() );
+    }
+    for(auto& it: _mapped_plot_data.user_defined)
+    {
+        it.second.setMaximumRangeX( std::numeric_limits<double>::max() );
     }
 }
 
