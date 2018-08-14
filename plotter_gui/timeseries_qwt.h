@@ -10,7 +10,7 @@ class TimeseriesQwt: public QwtSeriesData<QPointF>
 {
 public:
 
-    TimeseriesQwt(const PlotData* base);
+    TimeseriesQwt(const PlotData* base, double time_offset);
 
     virtual ~TimeseriesQwt() {}
 

@@ -289,8 +289,7 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
     {
         auto curve = std::shared_ptr< QwtPlotCurve >( new QwtPlotCurve(name) );
 
-        TimeseriesQwt* plot_qwt = new TimeseriesQwt( &data );
-        plot_qwt->setTimeOffset( _time_offset );
+        TimeseriesQwt* plot_qwt = new TimeseriesQwt( &data, _time_offset );
 
         curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
         curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
@@ -724,8 +723,7 @@ void PlotWidget::reloadPlotData()
         auto it = _mapped_data.numeric.find( curve_name );
         if( it != _mapped_data.numeric.end())
         {
-            TimeseriesQwt* new_plotqwt = new TimeseriesQwt( &(it->second) );
-            new_plotqwt->setTimeOffset( _time_offset );
+            TimeseriesQwt* new_plotqwt = new TimeseriesQwt( &(it->second), _time_offset );
             new_plotqwt->setAlternativeAxisX( _axisX );
             new_plotqwt->setTransform( _current_transform );
             curve_data->setData( new_plotqwt );
