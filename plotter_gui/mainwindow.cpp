@@ -23,6 +23,7 @@
 #include <QThread>
 #include <QSettings>
 #include <QWindow>
+#include <QElapsedTimer>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -525,17 +526,22 @@ void MainWindow::loadPlugins(QString directory_name)
 
 void MainWindow::buildDummyData()
 {
-    size_t SIZE = 100*1000;
-
+    size_t SIZE = 1000;
+    QElapsedTimer timer;
+    timer.start();
     QStringList  words_list;
     words_list << "world/siam" << "world/tre" << "walk/piccoli" << "walk/porcellin"
                << "fly/high/mai" << "fly/high/nessun" << "fly/low/ci" << "fly/low/dividera"
                << "data_1" << "data_2" << "data_3" << "data_10";
 
-    for(auto& word: words_list){
-        _curvelist_widget->addItem( word, true );
+    for( int i=0; i<5; i++)
+    {
+        words_list.append(QString("data_vect/%1").arg(i));
     }
 
+    for(auto& word: words_list){
+        _curvelist_widget->addItem( word );
+    }
 
     for( const QString& name: words_list)
     {
@@ -567,10 +573,13 @@ void MainWindow::buildDummyData()
         cos_plot.pushBack( PlotData::Point( t,  2.0*cos(t*0.4) ) ) ;
     }
 
-    _curvelist_widget->addItem( QString::fromStdString(sin_plot.name()), true );
-    _curvelist_widget->addItem( QString::fromStdString(cos_plot.name()), true );
+    _curvelist_widget->addItem( QString::fromStdString(sin_plot.name()) );
+    _curvelist_widget->addItem( QString::fromStdString(cos_plot.name()) );
 
     //--------------------------------------
+    qDebug() << " data created " << timer.elapsed();
+    _curvelist_widget->sortColumns();
+    qDebug() << " data sorted " << timer.elapsed();
 
     updateTimeSlider();
 
@@ -709,7 +718,7 @@ void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
         {
             for(auto& name: missing_curves )
             {
-                _curvelist_widget->addItem( QString::fromStdString( name ), false );
+                _curvelist_widget->addItem( QString::fromStdString( name ) );
                 _mapped_plot_data.addNumeric(name);
             }
             _curvelist_widget->sortColumns();
@@ -1028,7 +1037,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
         const std::string& name  = it.first;
         if( _mapped_plot_data.numeric.count(name) == 0)
         {
-            _curvelist_widget->addItem( QString::fromStdString( name ), false );
+            _curvelist_widget->addItem( QString::fromStdString( name ) );
             curvelist_modified = true;
         }
     }
