@@ -280,16 +280,16 @@ void MainWindow::onTrackerMovedFromWidget(QPointF relative_pos)
     ui->timeSlider->setRealValue( relative_pos.x() );
     ui->timeSlider->blockSignals(prev);
 
-    onTrackerTimeUpdated( _tracker_time );
+    onTrackerTimeUpdated( _tracker_time, true );
 }
 
 void MainWindow::onTimeSlider_valueChanged(double relative_time)
 {
     _tracker_time = relative_time + _time_offset.get();
-    onTrackerTimeUpdated( _tracker_time );
+    onTrackerTimeUpdated( _tracker_time, true );
 }
 
-void MainWindow::onTrackerTimeUpdated(double absolute_time)
+void MainWindow::onTrackerTimeUpdated(double absolute_time, bool do_replot)
 {
     updatedDisplayTime();
     updateLeftTableValues();
@@ -302,7 +302,10 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time)
     forEachWidget( [&](PlotWidget* plot)
     {
         plot->setTrackerPosition( _tracker_time );
-        plot->replot();
+        if(do_replot)
+        {
+            plot->replot();
+        }
     } );
 }
 
@@ -568,7 +571,7 @@ void MainWindow::buildDummyData()
 
     //--------------------------------------
 
-    updateTimeSlider();
+    updateTimeSliderAndOffset();
 
     _curvelist_widget->updateFilter();
 
@@ -612,7 +615,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
              plot, &PlotWidget::removeCurve) ;
 
     connect( plot, &PlotWidget::curveListChanged,
-             this, &MainWindow::updateTimeSlider) ;
+             this, &MainWindow::updateTimeSliderAndOffset) ;
 
     connect( &_time_offset, SIGNAL( valueChanged(double)),
              plot, SLOT(on_changeTimeOffset(double)) );
@@ -1242,6 +1245,7 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
 
         ui->pushButtonStreaming->setEnabled(true);
         ui->pushButtonStreaming->setChecked(true);
+        ui->pushButtonRemoveTimeOffset->setEnabled( false );
 
         on_streamingSpinBox_valueChanged( ui->streamingSpinBox->value() );
     }
@@ -1516,7 +1520,7 @@ void MainWindow::forEachWidget(std::function<void (PlotWidget *)> op)
     forEachWidget( [&](PlotWidget*plot, PlotMatrix*, int,int) { op(plot); } );
 }
 
-void MainWindow::updateTimeSlider()
+void MainWindow::updateTimeSliderAndOffset()
 {
     // find min max time
     double min_time =  std::numeric_limits<double>::max();
@@ -1568,11 +1572,9 @@ void MainWindow::updateTimeSlider()
     //----------------------------------
     // Update Time offset
     const bool remove_offset = ui->pushButtonRemoveTimeOffset->isChecked();
-    if( remove_offset )
+    if( remove_offset && min_time != std::numeric_limits<double>::max())
     {
-        if( isStreamingActive() == false){
-            _time_offset.set( min_time );
-        }
+        _time_offset.set( min_time );
     }
     else{
         _time_offset.set( 0.0 );
@@ -1635,6 +1637,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     else{
         _current_streamer->enableStreaming( streaming ) ;
     }
+    ui->pushButtonRemoveTimeOffset->setEnabled( !streaming );
 
     if( streaming )
     {
@@ -1663,24 +1666,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     {
         _replot_timer->setSingleShot(true);
         _replot_timer->start( 5 );
-
-        double min_time = std::numeric_limits<double>::max();
-        for (auto& it: _mapped_plot_data.numeric )
-        {
-            const PlotData& data = it.second;
-            if(data.size() > 0)
-            {
-                min_time  = std::min( min_time,  data.front().x);
-            }
-        }
-
-        if( min_time == std::numeric_limits<double>::max())
-        {
-            using namespace std::chrono;
-            auto epoch = high_resolution_clock::now().time_since_epoch();
-            min_time = duration<double>(epoch).count();
-        }
-        _time_offset.set(min_time);
+        updateTimeSliderAndOffset();
     }
     else{
         updateDataAndReplot();
@@ -1706,7 +1692,7 @@ void MainWindow::updateDataAndReplot()
         plot->updateCurves();
     } );
 
-    updateTimeSlider();
+    updateTimeSliderAndOffset();
 
     //--------------------------------
     // trigger again the execution of this callback if steaming == true
@@ -1717,12 +1703,8 @@ void MainWindow::updateDataAndReplot()
         _replot_timer->start( 40 ); // 25 Hz at most
 
         _tracker_time = ui->timeSlider->getMaximum() + _time_offset.get();
-        forEachWidget( [&](PlotWidget* plot)
-        {
-            plot->setTrackerPosition( _tracker_time );
-        } );
 
-        onTrackerTimeUpdated(_tracker_time);
+        onTrackerTimeUpdated(_tracker_time, false);
     }
     //--------------------------------
     for(const auto& it: TabbedPlotWidget::instances())
@@ -1828,7 +1810,7 @@ void MainWindow::on_actionQuick_Help_triggered()
 
 void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool )
 {
-    updateTimeSlider();
+    updateTimeSliderAndOffset();
     updatedDisplayTime();
     if (this->signalsBlocked() == false)  onUndoableChange();
 }

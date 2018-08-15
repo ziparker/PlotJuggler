@@ -404,7 +404,7 @@ bool DataStreamROS::start()
 
 void DataStreamROS::enableStreaming(bool enable) { _enabled = enable; }
 
-bool DataStreamROS::isStreamingRunning() const { return _running; }
+bool DataStreamROS::isRunning() const { return _running; }
 
 
 void DataStreamROS::shutdown()

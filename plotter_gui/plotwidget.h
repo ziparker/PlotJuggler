@@ -30,8 +30,6 @@ public:
     PlotWidget(PlotDataMapRef& datamap, QWidget *parent=0);
     virtual ~PlotWidget();
 
-    bool addCurve(const QString&  name, bool do_replot );
-
     bool isEmpty() const;
 
     const std::map<QString, std::shared_ptr<QwtPlotCurve> > &curveList() const;
@@ -148,7 +146,10 @@ private:
     PlotDataMapRef& _mapped_data;
     TimeseriesQwt::Transform _current_transform;
 
+    bool addCurve(const QString& name);
+
     void buildActions();
+
     void buildLegend();
 
     int   _fps_counter;

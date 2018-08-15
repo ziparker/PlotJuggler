@@ -26,7 +26,7 @@ public:
 
     virtual void enableStreaming(bool enable) override;
 
-    virtual bool isStreamingRunning() const override;
+    virtual bool isRunning() const override;
 
     virtual ~DataStreamROS() override;
 

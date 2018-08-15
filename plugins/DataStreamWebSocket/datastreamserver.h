@@ -33,7 +33,7 @@ public:
 
     virtual void enableStreaming(bool enable) override { _enabled = enable; }
 
-    virtual bool isStreamingRunning() const override { return _running; }
+    virtual bool isRunning() const override { return _running; }
 
     virtual ~DataStreamServer();
 

@@ -27,7 +27,7 @@ public:
 
     virtual void enableStreaming(bool enable) = 0;
 
-    virtual bool isStreamingRunning() const = 0;
+    virtual bool isRunning() const = 0;
 
     virtual ~DataStreamer() {}
 

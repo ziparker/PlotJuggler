@@ -271,7 +271,7 @@ PlotWidget::~PlotWidget()
 
 }
 
-bool PlotWidget::addCurve(const QString &name, bool do_replot)
+bool PlotWidget::addCurve(const QString &name)
 {
     auto it = _mapped_data.numeric.find( name.toStdString() );
     if( it == _mapped_data.numeric.end())
@@ -335,14 +335,6 @@ bool PlotWidget::addCurve(const QString &name, bool do_replot)
         marker->setSymbol(sym);
     }
 
-    zoomOut(false);
-
-    if( do_replot )
-    {
-        replot();
-    }
-
-    emit curveListChanged();
     return true;
 }
 
@@ -417,7 +409,7 @@ void PlotWidget::dragLeaveEvent(QDragLeaveEvent*)
 
 void PlotWidget::dropEvent(QDropEvent *event)
 {
-    changeBackgroundColor( QColor( 250, 250, 250 ) );
+    setCanvasBackground( QColor( 250, 250, 250 ) );
 
     const QMimeData *mimeData = event->mimeData();
     QStringList mimeFormats = mimeData->formats();
@@ -429,15 +421,19 @@ void PlotWidget::dropEvent(QDropEvent *event)
 
         if( format.contains( "curveslist/add_curve") )
         {
-            bool plot_added = false;
+            bool curve_added = false;
             while (!stream.atEnd())
             {
                 QString curve_name;
                 stream >> curve_name;
-                addCurve( curve_name, true );
-                plot_added = true;
+                bool added = addCurve( curve_name );
+                curve_added = curve_added || added;
             }
-            if( plot_added ) {
+            if( curve_added )
+            {
+                zoomOut(false);
+                replot();
+                emit curveListChanged();
                 emit undoableChange();
             }
             event->acceptProposedAction();
@@ -588,6 +584,8 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
 
     static bool warning_message_shown = false;
 
+     bool curve_added = false;
+
     for (  curve = plot_widget.firstChildElement( "curve" )  ;
            !curve.isNull();
            curve = curve.nextSiblingElement( "curve" ) )
@@ -600,7 +598,8 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
 
         if(  _mapped_data.numeric.find(curve_name.toStdString()) != _mapped_data.numeric.end() )
         {
-            addCurve(curve_name, false);
+            auto added = addCurve( curve_name );
+            curve_added = curve_added || added;
             _curve_list[curve_name]->setPen( color, 1.0);
             added_curve_names.insert(curve_name );
         }
@@ -615,7 +614,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
 
     bool curve_removed = true;
 
-    while( curve_removed)
+    while( curve_removed )
     {
         curve_removed = false;
         for(auto& it: _curve_list)
@@ -628,6 +627,12 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
                 break;
             }
         }
+    }
+
+    if( curve_removed || curve_added)
+    {
+        replot();
+        emit curveListChanged();
     }
 
     //-----------------------------------------
@@ -666,7 +671,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         rect.setLeft( rectangle.attribute("left").toDouble());
         rect.setRight( rectangle.attribute("right").toDouble());
         this->setScale( rect, false);
-    }
+    }   
 
     return true;
 }
@@ -915,6 +920,7 @@ void PlotWidget::updateCurves()
 
 void PlotWidget::replot()
 {
+    qDebug() << "replot";
     if( _zoomer )
         _zoomer->setZoomBase( false );
 

@@ -38,7 +38,7 @@ public slots:
 
 private slots:
 
-    void onTrackerTimeUpdated(double absolute_time );
+    void onTrackerTimeUpdated(double absolute_time , bool do_replot);
 
     void onTrackerMovedFromWidget(QPointF pos );
 
@@ -118,7 +118,7 @@ private slots:
 
     void on_minimizeView();
 
-    void updateTimeSlider();
+    void updateTimeSliderAndOffset();
 
 private:
 
