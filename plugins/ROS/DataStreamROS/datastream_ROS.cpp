@@ -27,7 +27,6 @@ DataStreamROS::DataStreamROS():
     _action_saveIntoRosbag(nullptr),
     _node(nullptr)
 {
-    _enabled = false;
     _running = false;
     _initial_time = std::numeric_limits<double>::max();
     _use_header_timestamp = true;
@@ -40,7 +39,7 @@ DataStreamROS::DataStreamROS():
 void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg,
                                   const std::string &topic_name)
 {
-    if( !_running || !_enabled){
+    if( !_running ){
         return;
     }
 
@@ -149,7 +148,6 @@ void DataStreamROS::extractInitialSamples()
 
     auto start_time = system_clock::now();
 
-    _enabled = true;
     while ( system_clock::now() - start_time < (wait_time_ms) )
     {
         ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.1));
@@ -161,7 +159,6 @@ void DataStreamROS::extractInitialSamples()
             break;
         }
     }
-    _enabled = false;
 
     if( progress_dialog.wasCanceled() == false )
     {
@@ -171,7 +168,7 @@ void DataStreamROS::extractInitialSamples()
 
 void DataStreamROS::timerCallback()
 {
-    if( _running && _enabled && ros::master::check() == false
+    if( _running && ros::master::check() == false
             && !_roscore_disconnection_already_notified)
     {
         auto ret = QMessageBox::warning(nullptr,
@@ -184,8 +181,8 @@ void DataStreamROS::timerCallback()
                                         tr("Try reconnect"),
                                         tr("Continue"),
                                         0);
-        _roscore_disconnection_already_notified = ( ret == 2);
-        if( ret == 1)
+        _roscore_disconnection_already_notified = ( ret == 2 );
+        if( ret == 1 )
         {
             this->shutdown();
             _node =  RosManager::getNode();
@@ -197,7 +194,6 @@ void DataStreamROS::timerCallback()
             subscribe();
 
             _running = true;
-            _enabled = true;
             _spinner = std::make_shared<ros::AsyncSpinner>(1);
             _spinner->start();
             _periodic_timer->start();
@@ -402,10 +398,7 @@ bool DataStreamROS::start()
     return true;
 }
 
-void DataStreamROS::enableStreaming(bool enable) { _enabled = enable; }
-
 bool DataStreamROS::isRunning() const { return _running; }
-
 
 void DataStreamROS::shutdown()
 {
@@ -420,7 +413,6 @@ void DataStreamROS::shutdown()
     }
     _subscribers.clear();
     _running = false;
-    _enabled = false;
     _node.reset();
     _spinner.reset();
 }

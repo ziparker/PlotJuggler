@@ -18,7 +18,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <QInputDialog>
 
 DataStreamServer::DataStreamServer() :
-	_enabled(false),
 	_running(false),
 	_server("plotJuggler", QWebSocketServer::NonSecureMode)	
 {

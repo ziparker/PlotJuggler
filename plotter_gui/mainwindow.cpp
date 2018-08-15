@@ -1226,8 +1226,6 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
     }
     if( started )
     {
-        _current_streamer->enableStreaming( false );
-
         {
             std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
             importPlotDataMap( _current_streamer->dataMap(), true );
@@ -1634,9 +1632,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     {
         streaming = false;
     }
-    else{
-        _current_streamer->enableStreaming( streaming ) ;
-    }
+
     ui->pushButtonRemoveTimeOffset->setEnabled( !streaming );
 
     if( streaming )

@@ -9,8 +9,7 @@
 #include <thread>
 #include <math.h>
 
-DataStreamSample::DataStreamSample():
-    _enabled(false)
+DataStreamSample::DataStreamSample()
 {
     QStringList  words_list;
     words_list << "siam" << "tre" << "piccoli" << "porcellin"
@@ -61,8 +60,6 @@ void DataStreamSample::shutdown()
     if( _thread.joinable()) _thread.join();
 }
 
-void DataStreamSample::enableStreaming(bool enable) { _enabled = enable; }
-
 bool DataStreamSample::isRunning() const { return _running; }
 
 DataStreamSample::~DataStreamSample()
@@ -106,9 +103,7 @@ void DataStreamSample::loop()
     _running = true;
     while( _running )
     {
-        if( _enabled ){
-            pushSingleCycle();
-        }
+        pushSingleCycle();
         std::this_thread::sleep_for ( std::chrono::milliseconds(10) );
     }
 }

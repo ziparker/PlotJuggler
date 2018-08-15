@@ -25,8 +25,6 @@ public:
 
     virtual void shutdown() = 0;
 
-    virtual void enableStreaming(bool enable) = 0;
-
     virtual bool isRunning() const = 0;
 
     virtual ~DataStreamer() {}
