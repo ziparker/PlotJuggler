@@ -920,7 +920,6 @@ void PlotWidget::updateCurves()
 
 void PlotWidget::replot()
 {
-    qDebug() << "replot";
     if( _zoomer )
         _zoomer->setZoomBase( false );
 
