@@ -105,6 +105,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     onUndoableChange();
 
     _replot_timer = new QTimer(this);
+    _replot_timer->setInterval(40);
     connect(_replot_timer, &QTimer::timeout, this, &MainWindow::updateDataAndReplot);
 
     ui->menuFile->setToolTipsVisible(true);
@@ -571,7 +572,9 @@ void MainWindow::buildDummyData()
 
     //--------------------------------------
 
-    updateTimeSliderAndOffset();
+    updateTimeSlider();
+
+    _time_offset.set( ui->timeSlider->getMinimum() );
 
     _curvelist_widget->updateFilter();
 
@@ -615,7 +618,10 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
              plot, &PlotWidget::removeCurve) ;
 
     connect( plot, &PlotWidget::curveListChanged,
-             this, &MainWindow::updateTimeSliderAndOffset) ;
+             this, &MainWindow::updateTimeSlider) ;
+
+    connect( plot, &PlotWidget::curveListChanged,
+             this, &MainWindow::updateTimeOffset) ;
 
     connect( &_time_offset, SIGNAL( valueChanged(double)),
              plot, SLOT(on_changeTimeOffset(double)) );
@@ -1348,6 +1354,58 @@ void MainWindow::savePluginState(QDomDocument& doc)
     }
 }
 
+std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
+{
+    // find min max time
+    double min_time =  std::numeric_limits<double>::max();
+    double max_time = -std::numeric_limits<double>::max();
+    int max_steps = 0;
+
+    forEachWidget([&](PlotWidget* widget)
+    {
+        for (auto& it: widget->curveList())
+        {
+            const auto& curve_name = it.first.toStdString();
+
+            const auto& data = _mapped_plot_data.numeric.find(curve_name)->second;
+            if(data.size() >=1)
+            {
+                const double t0 = data.front().x;
+                const double t1 = data.back().x;
+                min_time  = std::min( min_time, t0);
+                max_time  = std::max( max_time, t1);
+                max_steps = std::max( max_steps, (int)data.size());
+            }
+        }
+    });
+
+    // needed if all the plots are empty
+    if( max_steps == 0 || max_time < min_time)
+    {
+        for (const auto& it: _mapped_plot_data.numeric)
+        {
+            const PlotData& data = it.second;
+            if(data.size() >=1)
+            {
+                const double t0 = data.front().x;
+                const double t1 = data.back().x;
+                min_time  = std::min( min_time, t0);
+                max_time  = std::max( max_time, t1);
+                max_steps = std::max( max_steps, (int)data.size());
+            }
+        }
+    }
+
+    // last opportunity. Everything else failed
+    if( max_steps == 0 || max_time < min_time)
+    {
+        min_time = 0.0;
+        max_time = 1.0;
+        max_steps = 1;
+    }
+    return std::tuple<double,double,int>( min_time, max_time, max_steps );
+}
+
 void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
 {
     QSettings settings;
@@ -1518,57 +1576,20 @@ void MainWindow::forEachWidget(std::function<void (PlotWidget *)> op)
     forEachWidget( [&](PlotWidget*plot, PlotMatrix*, int,int) { op(plot); } );
 }
 
-void MainWindow::updateTimeSliderAndOffset()
+void MainWindow::updateTimeSlider()
 {
-    // find min max time
-    double min_time =  std::numeric_limits<double>::max();
-    double max_time = -std::numeric_limits<double>::max();
-    size_t max_steps = 0;
+    auto range = calculateVisibleRangeX();
 
-    forEachWidget([&](PlotWidget* widget)
-    {
-        for (auto& it: widget->curveList())
-        {
-            const auto& curve_name = it.first.toStdString();
+    ui->timeSlider->setLimits(std::get<0>(range) - _time_offset.get(),
+                              std::get<1>(range) - _time_offset.get(),
+                              std::get<2>(range));
+}
 
-            const auto& data = _mapped_plot_data.numeric.find(curve_name)->second;
-            if(data.size() >=1)
-            {
-                const double t0 = data.front().x;
-                const double t1 = data.back().x;
-                min_time  = std::min( min_time, t0);
-                max_time  = std::max( max_time, t1);
-                max_steps = std::max( max_steps, data.size());
-            }
-        }
-    });
+void MainWindow::updateTimeOffset()
+{
+    auto range = calculateVisibleRangeX();
+    double min_time = std::get<0>(range);
 
-    // needed if all the plots are empty
-    if( max_steps == 0 || max_time < min_time)
-    {
-        for (const auto& it: _mapped_plot_data.numeric)
-        {
-            const PlotData& data = it.second;
-            if(data.size() >=1)
-            {
-                const double t0 = data.front().x;
-                const double t1 = data.back().x;
-                min_time  = std::min( min_time, t0);
-                max_time  = std::max( max_time, t1);
-                max_steps = std::max( max_steps, data.size());
-            }
-        }
-    }
-
-    // last opportunity. Everything else failed
-    if( max_steps == 0 || max_time < min_time)
-    {
-        min_time = 0.0;
-        max_time = 1.0;
-        max_steps = 1;
-    }
-    //----------------------------------
-    // Update Time offset
     const bool remove_offset = ui->pushButtonRemoveTimeOffset->isChecked();
     if( remove_offset && min_time != std::numeric_limits<double>::max())
     {
@@ -1577,11 +1598,6 @@ void MainWindow::updateTimeSliderAndOffset()
     else{
         _time_offset.set( 0.0 );
     }
-
-    //----------------------------------
-    ui->timeSlider->setLimits(min_time - _time_offset.get(),
-                              max_time - _time_offset.get(),
-                              max_steps);
 }
 
 void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
@@ -1649,7 +1665,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     ui->streamingSpinBox->setHidden( !streaming );
     ui->timeSlider->setHidden( streaming );
 
-    forEachWidget( [&](PlotWidget* plot)
+    forEachWidget([&](PlotWidget* plot)
     {
         plot->enableTracker( !streaming );
     } );
@@ -1658,13 +1674,14 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
 
     this->repaint();
 
+
     if( _current_streamer && streaming)
     {
-        _replot_timer->setSingleShot(true);
-        _replot_timer->start( 5 );
-        updateTimeSliderAndOffset();
+        _replot_timer->start();
+        updateTimeOffset();
     }
     else{
+        updateTimeSlider();
         updateDataAndReplot();
         onUndoableChange();
     }
@@ -1688,17 +1705,13 @@ void MainWindow::updateDataAndReplot()
         plot->updateCurves();
     } );
 
-    updateTimeSliderAndOffset();
-
     //--------------------------------
     // trigger again the execution of this callback if steaming == true
     if( isStreamingActive() )
     {
-        _replot_timer->setSingleShot(true);
-        _replot_timer->stop( );
-        _replot_timer->start( 40 ); // 25 Hz at most
-
-        _tracker_time = ui->timeSlider->getMaximum() + _time_offset.get();
+        auto range = calculateVisibleRangeX();
+        double max_time = std::get<1>(range);
+        _tracker_time = max_time;
 
         onTrackerTimeUpdated(_tracker_time, false);
     }
@@ -1748,6 +1761,7 @@ void MainWindow::on_actionStopStreaming_triggered()
 {
     ui->pushButtonStreaming->setChecked(false);
     ui->pushButtonStreaming->setEnabled(false);
+    _replot_timer->stop();
     _current_streamer->shutdown();
     _current_streamer = nullptr;
 
@@ -1806,7 +1820,7 @@ void MainWindow::on_actionQuick_Help_triggered()
 
 void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool )
 {
-    updateTimeSliderAndOffset();
+    updateTimeOffset();
     updatedDisplayTime();
     if (this->signalsBlocked() == false)  onUndoableChange();
 }

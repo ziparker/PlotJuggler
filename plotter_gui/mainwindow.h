@@ -118,7 +118,9 @@ private slots:
 
     void on_minimizeView();
 
-    void updateTimeSliderAndOffset();
+    void updateTimeSlider();
+
+    void updateTimeOffset();
 
 private:
 
@@ -197,6 +199,8 @@ private:
     void loadPluginState(const QDomElement &root);
     
     void savePluginState(QDomDocument &doc);
+
+    std::tuple<double,double,int> calculateVisibleRangeX();
     
 protected:
 
