@@ -110,13 +110,32 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     for(auto& it: renamed_value )
     {
         const std::string key = ( _prefix + it.first  );
-        const double value = it.second.convert<double>();
+        const auto& value = it.second;
+        double val_d = 0.0;
+
+        // FIXME
+        // bypass the error checking in Variant::convert.
+        // Related to issue #100 on Github
+        if( value.getTypeID() == RosIntrospection::UINT64)
+        {
+            uint64_t val_i = value.extract<uint64_t>();
+            val_d = static_cast<double>(val_i);
+        }
+        else if( value.getTypeID() == RosIntrospection::INT64)
+        {
+            int64_t val_i = value.extract<int64_t>();
+            val_d = static_cast<double>(val_i);
+        }
+        else{
+            val_d = value.convert<double>();
+        }
+
         auto plot_it = dataMap().numeric.find(key);
         if( plot_it == dataMap().numeric.end())
         {
             plot_it = dataMap().addNumeric( key );
         }
-        plot_it->second.pushBack( PlotData::Point(msg_time, value));
+        plot_it->second.pushBack( PlotData::Point(msg_time, val_d));
     }
 
     //------------------------------

@@ -155,6 +155,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     
     bool parsed = true;
     bool monotonic_time = true;
+    bool numerical_cancellation_error = false;
 
     for(rosbag::MessageInstance msg_instance: bag_view_selected )
     {
@@ -199,6 +200,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         for(const auto& it: renamed_value )
         {
             const std::string key = prefix + it.first;
+            const RosIntrospection::Variant& value = it.second;
 
             auto plot_pair = plot_map.numeric.find( key );
             if( (plot_pair == plot_map.numeric.end()) )
@@ -218,7 +220,24 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
                          << "]: " << msg_time << " / " << last_time;
               }
             }
-            plot_data.pushBack( PlotData::Point(msg_time, it.second.convert<double>() ));
+
+            if( value.getTypeID() == RosIntrospection::UINT64)
+            {
+                uint64_t val_i = value.extract<uint64_t>();
+                double val_d = static_cast<double>(val_i);
+                numerical_cancellation_error = (val_i != static_cast<uint64_t>(val_d));
+                plot_data.pushBack( PlotData::Point(msg_time, val_d) );
+            }
+            else if( value.getTypeID() == RosIntrospection::INT64)
+            {
+                int64_t val_i = value.extract<int64_t>();
+                double val_d = static_cast<double>(val_i);
+                numerical_cancellation_error = (val_i != static_cast<int64_t>(val_d));
+                plot_data.pushBack( PlotData::Point(msg_time, val_d) );
+            }
+            else{
+                plot_data.pushBack( PlotData::Point(msg_time, value.convert<double>() ));
+            }
         } //end of for renamed_value
     }
 
@@ -275,8 +294,17 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     {
       QString message = "You checked the option:\n\n"
           "[If present, use the timestamp in the field header.stamp]\n\n"
-          "But the [header.stamp] of one or more messages was NOT initialized correctly.\n";
+          "But the [header.stamp] of one or more messages were NOT initialized correctly.\n";
       QMessageBox::warning(0, tr("Warning"), message );
+    }
+
+    if( numerical_cancellation_error )
+    {
+        QString message = "During the parsing process, one or more conversions to double failed"
+                          " because of numerical cancellation.\n"
+                          "This happens when the absolute value of a long integer exceed 2^52.\n\n"
+                          "You have been warned... trust no one!";
+        QMessageBox::warning(0, tr("Warning"), message );
     }
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
