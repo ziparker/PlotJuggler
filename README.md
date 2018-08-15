@@ -14,7 +14,7 @@ To understand what PlotJuggler can do for you, take a look to the following vide
 
 ![PlotJuggler](docs/images/PlotJuggler.gif)
 
-# How to build
+# How to build (non ROS users)
 
 Clone the repository as usual:
 
@@ -36,25 +36,23 @@ Then compile using cmake (qmake is NOT supported):
      sudo make install
  
  Note: the plugins need to be installed in the same folder of the executable or in __/usr/local/lib/PlotJuggler/__.
- 
-# Note for ROS users
- 
-If you use CATKIN to build this project, the ROS related plugins will be automatically included into the compilation.
-Both the executable and the plugins will be created in __devel/lib/plotjuggler__ (the address is relative to the catkin workspace).
+
+# How to build (ROS users)
+
+__Only__ when __catkin__ is used to build PlotJuggler, the ROS related plugins will be automatically included into the compilation. The following instructions are for ROS Kinetic. Adapt it accordingly if you are using another version of ROS.
+
+    sudo apt-get -y install qtbase5-dev libqt5svg5-dev ros-kinetic-ros-type-introspection 
+    mkdir -p ws_plotjuggler/src; cd ws_plotjuggler/src
+    git clone https://github.com/facontidavide/PlotJuggler.git
+    cd ..
+    catkin_make
+    source devel/setup.bash
+
+Both the executable and the plugins will be created in __ws_plotjuggler/devel/lib/plotjuggler__.
 
 To run the application, use the command:
 
-    rosrun plotjuggler PlotJuggler
-    
-Alternatively, just execute the binary __PlotJuggler__. 
-
-A mandatory dependency is https://github.com/facontidavide/ros_type_introspection 
-
-__IMPORTANT__: you need version 1.0.2 or later.
-
-You can easily install it in Indigo, Jade, Kinetic or Lunar using the command:
-
-       sudo apt-get install ros-YOUR_ROS_DISTRO-ros-type-introspection
+    rosrun plotjuggler PlotJuggler 
 
 # How you may help
 
