@@ -8,4 +8,4 @@ Please allow me to better understand your problem providing the following inform
 
 - If it can't be reproduced with the dummy data, __please__ share the CSV file or the rosbag that can be used to reproduce the problem.
 
-![share the rosbag](../show_me_the_rosbag.jpg)
+![share the rosbag](https://github.com/facontidavide/PlotJuggler/raw/master/show_me_the_rosbag.jpg)
