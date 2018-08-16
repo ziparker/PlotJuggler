@@ -10,4 +10,4 @@ Please allow me to better understand your problem providing the following inform
 
 - If you think it can help explaining the issue, record your desktop and share the video with me (recommended).
 
-![share the rosbag](https://imgflip.com/i/2fz3ja)
+![share the rosbag](show_me_the_rosbag.jpg)
