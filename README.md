@@ -1,10 +1,8 @@
 Ubuntu 14.04 build (Semaphore): [![Build Status](https://semaphoreci.com/api/v1/facontidavide/plotjuggler/branches/master/shields_badge.svg)](https://semaphoreci.com/facontidavide/plotjuggler)
 
-ROS Indigo build (Travis): [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler)
+ROS Indigo/Kinetic build (Travis): [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler)
 
 [![Join the chat at https://gitter.im/PlotJuggler/Lobby](https://badges.gitter.im/PlotJuggler/Lobby.svg)](https://gitter.im/PlotJuggler/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-[Donate with Paypal](https://www.paypal.me/facontidavide).
 
 # PlotJuggler 1.7.3
 
@@ -39,14 +37,26 @@ Then compile using cmake (qmake is NOT supported):
 
 # How to build (ROS users)
 
-__Only__ when __catkin__ is used to build PlotJuggler, the ROS related plugins will be automatically included into the compilation. The following instructions are for ROS Kinetic. Adapt it accordingly if you are using another version of ROS.
+ The following instructions are for __ROS Kinetic__. Adapt them accordingly if you are using a different version of ROS.
+ 
+ The easiest way to install PlotJuggler is through the command:
+ 
+    sudo apt-get install ros-kinetic-plotjuggler 
 
-    sudo apt-get -y install qtbase5-dev libqt5svg5-dev ros-kinetic-ros-type-introspection 
+Nevertheless, if you want to compile it from source, for instance to try the very latest version on the master branch, you __must__ build PlotJuggler using __catkin__, otherwise the ROS related plugins will not be included.
+
+Follow these instructions:
+
+    sudo apt-get install qtbase5-dev libqt5svg5-dev ros-kinetic-ros-type-introspection 
     mkdir -p ws_plotjuggler/src; cd ws_plotjuggler/src
     git clone https://github.com/facontidavide/PlotJuggler.git
     cd ..
     catkin_make
     source devel/setup.bash
+    
+You should see the following message at the beginning of the compilation step:
+
+    "PlotJuggler is being built using CATKIN. ROS plugins will be compiled"
 
 Both the executable and the plugins will be created in __ws_plotjuggler/devel/lib/plotjuggler__.
 
