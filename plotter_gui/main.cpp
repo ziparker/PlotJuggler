@@ -3,6 +3,7 @@
 #include <QSplashScreen>
 #include <QThread>
 #include <QCommandLineParser>
+#include <QDesktopWidget>
 
 QString getFunnySubtitle(){
 
@@ -109,6 +110,11 @@ int main(int argc, char *argv[])
         painter.end();
 
         QSplashScreen splash(main_pixmap);
+        QDesktopWidget* desktop = QApplication::desktop();
+        const int scrn = desktop->screenNumber(QCursor::pos());
+        const QPoint currentDesktopsCenter = desktop->availableGeometry(scrn).center();
+        splash.move(currentDesktopsCenter - splash.rect().center());
+
         splash.show();
 
         MainWindow w( parser );

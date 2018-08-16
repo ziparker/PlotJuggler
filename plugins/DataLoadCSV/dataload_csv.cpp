@@ -219,7 +219,7 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
 
     if( monotonic_warning )
     {
-        QString message = "During the parsing process, two consecutive samples had the same X value (i.e. time).\n"
+        QString message = "Two consecutive samples had the same X value (i.e. time).\n"
                           "Since PlotJuggler makes the assumption that timeseries are strictly monotonic, you "
                           "might experience undefined behaviours.\n\n"
                           "You have been warned...";
@@ -228,8 +228,6 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
 
     return plot_data;
 }
-
-
 
 DataLoadCSV::~DataLoadCSV()
 {
