@@ -5,7 +5,6 @@
 #include <QDebug>
 #include <QApplication>
 #include <QProgressDialog>
-#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QProcess>
 #include <rosbag/view.h>
@@ -145,9 +144,6 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     } );
     progress_dialog.setRange(0, bag_view_selected.size()-1);
     progress_dialog.show();
-
-    QElapsedTimer timer;
-    timer.start();
 
     FlatMessage flat_container;
     std::vector<uint8_t> buffer;
@@ -306,8 +302,6 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
                           "You have been warned... trust no one!";
         QMessageBox::warning(0, tr("Warning"), message );
     }
-
-    qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
     return plot_map;
 }
 

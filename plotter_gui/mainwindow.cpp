@@ -1150,7 +1150,9 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
         }
 
         bool ok;
-        QString plugin_name = QInputDialog::getItem(this, tr("QInputDialog::getItem()"), tr("Select the loader to use:"), names, 0, false, &ok);
+        QString plugin_name = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),
+                                                    tr("Select the loader to use:"),
+                                                    names, 0, false, &ok);
         if (ok && !plugin_name.isEmpty())
         {
             _last_dataloader = _data_loader[ plugin_name ];
@@ -1175,10 +1177,14 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
         ui->actionDeleteAllData->setEnabled( true );
         ui->actionReloadPrevious->setEnabled( true );
 
-
         try{
+            QElapsedTimer timer;
+            timer.start();
+
             PlotDataMapRef mapped_data = _last_dataloader->readDataFromFile( filename, reuse_last_configuration );
             importPlotDataMap(mapped_data, true);
+
+            qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
         }
         catch(std::exception &ex)
         {
@@ -1195,6 +1201,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
     }
     _curvelist_widget->updateFilter();
     updateDataAndReplot();
+
 }
 
 void MainWindow::onActionReloadRecentLayout()
