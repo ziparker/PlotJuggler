@@ -353,6 +353,8 @@ void MainWindow::createActions()
     connect( &_minimize_view, &QShortcut::activated, this, &MainWindow::on_minimizeView);
     connect( &_toggle_streaming, &QShortcut::activated, this, &MainWindow::on_ToggleStreaming );
 
+    connect( ui->actionMaximizePlots, &QAction::triggered, this, &MainWindow::on_minimizeView);
+
     QShortcut* open_menu_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_F), this);
     connect( open_menu_shortcut, &QShortcut::activated, [this](){
         ui->menuFile->exec( ui->menuBar->mapToGlobal(QPoint(0,25)));
@@ -1920,6 +1922,13 @@ void MainWindow::on_pushButtonTimeTracker_pressed()
 
 void MainWindow::on_minimizeView()
 {
+    static bool first_call = true;
+    if( first_call && !_minimized )
+    {
+        first_call = false;
+        QMessageBox::information(0,"Remember!", "Press F10 to switch back to the normal view");
+    }
+
     _minimized = !_minimized;
 
     ui->leftFrame->setVisible(!_minimized);
