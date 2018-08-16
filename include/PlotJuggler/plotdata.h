@@ -53,6 +53,11 @@ public:
 
   PlotDataGeneric( const PlotDataGeneric<Time,Value>& other) = delete;
 
+  void swapData( PlotDataGeneric<Time,Value>& other)
+  {
+      std::swap(_points, other._points);
+  }
+
   PlotDataGeneric& operator = (const PlotDataGeneric<Time,Value>& other) = delete;
 
   virtual ~PlotDataGeneric() {}
@@ -79,6 +84,8 @@ public:
 
   void setMaximumRangeX(Time max_range);
 
+  Time maximumRangeX() const { return _max_range_X; }
+
   const Point& front() const { return _points.front(); }
 
   const Point& back() const { return _points.back(); }
@@ -89,11 +96,9 @@ protected:
 
   std::string _name;
   std::deque<Point> _points;
-
   QColor _color_hint;
 
 private:
-
   Time _max_range_X;
 };
 

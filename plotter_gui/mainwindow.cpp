@@ -1010,15 +1010,19 @@ void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
                                                        std::forward_as_tuple(name)
                                                        ).first;
         }
-        else{
-            if( delete_older ){
-                plot_with_same_name->second.clear();
-            }
-        }
-
-        for (size_t i=0; i< source_plot.size(); i++)
+        T& destination_plot = plot_with_same_name->second;
+        if( delete_older )
         {
-            plot_with_same_name->second.pushBack( source_plot.at(i) );
+            double max_range_x = destination_plot.maximumRangeX();
+            destination_plot.swapData(source_plot);
+            destination_plot.setMaximumRangeX(max_range_x); // just in case
+        }
+        else
+        {
+            for (size_t i=0; i< source_plot.size(); i++)
+            {
+                destination_plot.pushBack( source_plot.at(i) );
+            }
         }
         source_plot.clear();
     }
