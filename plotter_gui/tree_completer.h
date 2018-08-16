@@ -14,6 +14,7 @@ class TreeItem
 public:
     explicit TreeItem(QStandardItem* item): _item(item)
     {
+
     }
 
     TreeItem* appendChild(const QString& name, QStandardItem* item)
@@ -42,11 +43,20 @@ class TreeModelCompleter : public QCompleter
 {
 
 public:
-    TreeModelCompleter(QStandardItemModel *model, QObject *parent = 0):
-        QCompleter(model, parent),
-        _root_tree_item(model->invisibleRootItem())
+    TreeModelCompleter(QObject *parent = 0):
+        QCompleter(parent),
+        _model(new QStandardItemModel()),
+        _root_tree_item(nullptr)
     {
         setModelSorting( QCompleter::CaseInsensitivelySortedModel );
+        setModel(_model);
+        _root_tree_item = TreeItem(_model->invisibleRootItem());
+    }
+
+    void clear()
+    {
+        _model->clear();
+        _root_tree_item = TreeItem(_model->invisibleRootItem());
     }
 
     QStringList splitPath(const QString &path) const override {
@@ -94,8 +104,8 @@ public:
 
 private:
 
+    QStandardItemModel* _model;
     TreeItem _root_tree_item;
-
 };
 
 

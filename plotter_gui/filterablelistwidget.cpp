@@ -36,8 +36,7 @@ private:
 FilterableListWidget::FilterableListWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FilterableListWidget),
-    _tree_model( new QStandardItemModel(this)),
-    _completer( new TreeModelCompleter(_tree_model, this) )
+    _completer( new TreeModelCompleter(this) )
 {
     ui->setupUi(this);
     ui->tableWidget->viewport()->installEventFilter( this );
@@ -56,12 +55,22 @@ FilterableListWidget::FilterableListWidget(QWidget *parent) :
 
     QSettings settings;
 
-    QString active_filter = settings.value("FilterableListWidget.searchFilter", "radioContains").toString();
-    if( active_filter == "radioRegExp")        ui->radioRegExp->setChecked(true);
-    else if( active_filter == "radioPrefix")   ui->radioPrefix->setChecked(true);
-    else if( active_filter == "radioContains") ui->radioContains->setChecked(true);
+    QString active_filter = settings.value("FilterableListWidget.searchFilter").toString();
+    if( active_filter == "radioRegExp"){
 
-    ui->lineEdit->setCompleter( ui->radioPrefix->isChecked() ? _completer : nullptr );
+        ui->radioRegExp->setChecked(true);
+    }
+    else if( active_filter == "radioPrefix"){
+
+        ui->radioPrefix->setChecked(true);
+    }
+    else if( active_filter == "radioContains"){
+
+        ui->radioContains->setChecked(true);
+    }
+
+    _completer_need_update = ui->radioPrefix->isChecked();
+    ui->lineEdit->setCompleter( _completer_need_update ? _completer : nullptr );
 }
 
 FilterableListWidget::~FilterableListWidget()
@@ -77,7 +86,7 @@ int FilterableListWidget::rowCount() const
 void FilterableListWidget::clear()
 {
     ui->tableWidget->setRowCount(0);
-    _tree_model->clear();
+    _completer->clear();
     ui->labelNumberDisplayed->setText( "0 of 0");
 }
 
@@ -96,13 +105,15 @@ void FilterableListWidget::addItem(const QString &item_name)
 
     ui->tableWidget->setItem(row, 1, val_cell );
 
-    _completer->addToCompletionTree(item_name);
+    if( _completer_need_update )
+    {
+        _completer->addToCompletionTree(item_name);
+    }
 }
 
 void FilterableListWidget::sortColumns()
 {
     ui->tableWidget->sortByColumn(0,Qt::AscendingOrder);
-    _completer->setModel( _tree_model );
 }
 
 
@@ -255,7 +266,17 @@ void FilterableListWidget::on_radioRegExp_toggled(bool checked)
 
 void FilterableListWidget::on_radioPrefix_toggled(bool checked)
 {
-    if(checked) {
+    _completer_need_update = checked;
+
+    if( checked )
+    {
+        _completer->clear();
+        for (int row=0; row< rowCount(); row++)
+        {
+            QTableWidgetItem* item = ui->tableWidget->item(row,0);
+            _completer->addToCompletionTree(item->text());
+        }
+
         updateFilter();
         ui->lineEdit->setCompleter( _completer );
         QSettings settings;
@@ -358,11 +379,14 @@ void FilterableListWidget::removeSelectedCurves()
     }
 
     // rebuild the tree model
-    _tree_model->clear();
-    for (int row=0; row< rowCount(); row++)
+    if( _completer_need_update )
     {
-        QTableWidgetItem* item = ui->tableWidget->item(row,0);
-        _completer->addToCompletionTree(item->text());
+        _completer->clear();
+        for (int row=0; row< rowCount(); row++)
+        {
+            QTableWidgetItem* item = ui->tableWidget->item(row,0);
+            _completer->addToCompletionTree(item->text());
+        }
     }
 
     updateFilter();

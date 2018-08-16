@@ -68,13 +68,13 @@ private:
 
     bool _newX_modifier, _dragging;
 
-    QStandardItemModel* _tree_model;
-
     TreeModelCompleter* _completer;
 
     bool eventFilter(QObject *object, QEvent *event);
 
     void updateTreeModel();
+
+    bool _completer_need_update;
 
 signals:
 
