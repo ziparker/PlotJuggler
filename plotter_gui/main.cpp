@@ -7,25 +7,20 @@
 QString getFunnySubtitle(){
 
     qsrand(time(NULL));
-    int n = qrand() % 18;
+    int n = qrand() % 15;
     switch(n)
     {
-    case 0: return "The best excuse to buy a second monitor";
-    case 1: return "Now with 100% more splashscreens";
-    case 2: return "Because command line tools suck";
-    case 3: return "Time-series at your fingertips";
+    case 0: return "Now with less bugs than usual...";
+    case 1: return "Talk is cheap, show me the data!";
+    case 2: return "The visualization tool that you deserve";
+    case 3: return "Timeseries, timeseries everywhere!";
     case 4: return "Changing the world, one plot at a time";
-    case 5: return "Have you starred me on Github?";
-    case 6: return "Insert [useless message] here";
-    case 7: return "\"Harry Plotter\" was also an option";
-    case 8: return "Add data and mix vigorously";
-    case 9: return "Just Plot It!";
-    case 10: return "I didn't find a better name...";
-    case 11: return "Happy Plotting, or get your money back";
-    case 12: return "\"It won't take long to code that\".. Davide, 2014";
-    case 13: return "Startup is actually fast. I added splashscreens for fun";
-    case 14: return "Graphic-less version coming soon";
-    case 15: return "Visualize data responsibly";
+    case 5: return "\"Harry Plotter\" was also an option";
+    case 6: return "Add data and mix vigorously";
+    case 7: return "Just Plot It!";
+    case 8: return "I didn't find a better name...";
+    case 9: return "\"It won't take long to code that\".. Davide, 2014";
+    case 10: return "Visualize data responsibly";
     }
     return "Juggle with data";
 }
@@ -118,7 +113,7 @@ int main(int argc, char *argv[])
 
         for (int i =0; i<(25 + subtitle.size()/2) && !splash.isHidden(); i++ ) {
             app.processEvents();
-            QThread::msleep(100);
+            QThread::msleep(80);
             splash.raise();
         }
 
