@@ -119,12 +119,17 @@ int main(int argc, char *argv[])
         splash.move(currentDesktopsCenter - splash.rect().center());
 
         splash.show();
+        app.processEvents();
+        splash.raise();
+
+        const auto deadline = QDateTime::currentDateTime().addMSecs( 100*(20 + subtitle.size()*0.4) );
 
         MainWindow w( parser );
 
-        for (int i =0; i<(25 + subtitle.size()/2) && !splash.isHidden(); i++ ) {
+        while( QDateTime::currentDateTime() < deadline && !splash.isHidden() )
+        {
             app.processEvents();
-            QThread::msleep(75);
+            QThread::msleep(100);
             splash.raise();
         }
 
