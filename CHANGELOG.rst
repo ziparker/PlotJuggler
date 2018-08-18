@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.8.1 (2018-08-18)
+------------------
 * message moved back to the ROS plugin
 * More informative dialog (issue #100)
 * many improvements related to  FilteredTableListWidget, issue #103
