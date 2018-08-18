@@ -10,6 +10,7 @@
 #include <rosbag/view.h>
 #include <sys/sysinfo.h>
 #include <QSettings>
+#include <QElapsedTimer>
 
 #include "../dialog_select_ros_topics.h"
 #include "../shape_shifter_factory.hpp"
@@ -55,6 +56,8 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
                              QString(ex.what()) );
         return PlotDataMapRef();
     }
+    QElapsedTimer timer;
+    timer.start();
 
     rosbag::View bag_view ( *_bag, ros::TIME_MIN, ros::TIME_MAX, true );
     std::vector<const rosbag::ConnectionInfo*> connections = bag_view.getConnections();
@@ -279,6 +282,9 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         PlotDataAny& plot_raw = plot_pair->second;
         plot_raw.pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(msg_instance)) ));
     }
+
+    qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
+
 
     if( !parsed )
     {

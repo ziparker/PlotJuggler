@@ -1195,13 +1195,8 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
         ui->actionReloadPrevious->setEnabled( true );
 
         try{
-            QElapsedTimer timer;
-            timer.start();
-
             PlotDataMapRef mapped_data = _last_dataloader->readDataFromFile( filename, reuse_last_configuration );
             importPlotDataMap(mapped_data, true);
-
-            qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
         }
         catch(std::exception &ex)
         {
