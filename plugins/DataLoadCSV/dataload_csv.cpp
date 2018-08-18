@@ -144,6 +144,7 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
 
     //-----------------
     double prev_time = - std::numeric_limits<double>::max();
+    bool monotonic_warning = false;
 
     while (!inB.atEnd() )
     {
@@ -169,14 +170,19 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
 
                 return PlotDataMapRef();
             }
-            if( t <= prev_time )
+            if( t < prev_time )
             {
                 QMessageBox::StandardButton reply;
                 reply = QMessageBox::warning(0, tr("Error reading file"),
-                                              tr("Selected time in not strictly  monotonic. Loading will be aborted\n") );
+                                              tr("Selected time in not strictly monotonic. Loading will be aborted\n") );
 
                 return PlotDataMapRef();
             }
+            else if (t == prev_time)
+            {
+                monotonic_warning = true;
+            }
+
             prev_time = t;
         }
 
@@ -210,10 +216,18 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
         progress_dialog.cancel();
         plot_data.numeric.erase( plot_data.numeric.begin(), plot_data.numeric.end() );
     }
+
+    if( monotonic_warning )
+    {
+        QString message = "Two consecutive samples had the same X value (i.e. time).\n"
+                          "Since PlotJuggler makes the assumption that timeseries are strictly monotonic, you "
+                          "might experience undefined behaviours.\n\n"
+                          "You have been warned...";
+        QMessageBox::warning(0, tr("Warning"), message );
+    }
+
     return plot_data;
 }
-
-
 
 DataLoadCSV::~DataLoadCSV()
 {
