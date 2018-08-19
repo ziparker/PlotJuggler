@@ -244,9 +244,9 @@ void TabbedPlotWidget::on_savePlotsToFile()
             int delta_X = pixmap.width() /  matrix->colsCount();
             int delta_Y = pixmap.height() /  matrix->rowsCount();
 
-            for (int c=0; c< matrix->colsCount(); c++)
+            for (unsigned c=0; c< matrix->colsCount(); c++)
             {
-                for (int r=0; r< matrix->rowsCount(); r++)
+                for (unsigned r=0; r< matrix->rowsCount(); r++)
                 {
                     PlotWidget* widget = matrix->plotAt(r,c);
                     QRect rect(delta_X*c, delta_Y*r, delta_X, delta_Y);
