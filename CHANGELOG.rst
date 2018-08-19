@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.8.2 (2018-08-19)
+------------------
 * bug fix (crash from zombie PlotMatrix)
 * Contributors: Davide Faconti
 
