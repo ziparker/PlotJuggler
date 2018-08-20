@@ -547,7 +547,7 @@ void MainWindow::buildDummyData()
     PlotDataMapRef datamap;
 
     static int count = 0;
-    size_t SIZE = 1000;
+    size_t SIZE = 10000;
     QElapsedTimer timer;
     timer.start();
     QStringList  words_list;
