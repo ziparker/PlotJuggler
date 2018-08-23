@@ -38,19 +38,19 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
 {
   std::vector<std::pair<QString,QString>> all_topics;
   rosbag::View bag_view ( *_bag, ros::TIME_MIN, ros::TIME_MAX, true );
-  std::vector<const rosbag::ConnectionInfo*> connections = bag_view.getConnections();
 
-  for(unsigned i=0; i<connections.size(); i++)
+  for(auto& conn: bag_view.getConnections() )
   {
-      const auto&  topic      =  connections[i]->topic;
-      const auto&  md5sum     =  connections[i]->md5sum;
-      const auto&  datatype   =  connections[i]->datatype;
-      const auto&  definition =  connections[i]->msg_def;
+      const auto&  topic      =  conn->topic;
+      const auto&  md5sum     =  conn->md5sum;
+      const auto&  datatype   =  conn->datatype;
+      const auto&  definition =  conn->msg_def;
 
       all_topics.push_back( std::make_pair(QString( topic.c_str()), QString( datatype.c_str()) ) );
       _parser->registerMessageDefinition(topic, RosIntrospection::ROSType(datatype), definition);
       RosIntrospectionFactory::registerMessage(topic, md5sum, datatype, definition);
   }
+  return all_topics;
 }
 
 void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
@@ -63,7 +63,7 @@ void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
 
   RenamedValues renamed_value;
 
-  for(rosbag::MessageInstance msg_instance: bag_view )
+  for(const rosbag::MessageInstance& msg_instance: bag_view )
   {
       const std::string& topic_name  = msg_instance.getTopic();
       const std::string key = prefix + topic_name;
@@ -180,23 +180,25 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     progress_dialog.show();
 
     PlotDataMapRef plot_map;
+
     FlatMessage flat_container;
     std::vector<uint8_t> buffer;
     RenamedValues renamed_values;
 
-    bool parsed = true;
+    bool warning_max_arraysize = false;
     bool warning_use_header_stamp_ignored = false;
-    bool warning_monotonic_time = true;
+    bool warning_monotonic_time = false;
     bool warning_numerical_cancellation = false;
     std::unordered_set<std::string> problematic_headerstamp;
     std::unordered_set<std::string> problematic_monotonic;
     std::unordered_set<std::string> problematic_cancellation;
+    std::unordered_set<std::string> problematic_max_arraysize;
     int msg_count = 0;
 
     QElapsedTimer timer;
     timer.start();
 
-    for(rosbag::MessageInstance msg_instance: bag_view_selected )
+    for(const rosbag::MessageInstance& msg_instance: bag_view_selected )
     {
         const std::string& topic_name  = msg_instance.getTopic();
         const size_t msg_size  = msg_instance.size();
@@ -216,7 +218,15 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         ros::serialization::OStream stream(buffer.data(), buffer.size());
         msg_instance.write(stream);
 
-        parsed &= _parser->deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, max_array_size );
+        bool max_size_ok = _parser->deserializeIntoFlatContainer( topic_name,
+                                                                  absl::Span<uint8_t>(buffer),
+                                                                  &flat_container,
+                                                                  max_array_size );
+        if( !max_size_ok )
+        {
+          warning_max_arraysize = true;
+          problematic_max_arraysize.insert(topic_name);
+        }
         _parser->applyNameTransform( topic_name, flat_container, &renamed_values );
 
         double msg_time = msg_instance.getTime().toSec();
@@ -250,14 +260,13 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
 
             PlotData& plot_data = plot_pair->second;
             size_t data_size = plot_data.size();
-            if( warning_monotonic_time  && data_size>0 )
+            if( data_size > 0 )
             {
-              const double last_time = plot_data.at(data_size-1).x;
-              warning_monotonic_time = (msg_time > last_time);
-              if(!warning_monotonic_time)
+              const double last_time = plot_data.back().x;
+              if( msg_time < last_time)
               {
-                qDebug() << "Not monotonic time in [" << key.c_str()
-                         << "]: " << msg_time << " / " << last_time;
+                warning_monotonic_time = true;
+                problematic_monotonic.insert(key);
               }
             }
 
@@ -296,14 +305,14 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
 
-    if( !parsed )
+    if( warning_max_arraysize )
     {
-      QMessageBox::warning(0, tr("Warning"),
-                           tr("Some fields were not parsed, because they contain\n"
-                              "one or more vectors having more than %1 elements.").arg(max_array_size) );
+      QString message = QString("The following topics contain arrays with more than %1 elements.\n"
+                                "They were trunkated to the maximum array size %1\n").arg(max_array_size);
+      DialogWithItemList::warning( message, problematic_max_arraysize );
     }
 
-    if( !warning_monotonic_time )
+    if( warning_monotonic_time )
     {
       QString message = "The time of one or more fields is not strictly monotonic.\n"
                          "Some plots will not be displayed correctly\n";
@@ -311,10 +320,9 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
       if( use_header_stamp)
       {
         message += "\nNOTE: you should probably DISABLE this checkbox:\n\n"
-                   "[If present, use the timestamp in the field header.stamp]";
+                   "[If present, use the timestamp in the field header.stamp]\n";
       }
-
-      QMessageBox::warning(0, tr("Warning"), message );
+      DialogWithItemList::warning( message, problematic_monotonic );
     }
 
     if( warning_use_header_stamp_ignored )
@@ -322,9 +330,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         QString message = "You checked the option:\n\n"
                           "[If present, use the timestamp in the field header.stamp]\n\n"
                           "But the [header.stamp] of one or more messages were NOT initialized correctly.\n";
-
-        auto dialog = new DialogWithItemList(0, tr("Warning"), message, problematic_headerstamp );
-        dialog->exec();
+        DialogWithItemList::warning( message, problematic_headerstamp );
     }
 
     if( warning_numerical_cancellation )
@@ -332,9 +338,8 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         QString message = "During the parsing process, one or more conversions to double failed"
                           " because of numerical cancellation.\n"
                           "This happens when the absolute value of a long integer exceed 2^52.\n\n"
-                          "You have been warned... don't trust the following timeseries";
-        auto dialog = new DialogWithItemList(0, tr("Warning"), message, problematic_cancellation );
-        dialog->exec();
+                          "You have been warned... don't trust the following timeseries\n";
+        DialogWithItemList::warning( message, problematic_cancellation );
     }
     return plot_map;
 }
