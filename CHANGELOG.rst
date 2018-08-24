@@ -2,6 +2,14 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* bug fix (crash when detaching a _point_marker)
+* more informative error messages
+* cleanups
+* more compact view and larger dummyData
+* Contributors: Davide Faconti
+
 1.8.2 (2018-08-19)
 ------------------
 * bug fix (crash from zombie PlotMatrix)
