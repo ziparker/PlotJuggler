@@ -887,7 +887,7 @@ void MainWindow::deleteDataMultipleCurves(const std::vector<std::string> &curves
 
     for( auto& it: _mapped_plot_data.numeric)
     {
-        _curvelist_widget->addItem( it.first.c_str() );
+        _curvelist_widget->addItem( QString::fromStdString(it.first) );
     }
 
     if( _curvelist_widget->rowCount() == 0)
