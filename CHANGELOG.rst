@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.8.3 (2018-08-24)
+------------------
 * bug fix (crash when detaching a _point_marker)
 * more informative error messages
 * cleanups
