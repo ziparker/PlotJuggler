@@ -88,6 +88,8 @@ private:
     bool eventFilter(QObject *object, QEvent *event);
 
     void updateTreeModel();
+    
+    QModelIndexList getNonHiddenSelectedRows();
 
     bool _completer_need_update;
 
