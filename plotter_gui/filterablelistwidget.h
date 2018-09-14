@@ -101,7 +101,7 @@ signals:
 
     void hiddenItemsChanged();
 
-    void deleteCurve(const std::string& curve_name);
+    void deleteCurves(const std::vector<std::string>& curve_names);
 
 };
 

@@ -248,15 +248,15 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
 
 QModelIndexList FilterableListWidget::getNonHiddenSelectedRows()
 {
-  QModelIndexList non_hidden_list;
-  for (const auto &selected_index : _table_view->selectionModel()->selectedRows(0))
-  {
-    if (!_table_view->isRowHidden(selected_index.row()))
+    QModelIndexList non_hidden_list;
+    for (const auto &selected_index : _table_view->selectionModel()->selectedRows(0))
     {
-      non_hidden_list.append(selected_index);
+        if (!_table_view->isRowHidden(selected_index.row()))
+        {
+            non_hidden_list.append(selected_index);
+        }
     }
-  }
-  return non_hidden_list;
+    return non_hidden_list;
 }
 
 
@@ -386,12 +386,14 @@ void FilterableListWidget::removeSelectedCurves()
 
     if (reply == QMessageBox::Yes)
     {
-      auto selected_rows = getNonHiddenSelectedRows();
-      for (int i = selected_rows.size() - 1; i >= 0; i--)
-      {
-        auto item = _model->item(selected_rows.at(i).row(), 0);
-        emit deleteCurve(item->text().toStdString());
-      }
+        std::vector<std::string> curve_names;
+        auto selected_rows = getNonHiddenSelectedRows();
+        for (int i = selected_rows.size() - 1; i >= 0; i--)
+        {
+            auto item = _model->item(selected_rows.at(i).row(), 0);
+            curve_names.push_back( item->text().toStdString() );
+        }
+        emit deleteCurves(curve_names);
     }
 
     // rebuild the tree model
