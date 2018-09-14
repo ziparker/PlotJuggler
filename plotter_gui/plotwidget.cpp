@@ -232,6 +232,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     _action_removeCurve->setEnabled( ! _curve_list.empty() );
     _action_removeAllCurves->setEnabled( ! _curve_list.empty() );
     _action_changeColorsDialog->setEnabled(  ! _curve_list.empty() );
+    _action_phaseXY->setEnabled( _axisX != nullptr );
 
     menu.exec( canvas()->mapToGlobal(pos) );
 }
@@ -358,7 +359,7 @@ void PlotWidget::removeCurve(const std::string &name)
 
         emit curveListChanged();
     }
-    if( isXYPlot() && _axisX->name() == name)
+    if( _axisX && _axisX->name() == name)
     {
         _axisX = nullptr;
         for(auto& it : _curve_list)
@@ -369,7 +370,6 @@ void PlotWidget::removeCurve(const std::string &name)
         _action_noTransform->trigger();
         emit curveListChanged();
     }
-
 }
 
 bool PlotWidget::isEmpty() const
@@ -470,9 +470,9 @@ void PlotWidget::detachAllCurves()
     for(auto& it: _curve_list)   { it.second->detach(); }
     for(auto& it: _point_marker) { it.second->detach(); }
 
+    _axisX = nullptr;
     if( isXYPlot() )
     {
-        _axisX = nullptr;
         _action_noTransform->trigger();
     }
 

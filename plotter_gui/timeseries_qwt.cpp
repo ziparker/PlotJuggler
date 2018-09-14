@@ -245,11 +245,8 @@ nonstd::optional<QPointF> TimeseriesQwt::sampleFromTime(double t)
 
 void TimeseriesQwt::setTransform(TimeseriesQwt::Transform trans)
 {
-    if(trans != _transform)
-    {
-        _transform = trans;
-        updateData();
-    }
+    _transform = trans;
+    updateData();
 }
 
 void TimeseriesQwt::setTimeOffset(double new_offset)
