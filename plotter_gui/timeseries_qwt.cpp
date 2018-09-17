@@ -9,6 +9,7 @@ bool if_xy_plot_failed_show_dialog = true;
 
 TimeseriesQwt::TimeseriesQwt(const PlotData *base, double time_offset):
     _plot_data(base),
+    _alternative_X_axis(nullptr),
     _subsample(1),
     _transform( noTransform ),
     _time_offset(time_offset)

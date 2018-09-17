@@ -64,8 +64,9 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _legend( 0 ),
     _grid( 0 ),
     _mapped_data( datamap ),
-    _show_line_and_points(false),
     _current_transform( TimeseriesQwt::noTransform ),
+    _show_line_and_points(false),
+    _axisX(nullptr),
     _time_offset(0.0)
 {
     this->setAcceptDrops( true );
