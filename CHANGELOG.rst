@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.8.4 (2018-09-17)
+------------------
 * add tooltip
 * fix issue #109
 * CMakeLists.txt add mac homebrew qt5 install directory (#111)
