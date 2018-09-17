@@ -1334,34 +1334,6 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
         //        QKeyEvent *key_event = static_cast<QKeyEvent*>(event);
         //        qDebug() << key_event->key();
     }break;
-        //---------------------------------
-    case QEvent::Paint :
-    {
-        if ( obj == this->canvas())
-        {
-            if ( !_fps_timeStamp.isValid() )
-            {
-                _fps_timeStamp.start();
-                _fps_counter = 0;
-            }
-            else{
-                _fps_counter++;
-
-                const double elapsed = _fps_timeStamp.elapsed() / 1000.0;
-                if ( elapsed >= 1 )
-                {
-                    QFont font_title;
-                    font_title.setPointSize(9);
-                    QwtText fps;
-                    fps.setText( QString::number( qRound( _fps_counter / elapsed ) ) );
-                    fps.setFont(font_title);
-                    //qDebug() << _fps_counter / elapsed ;
-                    _fps_counter = 0;
-                    _fps_timeStamp.start();
-                }
-            }
-        }
-    }break;
 
     case QEvent::DragEnter: {
         this->dragEnterEvent( static_cast<QDragEnterEvent*>(event) );
