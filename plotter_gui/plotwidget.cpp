@@ -235,6 +235,15 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     _action_changeColorsDialog->setEnabled(  ! _curve_list.empty() );
     _action_phaseXY->setEnabled( _axisX != nullptr );
 
+    if( !_axisX )
+    {
+        menu.setToolTipsVisible(true);
+        _action_phaseXY->setToolTip(
+                    "To show a XY plot, you must first provide the X axis.\n"
+                    "Drag andn drop a curve using the RIGHT mouse\n"
+                    "button instead of the left one." );
+    }
+
     menu.exec( canvas()->mapToGlobal(pos) );
 }
 
