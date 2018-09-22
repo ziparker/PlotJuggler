@@ -74,17 +74,17 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     }
 
     connect( _curvelist_widget->getView()->verticalScrollBar(), &QScrollBar::sliderMoved,
-             this, &MainWindow::updateLeftTableValues );
+             this, &MainWindow::onUpdateLeftTableValues );
 
     connect( _curvelist_widget, &FilterableListWidget::hiddenItemsChanged,
-             this, &MainWindow::updateLeftTableValues );
+             this, &MainWindow::onUpdateLeftTableValues );
 
     connect(_curvelist_widget, &FilterableListWidget::deleteCurves,
             this, &MainWindow::deleteDataMultipleCurves );
 
     connect(_curvelist_widget->getView()->verticalScrollBar(),
             &QScrollBar::valueChanged,
-            this, &MainWindow::updateLeftTableValues );
+            this, &MainWindow::onUpdateLeftTableValues );
 
     connect( ui->timeSlider, &RealSlider::realValueChanged,
              this, &MainWindow::onTimeSlider_valueChanged );
@@ -226,7 +226,7 @@ void MainWindow::onRedoInvoked()
 }
 
 
-void MainWindow::updateLeftTableValues()
+void MainWindow::onUpdateLeftTableValues()
 {
     auto table_model = _curvelist_widget->getTable();
     auto table_view  = _curvelist_widget->getView();
@@ -310,7 +310,7 @@ void MainWindow::onTimeSlider_valueChanged(double relative_time)
 void MainWindow::onTrackerTimeUpdated(double absolute_time, bool do_replot)
 {
     updatedDisplayTime();
-    updateLeftTableValues();
+    onUpdateLeftTableValues();
 
     for ( auto& it: _state_publisher)
     {

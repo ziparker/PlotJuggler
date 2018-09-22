@@ -156,7 +156,7 @@ private:
 
     void setDefaultRangeX();
 
-    const PlotData* _axisX;
+    const PlotData* _axisX = nullptr;
 
     double _time_offset;
 
