@@ -822,12 +822,11 @@ PlotData::RangeTime PlotWidget::getMaximumRangeX() const
     for(auto& it: _curve_list)
     {
         TimeseriesQwt* series = static_cast<TimeseriesQwt*>( it.second->data() );
-        auto range_X = series->getVisualizationRangeX();
+          const auto max_range_X = series->getVisualizationRangeX();
+        if( !max_range_X ) continue;
 
-        if( !range_X ) continue;
-
-        if( left  > range_X->min )    left  = range_X->min;
-        if( right < range_X->max )    right = range_X->max;
+        left  = std::min(max_range_X->min, left);
+        right = std::max(max_range_X->max, right);
     }
 
     if( left > right ){
