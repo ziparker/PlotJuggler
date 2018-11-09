@@ -59,7 +59,7 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     QwtPlot(parent),
     _zoomer( 0 ),
     _magnifier(0 ),
-    _panner( 0 ),
+    _panner1( 0 ),
     _tracker ( 0 ),
     _legend( 0 ),
     _grid( 0 ),
@@ -93,7 +93,8 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _grid = new QwtPlotGrid();
     _zoomer = ( new PlotZoomer( this->canvas() ) );
     _magnifier = ( new PlotMagnifier( this->canvas() ) );
-    _panner = ( new QwtPlotPanner( this->canvas() ) );
+    _panner1 = ( new QwtPlotPanner( this->canvas() ) );
+    _panner2 = ( new QwtPlotPanner( this->canvas() ) );
     _tracker = ( new CurveTracker( this ) );
 
     _grid->setPen(QPen(Qt::gray, 0.0, Qt::DotLine));
@@ -111,7 +112,11 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     connect(_magnifier, &PlotMagnifier::rescaled, this, &PlotWidget::on_externallyResized );
     connect(_magnifier, &PlotMagnifier::rescaled, this, &PlotWidget::replot );
 
-    _panner->setMouseButton(  Qt::LeftButton, Qt::ControlModifier);
+    _panner1->setMouseButton( Qt::LeftButton, Qt::ControlModifier);
+    _panner2->setMouseButton( Qt::MiddleButton, Qt::NoModifier);
+
+    connect(_panner1, &QwtPlotPanner::panned, this, &PlotWidget::on_panned );
+    connect(_panner2, &QwtPlotPanner::panned, this, &PlotWidget::on_panned );
 
     //-------------------------
 
@@ -164,15 +169,23 @@ void PlotWidget::buildActions()
     iconZoomH.addFile(QStringLiteral(":/icons/resources/resize_horizontal.png"), QSize(26, 26));
     _action_zoomOutHorizontally = new QAction(tr("&Zoom Out Horizontally"), this);
     _action_zoomOutHorizontally->setIcon(iconZoomH);
-    connect(_action_zoomOutHorizontally, &QAction::triggered, this, &PlotWidget::on_zoomOutHorizontal_triggered);
-    connect(_action_zoomOutHorizontally, &QAction::triggered, this, &PlotWidget::undoableChange );
+    connect(_action_zoomOutHorizontally, &QAction::triggered, this, [this]()
+    {
+      on_zoomOutHorizontal_triggered(true);
+      replot();
+      emit undoableChange();
+    });
 
     QIcon iconZoomV;
     iconZoomV.addFile(QStringLiteral(":/icons/resources/resize_vertical.png"), QSize(26, 26));
     _action_zoomOutVertically = new QAction(tr("&Zoom Out Vertically"), this);
     _action_zoomOutVertically->setIcon(iconZoomV);
-    connect(_action_zoomOutVertically, &QAction::triggered, this, &PlotWidget::on_zoomOutVertical_triggered);
-    connect(_action_zoomOutVertically, &QAction::triggered, this, &PlotWidget::undoableChange );
+    connect(_action_zoomOutVertically, &QAction::triggered, this, [this]()
+    {
+      on_zoomOutVertical_triggered(true);
+      replot();
+      emit undoableChange();
+    });
 
     _action_noTransform = new QAction(tr("&NO Transform"), this);
     _action_noTransform->setCheckable( true );
@@ -493,6 +506,11 @@ void PlotWidget::detachAllCurves()
     emit curveListChanged();
 
     replot();
+}
+
+void PlotWidget::on_panned(int dx, int dy)
+{
+   on_externallyResized(currentBoundingRect());
 }
 
 QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
@@ -834,7 +852,7 @@ PlotData::RangeTime PlotWidget::getMaximumRangeX() const
         right = 0;
     }
 
-    double margin = 0.1;
+    double margin = 0.0;
     if( fabs(right - left) > std::numeric_limits<double>::epsilon() )
     {
         margin = isXYPlot() ? ((right-left) * 0.025) : 0.0;
@@ -950,7 +968,8 @@ void PlotWidget::launchRemoveCurveDialog()
 
     for(auto& it: _curve_list)
     {
-        dialog->addCurveName( QString::fromStdString( it.first ) );
+        dialog->addCurveName( QString::fromStdString( it.first ),
+                              it.second->pen().color() );
     }
 
     dialog->exec();

@@ -75,6 +75,8 @@ public slots:
 
     void detachAllCurves();
 
+    void on_panned(int dx, int dy);
+
     void zoomOut(bool emit_signal);
 
     void on_zoomOutHorizontal_triggered(bool emit_signal = true);
@@ -137,7 +139,8 @@ private:
 
     PlotZoomer* _zoomer;
     PlotMagnifier* _magnifier;
-    QwtPlotPanner* _panner;
+    QwtPlotPanner* _panner1;
+    QwtPlotPanner* _panner2;
 
     CurveTracker* _tracker;
     QwtPlotLegendItem* _legend;
