@@ -67,7 +67,8 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _current_transform( TimeseriesQwt::noTransform ),
     _show_line_and_points(false),
     _axisX(nullptr),
-    _time_offset(0.0)
+    _time_offset(0.0),
+    _dragging( { DragInfo::NONE, {} } )
 {
     this->setAcceptDrops( true );
 
@@ -83,7 +84,7 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     canvas->setPaintAttribute( QwtPlotCanvas::BackingStore, true );
 
     this->setCanvas( canvas );
-    this->setCanvasBackground( QColor( 250, 250, 250 ) );
+    this->setCanvasBackground( Qt::white );
     this->setAxisAutoScale(0, true);
 
     this->axisScaleEngine(QwtPlot::xBottom)->setAttribute(QwtScaleEngine::Floating,true);
@@ -415,17 +416,32 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
     {
         QByteArray encoded = mimeData->data( format );
         QDataStream stream(&encoded, QIODevice::ReadOnly);
+        _dragging.curves.clear();
+        _dragging.source = event->source();
 
-        if( format.contains( "curveslist") )
+        while (!stream.atEnd())
         {
+            QString curve_name;
+            stream >> curve_name;
+            _dragging.curves.push_back( curve_name );
+        }
+
+        if( format.contains( "curveslist/add_curve") )
+        {
+            _dragging.mode = DragInfo::CURVES;
+            event->acceptProposedAction();
+        }
+        if( format.contains( "curveslist/new_X_axis") && _dragging.curves.size() == 1 )
+        {
+            _dragging.mode = DragInfo::NEW_X;
             event->acceptProposedAction();
         }
         if( format.contains( "plot_area")  )
         {
-            QString source_name;
-            stream >> source_name;
-
-            if(QString::compare( windowTitle(),source_name ) != 0 ){
+            if(_dragging.curves.size() == 1 &&
+               windowTitle() != _dragging.curves.front() )
+            {
+                _dragging.mode = DragInfo::SWAP_PLOTS;
                 event->acceptProposedAction();
             }
         }
@@ -435,57 +451,64 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
 
 void PlotWidget::dragLeaveEvent(QDragLeaveEvent*)
 {
-    changeBackgroundColor( QColor( 250, 250, 250 ) );
+    QPoint local_pos =  canvas()->mapFromGlobal(QCursor::pos()) ;
+    // prevent spurious exits
+    if( canvas()->rect().contains( local_pos ))
+    {
+       // changeBackgroundColor( QColor( 250, 150, 150 ) );
+    }
+    else{
+      changeBackgroundColor( Qt::white );
+      _dragging.mode = DragInfo::NONE;
+      _dragging.curves.clear();
+    }
 }
 
-void PlotWidget::dropEvent(QDropEvent *event)
+void PlotWidget::dropEvent(QDropEvent *)
 {
-    setCanvasBackground( QColor( 250, 250, 250 ) );
+    bool curves_changed = false;
+    bool background_changed = false;
 
-    const QMimeData *mimeData = event->mimeData();
-    QStringList mimeFormats = mimeData->formats();
-
-    for(const QString& format: mimeFormats)
+    if( _dragging.mode == DragInfo::CURVES)
     {
-        QByteArray encoded = mimeData->data( format );
-        QDataStream stream(&encoded, QIODevice::ReadOnly);
-
-        if( format.contains( "curveslist/add_curve") )
+        for( const auto& curve_name : _dragging.curves)
         {
-            bool curve_added = false;
-            while (!stream.atEnd())
-            {
-                QString curve_name;
-                stream >> curve_name;
-                bool added = addCurve( curve_name.toStdString() );
-                curve_added = curve_added || added;
-            }
-            if( curve_added )
-            {
-                zoomOut(false);
-                replot();
-                emit curveListChanged();
-                emit undoableChange();
-            }
-            event->acceptProposedAction();
-        }
-        else if( format.contains( "curveslist/new_X_axis") )
-        {
-            QString curve_name;
-            stream >> curve_name;
-            changeAxisX(curve_name);
-            event->acceptProposedAction();
-        }
-        else if( format.contains( "plot_area") )
-        {
-            QString source_name;
-            stream >> source_name;
-            PlotWidget* source_plot = static_cast<PlotWidget*>( event->source() );
-
-            emit swapWidgetsRequested( source_plot, this );
-            event->acceptProposedAction();
+            bool added = addCurve( curve_name.toStdString() );
+            curves_changed = curves_changed || added;
         }
     }
+    else if( _dragging.mode == DragInfo::NEW_X)
+    {
+        changeAxisX( _dragging.curves.front() );
+        curves_changed = true;
+    }
+    else if( _dragging.mode == DragInfo::SWAP_PLOTS )
+    {
+        auto plot_widget = dynamic_cast<PlotWidget*>(_dragging.source);
+        if( plot_widget )
+        {
+            emit swapWidgetsRequested( plot_widget, this );
+        }
+    }
+    if( _dragging.mode != DragInfo::NONE &&
+       canvasBackground().color() != Qt::white)
+    {
+        this->setCanvasBackground( Qt::white );
+        background_changed = true;
+    }
+
+    if( curves_changed )
+    {
+        zoomOut(false);
+        emit curveListChanged();
+        emit undoableChange();
+    }
+    if( curves_changed || background_changed)
+    {
+        replot();
+    }
+    _dragging.mode = DragInfo::NONE;
+    _dragging.curves.clear();
 }
 
 void PlotWidget::detachAllCurves()
@@ -1346,34 +1369,22 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     }break;
 
     case QEvent::Leave:
-    {
-        changeBackgroundColor( QColor( 250, 250, 250 ) );
-    }break;
-        //---------------------------------
     case QEvent::MouseButtonRelease :
     {
-        changeBackgroundColor( QColor( 250, 250, 250 ) );
-        QApplication::restoreOverrideCursor();
-    }break;
-        //---------------------------------
-    case QEvent::KeyPress:
-    {
-        //        QKeyEvent *key_event = static_cast<QKeyEvent*>(event);
-        //        qDebug() << key_event->key();
+        if( _dragging.mode == DragInfo::NONE )
+        {
+            changeBackgroundColor( Qt::white );
+            QApplication::restoreOverrideCursor();
+        }
     }break;
 
-    case QEvent::DragEnter: {
-        this->dragEnterEvent( static_cast<QDragEnterEvent*>(event) );
-    } break;                         // drag moves into widget
-    case QEvent::DragMove:  {
-        this->dragMoveEvent(  static_cast<QDragMoveEvent*>(event ) );
-    } break;
-    case QEvent::DragLeave: {
-        this->dragLeaveEvent( static_cast<QDragLeaveEvent*>(event ) );
-    } break;
-    case QEvent::Drop:      {
-        this->dropEvent( static_cast<QDropEvent*>(event ) );
-    } break;
+    case QEvent::Enter:
+    {
+        // If you think that this code doesn't make sense, you are right.
+        // This is the workaround I have eventually found to avoid the problem with spurious
+        // QEvent::DragLeave (I have never found the origin of the bug).
+        dropEvent(nullptr);
+    }break;
 
 
     } //end switch

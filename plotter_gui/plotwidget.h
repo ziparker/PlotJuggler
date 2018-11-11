@@ -149,6 +149,14 @@ private:
     PlotDataMapRef& _mapped_data;
     TimeseriesQwt::Transform _current_transform;
 
+    struct DragInfo{
+        enum{ NONE, CURVES, NEW_X, SWAP_PLOTS} mode;
+        std::vector<QString> curves;
+        QObject* source;
+    };
+
+    DragInfo _dragging;
+
     bool addCurve(const std::string &name);
 
     void buildActions();
@@ -166,7 +174,6 @@ private:
     PlotData::RangeValue _custom_Y_limits;
 
     AxisLimitsDialog* _axis_limits_dialog;
-
 };
 
 #endif
