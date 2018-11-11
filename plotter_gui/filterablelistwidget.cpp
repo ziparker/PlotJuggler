@@ -97,6 +97,9 @@ void FilterableListWidget::clear()
 void FilterableListWidget::addItem(const QString &item_name)
 {
     auto item = new CustomSortedTableItem(item_name);
+    QFont font = item->font();
+    font.setPointSize(9);
+    item->setFont(font);
     const int row = rowCount();
     _model->setRowCount(row+1);
     _model->setItem(row, 0, item);
@@ -104,7 +107,9 @@ void FilterableListWidget::addItem(const QString &item_name)
     auto val_cell = new QStandardItem("-");
     val_cell->setTextAlignment(Qt::AlignRight);
     val_cell->setFlags( Qt::NoItemFlags | Qt::ItemIsEnabled );
-    val_cell->setFont(  QFontDatabase::systemFont(QFontDatabase::FixedFont) );
+    font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    font.setPointSize(9);
+    val_cell->setFont( font );
 
     _model->setItem(row, 1, val_cell );
 
