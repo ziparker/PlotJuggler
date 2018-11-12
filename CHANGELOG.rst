@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.9.0 (2018-11-12)
+------------------
 * version bump
 * Spurious DragLeave fixed? (The worst and most annoying bug of PlotJuggler)
 * adjust font size in left panel
