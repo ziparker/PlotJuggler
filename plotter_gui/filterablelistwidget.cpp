@@ -34,19 +34,26 @@ private:
 
 //-------------------------------------------------
 
-FilterableListWidget::FilterableListWidget(QWidget *parent) :
+FilterableListWidget::FilterableListWidget(const std::unordered_map<std::string, CustomPlotPtr> &mapped_math_plots,
+                                           QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FilterableListWidget),
-    _completer( new TreeModelCompleter(this) )
+    _completer( new TreeModelCompleter(this) ),
+    _mapped_math_plots(mapped_math_plots)
 {
     ui->setupUi(this);
     ui->tableView->viewport()->installEventFilter( this );
 
     _model = new QStandardItemModel(0, 2, this);
-    ui->tableView->setModel( _model );
-    ui->tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->resizeSection(1, 120);
+
+    for(auto table_view: {ui->tableView, ui->tableViewCustom})
+    {
+        table_view->viewport()->installEventFilter( this );
+        table_view->setModel( _model );
+        table_view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+        table_view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+        table_view->horizontalHeader()->resizeSection(1, 120);
+    }
 
     ui->widgetOptions->setVisible(false);
 
@@ -74,6 +81,9 @@ FilterableListWidget::FilterableListWidget(QWidget *parent) :
 
     _completer_need_update = ui->radioPrefix->isChecked();
     ui->lineEdit->setCompleter( _completer_need_update ? _completer : nullptr );
+
+    ui->splitter->setStretchFactor(0,10);
+    ui->splitter->setStretchFactor(1,1);
 }
 
 FilterableListWidget::~FilterableListWidget()
@@ -122,6 +132,7 @@ void FilterableListWidget::addItem(const QString &item_name)
 void FilterableListWidget::refreshColumns()
 {
     ui->tableView->sortByColumn(0,Qt::AscendingOrder);
+    ui->tableViewCustom->sortByColumn(0,Qt::AscendingOrder);
     updateFilter();
 }
 
@@ -156,18 +167,20 @@ void FilterableListWidget::keyPressEvent(QKeyEvent *event)
 
 bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
 {
-    QObject *obj = object;
-    while ( obj != NULL )
+    auto obj = object;
+    while ( obj && obj != ui->tableView && obj != ui->tableViewCustom )
     {
-        if( obj == ui->tableView || obj == ui->lineEdit ) break;
         obj = obj->parent();
     }
 
-    //Ignore obj different than tableView
-    if(obj != ui->tableView)
+    //Ignore obj different than tableViews
+    if(!obj)
     {
         return QWidget::eventFilter(object,event);
     }
+
+    bool modifier_pressed = (QGuiApplication::keyboardModifiers() == Qt::ShiftModifier ||
+                             QGuiApplication::keyboardModifiers() == Qt::ControlModifier);
 
     if(event->type() == QEvent::MouseButtonPress)
     {
@@ -175,6 +188,18 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
 
         _dragging = false;
         _drag_start_pos = mouse_event->pos();
+
+        if( !modifier_pressed )
+        {
+            if( obj == ui->tableView)
+            {
+                ui->tableViewCustom->clearSelection() ;
+            }
+            if( obj == ui->tableViewCustom)
+            {
+                ui->tableView->clearSelection() ;
+            }
+        }
 
         if(mouse_event->button() == Qt::LeftButton )
         {
@@ -252,22 +277,30 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
 std::vector<std::string> FilterableListWidget::getNonHiddenSelectedRows()
 {
     std::vector<std::string> non_hidden_list;
-    for (const auto &selected_index : ui->tableView->selectionModel()->selectedRows(0))
+
+    for(auto table_view: {ui->tableView, ui->tableViewCustom})
     {
-        if (!ui->tableView->isRowHidden(selected_index.row()))
+        for (const auto &selected_index : table_view->selectionModel()->selectedRows(0))
         {
-            auto item = _model->item( selected_index.row(), 0 );
-            non_hidden_list.push_back(item->text().toStdString());
+            if (!table_view->isRowHidden(selected_index.row()))
+            {
+                auto item = _model->item( selected_index.row(), 0 );
+                non_hidden_list.push_back(item->text().toStdString());
+            }
         }
     }
     return non_hidden_list;
 }
 
-QTableView *FilterableListWidget::getView() const
+QTableView *FilterableListWidget::getTableView() const
 {
     return ui->tableView;
 }
 
+QTableView *FilterableListWidget::getCustomView() const
+{
+    return ui->tableViewCustom;
+}
 
 void FilterableListWidget::on_radioContains_toggled(bool checked)
 {
@@ -360,7 +393,10 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
 
         if( toHide != ui->tableView->isRowHidden(row) ) updated = true;
 
-        ui->tableView->setRowHidden(row, toHide );
+        bool is_custom_plot = _mapped_math_plots.count( name.toStdString() );
+
+        ui->tableView->setRowHidden(row, toHide || is_custom_plot );
+        ui->tableViewCustom->setRowHidden(row, toHide || !is_custom_plot );
     }
     ui->labelNumberDisplayed->setText( QString::number( visible_count ) + QString(" of ") + QString::number( item_count ) );
 
@@ -376,11 +412,14 @@ void FilterableListWidget::on_pushButtonSettings_toggled(bool checked)
 
 void FilterableListWidget::on_checkBoxHideSecondColumn_toggled(bool checked)
 {
-    if(checked){
-        ui->tableView->hideColumn(1);
-    }
-    else{
-        ui->tableView->showColumn(1);
+    for(auto table_view: {ui->tableView, ui->tableViewCustom})
+    {
+        if(checked){
+            table_view->hideColumn(1);
+        }
+        else{
+            table_view->showColumn(1);
+        }
     }
     emit hiddenItemsChanged();
 }
@@ -415,6 +454,28 @@ void FilterableListWidget::removeSelectedCurves()
 void FilterableListWidget::removeRow(int row)
 {
     _model->removeRow(row);
+}
+
+void FilterableListWidget::on_buttonAddCustom_pressed()
+{
+    auto curve_names = getNonHiddenSelectedRows();
+    if( curve_names.empty() )
+    {
+        emit createMathPlot("");
+    }
+    else
+    {
+        createMathPlot( curve_names.front() );
+    }
+    on_lineEdit_textChanged( ui->lineEdit->text() );
+}
+
+void FilterableListWidget::on_buttonRefreshAll_pressed()
+{
+    for(auto& mp: _mapped_math_plots)
+    {
+        emit refreshMathPlot( mp.first );
+    }
 }
 
 

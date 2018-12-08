@@ -3,6 +3,8 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <qwt_scale_widget.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_scale_engine.h>
 #include <qwt_plot_layout.h>
