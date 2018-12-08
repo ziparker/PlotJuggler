@@ -217,6 +217,7 @@ void AddCustomPlotDialog::importSnippets(const QByteArray& xml_text)
         ui->snippetsListRecent->addItem( snippet.name );
     }
     ui->snippetsListRecent->sortItems();
+    ui->snippetsListSaved->sortItems();
 }
 
 QByteArray AddCustomPlotDialog::exportSnippets() const
@@ -310,10 +311,13 @@ void AddCustomPlotDialog::recentContextMenu(const QPoint &pos)
     {
         auto item = list_recent->selectedItems().first();
         const auto& name = item->text();
-        _snipped_saved.insert( {name, _snipped_recent.at(name) } );
-        list_saved->addItem(item);
 
+        _snipped_saved.insert( {name, _snipped_recent.at(name) } );
+        list_saved->addItem( name );
         list_saved->sortItems();
+
+        _snipped_recent.erase( name );
+        delete list_recent->takeItem( list_recent->row(item) );
     });
     menu.exec( list_recent->mapToGlobal(pos) );
 }

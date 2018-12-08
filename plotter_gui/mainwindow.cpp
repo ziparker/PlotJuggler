@@ -2120,6 +2120,14 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
             qWarning("failed to find custom equation");
             return;
         }
+
+        // clear already esisting data first
+        auto data_it = _mapped_plot_data.numeric.find( name );
+        if( data_it != _mapped_plot_data.numeric.end())
+        {
+           data_it->second.clear();
+        }
+
         dialog.editExistingPlot(*it);
     }
 

@@ -82,8 +82,11 @@ FilterableListWidget::FilterableListWidget(const std::vector<CustomPlotPtr> &map
     _completer_need_update = ui->radioPrefix->isChecked();
     ui->lineEdit->setCompleter( _completer_need_update ? _completer : nullptr );
 
-    ui->splitter->setStretchFactor(0,10);
+    ui->splitter->setStretchFactor(0,5);
     ui->splitter->setStretchFactor(1,1);
+
+    connect(  ui->tableViewCustom->selectionModel(), &QItemSelectionModel::selectionChanged,
+              this, &FilterableListWidget::onCustomSelectionChanged );
 }
 
 FilterableListWidget::~FilterableListWidget()
@@ -465,7 +468,7 @@ void FilterableListWidget::removeRow(int row)
     _model->removeRow(row);
 }
 
-void FilterableListWidget::on_buttonAddCustom_pressed()
+void FilterableListWidget::on_buttonAddCustom_clicked()
 {
     auto curve_names = getNonHiddenSelectedRows();
     if( curve_names.empty() )
@@ -479,7 +482,7 @@ void FilterableListWidget::on_buttonAddCustom_pressed()
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
-void FilterableListWidget::on_buttonRefreshAll_pressed()
+void FilterableListWidget::on_buttonRefreshAll_clicked()
 {
     for(auto& mp: _mapped_math_plots)
     {
@@ -487,4 +490,43 @@ void FilterableListWidget::on_buttonRefreshAll_pressed()
     }
 }
 
+void FilterableListWidget::onCustomSelectionChanged(const QItemSelection&, const QItemSelection &)
+{
+    int selected_items = 0;
 
+    for (const auto &index : ui->tableViewCustom->selectionModel()->selectedRows(0))
+    {
+        if (! ui->tableViewCustom->isRowHidden(index.row()) )
+        {
+            selected_items++;
+        }
+    }
+
+    bool enabled = selected_items == 1;
+    ui->buttonEditCustom->setEnabled( enabled );
+    ui->buttonEditCustom->setToolTip( enabled ? "Edit the selected custom timeserie" :
+                                                "Select a single custom Timeserie to Edit it");
+}
+
+void FilterableListWidget::on_buttonEditCustom_clicked()
+{
+    int selected_count = 0;
+    QModelIndex selected_index;
+    auto table_view = ui->tableViewCustom;
+
+    for (QModelIndex index : table_view->selectionModel()->selectedRows(0))
+    {
+        if (!table_view->isRowHidden( index.row()) )
+        {
+            selected_count++;
+            selected_index = index;
+        }
+    }
+    if( selected_count != 1)
+    {
+        return;
+    }
+
+    auto item = _model->item( selected_index.row(), 0 );
+    editMathPlot( item->text().toStdString() );
+}
