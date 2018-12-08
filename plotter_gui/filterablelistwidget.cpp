@@ -34,7 +34,7 @@ private:
 
 //-------------------------------------------------
 
-FilterableListWidget::FilterableListWidget(const std::unordered_map<std::string, CustomPlotPtr> &mapped_math_plots,
+FilterableListWidget::FilterableListWidget(const std::vector<CustomPlotPtr> &mapped_math_plots,
                                            QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FilterableListWidget),
@@ -393,12 +393,21 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
 
         if( toHide != ui->tableView->isRowHidden(row) ) updated = true;
 
-        bool is_custom_plot = _mapped_math_plots.count( name.toStdString() );
+        const auto name_std = name.toStdString();
+
+        const auto found = std::find_if( _mapped_math_plots.begin(), _mapped_math_plots.end(),
+                                         [&name_std]( const CustomPlotPtr& custom_plot)
+        {
+            return custom_plot->name() == name_std;
+        });
+        const bool is_custom_plot = found != _mapped_math_plots.end();
+
 
         ui->tableView->setRowHidden(row, toHide || is_custom_plot );
         ui->tableViewCustom->setRowHidden(row, toHide || !is_custom_plot );
     }
-    ui->labelNumberDisplayed->setText( QString::number( visible_count ) + QString(" of ") + QString::number( item_count ) );
+    ui->labelNumberDisplayed->setText( QString::number( visible_count ) + QString(" of ") +
+                                       QString::number( item_count ) );
 
     if(updated){
         emit hiddenItemsChanged();
@@ -474,7 +483,7 @@ void FilterableListWidget::on_buttonRefreshAll_pressed()
 {
     for(auto& mp: _mapped_math_plots)
     {
-        emit refreshMathPlot( mp.first );
+        emit refreshMathPlot( mp->name() );
     }
 }
 

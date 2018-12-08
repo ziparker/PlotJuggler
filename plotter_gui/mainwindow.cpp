@@ -740,6 +740,15 @@ void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
     }
 }
 
+std::vector<CustomPlotPtr>::iterator MainWindow::findCustomPlot(const std::string &name)
+{
+    return std::find_if( _custom_plots.begin(), _custom_plots.end(),
+                            [&name]( const CustomPlotPtr& custom_plot)
+    {
+        return custom_plot->name() == name;
+    });
+}
+
 bool MainWindow::xmlLoadState(QDomDocument state_document)
 {
     QDomElement root = state_document.namedItem("root").toElement();
@@ -883,9 +892,8 @@ void MainWindow::onActionSaveLayout()
         }
 
         QDomElement custom_equations =  doc.createElement("customMathEquations");
-        for (const auto& it: _custom_plots)
+        for (const auto& custom_plot: _custom_plots)
         {
-            const CustomPlotPtr& custom_plot = it.second;
             custom_equations.appendChild( custom_plot->xmlSaveState(doc) );
         }
         root.appendChild(custom_equations);
@@ -911,7 +919,7 @@ void MainWindow::deleteDataMultipleCurves(const std::vector<std::string> &curve_
         emit requestRemoveCurveByName( curve_name );
         _mapped_plot_data.numeric.erase( plot_curve );
 
-        auto math_curve = _custom_plots.find( curve_name );
+        auto math_curve = findCustomPlot( curve_name );
         if( math_curve != _custom_plots.end())
         {
             _custom_plots.erase( math_curve );
@@ -1534,10 +1542,18 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
             QMessageBox msgBox;
             msgBox.setWindowTitle("Load Data?");
             msgBox.setText(tr("Do you want to reload the previous datafile?\n\n %1 \n\n").arg(filename));
+
             msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
             QPushButton* buttonBoth = msgBox.addButton(tr("Yes (Both Layout and Datafile)"), QMessageBox::YesRole);
+            msgBox.addButton(QMessageBox::Cancel);
+
             msgBox.setDefaultButton(buttonBoth);
-            msgBox.exec();
+            int res = msgBox.exec();
+            if( res == QMessageBox::NoButton || res == QMessageBox::Cancel)
+            {
+                return;
+            }
+
             if( msgBox.clickedButton() == buttonBoth )
             {
                 onActionLoadDataFileImpl( filename, true );
@@ -1581,7 +1597,14 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
             {
                 CustomPlotPtr new_custom_plot = CustomPlot::createFromXML(custom_eq);
                 const auto& name = new_custom_plot->name();
-                _custom_plots[name] = new_custom_plot;
+                auto custom_plot_it = findCustomPlot(name);
+                if( custom_plot_it == _custom_plots.end() )
+                {
+                    _custom_plots.push_back( new_custom_plot );
+                }
+                else{
+                    *custom_plot_it = new_custom_plot;
+                }
                 new_custom_plot->calculate( _mapped_plot_data );
                 _curvelist_widget->addItem( QString::fromStdString( name ) );
             }
@@ -1796,7 +1819,7 @@ void MainWindow::updateDataAndReplot()
 
         for( auto& custom_it: _custom_plots)
         {
-            custom_it.second->calculate(_mapped_plot_data);
+            custom_it->calculate(_mapped_plot_data);
         }
 
     }
@@ -2062,13 +2085,13 @@ void MainWindow::editMathPlot(const std::string &plot_name)
 void MainWindow::onRefreshMathPlot(const std::string &plot_name)
 {
     try{
-        auto it = _custom_plots.find(plot_name);
+        auto it = findCustomPlot(plot_name);
         if(it == _custom_plots.end())
         {
             qWarning("failed to find custom equation");
             return;
         }
-        CustomPlotPtr ce = it->second;
+        CustomPlotPtr ce = *it;
 
         ce->calculate(_mapped_plot_data);
 
@@ -2091,13 +2114,13 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
     }
     else
     {
-        auto it = _custom_plots.find(name);
+        auto it = findCustomPlot(name);
         if(it == _custom_plots.end())
         {
             qWarning("failed to find custom equation");
             return;
         }
-        dialog.editExistingPlot(it->second);
+        dialog.editExistingPlot(*it);
     }
 
     if(dialog.exec() == QDialog::Accepted)
@@ -2109,7 +2132,14 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
         eq->calculate(_mapped_plot_data);
 
         // keep data for reference
-        _custom_plots[plot_name] = eq;
+        auto custom_plot_it = findCustomPlot(plot_name);
+        if( custom_plot_it == _custom_plots.end() )
+        {
+            _custom_plots.push_back( eq );
+        }
+        else{
+            *custom_plot_it = eq;
+        }
 
         if(!edit)
         {

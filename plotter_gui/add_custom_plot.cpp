@@ -11,7 +11,7 @@
 #include "plotwidget.h"
 
 AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
-                                     const std::unordered_map<std::string, CustomPlotPtr> &mapped_custom_plots,
+                                     const std::vector<CustomPlotPtr> &mapped_custom_plots,
                                      QWidget *parent) :
     QDialog(parent),
     _plot_map_data(plotMapData),
@@ -166,9 +166,8 @@ void AddCustomPlotDialog::createSnippets()
 
     std::vector<SnippetData> snippets;
 
-    for( const auto& it: _custom_plots)
+    for( const auto& math_plot: _custom_plots)
     {
-        const auto& math_plot = it.second;
         SnippetData snippet;
         snippet.name = QString::fromStdString(math_plot->name());
         snippet.globalVars = math_plot->globalVars();

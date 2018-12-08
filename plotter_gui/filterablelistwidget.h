@@ -22,7 +22,7 @@ class FilterableListWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit FilterableListWidget(const std::unordered_map<std::string, CustomPlotPtr>& mapped_math_plots,
+    explicit FilterableListWidget(const std::vector<CustomPlotPtr>& mapped_math_plots,
                                   QWidget *parent = 0);
     ~FilterableListWidget();
 
@@ -100,7 +100,7 @@ private:
 
     QStandardItemModel* _model;
 
-    const std::unordered_map<std::string, CustomPlotPtr>& _mapped_math_plots;
+    const std::vector<CustomPlotPtr>& _mapped_math_plots;
 
 signals:
 

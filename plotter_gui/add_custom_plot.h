@@ -23,7 +23,7 @@ class AddCustomPlotDialog : public QDialog
 
 public:
     explicit AddCustomPlotDialog(PlotDataMapRef &plotMapData,
-                               const std::unordered_map<std::string, CustomPlotPtr>& mapped_custom_plots,
+                               const std::vector<CustomPlotPtr>& mapped_custom_plots,
                                QWidget *parent);
     virtual ~AddCustomPlotDialog() override;
 
@@ -55,7 +55,7 @@ private:
 
 
     PlotDataMapRef &_plot_map_data;
-    const std::unordered_map<std::string, CustomPlotPtr> &_custom_plots;
+    const std::vector<CustomPlotPtr> &_custom_plots;
     Ui::AddCustomPlotDialog *ui;
 
     CustomPlotPtr _plot;
