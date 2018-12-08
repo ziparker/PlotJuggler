@@ -1549,7 +1549,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
 
             msgBox.setDefaultButton(buttonBoth);
             int res = msgBox.exec();
-            if( res == QMessageBox::NoButton || res == QMessageBox::Cancel)
+            if( res < 0 || res == QMessageBox::Cancel)
             {
                 return;
             }
