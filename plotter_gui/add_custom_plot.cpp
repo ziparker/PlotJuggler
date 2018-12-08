@@ -7,6 +7,7 @@
 #include <QDomElement>
 #include <QFontDatabase>
 #include <QFile>
+#include <QMenu>
 #include "custom_plot.h"
 #include "plotwidget.h"
 
@@ -41,6 +42,11 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
     }
 
     createSnippets();
+
+    ui->snippetsListRecent->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(ui->snippetsListRecent, SIGNAL(customContextMenuRequested(QPoint)),
+            this, SLOT(recentContextMenu(QPoint)));
 }
 
 AddCustomPlotDialog::~AddCustomPlotDialog()
@@ -104,7 +110,7 @@ void AddCustomPlotDialog::editExistingPlot(CustomPlotPtr data)
     ui->globalVarsTextField->setPlainText(data->globalVars());
     ui->mathEquation->setPlainText(data->function());
     setLinkedPlotName(QString::fromStdString(data->linkedPlotName()));
-    ui->pushButtonDone->setText("Update");
+    ui->pushButtonCreate->setText("Update");
     ui->nameLineEdit->setText(QString::fromStdString(data->name()));
     ui->nameLineEdit->setEnabled(false);
 
@@ -177,7 +183,7 @@ void AddCustomPlotDialog::createSnippets()
 
     for(const SnippetData &d : _snipped_examples)
     {
-        ui->snippetsListWidget->addItem(d.name);
+        ui->snippetsListSaved->addItem(d.name);
     }
 
     for(const SnippetData &d : _snipped_recent )
@@ -187,14 +193,14 @@ void AddCustomPlotDialog::createSnippets()
 }
 
 
-void AddCustomPlotDialog::on_snippetsListWidget_currentRowChanged(int currentRow)
+void AddCustomPlotDialog::on_snippetsListSaved_currentRowChanged(int currentRow)
 {
     const SnippetData& snippet = _snipped_examples.at(static_cast<size_t>(currentRow));
     QString desc = QString("%1\n\nfunction calc(time,value)\n{\n%2\n}").arg(snippet.globalVars).arg(snippet.equation);
     ui->snippetTextEdit->setPlainText(desc);
 }
 
-void AddCustomPlotDialog::on_snippetsListWidget_doubleClicked(const QModelIndex &index)
+void AddCustomPlotDialog::on_snippetsListSaved_doubleClicked(const QModelIndex &index)
 {
     const SnippetData& snippet = _snipped_examples.at(static_cast<size_t>(index.row()));
     ui->globalVarsTextField->setPlainText(snippet.globalVars);
@@ -213,4 +219,36 @@ void AddCustomPlotDialog::on_snippetsListRecent_doubleClicked(const QModelIndex 
     const SnippetData& snippet = _snipped_recent.at(static_cast<size_t>(index.row()));
     ui->globalVarsTextField->setPlainText(snippet.globalVars);
     ui->mathEquation->setPlainText(snippet.equation);
+}
+
+void AddCustomPlotDialog::recentContextMenu(const QPoint &pos)
+{
+    if( ui->snippetsListRecent->selectedItems().isEmpty())
+    {
+        return;
+    }
+    // Handle global position
+    QPoint globalPos = ui->snippetsListRecent->mapToGlobal(pos);
+
+    // Create menu and insert some actions
+    QMenu myMenu;
+    myMenu.addAction("Move selected to Saved", this, SLOT(addItem()));
+    myMenu.addAction("Remove sleected",  this, SLOT(eraseItem()));
+
+    // Show context menu at handling position
+    myMenu.exec(globalPos);
+}
+
+void AddCustomPlotDialog::on_nameLineEdit_textChanged(const QString &arg1)
+{
+    ui->pushButtonCreate->setEnabled( !arg1.isEmpty() );
+    ui->pushButtonSave->setEnabled(   !arg1.isEmpty() );
+
+    if( arg1.isEmpty() )
+    {
+
+    }
+    else{
+
+    }
 }

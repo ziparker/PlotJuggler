@@ -42,13 +42,17 @@ private slots:
 
     void on_curvesListWidget_doubleClicked(const QModelIndex &index);
 
-    void on_snippetsListWidget_currentRowChanged(int currentRow);
+    void on_snippetsListSaved_currentRowChanged(int currentRow);
 
-    void on_snippetsListWidget_doubleClicked(const QModelIndex &index);
+    void on_snippetsListSaved_doubleClicked(const QModelIndex &index);
 
     void on_snippetsListRecent_currentRowChanged(int currentRow);
 
     void on_snippetsListRecent_doubleClicked(const QModelIndex &index);
+
+    void recentContextMenu(const QPoint &pos);
+
+    void on_nameLineEdit_textChanged(const QString &arg1);
 
 private:
     void createSnippets();
