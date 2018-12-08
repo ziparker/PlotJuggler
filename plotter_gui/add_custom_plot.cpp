@@ -8,6 +8,7 @@
 #include <QFontDatabase>
 #include <QFile>
 #include <QMenu>
+#include <QAction>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -307,7 +308,11 @@ void AddCustomPlotDialog::recentContextMenu(const QPoint &pos)
 
     QMenu menu;
 
-    menu.addAction("Move to Saved", this, [list_recent, list_saved, this]()
+    QAction* move_item = new QAction("Move to Saved", this);
+    menu.addAction( move_item );
+
+    connect(move_item, &QAction::toggled,
+            this, [list_recent, list_saved, this]()
     {
         auto item = list_recent->selectedItems().first();
         const auto& name = item->text();
@@ -319,6 +324,7 @@ void AddCustomPlotDialog::recentContextMenu(const QPoint &pos)
         _snipped_recent.erase( name );
         delete list_recent->takeItem( list_recent->row(item) );
     });
+
     menu.exec( list_recent->mapToGlobal(pos) );
 }
 
@@ -333,7 +339,11 @@ void AddCustomPlotDialog::savedContextMenu(const QPoint &pos)
 
     QMenu menu;
 
-    menu.addAction("Rename...",  this, [this, list_saved]()
+    QAction* rename_item = new QAction("Rename...",  this);
+    menu.addAction( rename_item );
+
+    connect(rename_item, &QAction::toggled,
+            this, [list_saved, this]()
     {
         auto item = list_saved->selectedItems().first();
         const auto& name = item->text();
@@ -357,7 +367,11 @@ void AddCustomPlotDialog::savedContextMenu(const QPoint &pos)
         ui->snippetsListSaved->sortItems();
     });
 
-    menu.addAction("Remove",  this, [this, list_saved]()
+    QAction* remove_item = new QAction("Remove",  this);
+    menu.addAction( remove_item );
+
+    connect(remove_item, &QAction::toggled,
+            this, [list_saved, this]()
     {
         const auto& item = list_saved->selectedItems().first();
         _snipped_saved.erase( item->text() );
