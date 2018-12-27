@@ -311,7 +311,7 @@ void AddCustomPlotDialog::recentContextMenu(const QPoint &pos)
     QAction* move_item = new QAction("Move to Saved", this);
     menu.addAction( move_item );
 
-    connect(move_item, &QAction::toggled,
+    connect(move_item, &QAction::triggered,
             this, [list_recent, list_saved, this]()
     {
         auto item = list_recent->selectedItems().first();
@@ -342,35 +342,12 @@ void AddCustomPlotDialog::savedContextMenu(const QPoint &pos)
     QAction* rename_item = new QAction("Rename...",  this);
     menu.addAction( rename_item );
 
-    connect(rename_item, &QAction::toggled,
-            this, [list_saved, this]()
-    {
-        auto item = list_saved->selectedItems().first();
-        const auto& name = item->text();
-
-        bool ok;
-        QString new_name = QInputDialog::getText(this, tr("Change the name of the function"),
-                                             tr("New name:"), QLineEdit::Normal,
-                                             name, &ok);
-
-        if (!ok || new_name.isEmpty() || new_name == name)
-        {
-            return;
-        }
-
-        SnippetData snippet = _snipped_saved[ name ];
-        _snipped_saved.erase( name );
-        snippet.name = new_name;
-
-        _snipped_saved.insert( {new_name, snippet} );
-        item->setText( new_name );
-        ui->snippetsListSaved->sortItems();
-    });
+    connect(rename_item, &QAction::triggered, this, &AddCustomPlotDialog::onRenameSaved);
 
     QAction* remove_item = new QAction("Remove",  this);
     menu.addAction( remove_item );
 
-    connect(remove_item, &QAction::toggled,
+    connect(remove_item, &QAction::triggered,
             this, [list_saved, this]()
     {
         const auto& item = list_saved->selectedItems().first();
@@ -474,3 +451,29 @@ void AddCustomPlotDialog::on_pushButtonSave_clicked()
 
     on_snippetsListSaved_currentRowChanged( ui->snippetsListSaved->currentRow() );
 }
+
+void AddCustomPlotDialog::onRenameSaved()
+{
+    auto list_saved = ui->snippetsListSaved;
+    auto item = list_saved->selectedItems().first();
+    const auto& name = item->text();
+
+    bool ok;
+    QString new_name = QInputDialog::getText(this, tr("Change the name of the function"),
+                                         tr("New name:"), QLineEdit::Normal,
+                                         name, &ok);
+
+    if (!ok || new_name.isEmpty() || new_name == name)
+    {
+        return;
+    }
+
+    SnippetData snippet = _snipped_saved[ name ];
+    _snipped_saved.erase( name );
+    snippet.name = new_name;
+
+    _snipped_saved.insert( {new_name, snippet} );
+    item->setText( new_name );
+    ui->snippetsListSaved->sortItems();
+}
+

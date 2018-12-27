@@ -63,6 +63,8 @@ private slots:
 
     void on_pushButtonSave_clicked();
 
+    void onRenameSaved();
+
 private:
     void importSnippets(const QByteArray &xml_text);
 
