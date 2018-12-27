@@ -12,8 +12,6 @@ public:
 
     TimeseriesQwt(const PlotData* base, double time_offset);
 
-    virtual ~TimeseriesQwt() override {}
-
     virtual QPointF sample( size_t i ) const override;
 
     virtual QRectF boundingRect() const override;
@@ -22,44 +20,57 @@ public:
 
     const PlotData* data() const { return _plot_data; }
 
-    void updateData();
-
     PlotData::RangeTimeOpt getVisualizationRangeX();
 
-    PlotData::RangeValueOpt getVisualizationRangeY(int first_index, int last_index );
-
-    void setAlternativeAxisX(const PlotData* new_x_data);
+    PlotData::RangeValueOpt getVisualizationRangeY(size_t first_index, size_t last_index );
 
     nonstd::optional<QPointF> sampleFromTime(double t);
 
-    typedef enum{
-      noTransform,
-      firstDerivative,
-      secondDerivative,
-      XYPlot
-    } Transform;
-
-    void setTransform(Transform trans);
-
-    Transform transform() const { return _transform; }
-
     double timeOffset() const { return _time_offset; }
+
+    virtual void updateCache() = 0;
 
 public slots:
 
-    void setTimeOffset(double offset);
+    void onTimeoffsetChanged(double offset);
 
-private:
+protected:
     const PlotData* _plot_data;
-    const PlotData* _alternative_X_axis;
 
-    std::vector<QPointF> _cached_transformed_curve;
-
-    Transform _transform;
+    std::vector<QPointF> _cached_curve;
 
     QRectF _bounding_box;
 
     double _time_offset;
+};
+
+//---------------------------------------------------------
+
+class Timeseries_NoTransform: public TimeseriesQwt
+{
+public:
+    Timeseries_NoTransform(const PlotData* base, double time_offset):
+        TimeseriesQwt(base,time_offset) {}
+
+     void updateCache() override;
+};
+
+class Timeseries_1stDerivative: public TimeseriesQwt
+{
+public:
+    Timeseries_1stDerivative(const PlotData* base, double time_offset):
+        TimeseriesQwt(base,time_offset) {}
+
+     void updateCache() override;
+};
+
+class Timeseries_2ndDerivative: public TimeseriesQwt
+{
+public:
+    Timeseries_2ndDerivative(const PlotData* base, double time_offset):
+        TimeseriesQwt(base,time_offset) {}
+
+     void updateCache() override;
 };
 
 

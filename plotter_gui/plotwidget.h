@@ -99,11 +99,7 @@ public slots:
 
 private slots:
 
-    void on_noTransform_triggered(bool checked );
-
-    void on_1stDerivativeTransform_triggered(bool checked);
-
-    void on_2ndDerivativeTransform_triggered(bool checked);
+    void on_transformChanged(QString new_transform );
 
     void on_convertToXY_triggered(bool checked);
 
@@ -134,6 +130,7 @@ private:
     QAction *_action_1stDerivativeTransform;
     QAction *_action_2ndDerivativeTransform;
     QAction *_action_phaseXY;
+    QAction *_action_custom_transform;
     QAction *_action_saveToFile;
     QAction *_action_editLimits;
 
@@ -147,7 +144,7 @@ private:
     QwtPlotGrid* _grid;
 
     PlotDataMapRef& _mapped_data;
-    TimeseriesQwt::Transform _current_transform;
+    QString _current_transform;
 
     struct DragInfo{
         enum{ NONE, CURVES, NEW_X, SWAP_PLOTS} mode;
@@ -167,9 +164,9 @@ private:
 
     void setDefaultRangeX();
 
-    const PlotData* _axisX = nullptr;
-
     double _time_offset;
+
+    const PlotData* _axisX = nullptr;
 
     PlotData::RangeValue _custom_Y_limits;
 
