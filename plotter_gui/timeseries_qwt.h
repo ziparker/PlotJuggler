@@ -12,7 +12,7 @@ public:
 
     TimeseriesQwt(const PlotData* base, double time_offset);
 
-    virtual ~TimeseriesQwt() {}
+    virtual ~TimeseriesQwt() override {}
 
     virtual QPointF sample( size_t i ) const override;
 
@@ -21,8 +21,6 @@ public:
     virtual size_t size() const override;
 
     const PlotData* data() const { return _plot_data; }
-
-    void setSubsampleFactor();
 
     void updateData();
 
@@ -56,8 +54,6 @@ private:
     const PlotData* _alternative_X_axis;
 
     std::vector<QPointF> _cached_transformed_curve;
-
-    unsigned _subsample;
 
     Transform _transform;
 

@@ -5,12 +5,11 @@
 #include <QPushButton>
 #include <QString>
 
-bool if_xy_plot_failed_show_dialog = true;
+static bool if_xy_plot_failed_show_dialog = true;
 
 TimeseriesQwt::TimeseriesQwt(const PlotData *base, double time_offset):
     _plot_data(base),
     _alternative_X_axis(nullptr),
-    _subsample(1),
     _transform( noTransform ),
     _time_offset(time_offset)
 {
@@ -38,11 +37,6 @@ size_t TimeseriesQwt::size() const
         return _plot_data->size();
     }
     return _cached_transformed_curve.size();
-}
-
-void TimeseriesQwt::setSubsampleFactor()
-{
-    //  _subsample = (_plot_data->size() / 2000) + 1;
 }
 
 

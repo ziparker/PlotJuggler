@@ -1139,7 +1139,7 @@ void PlotWidget::on_noTransform_triggered(bool checked )
     replot();
 }
 
-void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
+void PlotWidget::on_1stDerivativeTransform_triggered(bool )
 {
     enableTracker(true);
     if(_current_transform ==  TimeseriesQwt::firstDerivative) return;
@@ -1163,7 +1163,7 @@ void PlotWidget::on_1stDerivativeTransform_triggered(bool checked)
     replot();
 }
 
-void PlotWidget::on_2ndDerivativeTransform_triggered(bool checked)
+void PlotWidget::on_2ndDerivativeTransform_triggered(bool )
 {
     enableTracker(true);
     if(_current_transform ==  TimeseriesQwt::secondDerivative) return;
