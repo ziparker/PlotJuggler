@@ -49,6 +49,8 @@ public:
 
   typedef Value   ValueType;
 
+  typedef typename std::deque<Point>::iterator PointIterator;
+
   PlotDataGeneric(const std::string& name);
 
   PlotDataGeneric( const PlotDataGeneric<Time,Value>& other) = delete;
@@ -89,6 +91,10 @@ public:
   const Point& front() const { return _points.front(); }
 
   const Point& back() const { return _points.back(); }
+
+  PointIterator begin() const { return _points.begin(); }
+
+  PointIterator end() const { return _points.end(); }
 
   void popFront() { _points.pop_front(); }
 

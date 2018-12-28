@@ -12,6 +12,7 @@
 #include <QAction>
 #include <QMessageBox>
 #include <QMenu>
+#include <QPushButton>
 #include <iostream>
 #include <limits>
 #include "removecurvedialog.h"
@@ -30,63 +31,20 @@
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2 ;
 
-void PlotWidget::setDefaultRangeX()
-{
-    if( _mapped_data.numeric.size() > 0)
-    {
-        double min =  std::numeric_limits<double>::max();
-        double max = -std::numeric_limits<double>::max();
-        for (auto& it: _mapped_data.numeric )
-        {
-            const PlotData& data = it.second;
-            if( data.size() > 0){
-                double A = data.front().x;
-                double B = data.back().x;
-                if( A < min) min = A;
-                if( B > max) max = B;
-            }
-        }
-        this->setAxisScale( xBottom, min - _time_offset, max - _time_offset);
-    }
-}
-
-QwtSeriesData<QPointF>* PlotWidget::createSeriesData(const QString &ID, const PlotData *data)
-{
-    if(ID.isEmpty())
-    {
-        return new Timeseries_NoTransform( data, _time_offset);
-    }
-    if( ID == "1st Derivative")
-    {
-        return new Timeseries_1stDerivative( data, _time_offset);
-    }
-    if( ID == "2nd Derivative")
-    {
-        return new Timeseries_2ndDerivative( data, _time_offset);
-    }
-
-    throw std::runtime_error("Not recognized ID in createSeriesData");
-}
-
-void PlotWidget::changeBackgroundColor(QColor color)
-{
-    if( this->canvasBackground().color() != color)
-    {
-        this->setCanvasBackground( color );
-        this->replot();
-    }
-}
+static const char* Derivative1st = "1st Derivative";
+static const char* Derivative2nd = "2nd Derivative";
+static bool if_xy_plot_failed_show_dialog = true;
 
 PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     QwtPlot(parent),
     _zoomer( nullptr ),
     _magnifier( nullptr ),
     _panner1( nullptr ),
+    _panner2( nullptr ),
     _tracker ( nullptr ),
     _legend( nullptr ),
     _grid( nullptr ),
     _mapped_data( datamap ),
-    _current_transform( "" ),
     _dragging( { DragInfo::NONE, {}, nullptr } ),
     _show_line_and_points(false),
     _time_offset(0.0),
@@ -194,9 +152,9 @@ void PlotWidget::buildActions()
     _action_zoomOutHorizontally->setIcon(iconZoomH);
     connect(_action_zoomOutHorizontally, &QAction::triggered, this, [this]()
     {
-      on_zoomOutHorizontal_triggered(true);
-      replot();
-      emit undoableChange();
+        on_zoomOutHorizontal_triggered(true);
+        replot();
+        emit undoableChange();
     });
 
     QIcon iconZoomV;
@@ -205,9 +163,9 @@ void PlotWidget::buildActions()
     _action_zoomOutVertically->setIcon(iconZoomV);
     connect(_action_zoomOutVertically, &QAction::triggered, this, [this]()
     {
-      on_zoomOutVertical_triggered(true);
-      replot();
-      emit undoableChange();
+        on_zoomOutVertical_triggered(true);
+        replot();
+        emit undoableChange();
     });
 
     _action_noTransform = new QAction(tr("&NO Transform"), this);
@@ -216,15 +174,15 @@ void PlotWidget::buildActions()
     connect(_action_noTransform, &QAction::triggered, this,
             [this]() { this->on_transformChanged(""); } );
 
-    _action_1stDerivativeTransform = new QAction(tr("&1st derivative"), this);
+    _action_1stDerivativeTransform = new QAction(tr("&1st Derivative"), this);
     _action_1stDerivativeTransform->setCheckable( true );
     connect(_action_1stDerivativeTransform, &QAction::triggered, this,
-            [this]() { this->on_transformChanged("1st Derivative"); } );
+            [this]() { this->on_transformChanged(Derivative1st); } );
 
     _action_2ndDerivativeTransform = new QAction(tr("&2nd Derivative"), this);
     _action_2ndDerivativeTransform->setCheckable( true );
     connect(_action_2ndDerivativeTransform, &QAction::triggered, this,
-            [this]() { this->on_transformChanged("2nd Derivative"); } );
+            [this]() { this->on_transformChanged(Derivative2nd); } );
 
     _action_phaseXY = new QAction(tr("&XY plot"), this);
     _action_phaseXY->setCheckable( true );
@@ -232,7 +190,7 @@ void PlotWidget::buildActions()
 
     _action_custom_transform = new QAction(tr("&Custom..."), this);
     _action_custom_transform->setCheckable( true );
-   // connect(_action_custom_transform, &QAction::triggered, this, &PlotWidget::);
+    // connect(_action_custom_transform, &QAction::triggered, this, &PlotWidget::);
 
     QIcon iconSave;
     iconSave.addFile(QStringLiteral(":/icons/resources/filesave@2x.png"), QSize(26, 26));
@@ -468,7 +426,7 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
         if( format.contains( "plot_area")  )
         {
             if(_dragging.curves.size() == 1 &&
-               windowTitle() != _dragging.curves.front() )
+                    windowTitle() != _dragging.curves.front() )
             {
                 _dragging.mode = DragInfo::SWAP_PLOTS;
                 event->acceptProposedAction();
@@ -484,12 +442,12 @@ void PlotWidget::dragLeaveEvent(QDragLeaveEvent*)
     // prevent spurious exits
     if( canvas()->rect().contains( local_pos ))
     {
-       // changeBackgroundColor( QColor( 250, 150, 150 ) );
+        // changeBackgroundColor( QColor( 250, 150, 150 ) );
     }
     else{
-      changeBackgroundColor( Qt::white );
-      _dragging.mode = DragInfo::NONE;
-      _dragging.curves.clear();
+        changeBackgroundColor( Qt::white );
+        _dragging.mode = DragInfo::NONE;
+        _dragging.curves.clear();
     }
 }
 
@@ -520,7 +478,7 @@ void PlotWidget::dropEvent(QDropEvent *)
         }
     }
     if( _dragging.mode != DragInfo::NONE &&
-       canvasBackground().color() != Qt::white)
+            canvasBackground().color() != Qt::white)
     {
         this->setCanvasBackground( Qt::white );
         background_changed = true;
@@ -562,7 +520,7 @@ void PlotWidget::detachAllCurves()
 
 void PlotWidget::on_panned(int , int )
 {
-   on_externallyResized(currentBoundingRect());
+    on_externallyResized(currentBoundingRect());
 }
 
 QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
@@ -657,13 +615,18 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         if( trans_value.isEmpty() ) {
             _action_noTransform->trigger();
         }
-        else if( trans_value == "1st Derivative" )
+        else if( trans_value == Derivative1st )
         {
             _action_1stDerivativeTransform->trigger();
         }
-        else if( trans_value == "2nd Derivative" )
+        else if( trans_value == Derivative2nd )
         {
             _action_2ndDerivativeTransform->trigger();
+        }
+        else if( trans_value == "XYPlot" )
+        {
+            changeAxisX( transform.attribute("axisX") );
+            _action_phaseXY->trigger();
         }
     }
 
@@ -828,7 +791,7 @@ void PlotWidget::setTrackerPosition(double abs_time)
         for (auto& it: _curve_list)
         {
             auto& name = it.first;
-            TimeseriesQwt* series = static_cast<TimeseriesQwt*>( it.second->data() );
+            auto series = static_cast<DataSeriesBase*>( it.second->data() );
             auto pointXY = series->sampleFromTime(abs_time);
             if( pointXY ){
                 _point_marker[name]->setValue( pointXY.value() );
@@ -846,7 +809,7 @@ void PlotWidget::on_changeTimeOffset(double offset)
     _time_offset = offset;
     for (auto& it: _curve_list)
     {
-        TimeseriesQwt* series = static_cast<TimeseriesQwt*>( it.second->data() );
+        auto series = static_cast<DataSeriesBase*>( it.second->data() );
         series->onTimeoffsetChanged(offset);
     }
     zoomOut(false);
@@ -860,8 +823,8 @@ PlotData::RangeTime PlotWidget::getMaximumRangeX() const
 
     for(auto& it: _curve_list)
     {
-        TimeseriesQwt* series = static_cast<TimeseriesQwt*>( it.second->data() );
-          const auto max_range_X = series->getVisualizationRangeX();
+        auto series = static_cast<DataSeriesBase*>( it.second->data() );
+        const auto max_range_X = series->getVisualizationRangeX();
         if( !max_range_X ) continue;
 
         left  = std::min(max_range_X->min, left);
@@ -893,7 +856,7 @@ PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X,
 
     for(auto& it: _curve_list)
     {
-        TimeseriesQwt* series = static_cast<TimeseriesQwt*>( it.second->data() );
+        auto series = static_cast<DataSeriesBase*>( it.second->data() );
 
         const auto max_range_X = series->getVisualizationRangeX();
         if( !max_range_X ) continue;
@@ -959,15 +922,9 @@ void PlotWidget::updateCurves()
 {
     for(auto& it: _curve_list)
     {
-        auto serie = it.second->data();
-        if( auto timeserie = dynamic_cast<TimeseriesQwt*>(serie) )
-        {
-            timeserie->updateCache();
-        }
-        else if( auto xyserie = dynamic_cast<PointSeriesXY*>(serie) )
-        {
-            xyserie->updateCache();
-        }
+        auto series = static_cast<DataSeriesBase*>( it.second->data() );
+        bool res = series->updateCache();
+        //TODO check res and do something if false.
     }
 }
 
@@ -1152,45 +1109,33 @@ void PlotWidget::on_transformChanged(QString new_transform )
 
 bool PlotWidget::isXYPlot() const
 {
-   //TODO return dynamic_cast<QwtPointSeriesData>()<TimeseriesQwt*>( it.second->data() );
-    return false;
+    return _axisX && _action_phaseXY->isChecked();
 }
 
 
 void PlotWidget::on_convertToXY_triggered(bool)
 {
-  /*  if( !_axisX )
+    if( !_axisX )
     {
         QMessageBox::warning(nullptr, tr("Warning"),
                              tr("To show a XY plot, you must first provide an alternative X axis.\n"
                                 "You can do this drag'n dropping a curve using the RIGHT mouse button "
                                 "instead of the left mouse button.") );
-
-        if( _current_transform == TimeseriesQwt::noTransform)
-        {
-            _action_noTransform->trigger();
-        }
-        else if( _current_transform == TimeseriesQwt::firstDerivative)
-        {
-            _action_1stDerivativeTransform->trigger();
-        }
-        else if( _current_transform == TimeseriesQwt::secondDerivative)
-        {
-            _action_2ndDerivativeTransform->trigger();
-        }
         return;
     }
 
     enableTracker(false);
-
-    _current_transform = TimeseriesQwt::XYPlot;
+    _current_transform = "XYPlot";
 
     for(auto& it: _curve_list)
     {
-        TimeseriesQwt* series = static_cast<TimeseriesQwt*>( it.second->data() );
-        series->setAlternativeAxisX( _axisX );
-        series->setTransform( TimeseriesQwt::XYPlot );
-        _point_marker[ it.first ]->setVisible(true);
+        const auto& curve_name =  it.first;
+        auto& curve =  it.second;
+        auto& data = _mapped_data.numeric.find(curve_name)->second;
+        auto data_series = new PointSeriesXY( &data, _axisX, _time_offset);
+
+        curve->setData( data_series );
+        _point_marker[ curve_name ]->setVisible(true);
     }
 
     QFont font_footer;
@@ -1201,7 +1146,7 @@ void PlotWidget::on_convertToXY_triggered(bool)
     this->setFooter( text );
 
     zoomOut(true);
-    replot();*/
+    replot();
 }
 
 void PlotWidget::changeAxisX(QString curve_name)
@@ -1213,7 +1158,7 @@ void PlotWidget::changeAxisX(QString curve_name)
         _action_phaseXY->trigger();
     }
     else{
-        // do nothing (?)
+        //TODO: do nothing (?)
     }
 }
 
@@ -1359,4 +1304,75 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     return QWidget::eventFilter( obj, event );
 }
 
+void PlotWidget::setDefaultRangeX()
+{
+    if( _mapped_data.numeric.size() > 0)
+    {
+        double min =  std::numeric_limits<double>::max();
+        double max = -std::numeric_limits<double>::max();
+        for (auto& it: _mapped_data.numeric )
+        {
+            const PlotData& data = it.second;
+            if( data.size() > 0){
+                double A = data.front().x;
+                double B = data.back().x;
+                if( A < min) min = A;
+                if( B > max) max = B;
+            }
+        }
+        this->setAxisScale( xBottom, min - _time_offset, max - _time_offset);
+    }
+}
 
+DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *data)
+{
+    if(ID.isEmpty() || ID == "noTransform")
+    {
+        return new Timeseries_NoTransform( data, _time_offset);
+    }
+    if( ID == Derivative1st || ID == "firstDerivative")
+    {
+        return new Timeseries_1stDerivative( data, _time_offset);
+    }
+    if( ID == Derivative2nd || ID == "secondDerivative")
+    {
+        return new Timeseries_2ndDerivative( data, _time_offset);
+    }
+    if( ID == "XYPlot")
+    {
+        try {
+            return new PointSeriesXY( data, _axisX, _time_offset);
+        }
+        catch (std::runtime_error& err)
+        {
+            if( if_xy_plot_failed_show_dialog )
+            {
+                QMessageBox msgBox;
+                msgBox.setWindowTitle("Warnings");
+                msgBox.setText("The creation of the XY plot failed because at least two "
+                               "timeseries don't share the same time axis.");
+
+                QAbstractButton* buttonDontRepear = msgBox.addButton("Don't show again",
+                                                                     QMessageBox::ActionRole);
+                msgBox.addButton("Continue", QMessageBox::AcceptRole);
+                msgBox.exec();
+
+                if (msgBox.clickedButton() == buttonDontRepear)
+                {
+                    if_xy_plot_failed_show_dialog = false;
+                }
+            }
+        }
+    }
+
+    throw std::runtime_error("Not recognized ID in createSeriesData");
+}
+
+void PlotWidget::changeBackgroundColor(QColor color)
+{
+    if( this->canvasBackground().color() != color)
+    {
+        this->setCanvasBackground( color );
+        this->replot();
+    }
+}

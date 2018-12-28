@@ -6,49 +6,32 @@
 #include <QString>
 
 TimeseriesQwt::TimeseriesQwt(const PlotData *base, double time_offset):
-    _plot_data(base),
-    _time_offset(time_offset)
+    DataSeriesBase(time_offset),
+    _plot_data(base)
 {
-}
-
-QPointF TimeseriesQwt::sample(size_t i) const
-{
-    return _cached_curve[i];
-}
-
-QRectF TimeseriesQwt::boundingRect() const
-{
-    return _bounding_box;
-}
-
-size_t TimeseriesQwt::size() const
-{
-    return _cached_curve.size();
-}
-
-PlotData::RangeTimeOpt TimeseriesQwt::getVisualizationRangeX()
-{   
-    if( this->size() < 2 )
-        return  PlotData::RangeTimeOpt();
-    else{
-        return PlotData::RangeTimeOpt( { _bounding_box.left(), _bounding_box.right() } );
-    }
 }
 
 PlotData::RangeValueOpt TimeseriesQwt::getVisualizationRangeY(PlotData::RangeTime range_X)
 {
-    int first_index = _plot_data->getIndexFromX(range_X.min);
-    int last_index  = _plot_data->getIndexFromX(range_X.max);
+    int first_index = getIndexFromTime(range_X.min);
+    int last_index  = getIndexFromTime(range_X.max);
 
     if( first_index > last_index || first_index <0 || last_index <0 )
     {
         return PlotData::RangeValueOpt();
     }
 
+
+    if( first_index == 0 && last_index == _cached_curve.size()-1)
+    {
+        return PlotData::RangeValueOpt( { _bounding_box.bottom(),
+                                          _bounding_box.top() } );
+    }
+
     double min_y =( std::numeric_limits<double>::max() );
     double max_y =(-std::numeric_limits<double>::max() );
 
-    for (size_t i = first_index+1; i < last_index; i++)
+    for (size_t i = first_index; i < last_index; i++)
     {
         const double Y = sample(i).y();
         min_y = std::min( min_y, Y );
@@ -60,9 +43,25 @@ PlotData::RangeValueOpt TimeseriesQwt::getVisualizationRangeY(PlotData::RangeTim
 
 nonstd::optional<QPointF> TimeseriesQwt::sampleFromTime(double t)
 {
+    int index = getIndexFromTime(t);
+    if( index <0 )
+    {
+        return nonstd::optional<QPointF>();
+    }
+    return _cached_curve.at( size_t(index) );
+}
+
+void TimeseriesQwt::onTimeoffsetChanged(double new_offset)
+{
+    _time_offset = new_offset;
+    updateCache();
+}
+
+int TimeseriesQwt::getIndexFromTime(double t)
+{
     if( _cached_curve.size() == 0 )
     {
-      return nonstd::optional<QPointF>();
+      return -1;
     }
 
     auto lower = std::lower_bound(_cached_curve.begin(), _cached_curve.end(), QPointF(t,0),
@@ -81,27 +80,18 @@ nonstd::optional<QPointF> TimeseriesQwt::sampleFromTime(double t)
         index = index-1;
       }
     }
-    return _cached_curve.at(index);
-}
-
-void TimeseriesQwt::onTimeoffsetChanged(double new_offset)
-{
-    double delta = new_offset - _time_offset;
-    _time_offset = new_offset;
-
-    _bounding_box.setLeft( _bounding_box.left() + delta );
-    _bounding_box.setRight( _bounding_box.right() + delta  );
+    return int(index);
 }
 
 
-void Timeseries_NoTransform::updateCache()
+bool Timeseries_NoTransform::updateCache()
 {
     // No Transform
     if(_plot_data->size() == 0)
     {
         _cached_curve.clear();
         _bounding_box = QRectF();
-        return;
+        return true;
     }
 
     const size_t data_size = _plot_data->size();
@@ -123,9 +113,10 @@ void Timeseries_NoTransform::updateCache()
     _bounding_box.setRight( _plot_data->back().x );
     _bounding_box.setTop( max_y );
     _bounding_box.setBottom( min_y );
+    return true;
 }
 
-void Timeseries_1stDerivative::updateCache()
+bool Timeseries_1stDerivative::updateCache()
 {
     size_t data_size = _plot_data->size();
 
@@ -133,7 +124,7 @@ void Timeseries_1stDerivative::updateCache()
     {
         _cached_curve.clear();
         _bounding_box = QRectF();
-        return;
+        return true;
     }
 
     data_size = data_size - 1;
@@ -160,9 +151,10 @@ void Timeseries_1stDerivative::updateCache()
     _bounding_box.setRight( _cached_curve.back().x() );
     _bounding_box.setTop( max_y );
     _bounding_box.setBottom( min_y );
+    return true;
 }
 
-void Timeseries_2ndDerivative::updateCache()
+bool Timeseries_2ndDerivative::updateCache()
 {
     size_t data_size = _plot_data->size();
 
@@ -170,7 +162,7 @@ void Timeseries_2ndDerivative::updateCache()
     {
         _cached_curve.clear();
         _bounding_box = QRectF();
-        return;
+        return true;
     }
 
     data_size = data_size - 2;
@@ -198,4 +190,5 @@ void Timeseries_2ndDerivative::updateCache()
     _bounding_box.setRight( _cached_curve.back().x() );
     _bounding_box.setTop( max_y );
     _bounding_box.setBottom( min_y );
+    return true;
 }

@@ -168,7 +168,7 @@ private:
 
     void setDefaultRangeX();
     
-    QwtSeriesData<QPointF>* createSeriesData(const QString& ID, const PlotData *data);
+    DataSeriesBase* createSeriesData(const QString& ID, const PlotData *data);
 
     double _time_offset;
 

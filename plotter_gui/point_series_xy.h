@@ -1,28 +1,23 @@
 #ifndef POINT_SERIES_H
 #define POINT_SERIES_H
 
-#include <qwt_series_data.h>
-#include "PlotJuggler/plotdata.h"
+#include "series_data.h"
 
-class PointSeriesXY: public QwtSeriesData<QPointF>
+class PointSeriesXY: public DataSeriesBase
 {
 public:
-    PointSeriesXY(const PlotData* y_axis, const PlotData* x_axis);
+    PointSeriesXY(const PlotData* y_axis, const PlotData* x_axis, double time_offset);
 
-    virtual QPointF sample( size_t i ) const override;
+    nonstd::optional<QPointF> sampleFromTime(double t) override;
 
-    virtual QRectF boundingRect() const override;
+    PlotData::RangeValueOpt getVisualizationRangeY(PlotData::RangeTime range_X) override;
 
-    virtual size_t size() const override;
-
-    nonstd::optional<QPointF> sampleFromTime(double t);
-
-    void updateCache();
+    bool updateCache() override;
 
 protected:
 
-    QRectF _bounding_box;
-    std::vector<QPointF> _cached_curve;
+    const PlotData *_x_axis;
+    const PlotData *_y_axis;
 
 };
 
