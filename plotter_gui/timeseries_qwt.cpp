@@ -59,6 +59,7 @@ void TimeseriesQwt::onTimeoffsetChanged(double new_offset)
 
 int TimeseriesQwt::getIndexFromTime(double t)
 {
+    t -= _time_offset;
     if( _cached_curve.size() == 0 )
     {
       return -1;
@@ -109,10 +110,10 @@ bool Timeseries_NoTransform::updateCache()
         _cached_curve[i] = QPointF( p.x - _time_offset, p.y);
     }
 
-    _bounding_box.setLeft(  _plot_data->front().x );
-    _bounding_box.setRight( _plot_data->back().x );
-    _bounding_box.setTop( max_y );
+    _bounding_box.setLeft(  _cached_curve.front().x() );
+    _bounding_box.setRight( _cached_curve.back().x() );
     _bounding_box.setBottom( min_y );
+    _bounding_box.setTop( max_y );
     return true;
 }
 
