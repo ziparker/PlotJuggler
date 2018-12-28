@@ -62,12 +62,12 @@ int TimeseriesQwt::getIndexFromTime(double t)
     t -= _time_offset;
     if( _cached_curve.size() == 0 )
     {
-      return -1;
+        return -1;
     }
 
     auto lower = std::lower_bound(_cached_curve.begin(), _cached_curve.end(), QPointF(t,0),
                                   [](const QPointF &a, const QPointF &b)
-                                  { return a.x() < b.x(); } );
+    { return a.x() < b.x(); } );
 
     size_t index =static_cast<size_t>( std::distance( _cached_curve.begin(), lower) );
 
@@ -76,10 +76,10 @@ int TimeseriesQwt::getIndexFromTime(double t)
 
     if( index > 0)
     {
-      if( std::abs( _cached_curve[index-1].x() - t) < std::abs( _cached_curve[index].x() - t) )
-      {
-        index = index-1;
-      }
+        if( std::abs( _cached_curve[index-1].x() - t) < std::abs( _cached_curve[index].x() - t) )
+        {
+            index = index-1;
+        }
     }
     return int(index);
 }
@@ -175,12 +175,12 @@ bool Timeseries_2ndDerivative::updateCache()
     for (size_t i=0; i < data_size; i++ )
     {
         const auto& p0 = _plot_data->at( i );
-         const auto& p1 = _plot_data->at( i+1 );
-         const auto& p2 = _plot_data->at( i+2 );
-         const auto delta = (p2.x - p0.x) *0.5;
-         const auto acc = ( p2.y - 2.0* p1.y + p0.y)/(delta*delta);
-         QPointF p( (p2.x + p0.x)*0.5, acc );
-         p.setX( p.x() - _time_offset);
+        const auto& p1 = _plot_data->at( i+1 );
+        const auto& p2 = _plot_data->at( i+2 );
+        const auto delta = (p2.x - p0.x) *0.5;
+        const auto acc = ( p2.y - 2.0* p1.y + p0.y)/(delta*delta);
+        QPointF p( (p2.x + p0.x)*0.5, acc );
+        p.setX( p.x() - _time_offset);
         _cached_curve[i] = p;
 
         min_y = std::min( min_y, p.y() );

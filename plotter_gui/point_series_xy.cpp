@@ -17,7 +17,7 @@ nonstd::optional<QPointF> PointSeriesXY::sampleFromTime(double t)
 {
     if( _cached_curve.size() == 0 )
     {
-      return nonstd::optional<QPointF>();
+        return nonstd::optional<QPointF>();
     }
 
     int index = _y_axis->getIndexFromX(t);
@@ -78,7 +78,6 @@ bool PointSeriesXY::updateCache()
 
         min_x = std::min( min_x, p.x() );
         max_x = std::max( max_x, p.x() );
-
         min_y = std::min( min_y, p.y() );
         max_y = std::max( max_y, p.y() );
     }
