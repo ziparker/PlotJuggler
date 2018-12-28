@@ -1058,10 +1058,10 @@ void PlotWidget::on_externallyResized(const QRectF& rect)
 {
     if( isXYPlot() )
     {
-        emit rectChanged(this, rect);
+        emit undoableChange();
     }
     else{
-        emit undoableChange();
+        emit rectChanged(this, rect);
     }
 }
 

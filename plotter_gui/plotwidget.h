@@ -69,9 +69,9 @@ signals:
 
 public slots:
 
-    void updateCurves();
+    void replot() override;
 
-    void replot() ;
+    void updateCurves();
 
     void detachAllCurves();
 
@@ -109,12 +109,16 @@ private slots:
 
 private slots:
     void launchRemoveCurveDialog();
-    void canvasContextMenuTriggered(const QPoint &pos);
-    void on_changeColorsDialog_triggered();
-    void on_changeColor(QString curve_name, QColor new_color);
-    void on_showPoints_triggered(bool checked);
-    void on_externallyResized(const QRectF &new_rect);
 
+    void canvasContextMenuTriggered(const QPoint &pos);
+
+    void on_changeColorsDialog_triggered();
+
+    void on_changeColor(QString curve_name, QColor new_color);
+
+    void on_showPoints_triggered(bool checked);
+
+    void on_externallyResized(const QRectF &new_rect);
 
 private:
     std::map<std::string, std::shared_ptr<QwtPlotCurve> > _curve_list;
