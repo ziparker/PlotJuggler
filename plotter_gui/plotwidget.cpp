@@ -651,6 +651,22 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         }
     }
 
+    if( !transform.isNull()  )
+    {
+        QString trans_value = transform.attribute("value");
+        if( trans_value.isEmpty() ) {
+            _action_noTransform->trigger();
+        }
+        else if( trans_value == "1st Derivative" )
+        {
+            _action_1stDerivativeTransform->trigger();
+        }
+        else if( trans_value == "2nd Derivative" )
+        {
+            _action_2ndDerivativeTransform->trigger();
+        }
+    }
+
     static bool warning_message_shown = false;
 
     bool curve_added = false;
@@ -702,14 +718,6 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
     {
         replot();
         emit curveListChanged();
-    }
-
-    //-----------------------------------------
-
-    if( !transform.isNull()  )
-    {
-        QString trans_value = transform.attribute("value");
-        on_transformChanged( trans_value );
     }
     //-----------------------------------------
 
