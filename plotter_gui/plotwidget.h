@@ -99,7 +99,7 @@ public slots:
 
 private slots:
 
-    void on_transformChanged(QString new_transform );
+    void on_transformChanged(QString new_transform);
 
     void on_convertToXY_triggered(bool checked);
 
@@ -163,6 +163,8 @@ private:
     bool _show_line_and_points;
 
     void setDefaultRangeX();
+    
+    QwtSeriesData<QPointF>* createSeriesData(const QString& ID, const PlotData *data);
 
     double _time_offset;
 

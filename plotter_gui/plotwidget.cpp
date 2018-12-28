@@ -26,6 +26,7 @@
 #include "qwt_plot_renderer.h"
 #include "qwt_series_data.h"
 #include "PlotJuggler/random_color.h"
+#include "point_series_xy.h"
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2 ;
 
@@ -47,6 +48,24 @@ void PlotWidget::setDefaultRangeX()
         }
         this->setAxisScale( xBottom, min - _time_offset, max - _time_offset);
     }
+}
+
+QwtSeriesData<QPointF>* PlotWidget::createSeriesData(const QString &ID, const PlotData *data)
+{
+    if(ID.isEmpty())
+    {
+        return new Timeseries_NoTransform( data, _time_offset);
+    }
+    if( ID == "1st Derivative")
+    {
+        return new Timeseries_1stDerivative( data, _time_offset);
+    }
+    if( ID == "2nd Derivative")
+    {
+        return new Timeseries_2ndDerivative( data, _time_offset);
+    }
+
+    throw std::runtime_error("Not recognized ID in createSeriesData");
 }
 
 void PlotWidget::changeBackgroundColor(QColor color)
@@ -324,9 +343,7 @@ bool PlotWidget::addCurve(const std::string &name)
     PlotData& data = it->second;
 
     auto curve = std::make_shared< QwtPlotCurve >( QString::fromStdString( name ) );
-
-    // TODO: use factory instead
-    TimeseriesQwt* plot_qwt = new TimeseriesQwt( &data, _time_offset );
+    auto plot_qwt = createSeriesData( _current_transform, &data );
 
     curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
     curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
@@ -366,16 +383,16 @@ bool PlotWidget::addCurve(const std::string &name)
     return true;
 }
 
-void PlotWidget::removeCurve(const std::string &name)
+void PlotWidget::removeCurve(const std::string &curve_name)
 {
-    auto it = _curve_list.find(name);
+    auto it = _curve_list.find(curve_name);
     if( it != _curve_list.end() )
     {
         auto& curve = it->second;
         curve->detach();
         _curve_list.erase( it );
 
-        auto marker_it = _point_marker.find(name);
+        auto marker_it = _point_marker.find(curve_name);
         if( marker_it != _point_marker.end() )
         {
             auto marker = marker_it->second;
@@ -387,15 +404,23 @@ void PlotWidget::removeCurve(const std::string &name)
 
         emit curveListChanged();
     }
-    if( isXYPlot() && _axisX && _axisX->name() == name)
+    if( isXYPlot() && _axisX && _axisX->name() == curve_name)
     {
         _axisX = nullptr;
+        _current_transform.clear();
         for(auto& it : _curve_list)
         {
-            // TODO: use factory instead
-            TimeseriesQwt* series = static_cast<TimeseriesQwt*>( it.second->data() );
+            auto& curve = it.second;
+
+            auto data_it = _mapped_data.numeric.find( curve_name );
+            if( data_it != _mapped_data.numeric.end())
+            {
+                const auto& data = data_it->second;
+                auto data_series = createSeriesData( _current_transform, &data);
+                curve->setData( data_series );
+            }
         }
-        _action_noTransform->trigger();
+        on_transformChanged( _current_transform );
         emit curveListChanged();
     }
 }
@@ -684,26 +709,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
     if( !transform.isNull()  )
     {
         QString trans_value = transform.attribute("value");
-        if( trans_value == "firstDerivative")
-        {
-            _action_1stDerivativeTransform->trigger();
-        }
-        else if(trans_value == "secondDerivative")
-        {
-            _action_2ndDerivativeTransform->trigger();
-        }
-        else if(trans_value == "noTransform")
-        {
-            _action_noTransform->trigger();
-        }
-        //        else if(trans_value == "XYPlot")
-        //        {
-        //            QString axisX_name = transform.attribute("axisX");
-        //            if( axisX_name.size()>0)
-        //            {
-        //                changeAxisX( axisX_name );
-        //            }
-        //        }
+        on_transformChanged( trans_value );
     }
     //-----------------------------------------
 
@@ -766,17 +772,15 @@ void PlotWidget::reloadPlotData()
 
     for (auto& curve_it: _curve_list)
     {
-        std::shared_ptr<QwtPlotCurve>& curve_data = curve_it.second;
+        auto& curve = curve_it.second;
         const auto& curve_name = curve_it.first;
 
-        auto it = _mapped_data.numeric.find( curve_name );
-        if( it != _mapped_data.numeric.end())
+        auto data_it = _mapped_data.numeric.find( curve_name );
+        if( data_it != _mapped_data.numeric.end())
         {
-            // TODO: fixme ?
-            TimeseriesQwt* new_plotqwt = new TimeseriesQwt( &(it->second), _time_offset );
-//            new_plotqwt->setAlternativeAxisX( _axisX );
-//            new_plotqwt->setTransform( _current_transform );
-            curve_data->setData( new_plotqwt );
+            const auto& data = data_it->second;
+            auto data_series = createSeriesData( _current_transform, &data);
+            curve->setData( data_series );
         }
     }
 
@@ -873,7 +877,8 @@ PlotData::RangeTime PlotWidget::getMaximumRangeX() const
 }
 
 //TODO report failure for empty dataset
-PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X, bool absolute_time) const
+PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X,
+                                                    bool absolute_time) const
 {
     double top    = -std::numeric_limits<double>::max();
     double bottom =  std::numeric_limits<double>::max();
@@ -896,24 +901,14 @@ PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X,
             right = std::nextafter(right, left);
         }
 
-        int X0 = series->data()->getIndexFromX(left);
-        int X1 = series->data()->getIndexFromX(right);
-
-        if( X0<0 || X1 <0)
+        auto range_Y = series->getVisualizationRangeY( {left, right} );
+        if( !range_Y )
         {
-            qDebug() << " invalid X0/X1 range in PlotWidget::maximumRangeY";
+            qDebug() << " invalid range_Y in PlotWidget::maximumRangeY";
             continue;
         }
-        else{
-            auto range_Y = series->getVisualizationRangeY(X0, X1);
-            if( !range_Y )
-            {
-                qDebug() << " invalid range_Y in PlotWidget::maximumRangeY";
-                continue;
-            }
-            if( top <    range_Y->max )    top    = range_Y->max;
-            if( bottom > range_Y->min )    bottom = range_Y->min;
-        }
+        if( top <    range_Y->max )    top    = range_Y->max;
+        if( bottom > range_Y->min )    bottom = range_Y->min;
     }
 
     double margin = 0.1;
@@ -1114,13 +1109,9 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 
 void PlotWidget::on_transformChanged(QString new_transform )
 {
-    if(_current_transform == new_transform) return;
-
     enableTracker(true);
-
     for(auto& it: _curve_list)
     {
-        // TODO use factory
         _point_marker[ it.first ]->setVisible(false);
     }
     QFont font_title;
@@ -1129,7 +1120,22 @@ void PlotWidget::on_transformChanged(QString new_transform )
     text.setFont(font_title);
     this->setFooter(text);
 
+    if(_current_transform == new_transform){ return; }
     _current_transform = new_transform;
+
+    for(auto& it : _curve_list)
+    {
+        const auto& curve_name = it.first;
+        auto& curve = it.second;
+
+        auto data_it = _mapped_data.numeric.find( curve_name );
+        if( data_it != _mapped_data.numeric.end())
+        {
+            const auto& data = data_it->second;
+            auto data_series = createSeriesData( _current_transform, &data);
+            curve->setData( data_series );
+        }
+    }
 
     zoomOut(true);
     replot();
@@ -1139,12 +1145,13 @@ void PlotWidget::on_transformChanged(QString new_transform )
 bool PlotWidget::isXYPlot() const
 {
    //TODO return dynamic_cast<QwtPointSeriesData>()<TimeseriesQwt*>( it.second->data() );
+    return false;
 }
 
 
 void PlotWidget::on_convertToXY_triggered(bool)
 {
-    if( !_axisX )
+  /*  if( !_axisX )
     {
         QMessageBox::warning(nullptr, tr("Warning"),
                              tr("To show a XY plot, you must first provide an alternative X axis.\n"
@@ -1186,7 +1193,7 @@ void PlotWidget::on_convertToXY_triggered(bool)
     this->setFooter( text );
 
     zoomOut(true);
-    replot();
+    replot();*/
 }
 
 void PlotWidget::changeAxisX(QString curve_name)

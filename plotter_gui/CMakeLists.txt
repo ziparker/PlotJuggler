@@ -26,6 +26,7 @@ SET( PLOTTER_SRC
     removecurvedialog.cpp
     plotmagnifier.cpp
     plotzoomer.cpp
+    point_series_xy.cpp
     busydialog.cpp
     busytaskdialog.cpp
     customtracker.cpp

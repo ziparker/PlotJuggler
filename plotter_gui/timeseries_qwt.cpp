@@ -35,9 +35,12 @@ PlotData::RangeTimeOpt TimeseriesQwt::getVisualizationRangeX()
     }
 }
 
-PlotData::RangeValueOpt TimeseriesQwt::getVisualizationRangeY(size_t first_index, size_t last_index)
+PlotData::RangeValueOpt TimeseriesQwt::getVisualizationRangeY(PlotData::RangeTime range_X)
 {
-    if( first_index > last_index)
+    int first_index = _plot_data->getIndexFromX(range_X.min);
+    int last_index  = _plot_data->getIndexFromX(range_X.max);
+
+    if( first_index > last_index || first_index <0 || last_index <0 )
     {
         return PlotData::RangeValueOpt();
     }
