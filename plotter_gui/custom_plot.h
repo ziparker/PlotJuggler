@@ -16,11 +16,11 @@ class CustomPlot
 {
 public:
     CustomPlot(const std::string &linkedPlot,
-             const std::string &plotName,
-             const QString &globalVars,
-             const QString &function);
+               const std::string &plotName,
+               const QString &globalVars,
+               const QString &function);
 
-    void calculate(PlotDataMapRef &plotData);
+    void calculateAndAdd(PlotDataMapRef &plotData);
 
     const std::string& name() const;
 
@@ -39,7 +39,8 @@ private:
 
     PlotData::Point  calculatePoint(QJSValue &calcFct,
                                     const PlotData &src_data,
-                                    const std::vector<const PlotData *> &channels_data, QJSValue &chan_values,
+                                    const std::vector<const PlotData *> &channels_data,
+                                    QJSValue &chan_values,
                                     size_t point_index);
 
     std::string _linked_plot_name;

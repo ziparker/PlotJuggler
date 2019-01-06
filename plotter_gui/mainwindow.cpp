@@ -588,7 +588,7 @@ void MainWindow::buildDummyData()
         for (unsigned indx=0; indx<SIZE; indx++)
         {
             t += 0.01;
-            plot.pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
+            plot.pushBack( PlotData::Point( t+35,  A*sin(B*t + C) + D*t*0.02 ) ) ;
         }
     }
 
@@ -599,8 +599,8 @@ void MainWindow::buildDummyData()
     for (unsigned indx=0; indx<SIZE; indx++)
     {
         t += 0.01;
-        sin_plot.pushBack( PlotData::Point( t,  1.0*sin(t*0.4) ) ) ;
-        cos_plot.pushBack( PlotData::Point( t,  2.0*cos(t*0.4) ) ) ;
+        sin_plot.pushBack( PlotData::Point( t+20,  1.0*sin(t*0.4) ) ) ;
+        cos_plot.pushBack( PlotData::Point( t+20,  2.0*cos(t*0.4) ) ) ;
     }
 
     importPlotDataMap(datamap,true);
@@ -1605,7 +1605,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
                 else{
                     *custom_plot_it = new_custom_plot;
                 }
-                new_custom_plot->calculate( _mapped_plot_data );
+                new_custom_plot->calculateAndAdd( _mapped_plot_data );
                 _curvelist_widget->addItem( QString::fromStdString( name ) );
             }
         }
@@ -1819,7 +1819,7 @@ void MainWindow::updateDataAndReplot()
 
         for( auto& custom_it: _custom_plots)
         {
-            custom_it->calculate(_mapped_plot_data);
+            custom_it->calculateAndAdd(_mapped_plot_data);
         }
 
     }
@@ -2093,7 +2093,7 @@ void MainWindow::onRefreshMathPlot(const std::string &plot_name)
         }
         CustomPlotPtr ce = *it;
 
-        ce->calculate(_mapped_plot_data);
+        ce->calculateAndAdd(_mapped_plot_data);
 
         onUpdateLeftTableValues();
         updateDataAndReplot();
@@ -2137,7 +2137,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
         std::string plot_name = qplot_name.toStdString();
         CustomPlotPtr eq = dialog.getCustomPlotData();
 
-        eq->calculate(_mapped_plot_data);
+        eq->calculateAndAdd(_mapped_plot_data);
 
         // keep data for reference
         auto custom_plot_it = findCustomPlot(plot_name);

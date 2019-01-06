@@ -53,8 +53,14 @@ nonstd::optional<QPointF> TimeseriesQwt::sampleFromTime(double t)
 
 void TimeseriesQwt::onTimeoffsetChanged(double new_offset)
 {
+    double delta = new_offset - _time_offset;
     _time_offset = new_offset;
-    updateCache();
+    for (auto& p: _cached_curve )
+    {
+        p.setX( p.x() - delta );
+    }
+    _bounding_box.setLeft(  _bounding_box.left()  - delta );
+    _bounding_box.setRight( _bounding_box.right() - delta );
 }
 
 int TimeseriesQwt::getIndexFromTime(double t)
@@ -150,8 +156,8 @@ bool Timeseries_1stDerivative::updateCache()
 
     _bounding_box.setLeft(  _cached_curve.front().x() );
     _bounding_box.setRight( _cached_curve.back().x() );
-    _bounding_box.setTop( max_y );
     _bounding_box.setBottom( min_y );
+    _bounding_box.setTop( max_y );
     return true;
 }
 
@@ -189,7 +195,7 @@ bool Timeseries_2ndDerivative::updateCache()
 
     _bounding_box.setLeft(  _cached_curve.front().x() );
     _bounding_box.setRight( _cached_curve.back().x() );
-    _bounding_box.setTop( max_y );
     _bounding_box.setBottom( min_y );
+    _bounding_box.setTop( max_y );
     return true;
 }

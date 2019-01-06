@@ -7,11 +7,11 @@
 CustomPlot::CustomPlot(const std::string &linkedPlot,
                    const std::string &plotName,
                    const QString &globalVars,
-                   const QString &equation):
+                   const QString &function):
     _linked_plot_name(linkedPlot),
     _plot_name(plotName),
     _global_vars(globalVars),
-    _function(equation),
+    _function(function),
     _last_updated_timestamp( - std::numeric_limits<double>::max() )
 {
 
@@ -115,7 +115,7 @@ PlotData::Point CustomPlot::calculatePoint(QJSValue& calcFct,
     return new_point;
 }
 
-void CustomPlot::calculate(PlotDataMapRef &plotData)
+void CustomPlot::calculateAndAdd(PlotDataMapRef &plotData)
 {
     QJSValue calcFct = _jsEngine->evaluate("calc");
 

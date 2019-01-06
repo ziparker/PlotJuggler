@@ -7,7 +7,7 @@
 
 QString getFunnySubtitle(){
 
-    qsrand(time(nullptr));
+    qsrand(time(NULL));
     int n = qrand() % 15;
     switch(n)
     {
@@ -158,10 +158,12 @@ int main(int argc, char *argv[])
         }
         splash.close();
         w.show();
+        return app.exec();
     }
     else{
         MainWindow w( parser );
         w.show();
+        return app.exec();
     }
-    return app.exec();
+    return 0;
 }
