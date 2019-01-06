@@ -13,6 +13,7 @@ QT5_WRAP_UI ( UI_SRC
     tabbedplotwidget.ui
 
     transforms/function_editor.ui
+    transforms/transform_selector.ui
 
     ../common/selectlistdialog.ui
     )
@@ -39,6 +40,7 @@ SET( PLOTTER_SRC
     transforms/custom_function.cpp
     transforms/custom_timeseries.cpp
     transforms/function_editor.cpp
+    transforms/transform_selector.cpp
 
     mainwindow.h
     realslider.h

@@ -1119,7 +1119,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
     if( delete_older && _mapped_plot_data.numeric.size() > new_data.numeric.size() )
     {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(0, tr("Warning"),
+        reply = QMessageBox::question(nullptr, tr("Warning"),
                                       tr("Do you want to remove the previously loaded data?\n"),
                                       QMessageBox::Yes | QMessageBox::No,
                                       QMessageBox::Yes );
@@ -1847,6 +1847,11 @@ void MainWindow::updateDataAndReplot()
 
 void MainWindow::on_streamingSpinBox_valueChanged(int value)
 {
+    if( isStreamingActive() == false)
+    {
+        return;
+    }
+
     for (auto& it : _mapped_plot_data.numeric )
     {
         it.second.setMaximumRangeX( value );
@@ -2104,11 +2109,11 @@ void MainWindow::onRefreshMathPlot(const std::string &plot_name)
 
 void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
 {
-    AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
+    auto *dialog = new AddCustomPlotDialog(_mapped_plot_data, _custom_plots, this);
     if(!edit)
     {
         // add
-        dialog.setLinkedPlotName(QString::fromStdString(name));
+        dialog->setLinkedPlotName(QString::fromStdString(name));
     }
     else
     {
@@ -2119,21 +2124,23 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
             return;
         }
 
-        // clear already esisting data first
+        // clear already existing data first
         auto data_it = _mapped_plot_data.numeric.find( name );
         if( data_it != _mapped_plot_data.numeric.end())
         {
            data_it->second.clear();
         }
 
-        dialog.editExistingPlot(*it);
+        dialog->editExistingPlot(*it);
     }
 
-    if(dialog.exec() == QDialog::Accepted)
+    dialog->show();
+
+    if(dialog->exec() == QDialog::Accepted)
     {
-        const QString& qplot_name = dialog.getName();
+        const QString& qplot_name = dialog->getName();
         std::string plot_name = qplot_name.toStdString();
-        CustomPlotPtr eq = dialog.getCustomPlotData();
+        CustomPlotPtr eq = dialog->getCustomPlotData();
 
         eq->calculateAndAdd(_mapped_plot_data);
 

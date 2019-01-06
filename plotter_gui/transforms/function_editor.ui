@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FunctionEditorDialog</class>
- <widget class="QDialog" name="FunctionEditorDialog">
+ <class>FunctionEditor</class>
+ <widget class="QDialog" name="FunctionEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -360,7 +360,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>pushButtonCreate</sender>
    <signal>clicked()</signal>
-   <receiver>FunctionEditorDialog</receiver>
+   <receiver>FunctionEditor</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -376,7 +376,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>pushButtonCancel</sender>
    <signal>clicked()</signal>
-   <receiver>FunctionEditorDialog</receiver>
+   <receiver>FunctionEditor</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

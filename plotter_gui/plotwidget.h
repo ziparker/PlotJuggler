@@ -19,6 +19,7 @@
 #include "timeseries_qwt.h"
 #include "customtracker.h"
 #include "axis_limits_dialog.h"
+#include "transforms/transform_selector.h"
 #include <qwt_plot_legenditem.h>
 
 class PlotWidget : public QwtPlot
@@ -99,9 +100,11 @@ public slots:
 
 private slots:
 
-    void on_transformChanged(QString new_transform);
+    void on_allTransformsChanged(QString new_transform);
 
     void on_convertToXY_triggered(bool checked);
+
+    void on_customTransformsDialog();
 
     void on_savePlotToFile();
 
@@ -121,6 +124,7 @@ private slots:
     void on_externallyResized(const QRectF &new_rect);
 
 private:
+
     std::map<std::string, std::shared_ptr<QwtPlotCurve> > _curve_list;
     std::map<std::string, QwtPlotMarker*> _point_marker;
 
@@ -148,7 +152,8 @@ private:
     QwtPlotGrid* _grid;
 
     PlotDataMapRef& _mapped_data;
-    QString _current_transform;
+    QString _default_transform;
+    std::map<std::string, QString> _curves_transform;
 
     struct DragInfo{
         enum{ NONE, CURVES, NEW_X, SWAP_PLOTS} mode;
@@ -177,6 +182,8 @@ private:
     PlotData::RangeValue _custom_Y_limits;
 
     AxisLimitsDialog* _axis_limits_dialog;
+
+    TransformSelector* _transform_select_dialog;
 };
 
 #endif

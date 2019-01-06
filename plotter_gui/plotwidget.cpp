@@ -31,8 +31,8 @@
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2 ;
 
-static const char* Derivative1st = "1st Derivative";
-static const char* Derivative2nd = "2nd Derivative";
+static const char* Derivative1st = "1stDerivative";
+static const char* Derivative2nd = "2ndDerivative";
 static bool if_xy_plot_failed_show_dialog = true;
 
 PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
@@ -48,7 +48,8 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _dragging( { DragInfo::NONE, {}, nullptr } ),
     _show_line_and_points(false),
     _time_offset(0.0),
-    _axisX(nullptr)
+    _axisX(nullptr),
+    _transform_select_dialog(nullptr)
 {
     this->setAcceptDrops( true );
 
@@ -168,29 +169,49 @@ void PlotWidget::buildActions()
         emit undoableChange();
     });
 
+    QFont font;
+    font.setPointSize(10);
+
     _action_noTransform = new QAction(tr("&NO Transform"), this);
     _action_noTransform->setCheckable( true );
     _action_noTransform->setChecked( true );
-    connect(_action_noTransform, &QAction::triggered, this,
-            [this]() { this->on_transformChanged(""); } );
+    connect(_action_noTransform, &QAction::triggered, this, [this, font]()
+    {
+        QwtText text("");
+        text.setFont(font);
+        this->setFooter(text);
+        this->on_allTransformsChanged("noTransform");
+    } );
 
     _action_1stDerivativeTransform = new QAction(tr("&1st Derivative"), this);
     _action_1stDerivativeTransform->setCheckable( true );
-    connect(_action_1stDerivativeTransform, &QAction::triggered, this,
-            [this]() { this->on_transformChanged(Derivative1st); } );
+    connect(_action_1stDerivativeTransform, &QAction::triggered, this, [this, font]()
+    {
+        QwtText text("1st Derivative");
+        text.setFont(font);
+        this->setFooter(text);
+        this->on_allTransformsChanged(Derivative1st);
+    } );
 
     _action_2ndDerivativeTransform = new QAction(tr("&2nd Derivative"), this);
     _action_2ndDerivativeTransform->setCheckable( true );
-    connect(_action_2ndDerivativeTransform, &QAction::triggered, this,
-            [this]() { this->on_transformChanged(Derivative2nd); } );
+    connect(_action_2ndDerivativeTransform, &QAction::triggered, this, [this, font]()
+    {
+        QwtText text("2nd Derivative");
+        text.setFont(font);
+        this->setFooter(text);
+        this->on_allTransformsChanged(Derivative2nd);
+    } );
 
     _action_phaseXY = new QAction(tr("&XY plot"), this);
     _action_phaseXY->setCheckable( true );
+    _action_phaseXY->setEnabled(false);
     connect(_action_phaseXY, &QAction::triggered, this, &PlotWidget::on_convertToXY_triggered);
 
     _action_custom_transform = new QAction(tr("&Custom..."), this);
     _action_custom_transform->setCheckable( true );
-    // connect(_action_custom_transform, &QAction::triggered, this, &PlotWidget::);
+    connect(_action_custom_transform, &QAction::triggered,
+            this, &PlotWidget::on_customTransformsDialog);
 
     QIcon iconSave;
     iconSave.addFile(QStringLiteral(":/icons/resources/filesave@2x.png"), QSize(26, 26));
@@ -229,6 +250,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     menu.addAction( _action_1stDerivativeTransform );
     menu.addAction( _action_2ndDerivativeTransform );
     menu.addAction( _action_phaseXY );
+    menu.addAction( _action_custom_transform );
     menu.addSeparator();
     menu.addAction( _action_saveToFile );
 
@@ -299,9 +321,11 @@ bool PlotWidget::addCurve(const std::string &name)
     }
 
     PlotData& data = it->second;
+    const auto qname = QString::fromStdString( name );
 
-    auto curve = std::make_shared< QwtPlotCurve >( QString::fromStdString( name ) );
-    auto plot_qwt = createSeriesData( _current_transform, &data );
+    auto curve = std::make_shared< QwtPlotCurve >( qname );
+    auto plot_qwt = createSeriesData( _default_transform, &data );
+    _curves_transform.insert( {name, _default_transform} );
 
     curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
     curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
@@ -362,10 +386,13 @@ void PlotWidget::removeCurve(const std::string &curve_name)
 
         emit curveListChanged();
     }
+    _curves_transform.erase( curve_name );
+
     if( isXYPlot() && _axisX && _axisX->name() == curve_name)
     {
+        // Without the X axis, transform all the curves to noTransform
         _axisX = nullptr;
-        _current_transform.clear();
+        _default_transform.clear();
         for(auto& it : _curve_list)
         {
             auto& curve = it.second;
@@ -374,11 +401,11 @@ void PlotWidget::removeCurve(const std::string &curve_name)
             if( data_it != _mapped_data.numeric.end())
             {
                 const auto& data = data_it->second;
-                auto data_series = createSeriesData( _current_transform, &data);
+                auto data_series = createSeriesData( _default_transform, &data);
                 curve->setData( data_series );
             }
         }
-        on_transformChanged( _current_transform );
+        on_allTransformsChanged( _default_transform );
         emit curveListChanged();
     }
 }
@@ -510,6 +537,7 @@ void PlotWidget::detachAllCurves()
     }
 
     _curve_list.clear();
+    _curves_transform.clear();
     _point_marker.clear();
     emit _tracker->setPosition( _tracker->actualPosition() );
 
@@ -558,7 +586,7 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
     }
 
     QDomElement transform  = doc.createElement("transform");
-    transform.setAttribute("value", _current_transform);
+    transform.setAttribute("value", _default_transform);
     if( _axisX )
     {
         transform.setAttribute("axisX", QString::fromStdString( _axisX->name()) );
@@ -750,7 +778,7 @@ void PlotWidget::reloadPlotData()
         if( data_it != _mapped_data.numeric.end())
         {
             const auto& data = data_it->second;
-            auto data_series = createSeriesData( _current_transform, &data);
+            auto data_series = createSeriesData( _default_transform, &data);
             curve->setData( data_series );
         }
     }
@@ -1072,35 +1100,35 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
     this->setScale(rect, emit_signal);
 }
 
-void PlotWidget::on_transformChanged(QString new_transform )
+void PlotWidget::on_allTransformsChanged(QString new_transform )
 {
     enableTracker(true);
     for(auto& it: _curve_list)
     {
         _point_marker[ it.first ]->setVisible(false);
     }
-    QFont font_title;
-    font_title.setPointSize(10);
-    QwtText text(new_transform);
-    text.setFont(font_title);
-    this->setFooter(text);
-
-    if(_current_transform == new_transform){ return; }
-    _current_transform = new_transform;
 
     for(auto& it : _curve_list)
     {
         const auto& curve_name = it.first;
         auto& curve = it.second;
 
+        if( _curves_transform[curve_name] == new_transform )
+        {
+            // skip if it is the same
+            continue;
+        }
+        _curves_transform[curve_name] = new_transform;
+
         auto data_it = _mapped_data.numeric.find( curve_name );
         if( data_it != _mapped_data.numeric.end())
         {
             const auto& data = data_it->second;
-            auto data_series = createSeriesData( _current_transform, &data);
+            auto data_series = createSeriesData( new_transform, &data);
             curve->setData( data_series );
         }
     }
+    _default_transform = new_transform;
 
     zoomOut(true);
     replot();
@@ -1125,7 +1153,7 @@ void PlotWidget::on_convertToXY_triggered(bool)
     }
 
     enableTracker(false);
-    _current_transform = "XYPlot";
+    _default_transform = "XYPlot";
 
     for(auto& it: _curve_list)
     {
@@ -1147,6 +1175,15 @@ void PlotWidget::on_convertToXY_triggered(bool)
 
     zoomOut(true);
     replot();
+}
+
+void PlotWidget::on_customTransformsDialog()
+{
+    auto dialog = new TransformSelector( &_default_transform,
+                                         &_curves_transform,
+                                         this);
+    dialog->exec();
+
 }
 
 void PlotWidget::changeAxisX(QString curve_name)
@@ -1326,7 +1363,7 @@ void PlotWidget::setDefaultRangeX()
 
 DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *data)
 {
-    if(ID.isEmpty() || ID == "noTransform")
+        if(ID.isEmpty() || ID == "noTransform")
     {
         return new Timeseries_NoTransform( data, _time_offset);
     }

@@ -1,5 +1,6 @@
 #include "function_editor.h"
-#include "ui_function_editor.h"
+#include "custom_function.h"
+#include "plotwidget.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QFont>
@@ -15,8 +16,6 @@
 #include <QSettings>
 #include <QByteArray>
 #include <QInputDialog>
-#include "custom_function.h"
-#include "plotwidget.h"
 
 AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
                                      const std::vector<CustomPlotPtr> &mapped_custom_plots,
@@ -24,7 +23,7 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
     QDialog(parent),
     _plot_map_data(plotMapData),
     _custom_plots(mapped_custom_plots),
-    ui(new Ui::FunctionEditorDialog)
+    ui(new Ui::FunctionEditor)
 {
     ui->setupUi(this);
 

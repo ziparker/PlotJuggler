@@ -7,10 +7,8 @@
 #include <unordered_map>
 #include "PlotJuggler/plotdata.h"
 #include "custom_function.h"
+#include "ui_function_editor.h"
 
-namespace Ui {
-class FunctionEditorDialog;
-}
 
 class AddCustomPlotDialog : public QDialog
 {
@@ -73,7 +71,7 @@ private:
 
     PlotDataMapRef &_plot_map_data;
     const std::vector<CustomPlotPtr> &_custom_plots;
-    Ui::FunctionEditorDialog *ui;
+    Ui::FunctionEditor *ui;
 
     CustomPlotPtr _plot;
     bool _is_new;
