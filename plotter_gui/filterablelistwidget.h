@@ -9,7 +9,7 @@
 #include <QTableView>
 #include <QItemSelection>
 
-#include "custom_plot.h"
+#include "transforms/custom_function.h"
 #include "tree_completer.h"
 
 class CustomSortedTableItem;

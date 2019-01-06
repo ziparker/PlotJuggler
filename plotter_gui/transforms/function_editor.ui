@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddCustomPlotDialog</class>
- <widget class="QDialog" name="AddCustomPlotDialog">
+ <class>FunctionEditorDialog</class>
+ <widget class="QDialog" name="FunctionEditorDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Add math plot</string>
+   <string>Function editor</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
@@ -22,7 +22,7 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <layout class="QFormLayout" name="formLayout">
@@ -360,7 +360,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>pushButtonCreate</sender>
    <signal>clicked()</signal>
-   <receiver>AddCustomPlotDialog</receiver>
+   <receiver>FunctionEditorDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -376,7 +376,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>pushButtonCancel</sender>
    <signal>clicked()</signal>
-   <receiver>AddCustomPlotDialog</receiver>
+   <receiver>FunctionEditorDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

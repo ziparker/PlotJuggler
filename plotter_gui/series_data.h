@@ -51,7 +51,7 @@ public slots:
 
 protected:
 
-    std::vector<QPointF> _cached_curve;
+    std::deque<QPointF> _cached_curve;
 
     QRectF _bounding_box;
 

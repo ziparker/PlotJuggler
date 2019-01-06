@@ -30,14 +30,12 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "busydialog.h"
-#include "busytaskdialog.h"
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
 #include "selectlistdialog.h"
 #include "aboutdialog.h"
 #include "PlotJuggler/plotdata.h"
-#include "add_custom_plot.h"
+#include "transforms/function_editor.h"
 
 
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :
@@ -1595,7 +1593,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
                  custom_eq.isNull() == false;
                  custom_eq = custom_eq.nextSiblingElement( "snippet" ) )
             {
-                CustomPlotPtr new_custom_plot = CustomPlot::createFromXML(custom_eq);
+                CustomPlotPtr new_custom_plot = CustomFunction::createFromXML(custom_eq);
                 const auto& name = new_custom_plot->name();
                 auto custom_plot_it = findCustomPlot(name);
                 if( custom_plot_it == _custom_plots.end() )

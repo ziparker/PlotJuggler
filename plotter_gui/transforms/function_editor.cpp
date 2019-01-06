@@ -1,5 +1,5 @@
-#include "add_custom_plot.h"
-#include "ui_add_custom_plot.h"
+#include "function_editor.h"
+#include "ui_function_editor.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QFont>
@@ -15,7 +15,7 @@
 #include <QSettings>
 #include <QByteArray>
 #include <QInputDialog>
-#include "custom_plot.h"
+#include "custom_function.h"
 #include "plotwidget.h"
 
 AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
@@ -24,7 +24,7 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
     QDialog(parent),
     _plot_map_data(plotMapData),
     _custom_plots(mapped_custom_plots),
-    ui(new Ui::AddCustomPlotDialog)
+    ui(new Ui::FunctionEditorDialog)
 {
     ui->setupUi(this);
 
@@ -103,7 +103,7 @@ void AddCustomPlotDialog::accept()
                 throw std::runtime_error("plot name already exists");
             }
         }
-        _plot = std::make_shared<CustomPlot>(getLinkedData().toStdString(),
+        _plot = std::make_shared<CustomFunction>(getLinkedData().toStdString(),
                                            plotName,
                                            getGlobalVars(),
                                            getEquation());

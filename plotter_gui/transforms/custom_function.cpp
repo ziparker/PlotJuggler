@@ -1,13 +1,13 @@
-#include "custom_plot.h"
+#include "custom_function.h"
 
 #include <limits>
 #include <QFile>
 #include <QMessageBox>
 
-CustomPlot::CustomPlot(const std::string &linkedPlot,
-                   const std::string &plotName,
-                   const QString &globalVars,
-                   const QString &function):
+CustomFunction::CustomFunction(const std::string &linkedPlot,
+                               const std::string &plotName,
+                               const QString &globalVars,
+                               const QString &function):
     _linked_plot_name(linkedPlot),
     _plot_name(plotName),
     _global_vars(globalVars),
@@ -51,7 +51,7 @@ CustomPlot::CustomPlot(const std::string &linkedPlot,
     initJsEngine();
 }
 
-void CustomPlot::initJsEngine()
+void CustomFunction::initJsEngine()
 {
     _jsEngine = std::make_shared<QJSEngine>();
 
@@ -79,7 +79,7 @@ void CustomPlot::initJsEngine()
     }
 }
 
-PlotData::Point CustomPlot::calculatePoint(QJSValue& calcFct,
+PlotData::Point CustomFunction::calculatePoint(QJSValue& calcFct,
                                 const PlotData& src_data,
                                 const std::vector<const PlotData*>& channels_data,
                                 QJSValue& chan_values,
@@ -115,7 +115,7 @@ PlotData::Point CustomPlot::calculatePoint(QJSValue& calcFct,
     return new_point;
 }
 
-void CustomPlot::calculateAndAdd(PlotDataMapRef &plotData)
+void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
 {
     QJSValue calcFct = _jsEngine->evaluate("calc");
 
@@ -172,29 +172,34 @@ void CustomPlot::calculateAndAdd(PlotDataMapRef &plotData)
     _last_updated_timestamp = dst_data.back().x;
 }
 
-const std::string &CustomPlot::name() const
+void CustomFunction::calculate(const PlotData &src_data, std::deque<QPointF> *destination)
+{
+
+}
+
+const std::string &CustomFunction::name() const
 {
     return _plot_name;
 }
 
-const std::string &CustomPlot::linkedPlotName() const
+const std::string &CustomFunction::linkedPlotName() const
 {
     return _linked_plot_name;
 }
 
-const QString &CustomPlot::globalVars() const
+const QString &CustomFunction::globalVars() const
 {
     return _global_vars;
 }
 
-const QString &CustomPlot::function() const
+const QString &CustomFunction::function() const
 {
     return _function;
 }
 
 
 
-QDomElement CustomPlot::xmlSaveState(QDomDocument &doc) const
+QDomElement CustomFunction::xmlSaveState(QDomDocument &doc) const
 {
     QDomElement snippet = doc.createElement("snippet");
     snippet.setAttribute("name", QString::fromStdString(_plot_name) );
@@ -214,13 +219,13 @@ QDomElement CustomPlot::xmlSaveState(QDomDocument &doc) const
     return snippet;
 }
 
-CustomPlotPtr CustomPlot::createFromXML(QDomElement &element)
+CustomPlotPtr CustomFunction::createFromXML(QDomElement &element)
 {
     auto name   = element.attribute("name").toStdString();
     auto linkedPlot = element.firstChildElement("linkedPlot").text().trimmed().toStdString();
     auto globalVars = element.firstChildElement("global").text().trimmed();
     auto calcEquation = element.firstChildElement("equation").text().trimmed();
 
-    return std::make_shared<CustomPlot>(linkedPlot, name, globalVars, calcEquation );
+    return std::make_shared<CustomFunction>(linkedPlot, name, globalVars, calcEquation );
 }
 

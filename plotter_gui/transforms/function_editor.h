@@ -6,10 +6,10 @@
 #include <qwt_plot_curve.h>
 #include <unordered_map>
 #include "PlotJuggler/plotdata.h"
-#include "custom_plot.h"
+#include "custom_function.h"
 
 namespace Ui {
-class AddCustomPlotDialog;
+class FunctionEditorDialog;
 }
 
 class AddCustomPlotDialog : public QDialog
@@ -73,7 +73,7 @@ private:
 
     PlotDataMapRef &_plot_map_data;
     const std::vector<CustomPlotPtr> &_custom_plots;
-    Ui::AddCustomPlotDialog *ui;
+    Ui::FunctionEditorDialog *ui;
 
     CustomPlotPtr _plot;
     bool _is_new;

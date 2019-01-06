@@ -8,19 +8,21 @@
 #include <QJSEngine>
 #include "PlotJuggler/plotdata.h"
 
-class CustomPlot;
+class CustomFunction;
 class QJSEngine;
-typedef std::shared_ptr<CustomPlot> CustomPlotPtr;
+typedef std::shared_ptr<CustomFunction> CustomPlotPtr;
 
-class CustomPlot
+class CustomFunction
 {
 public:
-    CustomPlot(const std::string &linkedPlot,
+    CustomFunction(const std::string &linkedPlot,
                const std::string &plotName,
                const QString &globalVars,
                const QString &function);
 
     void calculateAndAdd(PlotDataMapRef &plotData);
+
+    void calculate(const PlotData& src_data, std::deque<QPointF> *destination);
 
     const std::string& name() const;
 
