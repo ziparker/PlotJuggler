@@ -10,8 +10,6 @@ public:
 
     TimeseriesQwt(const PlotData* base, double time_offset);
 
-    PlotData::RangeTimeOpt getVisualizationRangeX();
-
     PlotData::RangeValueOpt getVisualizationRangeY(PlotData::RangeTime range_X) override;
 
     nonstd::optional<QPointF> sampleFromTime(double t) override;

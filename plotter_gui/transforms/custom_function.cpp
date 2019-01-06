@@ -51,6 +51,18 @@ CustomFunction::CustomFunction(const std::string &linkedPlot,
     initJsEngine();
 }
 
+void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
+{
+    auto dst_data_it = plotData.numeric.find(_plot_name);
+    if(dst_data_it == plotData.numeric.end())
+    {
+        dst_data_it = plotData.addNumeric(_plot_name);
+    }
+    PlotData& dst_data = dst_data_it->second;
+
+    calculate(plotData, &dst_data);
+}
+
 void CustomFunction::initJsEngine()
 {
     _jsEngine = std::make_shared<QJSEngine>();
@@ -98,7 +110,6 @@ PlotData::Point CustomFunction::calculatePoint(QJSValue& calcFct,
         else{
             value = std::numeric_limits<double>::quiet_NaN();
         }
-
         chan_values.setProperty(static_cast<quint32>(chan_index++), QJSValue(value));
     }
 
@@ -115,7 +126,7 @@ PlotData::Point CustomFunction::calculatePoint(QJSValue& calcFct,
     return new_point;
 }
 
-void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
+void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_data)
 {
     QJSValue calcFct = _jsEngine->evaluate("calc");
 
@@ -131,19 +142,12 @@ void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
         return;
     }
     const PlotData& src_data = src_data_it->second;
-
-    auto dst_data_it = plotData.numeric.find(_plot_name);
-    if(dst_data_it == plotData.numeric.end())
-    {
-        dst_data_it = plotData.addNumeric(_plot_name);
-    }
-    PlotData& dst_data = dst_data_it->second;
-    // clean up
+    // clean up old data
     double first_time = src_data.front().x;
 
-    while(dst_data.size() > 0 && dst_data.front().x <  first_time)
+    while(dst_data->size() > 0 && dst_data->front().x <  first_time)
     {
-        dst_data.popFront();
+        dst_data->popFront();
     }
 
     std::vector<const PlotData*> channel_data;
@@ -166,16 +170,12 @@ void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
     {
         if( src_data.at(i).x > _last_updated_timestamp)
         {
-            dst_data.pushBack( calculatePoint(calcFct, src_data, channel_data, chan_values, i ) );
+            dst_data->pushBack( calculatePoint(calcFct, src_data, channel_data, chan_values, i ) );
         }
     }
-    _last_updated_timestamp = dst_data.back().x;
+    _last_updated_timestamp = dst_data->back().x;
 }
 
-void CustomFunction::calculate(const PlotData &src_data, std::deque<QPointF> *destination)
-{
-
-}
 
 const std::string &CustomFunction::name() const
 {

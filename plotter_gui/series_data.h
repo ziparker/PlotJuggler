@@ -9,12 +9,17 @@ class DataSeriesBase: public QwtSeriesData<QPointF>
 
 public:
     DataSeriesBase(double time_offset):
+        _cached_curve(""),
         _time_offset(time_offset){}
-
 
     virtual QPointF sample( size_t i ) const override
     {
-        return _cached_curve[i];
+        const auto& p =_cached_curve.at(i);
+        return QPointF(p.x, p.y);
+    }
+    virtual size_t size() const override
+    {
+        return _cached_curve.size();
     }
 
     QRectF boundingRect() const override
@@ -22,10 +27,6 @@ public:
         return _bounding_box;
     }
 
-    virtual size_t size() const override
-    {
-        return _cached_curve.size();
-    }
 
     virtual PlotData::RangeValueOpt getVisualizationRangeY(PlotData::RangeTime range_X) = 0;
 
@@ -51,7 +52,7 @@ public slots:
 
 protected:
 
-    std::deque<QPointF> _cached_curve;
+    PlotData _cached_curve;
 
     QRectF _bounding_box;
 

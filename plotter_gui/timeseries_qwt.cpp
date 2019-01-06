@@ -44,11 +44,12 @@ PlotData::RangeValueOpt TimeseriesQwt::getVisualizationRangeY(PlotData::RangeTim
 nonstd::optional<QPointF> TimeseriesQwt::sampleFromTime(double t)
 {
     int index = getIndexFromTime(t);
-    if( index <0 )
+    if( index < 0 )
     {
         return nonstd::optional<QPointF>();
     }
-    return _cached_curve.at( size_t(index) );
+    const auto& p =_cached_curve.at( size_t(index) );
+    return QPointF(p.x, p.y);
 }
 
 void TimeseriesQwt::onTimeoffsetChanged(double new_offset)
@@ -57,7 +58,7 @@ void TimeseriesQwt::onTimeoffsetChanged(double new_offset)
     _time_offset = new_offset;
     for (auto& p: _cached_curve )
     {
-        p.setX( p.x() - delta );
+        p.x -= delta;
     }
     _bounding_box.setLeft(  _bounding_box.left()  - delta );
     _bounding_box.setRight( _bounding_box.right() - delta );
@@ -65,29 +66,7 @@ void TimeseriesQwt::onTimeoffsetChanged(double new_offset)
 
 int TimeseriesQwt::getIndexFromTime(double t)
 {
-    t -= _time_offset;
-    if( _cached_curve.size() == 0 )
-    {
-        return -1;
-    }
-
-    auto lower = std::lower_bound(_cached_curve.begin(), _cached_curve.end(), QPointF(t,0),
-                                  [](const QPointF &a, const QPointF &b)
-    { return a.x() < b.x(); } );
-
-    size_t index =static_cast<size_t>( std::distance( _cached_curve.begin(), lower) );
-
-    index = std::min( index, static_cast<size_t>( _cached_curve.size() -1 ) );
-    index = std::max( index, size_t(0) );
-
-    if( index > 0)
-    {
-        if( std::abs( _cached_curve[index-1].x() - t) < std::abs( _cached_curve[index].x() - t) )
-        {
-            index = index-1;
-        }
-    }
-    return int(index);
+    return _cached_curve.getIndexFromX( t - _time_offset );
 }
 
 
@@ -113,11 +92,11 @@ bool Timeseries_NoTransform::updateCache()
         const auto& p = _plot_data->at( i );
         min_y = std::min( min_y, p.y );
         max_y = std::max( max_y, p.y );
-        _cached_curve[i] = QPointF( p.x - _time_offset, p.y);
+        _cached_curve[i] = { p.x - _time_offset, p.y };
     }
 
-    _bounding_box.setLeft(  _cached_curve.front().x() );
-    _bounding_box.setRight( _cached_curve.back().x() );
+    _bounding_box.setLeft(  _cached_curve.front().x );
+    _bounding_box.setRight( _cached_curve.back().x );
     _bounding_box.setBottom( min_y );
     _bounding_box.setTop( max_y );
     return true;
@@ -148,14 +127,14 @@ bool Timeseries_1stDerivative::updateCache()
         const auto vel = (p1.y - p0.y) /delta;
         QPointF p( (p1.x + p0.x)*0.5, vel);
         p.setX( p.x() - _time_offset);
-        _cached_curve[i] = p;
+        _cached_curve[i] = { p.x(), p.y() };
 
         min_y = std::min( min_y, p.y() );
         max_y = std::max( max_y, p.y() );
     }
 
-    _bounding_box.setLeft(  _cached_curve.front().x() );
-    _bounding_box.setRight( _cached_curve.back().x() );
+    _bounding_box.setLeft(  _cached_curve.front().x );
+    _bounding_box.setRight( _cached_curve.back().x );
     _bounding_box.setBottom( min_y );
     _bounding_box.setTop( max_y );
     return true;
@@ -187,14 +166,14 @@ bool Timeseries_2ndDerivative::updateCache()
         const auto acc = ( p2.y - 2.0* p1.y + p0.y)/(delta*delta);
         QPointF p( (p2.x + p0.x)*0.5, acc );
         p.setX( p.x() - _time_offset);
-        _cached_curve[i] = p;
+        _cached_curve[i] = { p.x(), p.y() };
 
         min_y = std::min( min_y, p.y() );
         max_y = std::max( max_y, p.y() );
     }
 
-    _bounding_box.setLeft(  _cached_curve.front().x() );
-    _bounding_box.setRight( _cached_curve.back().x() );
+    _bounding_box.setLeft(  _cached_curve.front().x );
+    _bounding_box.setRight( _cached_curve.back().x );
     _bounding_box.setBottom( min_y );
     _bounding_box.setTop( max_y );
     return true;

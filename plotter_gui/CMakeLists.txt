@@ -37,7 +37,6 @@ SET( PLOTTER_SRC
     tree_completer.h
 
     transforms/custom_function.cpp
-    transforms/custom_transform.cpp
     transforms/custom_timeseries.cpp
     transforms/function_editor.cpp
 

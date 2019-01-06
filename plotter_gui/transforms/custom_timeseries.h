@@ -2,13 +2,13 @@
 #define CUSTOM_TIMESERIES_H
 
 #include "timeseries_qwt.h"
-#include "custom_transform.h"
+#include "custom_function.h"
 #include "PlotJuggler/plotdata.h"
 
 class CustomTimeseries: public TimeseriesQwt
 {
 public:
-    CustomTimeseries(const PlotData* base,
+    CustomTimeseries(const PlotData *base,
                      const QString &global_vars,
                      const QString &function,
                      PlotDataMapRef& mapped_data,
@@ -17,7 +17,7 @@ public:
     bool updateCache() override;
 
 private:
-    CustomTransform _transform;
+    CustomFunction _transform;
     const PlotDataMapRef& _mapped_data;
 };
 

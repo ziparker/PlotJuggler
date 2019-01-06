@@ -25,7 +25,8 @@ nonstd::optional<QPointF> PointSeriesXY::sampleFromTime(double t)
     {
         return nonstd::optional<QPointF>();
     }
-    return _cached_curve.at( size_t(index) );
+    const auto& p = _cached_curve.at( size_t(index) );
+    return QPointF(p.x, p.y);
 }
 
 PlotData::RangeValueOpt PointSeriesXY::getVisualizationRangeY(PlotData::RangeTime range_X)
@@ -74,7 +75,7 @@ bool PointSeriesXY::updateCache()
         const QPointF p(_x_axis->at(i).y,
                         _y_axis->at(i).y );
 
-        _cached_curve[i] = p;
+        _cached_curve.at(i) = { p.x(), p.y() };
 
         min_x = std::min( min_x, p.x() );
         max_x = std::max( max_x, p.x() );

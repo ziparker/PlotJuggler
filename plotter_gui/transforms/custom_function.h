@@ -22,7 +22,7 @@ public:
 
     void calculateAndAdd(PlotDataMapRef &plotData);
 
-    void calculate(const PlotData& src_data, std::deque<QPointF> *destination);
+    void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
 
     const std::string& name() const;
 

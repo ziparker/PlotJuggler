@@ -362,7 +362,7 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
         cs = Qt::CaseSensitive;
     }
     QRegExp regexp( search_string,  cs, QRegExp::Wildcard );
-    QRegExpValidator v(regexp, 0);
+    QRegExpValidator v(regexp, nullptr);
 
     QStringList spaced_items = search_string.split(' ');
 
@@ -439,7 +439,7 @@ void FilterableListWidget::on_checkBoxHideSecondColumn_toggled(bool checked)
 void FilterableListWidget::removeSelectedCurves()
 {
     QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(0, tr("Warning"),
+    reply = QMessageBox::question(nullptr, tr("Warning"),
                                   tr("Do you really want to remove these data?\n"),
                                   QMessageBox::Yes | QMessageBox::No,
                                   QMessageBox::No );
