@@ -34,9 +34,16 @@
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2 ;
 
-static const char* Derivative1st = "1stDerivative";
-static const char* Derivative2nd = "2ndDerivative";
+static const char* noTransform = "noTransform";
+static const char* Derivative1st = "1st Derivative";
+static const char* Derivative2nd = "2nd Derivative";
 static bool if_xy_plot_failed_show_dialog = true;
+
+static QStringList builtin_trans = {
+    noTransform,
+    Derivative1st,
+    Derivative2nd
+};
 
 PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     QwtPlot(parent),
@@ -183,7 +190,7 @@ void PlotWidget::buildActions()
         QwtText text("");
         text.setFont(font);
         this->setFooter(text);
-        this->on_allTransformsChanged("noTransform");
+        this->on_changeToBuiltinTransforms(noTransform);
     } );
 
     _action_1stDerivativeTransform = new QAction(tr("&1st Derivative"), this);
@@ -193,7 +200,7 @@ void PlotWidget::buildActions()
         QwtText text("1st Derivative");
         text.setFont(font);
         this->setFooter(text);
-        this->on_allTransformsChanged(Derivative1st);
+        this->on_changeToBuiltinTransforms(Derivative1st);
     } );
 
     _action_2ndDerivativeTransform = new QAction(tr("&2nd Derivative"), this);
@@ -203,7 +210,7 @@ void PlotWidget::buildActions()
         QwtText text("2nd Derivative");
         text.setFont(font);
         this->setFooter(text);
-        this->on_allTransformsChanged(Derivative2nd);
+        this->on_changeToBuiltinTransforms(Derivative2nd);
     } );
 
     _action_phaseXY = new QAction(tr("&XY plot"), this);
@@ -408,7 +415,7 @@ void PlotWidget::removeCurve(const std::string &curve_name)
                 curve->setData( data_series );
             }
         }
-        on_allTransformsChanged( _default_transform );
+        on_changeToBuiltinTransforms( _default_transform );
         emit curveListChanged();
     }
 }
@@ -640,27 +647,6 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         }
     }
 
-    if( !transform.isNull()  )
-    {
-        QString trans_value = transform.attribute("value");
-        if( trans_value.isEmpty() ) {
-            _action_noTransform->trigger();
-        }
-        else if( trans_value == Derivative1st )
-        {
-            _action_1stDerivativeTransform->trigger();
-        }
-        else if( trans_value == Derivative2nd )
-        {
-            _action_2ndDerivativeTransform->trigger();
-        }
-        else if( trans_value == "XYPlot" )
-        {
-            changeAxisX( transform.attribute("axisX") );
-            _action_phaseXY->trigger();
-        }
-    }
-
     static bool warning_message_shown = false;
 
     bool curve_added = false;
@@ -698,13 +684,34 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         curve_removed = false;
         for(auto& it: _curve_list)
         {
-            auto& curve_name = it.first;
+            auto curve_name = it.first;
             if( added_curve_names.find( curve_name ) == added_curve_names.end())
             {
                 removeCurve( curve_name );
                 curve_removed = true;
                 break;
             }
+        }
+    }
+
+    if( !transform.isNull()  )
+    {
+        QString trans_value = transform.attribute("value");
+        if( trans_value.isEmpty() ) {
+            _action_noTransform->trigger();
+        }
+        else if( trans_value == Derivative1st )
+        {
+            _action_1stDerivativeTransform->trigger();
+        }
+        else if( trans_value == Derivative2nd )
+        {
+            _action_2ndDerivativeTransform->trigger();
+        }
+        else if( trans_value == "XYPlot" )
+        {
+            changeAxisX( transform.attribute("axisX") );
+            _action_phaseXY->trigger();
         }
     }
 
@@ -1104,18 +1111,17 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
     this->setScale(rect, emit_signal);
 }
 
-void PlotWidget::on_allTransformsChanged(QString new_transform )
+void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
 {
     enableTracker(true);
-    for(auto& it: _curve_list)
-    {
-        _point_marker[ it.first ]->setVisible(false);
-    }
 
     for(auto& it : _curve_list)
     {
         const auto& curve_name = it.first;
         auto& curve = it.second;
+
+        _point_marker[ curve_name ]->setVisible(false);
+        curve->setTitle( QString::fromStdString( curve_name ) );
 
         if( _curves_transform[curve_name] == new_transform )
         {
@@ -1209,24 +1215,16 @@ void PlotWidget::on_customTransformsDialog()
 {
     updateAvailableTransformers();
 
-    QStringList builtin_trans = {
-        "noTransform",
-        Derivative1st,
-        Derivative2nd
-    };
     QStringList available_trans;
     for (const auto& it: _snippets) {
         available_trans.push_back( it.first );
     }
 
-    auto dialog = new TransformSelector( builtin_trans,
-                                         available_trans,
-                                         &_default_transform,
-                                         &_curves_transform,
-                                         this);
-    const int res = dialog->exec();
+    TransformSelector dialog( builtin_trans, available_trans,
+                              &_default_transform, &_curves_transform,
+                              this);
 
-    if (res == QDialog::Rejected )
+    if (dialog.exec() == QDialog::Rejected )
     {
         return;
     }
@@ -1237,7 +1235,7 @@ void PlotWidget::on_customTransformsDialog()
         const auto& curve_name = curve_it.first;
         const auto& transform = _curves_transform.at(curve_name);
 
-        if( transform == "noTransform" )
+        if( transform == noTransform || transform.isEmpty())
         {
             curve->setTitle( QString::fromStdString(curve_name) );
         }
@@ -1434,7 +1432,7 @@ void PlotWidget::setDefaultRangeX()
 
 DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *data)
 {
-    if(ID.isEmpty() || ID == "noTransform")
+    if(ID.isEmpty() || ID == noTransform)
     {
         return new Timeseries_NoTransform( data, _time_offset);
     }

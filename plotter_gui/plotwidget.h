@@ -102,7 +102,7 @@ public slots:
 
 private slots:
 
-    void on_allTransformsChanged(QString new_transform);
+    void on_changeToBuiltinTransforms(QString new_transform);
 
     void on_convertToXY_triggered(bool checked);
 
