@@ -56,25 +56,7 @@ nonstd::optional<QPointF> TimeseriesQwt::sampleFromTime(double t)
 
 bool Timeseries_NoTransform::updateCache()
 {
-    if(_source_data->size() == 0)
-    {
-        _bounding_box = QRectF();
-        return true;
-    }
-
-    double min_y =( std::numeric_limits<double>::max() );
-    double max_y =(-std::numeric_limits<double>::max() );
-
-    for (const auto& p: *_source_data)
-    {
-        min_y = std::min( min_y, p.y );
-        max_y = std::max( max_y, p.y );
-    }
-
-    _bounding_box.setLeft(  _source_data->front().x );
-    _bounding_box.setRight( _source_data->back().x );
-    _bounding_box.setBottom( min_y );
-    _bounding_box.setTop( max_y );
+    calculateBoundingBox();
     return true;
 }
 
@@ -92,9 +74,6 @@ bool Timeseries_1stDerivative::updateCache()
     data_size = data_size - 1;
     _cached_data.resize( data_size );
 
-    double min_y =( std::numeric_limits<double>::max() );
-    double max_y =(-std::numeric_limits<double>::max() );
-
     for (size_t i=0; i < data_size; i++ )
     {
         const auto& p0 = _source_data->at( i );
@@ -103,15 +82,9 @@ bool Timeseries_1stDerivative::updateCache()
         const auto vel = (p1.y - p0.y) /delta;
         QPointF p( (p1.x + p0.x)*0.5, vel);
         _cached_data[i] = { p.x(), p.y() };
-
-        min_y = std::min( min_y, p.y() );
-        max_y = std::max( max_y, p.y() );
     }
 
-    _bounding_box.setLeft(  transformedData()->front().x );
-    _bounding_box.setRight( transformedData()->back().x );
-    _bounding_box.setBottom( min_y );
-    _bounding_box.setTop( max_y );
+    calculateBoundingBox();
     return true;
 }
 
@@ -129,9 +102,6 @@ bool Timeseries_2ndDerivative::updateCache()
     data_size = data_size - 2;
     _cached_data.resize( data_size );
 
-    double min_y =( std::numeric_limits<double>::max() );
-    double max_y =(-std::numeric_limits<double>::max() );
-
     for (size_t i=0; i < data_size; i++ )
     {
         const auto& p0 = _source_data->at( i );
@@ -141,14 +111,8 @@ bool Timeseries_2ndDerivative::updateCache()
         const auto acc = ( p2.y - 2.0* p1.y + p0.y)/(delta*delta);
         QPointF p( (p2.x + p0.x)*0.5, acc );
         _cached_data[i] = { p.x(), p.y() };
-
-        min_y = std::min( min_y, p.y() );
-        max_y = std::max( max_y, p.y() );
     }
 
-    _bounding_box.setLeft(  transformedData()->front().x );
-    _bounding_box.setRight( transformedData()->back().x );
-    _bounding_box.setBottom( min_y );
-    _bounding_box.setTop( max_y );
+    calculateBoundingBox();
     return true;
 }

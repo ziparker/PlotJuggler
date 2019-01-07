@@ -37,6 +37,9 @@ public:
         _time_offset = offset;
     }
 
+
+    void calculateBoundingBox();
+
     virtual PlotData::RangeValueOpt getVisualizationRangeY(PlotData::RangeTime range_X) = 0;
 
     virtual nonstd::optional<QPointF> sampleFromTime(double t) = 0;
@@ -63,4 +66,36 @@ private:
     double _time_offset;
 };
 
+//--------------------------------------------
+inline void DataSeriesBase::calculateBoundingBox()
+{
+    if( _transformed_data->size() == 0)
+    {
+        _bounding_box = QRectF();
+        return;
+    }
+
+    double min_y = _transformed_data->front().y;
+    double max_y = _transformed_data->front().y;
+
+    for (const auto& p: *_transformed_data )
+    {
+        if( p.y < min_y )
+        {
+            min_y = p.y;
+        }
+        else if( p.y > max_y )
+        {
+           max_y = p.y;
+        }
+    }
+
+    _bounding_box.setLeft(  _transformed_data->front().x );
+    _bounding_box.setRight( _transformed_data->back().x );
+    _bounding_box.setBottom( min_y );
+    _bounding_box.setTop( max_y );
+}
+
 #endif // SERIES_DATA_H
+
+

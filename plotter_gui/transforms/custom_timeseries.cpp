@@ -21,19 +21,7 @@ bool CustomTimeseries::updateCache()
     }
 
     _transform.calculate( _mapped_data, &_cached_data );
+    calculateBoundingBox();
 
-    double min_y =( std::numeric_limits<double>::max() );
-    double max_y =(-std::numeric_limits<double>::max() );
-
-    for (const auto& p: _cached_data )
-    {
-        min_y = std::min( min_y, p.y );
-        max_y = std::max( max_y, p.y );
-    }
-
-    _bounding_box.setLeft(  _cached_data.front().x );
-    _bounding_box.setRight( _cached_data.back().x );
-    _bounding_box.setBottom( min_y );
-    _bounding_box.setTop( max_y );
     return true;
 }
