@@ -678,7 +678,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         curve_removed = false;
         for(auto& it: _curve_list)
         {
-            auto& curve_name = it.first;
+            auto curve_name = it.first;
             if( added_curve_names.find( curve_name ) == added_curve_names.end())
             {
                 removeCurve( curve_name );
@@ -686,12 +686,6 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
                 break;
             }
         }
-    }
-
-    if( curve_removed || curve_added)
-    {
-        replot();
-        emit curveListChanged();
     }
 
     //-----------------------------------------
@@ -711,15 +705,22 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         {
             _action_noTransform->trigger();
         }
-        //        else if(trans_value == "XYPlot")
-        //        {
-        //            QString axisX_name = transform.attribute("axisX");
-        //            if( axisX_name.size()>0)
-        //            {
-        //                changeAxisX( axisX_name );
-        //            }
-        //        }
+        else if(trans_value == "XYPlot")
+        {
+            QString axisX_name = transform.attribute("axisX");
+            if( axisX_name.size()>0)
+            {
+                changeAxisX( axisX_name );
+            }
+        }
     }
+
+    if( curve_removed || curve_added)
+    {
+        replot();
+        emit curveListChanged();
+    }
+
     //-----------------------------------------
 
     QDomElement rectangle = plot_widget.firstChildElement( "range" );
