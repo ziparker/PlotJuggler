@@ -3,6 +3,7 @@
 #include <limits>
 #include <QFile>
 #include <QMessageBox>
+#include <QElapsedTimer>
 
 CustomFunction::CustomFunction(const std::string &linkedPlot,
                                const SnippetData &snippet):
@@ -83,21 +84,6 @@ void CustomFunction::initJsEngine()
     }
     QString calcMethodStr = QString("function calc(time, value, CHANNEL_VALUES){with (Math){\n%1\n}}").arg(_function);
     _jsEngine->evaluate(calcMethodStr);
-
-    static QStringList files{":/js/resources/common.js", ":/js/resources/geographiclib.min.js" };
-    for(QString fileName : files)
-    {
-        QFile file(fileName);
-        if(file.open(QIODevice::ReadOnly))
-        {
-            QString commonData = QString::fromUtf8(file.readAll());
-            QJSValue out = _jsEngine->evaluate(commonData);
-            if(out.isError())
-            {
-                qWarning() << "JS Engine : " << out.toString();
-            }
-        }
-    }
 }
 
 PlotData::Point CustomFunction::calculatePoint(QJSValue& calcFct,

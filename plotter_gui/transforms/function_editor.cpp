@@ -43,7 +43,7 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
     numericPlotNames.sort(Qt::CaseInsensitive);
     for(const QString& name : numericPlotNames)
     {
-        ui->linkedChannelCombobox->addItem(name);
+        ui->combo_linkedChannel->addItem(name);
         ui->curvesListWidget->addItem(name);
     }
 
@@ -53,10 +53,10 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
 
     if( saved_xml.isEmpty() )
     {
-        QFile file("://resources/snippets.xml");
+        QFile file("://resources/default.snippets.xml");
         if(!file.open(QIODevice::ReadOnly))
         {
-            throw std::runtime_error( "problem with snippets.xml" );
+            throw std::runtime_error( "problem with default.snippets.xml" );
         }
         saved_xml = file.readAll();
     }
@@ -87,7 +87,7 @@ AddCustomPlotDialog::~AddCustomPlotDialog()
 
 void AddCustomPlotDialog::setLinkedPlotName(const QString &linkedPlotName)
 {
-    ui->linkedChannelCombobox->setCurrentText(linkedPlotName);
+    ui->combo_linkedChannel->setCurrentText(linkedPlotName);
 }
 
 void AddCustomPlotDialog::accept()
@@ -115,9 +115,16 @@ void AddCustomPlotDialog::accept()
     }
 }
 
+void AddCustomPlotDialog::setEditorMode(bool editor_only)
+{
+    ui->label_linkeChannel->setVisible( !editor_only );
+    ui->combo_linkedChannel->setVisible( !editor_only );
+    ui->pushButtonCreate->setVisible( !editor_only );
+}
+
 QString AddCustomPlotDialog::getLinkedData() const
 {
-    return ui->linkedChannelCombobox->currentText();
+    return ui->combo_linkedChannel->currentText();
 }
 
 QString AddCustomPlotDialog::getGlobalVars() const

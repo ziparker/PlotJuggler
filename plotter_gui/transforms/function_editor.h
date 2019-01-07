@@ -23,6 +23,8 @@ public:
     void setLinkedPlotName(const QString &linkedPlotName);
     virtual void accept() override;
 
+    void setEditorMode(bool editor_only);
+
     QString getLinkedData() const;
     QString getGlobalVars() const;
     QString getEquation() const;

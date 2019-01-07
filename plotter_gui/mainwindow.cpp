@@ -2109,11 +2109,11 @@ void MainWindow::onRefreshMathPlot(const std::string &plot_name)
 
 void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
 {
-    auto *dialog = new AddCustomPlotDialog(_mapped_plot_data, _custom_plots, this);
+    AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
+
     if(!edit)
     {
-        // add
-        dialog->setLinkedPlotName(QString::fromStdString(name));
+        dialog.setLinkedPlotName(QString::fromStdString(name));
     }
     else
     {
@@ -2131,16 +2131,14 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
            data_it->second.clear();
         }
 
-        dialog->editExistingPlot(*it);
+        dialog.editExistingPlot(*it);
     }
 
-    dialog->show();
-
-    if(dialog->exec() == QDialog::Accepted)
+    if(dialog.exec() == QDialog::Accepted)
     {
-        const QString& qplot_name = dialog->getName();
+        const QString& qplot_name = dialog.getName();
         std::string plot_name = qplot_name.toStdString();
-        CustomPlotPtr eq = dialog->getCustomPlotData();
+        CustomPlotPtr eq = dialog.getCustomPlotData();
 
         eq->calculateAndAdd(_mapped_plot_data);
 
@@ -2165,4 +2163,11 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
             updateDataAndReplot();
         }
     }
+}
+
+void MainWindow::on_actionFunction_editor_triggered()
+{
+    AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
+    dialog.setEditorMode(true);
+    dialog.exec();
 }

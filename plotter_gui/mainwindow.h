@@ -131,6 +131,8 @@ private slots:
 
     void buildDummyData();
 
+    void on_actionFunction_editor_triggered();
+
 private:
 
     Ui::MainWindow *ui;

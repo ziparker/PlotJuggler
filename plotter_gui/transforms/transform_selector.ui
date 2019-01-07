@@ -42,14 +42,14 @@
        <item>
         <widget class="QPushButton" name="buttonApplyDefault">
          <property name="text">
-          <string>Apply Default to all</string>
+          <string>All to default</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="buttonResetAll">
          <property name="text">
-          <string>Reset all transforms</string>
+          <string>Reset all</string>
          </property>
         </widget>
        </item>

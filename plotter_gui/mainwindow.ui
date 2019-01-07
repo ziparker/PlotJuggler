@@ -570,16 +570,18 @@ background: white;
     <addaction name="actionQuick_Help"/>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuTools">
+   <widget class="QMenu" name="menuTools_2">
     <property name="title">
-     <string>View</string>
+     <string>Tools</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="actionFunction_editor"/>
     <addaction name="actionMaximizePlots"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStreaming"/>
    <addaction name="menuPublishers"/>
-   <addaction name="menuTools"/>
+   <addaction name="menuTools_2"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionLoadData">
@@ -668,6 +670,11 @@ background: white;
   <action name="actionLoadDummyData">
    <property name="text">
     <string>Load Dummy Data</string>
+   </property>
+  </action>
+  <action name="actionFunction_editor">
+   <property name="text">
+    <string>Open Function Editor</string>
    </property>
   </action>
  </widget>
