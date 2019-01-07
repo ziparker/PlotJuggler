@@ -2,12 +2,11 @@
 
 
 CustomTimeseries::CustomTimeseries(const PlotData *base,
-                                   const QString &global_vars,
-                                   const QString &function,
+                                   const SnippetData &snippet,
                                    PlotDataMapRef &mapped_data,
                                    double time_offset):
     TimeseriesQwt( base, time_offset ),
-    _transform(base->name(), "", global_vars, function),
+    _transform(base->name(), snippet),
     _mapped_data(mapped_data)
 {
     updateCache();
@@ -27,10 +26,11 @@ bool CustomTimeseries::updateCache()
     double min_y =( std::numeric_limits<double>::max() );
     double max_y =(-std::numeric_limits<double>::max() );
 
-    for (const auto& p: _cached_curve )
+    for ( auto& p: _cached_curve )
     {
         min_y = std::min( min_y, p.y );
         max_y = std::max( max_y, p.y );
+        p.x -= _time_offset;
     }
 
     _bounding_box.setLeft(  _cached_curve.front().x );

@@ -23,11 +23,14 @@
 #include <qwt_text.h>
 #include <QActionGroup>
 #include <QFileDialog>
+#include <QSettings>
 #include <QtXml/QDomElement>
 #include "qwt_plot_renderer.h"
 #include "qwt_series_data.h"
 #include "PlotJuggler/random_color.h"
 #include "point_series_xy.h"
+#include "transforms/custom_function.h"
+#include "transforms/custom_timeseries.h"
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2 ;
 
@@ -323,7 +326,7 @@ bool PlotWidget::addCurve(const std::string &name)
     PlotData& data = it->second;
     const auto qname = QString::fromStdString( name );
 
-    auto curve = std::make_shared< QwtPlotCurve >( qname );
+    auto curve = new QwtPlotCurve( qname );
     auto plot_qwt = createSeriesData( _default_transform, &data );
     _curves_transform.insert( {name, _default_transform} );
 
@@ -415,7 +418,7 @@ bool PlotWidget::isEmpty() const
     return _curve_list.empty();
 }
 
-const std::map<std::string, std::shared_ptr<QwtPlotCurve> > &PlotWidget::curveList() const
+const std::map<std::string, QwtPlotCurve*> &PlotWidget::curveList() const
 {
     return _curve_list;
 }
@@ -778,7 +781,8 @@ void PlotWidget::reloadPlotData()
         if( data_it != _mapped_data.numeric.end())
         {
             const auto& data = data_it->second;
-            auto data_series = createSeriesData( _default_transform, &data);
+            const auto& transform = _curves_transform.at(curve_name);
+            auto data_series = createSeriesData( transform, &data);
             curve->setData( data_series );
         }
     }
@@ -1177,13 +1181,80 @@ void PlotWidget::on_convertToXY_triggered(bool)
     replot();
 }
 
+void PlotWidget::updateAvailableTransformers()
+{
+    _snippets.clear();
+    QSettings settings;
+    QByteArray saved_xml = settings.value("AddCustomPlotDialog.savedXML",
+                                           QByteArray() ).toByteArray();
+    QDomDocument doc;
+    if( !saved_xml.isEmpty() && doc.setContent(saved_xml))
+    {
+        QDomElement docElem = doc.documentElement();
+
+        for (auto elem = docElem.firstChildElement("snippet");
+             !elem.isNull();
+             elem = elem.nextSiblingElement("snippet"))
+        {
+            SnippetData snippet;
+            snippet.name = elem.attribute("name");
+            snippet.globalVars = elem.firstChildElement("global").text().trimmed();
+            snippet.equation = elem.firstChildElement("equation").text().trimmed();
+            _snippets.insert( {snippet.name, snippet } );
+        }
+    }
+}
+
 void PlotWidget::on_customTransformsDialog()
 {
-    auto dialog = new TransformSelector( &_default_transform,
+    updateAvailableTransformers();
+
+    QStringList builtin_trans = {
+        "noTransform",
+        Derivative1st,
+        Derivative2nd
+    };
+    QStringList available_trans;
+    for (const auto& it: _snippets) {
+        available_trans.push_back( it.first );
+    }
+
+    auto dialog = new TransformSelector( builtin_trans,
+                                         available_trans,
+                                         &_default_transform,
                                          &_curves_transform,
                                          this);
-    dialog->exec();
+    const int res = dialog->exec();
 
+    if (res == QDialog::Rejected )
+    {
+        return;
+    }
+
+    for (auto& curve_it: _curve_list)
+    {
+        auto& curve = curve_it.second;
+        const auto& curve_name = curve_it.first;
+        const auto& transform = _curves_transform.at(curve_name);
+
+        if( transform == "noTransform" )
+        {
+            curve->setTitle( QString::fromStdString(curve_name) );
+        }
+        else{
+            curve->setTitle( QString::fromStdString(curve_name) + tr(" [") + transform +  tr("]") );
+        }
+
+        auto data_it = _mapped_data.numeric.find( curve_name );
+        if( data_it != _mapped_data.numeric.end())
+        {
+            auto& data = data_it->second;
+            auto data_series = createSeriesData( transform, &data);
+            curve->setData( data_series );
+        }
+    }
+    zoomOut(false);
+    replot();
 }
 
 void PlotWidget::changeAxisX(QString curve_name)
@@ -1353,8 +1424,8 @@ void PlotWidget::setDefaultRangeX()
             if( data.size() > 0){
                 double A = data.front().x;
                 double B = data.back().x;
-                if( A < min) min = A;
-                if( B > max) max = B;
+                min = std::min( A, min );
+                max = std::max( B, max );
             }
         }
         this->setAxisScale( xBottom, min - _time_offset, max - _time_offset);
@@ -1363,7 +1434,7 @@ void PlotWidget::setDefaultRangeX()
 
 DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *data)
 {
-        if(ID.isEmpty() || ID == "noTransform")
+    if(ID.isEmpty() || ID == "noTransform")
     {
         return new Timeseries_NoTransform( data, _time_offset);
     }
@@ -1380,7 +1451,7 @@ DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *
         try {
             return new PointSeriesXY( data, _axisX, _time_offset);
         }
-        catch (std::runtime_error& err)
+        catch (std::runtime_error& )
         {
             if( if_xy_plot_failed_show_dialog )
             {
@@ -1399,7 +1470,14 @@ DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *
                     if_xy_plot_failed_show_dialog = false;
                 }
             }
+            return nullptr;
         }
+    }
+    auto custom_it = _snippets.find(ID);
+    if( custom_it != _snippets.end())
+    {
+        const auto& snippet = custom_it->second;
+        return new CustomTimeseries( data, snippet, _mapped_data, _time_offset);
     }
 
     throw std::runtime_error("Not recognized ID in createSeriesData");

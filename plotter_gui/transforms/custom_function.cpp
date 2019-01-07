@@ -5,6 +5,15 @@
 #include <QMessageBox>
 
 CustomFunction::CustomFunction(const std::string &linkedPlot,
+                               const SnippetData &snippet):
+    CustomFunction(linkedPlot,
+                   snippet.name.toStdString(),
+                   snippet.globalVars,
+                   snippet.equation )
+{
+}
+
+CustomFunction::CustomFunction(const std::string &linkedPlot,
                                const std::string &plotName,
                                const QString &globalVars,
                                const QString &function):

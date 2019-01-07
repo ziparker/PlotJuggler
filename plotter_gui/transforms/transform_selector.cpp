@@ -6,53 +6,28 @@
 #include <QComboBox>
 #include <QDebug>
 
-TransformSelector::TransformSelector(QString *default_tansform,
+TransformSelector::TransformSelector(QStringList builtin_transform,
+                                     QStringList available_transforms,
+                                     QString *default_tansform,
                                      std::map<std::string, QString> *curve_transforms,
                                      QWidget *parent) :
     QDialog(parent),
     ui(new Ui::transform_selector),
-    _curves_trans(curve_transforms)
+    _curves_trans(curve_transforms),
+    _default_trans(default_tansform)
 {
     ui->setupUi(this);
 
-    QSettings settings;
-    const auto builtin = {"noTransform",
-                          "1stDerivative",
-                          "2ndDerivative"};
-
-    QStringList transforms;
-    for(const auto& tr: builtin)
-    {
-        transforms.append(tr);
-    }
-
-    QByteArray saved_xml = settings.value("AddCustomPlotDialog.savedXML",
-                                          QByteArray() ).toByteArray();
-
-    QDomDocument doc;
-    if(!saved_xml.isEmpty() && doc.setContent(saved_xml))
-    {
-        QDomElement docElem = doc.documentElement();
-        QDomNode n = docElem.firstChild();
-        while(!n.isNull())
-        {
-            QDomElement e = n.toElement(); // try to convert the node to an element.
-            if(!e.isNull() && e.tagName() == "snippet")
-            {
-                 transforms.append( e.attribute("name") );
-            }
-            n = n.nextSibling();
-        }
-    }
+    QStringList transforms = builtin_transform + available_transforms;
 
     ui->comboDefault->insertItems(0, transforms);
-    ui->comboDefault->insertSeparator(3);
+    ui->comboDefault->insertSeparator( builtin_transform.size() );
     if( transforms.contains( *default_tansform ) )
     {
         ui->comboDefault->setCurrentText( *default_tansform );
     }
 
-    ui->tableWidget->setRowCount(curve_transforms->size());
+    ui->tableWidget->setRowCount( int(curve_transforms->size()) );
     ui->tableWidget->setColumnCount(2);
 
     int row = 0;
@@ -106,8 +81,7 @@ void TransformSelector::on_transform_selector_accepted()
     {
         const auto& name = ui->tableWidget->item(row,0)->text();
         auto combo = static_cast<QComboBox*>(ui->tableWidget->cellWidget(row,1));
-        qDebug() << name << " " << combo->currentText();
-
         (*_curves_trans)[ name.toStdString() ] = combo->currentText();
     }
+    *_default_trans = ui->comboDefault->currentText();
 }

@@ -20,6 +20,7 @@
 #include "customtracker.h"
 #include "axis_limits_dialog.h"
 #include "transforms/transform_selector.h"
+#include "transforms/custom_function.h"
 #include <qwt_plot_legenditem.h>
 
 class PlotWidget : public QwtPlot
@@ -28,12 +29,13 @@ class PlotWidget : public QwtPlot
 
 public:
 
-    PlotWidget(PlotDataMapRef& datamap, QWidget *parent=0);
-    virtual ~PlotWidget();
+    PlotWidget(PlotDataMapRef& datamap, QWidget *parent=nullptr);
+
+    virtual ~PlotWidget() override;
 
     bool isEmpty() const;
 
-    const std::map<std::string, std::shared_ptr<QwtPlotCurve> > &curveList() const;
+    const std::map<std::string, QwtPlotCurve*> &curveList() const;
 
     QDomElement xmlSaveState(QDomDocument &doc) const;
 
@@ -125,7 +127,7 @@ private slots:
 
 private:
 
-    std::map<std::string, std::shared_ptr<QwtPlotCurve> > _curve_list;
+    std::map<std::string, QwtPlotCurve* > _curve_list;
     std::map<std::string, QwtPlotMarker*> _point_marker;
 
     QAction *_action_removeCurve;
@@ -169,6 +171,8 @@ private:
 
     void buildLegend();
 
+    void updateAvailableTransformers();
+
     bool _show_line_and_points;
 
     void setDefaultRangeX();
@@ -184,6 +188,8 @@ private:
     AxisLimitsDialog* _axis_limits_dialog;
 
     TransformSelector* _transform_select_dialog;
+
+    std::map<QString, SnippetData> _snippets;
 };
 
 #endif

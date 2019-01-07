@@ -12,7 +12,7 @@ class TransformSelector : public QDialog
     Q_OBJECT
 
 public:
-    TransformSelector(QString* default_tansform,
+    TransformSelector(QStringList builtin_transform, QStringList available_transforms, QString* default_tansform,
                       std::map<std::string, QString> *curve_transforms,
                       QWidget *parent = nullptr);
     ~TransformSelector();
@@ -29,6 +29,8 @@ private:
     Ui::transform_selector *ui;
 
     std::map<std::string, QString> *_curves_trans;
+
+    QString* _default_trans;
 };
 
 #endif // TRANSFORM_SELECTOR_H

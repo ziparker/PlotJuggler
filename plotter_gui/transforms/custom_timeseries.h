@@ -9,8 +9,7 @@ class CustomTimeseries: public TimeseriesQwt
 {
 public:
     CustomTimeseries(const PlotData *base,
-                     const QString &global_vars,
-                     const QString &function,
+                     const SnippetData &snippet,
                      PlotDataMapRef& mapped_data,
                      double time_offset);
 

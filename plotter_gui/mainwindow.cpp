@@ -597,8 +597,8 @@ void MainWindow::buildDummyData()
     for (unsigned indx=0; indx<SIZE; indx++)
     {
         t += 0.01;
-        sin_plot.pushBack( PlotData::Point( t+20,  1.0*sin(t*0.4) ) ) ;
-        cos_plot.pushBack( PlotData::Point( t+20,  2.0*cos(t*0.4) ) ) ;
+        sin_plot.pushBack( PlotData::Point( t+20,  sin(t*0.4) ) ) ;
+        cos_plot.pushBack( PlotData::Point( t+20,  cos(t*0.4) ) ) ;
     }
 
     importPlotDataMap(datamap,true);

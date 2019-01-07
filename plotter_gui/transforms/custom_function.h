@@ -26,6 +26,9 @@ public:
                const QString &globalVars,
                const QString &function);
 
+    CustomFunction(const std::string &linkedPlot,
+               const SnippetData &snippet);
+
     void calculateAndAdd(PlotDataMapRef &plotData);
 
     void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
