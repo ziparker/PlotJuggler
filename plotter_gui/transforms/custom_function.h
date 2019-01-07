@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QString>
 #include <QDomDocument>
+#include <QString>
 #include <QJSEngine>
 #include "PlotJuggler/plotdata.h"
 
@@ -17,6 +18,8 @@ struct SnippetData{
     QString globalVars;
     QString equation;
 };
+
+std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text);
 
 class CustomFunction
 {

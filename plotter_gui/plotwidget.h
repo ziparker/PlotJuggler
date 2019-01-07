@@ -47,7 +47,7 @@ public:
 
     PlotData::RangeValue getMaximumRangeY( PlotData::RangeTime range_X, bool absolute_time ) const;
 
-    void setScale( QRectF rect, bool emit_signal );
+    void setZoomRectangle( QRectF rect, bool emit_signal );
 
     void reloadPlotData( );
 

@@ -1,11 +1,11 @@
 #include "point_series_xy.h"
 
 
-PointSeriesXY::PointSeriesXY(const PlotData *y_axis, const PlotData *x_axis,
-                             double time_offset):
-    DataSeriesBase(time_offset),
+PointSeriesXY::PointSeriesXY(const PlotData *y_axis, const PlotData *x_axis):
+    DataSeriesBase( &_cached_curve ),
     _x_axis(x_axis),
-    _y_axis(y_axis)
+    _y_axis(y_axis),
+    _cached_curve("")
 {
     if( !updateCache() )
     {

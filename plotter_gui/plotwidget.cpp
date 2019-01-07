@@ -76,7 +76,9 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
 
     this->setCanvas( canvas );
     this->setCanvasBackground( Qt::white );
-    this->setAxisAutoScale(0, true);
+
+    this->setAxisAutoScale(QwtPlot::yLeft, true);
+    this->setAxisAutoScale(QwtPlot::xBottom, true);
 
     this->axisScaleEngine(QwtPlot::xBottom)->setAttribute(QwtScaleEngine::Floating,true);
     this->plotLayout()->setAlignCanvasToScales( true );
@@ -737,7 +739,6 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
                     _curves_transform[curve_name] = custom_attribute;
                 }
             }
-
             transformCustomCurves();
             _action_custom_transform->setChecked(true);
         }
@@ -757,7 +758,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         rect.setTop( rectangle.attribute("top").toDouble());
         rect.setLeft( rectangle.attribute("left").toDouble());
         rect.setRight( rectangle.attribute("right").toDouble());
-        this->setScale( rect, false);
+        this->setZoomRectangle( rect, false);
     }
 
     return true;
@@ -776,7 +777,7 @@ QRectF PlotWidget::currentBoundingRect() const
     return rect;
 }
 
-void PlotWidget::setScale(QRectF rect, bool emit_signal)
+void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
 {
     this->setAxisScale( yLeft, rect.bottom(), rect.top());
     this->setAxisScale( xBottom, rect.left(), rect.right());
@@ -874,10 +875,10 @@ void PlotWidget::setTrackerPosition(double abs_time)
 void PlotWidget::on_changeTimeOffset(double offset)
 {
     _time_offset = offset;
-    for (auto& it: _curve_list)
+    for(auto& it: _curve_list)
     {
         auto series = static_cast<DataSeriesBase*>( it.second->data() );
-        series->onTimeoffsetChanged(offset);
+        series->setTimeOffset(_time_offset);
     }
     zoomOut(false);
 }
@@ -1095,7 +1096,7 @@ void PlotWidget::zoomOut(bool emit_signal)
     if( _curve_list.size() == 0)
     {
         QRectF rect(0, 1, 1, -1);
-        this->setScale(rect, false);
+        this->setZoomRectangle(rect, false);
         return;
     }
 
@@ -1113,7 +1114,7 @@ void PlotWidget::zoomOut(bool emit_signal)
     _magnifier->setAxisLimits( xBottom, rect.left(),   rect.right() );
     _magnifier->setAxisLimits( yLeft,   rect.bottom(), rect.top() );
 
-    this->setScale(rect, emit_signal);
+    this->setZoomRectangle(rect, emit_signal);
 }
 
 void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
@@ -1123,7 +1124,7 @@ void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
 
     act.setLeft( rangeX.min );
     act.setRight( rangeX.max );
-    this->setScale(act, emit_signal);
+    this->setZoomRectangle(act, emit_signal);
 }
 
 void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
@@ -1136,7 +1137,7 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 
     _magnifier->setAxisLimits( yLeft, rect.bottom(), rect.top() );
 
-    this->setScale(rect, emit_signal);
+    this->setZoomRectangle(rect, emit_signal);
 }
 
 void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
@@ -1198,7 +1199,7 @@ void PlotWidget::on_convertToXY_triggered(bool)
         const auto& curve_name =  it.first;
         auto& curve =  it.second;
         auto& data = _mapped_data.numeric.find(curve_name)->second;
-        auto data_series = new PointSeriesXY( &data, _axisX, _time_offset);
+        auto data_series = new PointSeriesXY( &data, _axisX);
 
         curve->setData( data_series );
         _point_marker[ curve_name ]->setVisible(true);
@@ -1217,25 +1218,12 @@ void PlotWidget::on_convertToXY_triggered(bool)
 
 void PlotWidget::updateAvailableTransformers()
 {
-    _snippets.clear();
     QSettings settings;
-    QByteArray saved_xml = settings.value("AddCustomPlotDialog.savedXML",
-                                           QByteArray() ).toByteArray();
-    QDomDocument doc;
-    if( !saved_xml.isEmpty() && doc.setContent(saved_xml))
+    QByteArray xml_text = settings.value("AddCustomPlotDialog.savedXML",
+                                         QByteArray() ).toByteArray();
+    if( !xml_text.isEmpty() )
     {
-        QDomElement docElem = doc.documentElement();
-
-        for (auto elem = docElem.firstChildElement("snippet");
-             !elem.isNull();
-             elem = elem.nextSiblingElement("snippet"))
-        {
-            SnippetData snippet;
-            snippet.name = elem.attribute("name");
-            snippet.globalVars = elem.firstChildElement("global").text().trimmed();
-            snippet.equation = elem.firstChildElement("equation").text().trimmed();
-            _snippets.insert( {snippet.name, snippet } );
-        }
+        _snippets = GetSnippetsFromXML(xml_text);
     }
 }
 
@@ -1466,22 +1454,24 @@ void PlotWidget::setDefaultRangeX()
 
 DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *data)
 {
+    DataSeriesBase *output = nullptr;
+
     if(ID.isEmpty() || ID == noTransform)
     {
-        return new Timeseries_NoTransform( data, _time_offset);
+        output = new Timeseries_NoTransform( data );
     }
-    if( ID == Derivative1st || ID == "firstDerivative")
+    else if( ID == Derivative1st || ID == "firstDerivative")
     {
-        return new Timeseries_1stDerivative( data, _time_offset);
+        output = new Timeseries_1stDerivative( data );
     }
-    if( ID == Derivative2nd || ID == "secondDerivative")
+    else if( ID == Derivative2nd || ID == "secondDerivative")
     {
-        return new Timeseries_2ndDerivative( data, _time_offset);
+        output = new Timeseries_2ndDerivative( data );
     }
     if( ID == "XYPlot")
     {
         try {
-            return new PointSeriesXY( data, _axisX, _time_offset);
+            output = new PointSeriesXY( data, _axisX );
         }
         catch (std::runtime_error& )
         {
@@ -1502,17 +1492,21 @@ DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *
                     if_xy_plot_failed_show_dialog = false;
                 }
             }
-            return nullptr;
+            output = nullptr;
         }
     }
     auto custom_it = _snippets.find(ID);
     if( custom_it != _snippets.end())
     {
         const auto& snippet = custom_it->second;
-        return new CustomTimeseries( data, snippet, _mapped_data, _time_offset);
+        output = new CustomTimeseries( data, snippet, _mapped_data );
     }
 
-    throw std::runtime_error("Not recognized ID in createSeriesData");
+    if( !output ){
+        throw std::runtime_error("Not recognized ID in createSeriesData");
+    }
+    output->setTimeOffset( _time_offset );
+    return output;
 }
 
 void PlotWidget::changeBackgroundColor(QColor color)

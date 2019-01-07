@@ -8,21 +8,15 @@ class TimeseriesQwt: public DataSeriesBase
 {
 public:
 
-    TimeseriesQwt(const PlotData* base, double time_offset);
+    TimeseriesQwt(const PlotData *source_data, const PlotData* transformed_data);
 
     PlotData::RangeValueOpt getVisualizationRangeY(PlotData::RangeTime range_X) override;
 
     nonstd::optional<QPointF> sampleFromTime(double t) override;
 
-public slots:
-
-    virtual void onTimeoffsetChanged(double offset) override;
-
 protected:
-
-    int getIndexFromTime(double t);
-
-    const PlotData* _plot_data;
+    const PlotData*  _source_data;
+    PlotData   _cached_data;
 };
 
 //---------------------------------------------------------
@@ -30,20 +24,21 @@ protected:
 class Timeseries_NoTransform: public TimeseriesQwt
 {
 public:
-    Timeseries_NoTransform(const PlotData* base, double time_offset):
-        TimeseriesQwt(base,time_offset)
+    Timeseries_NoTransform(const PlotData* source_data):
+        TimeseriesQwt( source_data, source_data )
     {
         updateCache();
     }
 
      bool updateCache() override;
+
 };
 
 class Timeseries_1stDerivative: public TimeseriesQwt
 {
 public:
-    Timeseries_1stDerivative(const PlotData* base, double time_offset):
-        TimeseriesQwt(base,time_offset)
+    Timeseries_1stDerivative(const PlotData* source_data):
+        TimeseriesQwt(source_data, &_cached_data)
     {
         updateCache();
     }
@@ -54,8 +49,8 @@ public:
 class Timeseries_2ndDerivative: public TimeseriesQwt
 {
 public:
-    Timeseries_2ndDerivative(const PlotData* base, double time_offset):
-        TimeseriesQwt(base,time_offset)
+    Timeseries_2ndDerivative(const PlotData* source_data):
+        TimeseriesQwt(source_data, &_cached_data)
     {
         updateCache();
     }

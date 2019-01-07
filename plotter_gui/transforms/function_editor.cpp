@@ -168,32 +168,10 @@ void AddCustomPlotDialog::on_curvesListWidget_doubleClicked(const QModelIndex &i
 
 void AddCustomPlotDialog::importSnippets(const QByteArray& xml_text)
 {
-    _snipped_saved.clear();
     ui->snippetsListSaved->clear();
 
-    QDomDocument doc;
-    QString parseErrorMsg;
-    int parseErrorLine;
-    if(!doc.setContent(xml_text, &parseErrorMsg, &parseErrorLine))
-    {
-        QMessageBox::critical(nullptr, "Error",
-                              QString("Failed to parse snippets.xml, error %1 at line %2")
-                              .arg(parseErrorMsg).arg(parseErrorLine));
-    }
-    else
-    {
-        QDomElement docElem = doc.documentElement();
-        for (auto elem = docElem.firstChildElement("snippet");
-             !elem.isNull();
-             elem = elem.nextSiblingElement("snippet"))
-        {
-            SnippetData snippet;
-            snippet.name = elem.attribute("name");
-            snippet.globalVars = elem.firstChildElement("global").text().trimmed();
-            snippet.equation = elem.firstChildElement("equation").text().trimmed();
-            _snipped_saved.insert( {snippet.name, snippet } );
-        }
-    }
+    _snipped_saved = GetSnippetsFromXML(xml_text);
+
     for(const auto &it : _snipped_saved)
     {
         ui->snippetsListSaved->addItem( it.first );

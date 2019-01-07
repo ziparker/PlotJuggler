@@ -8,16 +8,16 @@
 class CustomTimeseries: public TimeseriesQwt
 {
 public:
-    CustomTimeseries(const PlotData *base,
+    CustomTimeseries(const PlotData *source_data,
                      const SnippetData &snippet,
-                     PlotDataMapRef& mapped_data,
-                     double time_offset);
+                     PlotDataMapRef& mapped_data);
 
     bool updateCache() override;
 
 private:
     CustomFunction _transform;
     const PlotDataMapRef& _mapped_data;
+
 };
 
 #endif // CUSTOM_TIMESERIES_H

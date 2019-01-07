@@ -8,25 +8,34 @@ class DataSeriesBase: public QwtSeriesData<QPointF>
 {
 
 public:
-    DataSeriesBase(double time_offset):
-        _cached_curve(""),
-        _time_offset(time_offset){}
+    DataSeriesBase(const PlotData* transformed):
+        _transformed_data(transformed),
+        _time_offset(0)
+    {}
 
     virtual QPointF sample( size_t i ) const override
     {
-        const auto& p =_cached_curve.at(i);
-        return QPointF(p.x, p.y);
+        const auto& p = _transformed_data->at(i);
+        return QPointF(p.x - _time_offset, p.y);
     }
+
     virtual size_t size() const override
     {
-        return _cached_curve.size();
+        return _transformed_data->size();
     }
 
-    QRectF boundingRect() const override
+    QRectF boundingRect() const override final
     {
-        return _bounding_box;
+        QRectF box = _bounding_box;
+        box.setLeft(  _bounding_box.left()  - _time_offset );
+        box.setRight( _bounding_box.right() - _time_offset );
+        return box;
     }
 
+    void setTimeOffset(double offset)
+    {
+        _time_offset = offset;
+    }
 
     virtual PlotData::RangeValueOpt getVisualizationRangeY(PlotData::RangeTime range_X) = 0;
 
@@ -39,23 +48,18 @@ public:
         if( this->size() < 2 )
             return  PlotData::RangeTimeOpt();
         else{
-            return PlotData::RangeTimeOpt( { _bounding_box.left(), _bounding_box.right() } );
+            return PlotData::RangeTimeOpt( { _bounding_box.left()  - _time_offset,
+                                             _bounding_box.right() - _time_offset } );
         }
     }
 
-public slots:
-
-    virtual void onTimeoffsetChanged(double offset)
-    {
-        _time_offset = offset;
-    }
+    const PlotData* transformedData() const { return _transformed_data; }
 
 protected:
-
-    PlotData _cached_curve;
-
     QRectF _bounding_box;
 
+private:
+    const PlotData* _transformed_data;
     double _time_offset;
 };
 
