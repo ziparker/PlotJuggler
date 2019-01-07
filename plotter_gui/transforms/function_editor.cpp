@@ -183,17 +183,15 @@ void AddCustomPlotDialog::importSnippets(const QByteArray& xml_text)
     else
     {
         QDomElement docElem = doc.documentElement();
-        QDomNode n = docElem.firstChild();
-        while(!n.isNull()) {
-            QDomElement e = n.toElement(); // try to convert the node to an element.
-            if(!e.isNull() && e.tagName() == "snippet") {
-                SnippetData snippet;
-                snippet.name = e.attribute("name");
-                snippet.globalVars = e.firstChildElement("global").text().trimmed();
-                snippet.equation = e.firstChildElement("equation").text().trimmed();
-                _snipped_saved.insert( {snippet.name, snippet } );
-            }
-            n = n.nextSibling();
+        for (auto elem = docElem.firstChildElement("snippet");
+             !elem.isNull();
+             elem = elem.nextSiblingElement("snippet"))
+        {
+            SnippetData snippet;
+            snippet.name = elem.attribute("name");
+            snippet.globalVars = elem.firstChildElement("global").text().trimmed();
+            snippet.equation = elem.firstChildElement("equation").text().trimmed();
+            _snipped_saved.insert( {snippet.name, snippet } );
         }
     }
     for(const auto &it : _snipped_saved)

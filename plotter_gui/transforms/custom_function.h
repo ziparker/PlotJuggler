@@ -12,6 +12,12 @@ class CustomFunction;
 class QJSEngine;
 typedef std::shared_ptr<CustomFunction> CustomPlotPtr;
 
+struct SnippetData{
+    QString name;
+    QString globalVars;
+    QString equation;
+};
+
 class CustomFunction
 {
 public:

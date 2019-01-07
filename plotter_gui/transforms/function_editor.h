@@ -14,12 +14,6 @@ class AddCustomPlotDialog : public QDialog
 {
     Q_OBJECT
 
-    struct SnippetData{
-        QString name;
-        QString globalVars;
-        QString equation;
-    };
-
 public:
     explicit AddCustomPlotDialog(PlotDataMapRef &plotMapData,
                                const std::vector<CustomPlotPtr>& mapped_custom_plots,
