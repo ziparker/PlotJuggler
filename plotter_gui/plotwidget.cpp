@@ -591,12 +591,21 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
         curve_el.setAttribute( "R", curve->pen().color().red());
         curve_el.setAttribute( "G", curve->pen().color().green());
         curve_el.setAttribute( "B", curve->pen().color().blue());
+        curve_el.setAttribute( "custom_transform", _curves_transform.at(name) );
 
         plot_el.appendChild(curve_el);
     }
 
     QDomElement transform  = doc.createElement("transform");
-    transform.setAttribute("value", _default_transform);
+
+    if( _action_custom_transform->isChecked() )
+    {
+        transform.setAttribute("value", tr("Custom::") +_default_transform);
+    }
+    else{
+        transform.setAttribute("value", _default_transform);
+    }
+
     if( _axisX )
     {
         transform.setAttribute("axisX", QString::fromStdString( _axisX->name()) );
@@ -609,8 +618,6 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
 
 bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
 {
-    QDomElement curve;
-
     std::set<std::string> added_curve_names;
 
     QDomElement transform = plot_widget.firstChildElement( "transform" );
@@ -651,14 +658,14 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
 
     bool curve_added = false;
 
-    for (  curve = plot_widget.firstChildElement( "curve" )  ;
-           !curve.isNull();
-           curve = curve.nextSiblingElement( "curve" ) )
+    for (QDomElement  curve_element = plot_widget.firstChildElement( "curve" )  ;
+         !curve_element.isNull();
+         curve_element = curve_element.nextSiblingElement( "curve" ) )
     {
-        std::string curve_name = curve.attribute("name").toStdString();
-        int R = curve.attribute("R").toInt();
-        int G = curve.attribute("G").toInt();
-        int B = curve.attribute("B").toInt();
+        std::string curve_name = curve_element.attribute("name").toStdString();
+        int R = curve_element.attribute("R").toInt();
+        int G = curve_element.attribute("G").toInt();
+        int B = curve_element.attribute("B").toInt();
         QColor color(R,G,B);
 
         if(  _mapped_data.numeric.find(curve_name) != _mapped_data.numeric.end() )
@@ -712,6 +719,27 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         {
             changeAxisX( transform.attribute("axisX") );
             _action_phaseXY->trigger();
+        }
+        else if( trans_value.startsWith("Custom::" ) )
+        {
+            _default_transform = trans_value.remove(0, 8);
+
+            updateAvailableTransformers();
+
+            for (QDomElement  curve_element = plot_widget.firstChildElement( "curve" )  ;
+                 !curve_element.isNull();
+                 curve_element = curve_element.nextSiblingElement( "curve" ) )
+            {
+                std::string curve_name = curve_element.attribute("name").toStdString();
+                auto custom_attribute = curve_element.attribute("custom_transform");
+                if( !custom_attribute.isNull() )
+                {
+                    _curves_transform[curve_name] = custom_attribute;
+                }
+            }
+
+            transformCustomCurves();
+            _action_custom_transform->setChecked(true);
         }
     }
 
@@ -1211,24 +1239,8 @@ void PlotWidget::updateAvailableTransformers()
     }
 }
 
-void PlotWidget::on_customTransformsDialog()
+void PlotWidget::transformCustomCurves()
 {
-    updateAvailableTransformers();
-
-    QStringList available_trans;
-    for (const auto& it: _snippets) {
-        available_trans.push_back( it.first );
-    }
-
-    TransformSelector dialog( builtin_trans, available_trans,
-                              &_default_transform, &_curves_transform,
-                              this);
-
-    if (dialog.exec() == QDialog::Rejected )
-    {
-        return;
-    }
-
     for (auto& curve_it: _curve_list)
     {
         auto& curve = curve_it.second;
@@ -1251,6 +1263,28 @@ void PlotWidget::on_customTransformsDialog()
             curve->setData( data_series );
         }
     }
+}
+
+void PlotWidget::on_customTransformsDialog()
+{
+    updateAvailableTransformers();
+
+    QStringList available_trans;
+    for (const auto& it: _snippets) {
+        available_trans.push_back( it.first );
+    }
+
+    TransformSelector dialog( builtin_trans, available_trans,
+                              &_default_transform, &_curves_transform,
+                              this);
+
+    if (dialog.exec() == QDialog::Rejected )
+    {
+        return;
+    }
+
+    transformCustomCurves();
+
     zoomOut(false);
     replot();
 }
