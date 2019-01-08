@@ -115,7 +115,7 @@ border: 0.5px solid rgb(150, 150, 150);</string>
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resource.qrc">
+            <iconset resource="../../PlotJuggler-2/plotter_gui/resource.qrc">
              <normaloff>:/icons/resources/cog.png</normaloff>:/icons/resources/cog.png</iconset>
            </property>
            <property name="iconSize">
@@ -389,6 +389,13 @@ border: 1px solid rgb(150, 150, 150);</string>
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Custom (User defined) Timeseries:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QPushButton" name="buttonAddCustom">
@@ -400,25 +407,28 @@ border: 1px solid rgb(150, 150, 150);</string>
            </property>
            <property name="maximumSize">
             <size>
-             <width>20</width>
+             <width>60</width>
              <height>16777215</height>
             </size>
            </property>
            <property name="text">
-            <string>+</string>
+            <string>New...</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="buttonRefreshAll">
+          <widget class="QPushButton" name="buttonEditCustom">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="maximumSize">
             <size>
-             <width>70</width>
+             <width>60</width>
              <height>16777215</height>
             </size>
            </property>
            <property name="text">
-            <string>Refresh</string>
+            <string>Edit</string>
            </property>
           </widget>
          </item>
@@ -434,6 +444,19 @@ border: 1px solid rgb(150, 150, 150);</string>
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonRefreshAll">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Refresh</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -502,7 +525,7 @@ border: 1px solid rgb(150, 150, 150);</string>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="resource.qrc"/>
+  <include location="../../PlotJuggler-2/plotter_gui/resource.qrc"/>
  </resources>
  <connections/>
 </ui>

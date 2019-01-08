@@ -19,7 +19,7 @@
 #include "PlotJuggler/dataloader_base.h"
 #include "PlotJuggler/statepublisher_base.h"
 #include "PlotJuggler/datastreamer_base.h"
-#include "custom_plot.h"
+#include "transforms/custom_function.h"
 
 namespace Ui {
 class MainWindow;
@@ -130,6 +130,8 @@ private slots:
     void updateTimeOffset();
 
     void buildDummyData();
+
+    void on_actionFunction_editor_triggered();
 
 private:
 

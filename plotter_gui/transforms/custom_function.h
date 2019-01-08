@@ -5,22 +5,36 @@
 #include <QWidget>
 #include <QString>
 #include <QDomDocument>
+#include <QString>
 #include <QJSEngine>
 #include "PlotJuggler/plotdata.h"
 
-class CustomPlot;
+class CustomFunction;
 class QJSEngine;
-typedef std::shared_ptr<CustomPlot> CustomPlotPtr;
+typedef std::shared_ptr<CustomFunction> CustomPlotPtr;
 
-class CustomPlot
+struct SnippetData{
+    QString name;
+    QString globalVars;
+    QString equation;
+};
+
+std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text);
+
+class CustomFunction
 {
 public:
-    CustomPlot(const std::string &linkedPlot,
-             const std::string &plotName,
-             const QString &globalVars,
-             const QString &function);
+    CustomFunction(const std::string &linkedPlot,
+               const std::string &plotName,
+               const QString &globalVars,
+               const QString &function);
 
-    void calculate(PlotDataMapRef &plotData);
+    CustomFunction(const std::string &linkedPlot,
+               const SnippetData &snippet);
+
+    void calculateAndAdd(PlotDataMapRef &plotData);
+
+    void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
 
     const std::string& name() const;
 
@@ -39,7 +53,8 @@ private:
 
     PlotData::Point  calculatePoint(QJSValue &calcFct,
                                     const PlotData &src_data,
-                                    const std::vector<const PlotData *> &channels_data, QJSValue &chan_values,
+                                    const std::vector<const PlotData *> &channels_data,
+                                    QJSValue &chan_values,
                                     size_t point_index);
 
     std::string _linked_plot_name;

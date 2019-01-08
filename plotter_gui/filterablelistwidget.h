@@ -7,8 +7,9 @@
 #include <QMouseEvent>
 #include <QStandardItemModel>
 #include <QTableView>
+#include <QItemSelection>
 
-#include "custom_plot.h"
+#include "transforms/custom_function.h"
 #include "tree_completer.h"
 
 class CustomSortedTableItem;
@@ -76,9 +77,13 @@ private slots:
 
     void removeSelectedCurves();
 
-    void on_buttonAddCustom_pressed();
+    void on_buttonAddCustom_clicked();
 
-    void on_buttonRefreshAll_pressed();
+    void on_buttonEditCustom_clicked();
+
+    void on_buttonRefreshAll_clicked();
+
+    void onCustomSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 
 private:
 

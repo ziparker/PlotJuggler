@@ -11,7 +11,7 @@ QString getFunnySubtitle(){
     int n = qrand() % 15;
     switch(n)
     {
-    case 0: return "Now with less bugs than usual";
+    case 0: return "Now, with less bugs than usual";
     case 1: return "Talk is cheap, show me the data!";
     case 2: return "The visualization tool that you deserve";
     case 3: return "Timeseries, timeseries everywhere!";
@@ -37,8 +37,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName("IcarusTechnology");
     app.setApplicationName("PlotJuggler");
 
-    qApp->setStyleSheet(QString(""
-                                "QToolTip {\n"
+    qApp->setStyleSheet(QString("QToolTip {\n"
                                 "   border: 1px solid black;\n"
                                 "   border-radius: 4px;\n"
                                 "   background: white;\n"
@@ -65,7 +64,7 @@ int main(int argc, char *argv[])
 
                                 " QMenu::indicator {"
                                 "      width: 24px;"
-                                "      height: 20px;"
+                                "      height: 20px; }"
                                 )
                         );
 
@@ -151,14 +150,12 @@ int main(int argc, char *argv[])
         const auto deadline = QDateTime::currentDateTime().addMSecs( 100*(20 + subtitle.size()*0.4) );
 
         MainWindow w( parser );
-
         while( QDateTime::currentDateTime() < deadline && !splash.isHidden() )
         {
             app.processEvents();
             QThread::msleep(100);
             splash.raise();
         }
-
         splash.close();
         w.show();
         return app.exec();
@@ -168,6 +165,5 @@ int main(int argc, char *argv[])
         w.show();
         return app.exec();
     }
-
-    return -1;
+    return 0;
 }

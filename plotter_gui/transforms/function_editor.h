@@ -4,22 +4,15 @@
 #include <QDialog>
 #include <QListWidgetItem>
 #include <qwt_plot_curve.h>
+#include <unordered_map>
 #include "PlotJuggler/plotdata.h"
-#include "custom_plot.h"
+#include "custom_function.h"
+#include "ui_function_editor.h"
 
-namespace Ui {
-class AddCustomPlotDialog;
-}
 
 class AddCustomPlotDialog : public QDialog
 {
     Q_OBJECT
-
-    struct SnippetData{
-        QString name;
-        QString globalVars;
-        QString equation;
-    };
 
 public:
     explicit AddCustomPlotDialog(PlotDataMapRef &plotMapData,
@@ -29,6 +22,8 @@ public:
 
     void setLinkedPlotName(const QString &linkedPlotName);
     virtual void accept() override;
+
+    void setEditorMode(bool editor_only);
 
     QString getLinkedData() const;
     QString getGlobalVars() const;
@@ -50,23 +45,35 @@ private slots:
 
     void on_snippetsListRecent_doubleClicked(const QModelIndex &index);
 
-    void recentContextMenu(const QPoint &pos);
-
     void on_nameLineEdit_textChanged(const QString &arg1);
 
+    void recentContextMenu(const QPoint &pos);
+
+    void savedContextMenu(const QPoint &pos);
+
+    void on_buttonLoadFunctions_clicked();
+
+    void on_buttonSaveFunctions_clicked();
+
+    void on_pushButtonSave_clicked();
+
+    void onRenameSaved();
+
 private:
-    void createSnippets();
+    void importSnippets(const QByteArray &xml_text);
+
+    QByteArray exportSnippets() const;
 
 
     PlotDataMapRef &_plot_map_data;
     const std::vector<CustomPlotPtr> &_custom_plots;
-    Ui::AddCustomPlotDialog *ui;
+    Ui::FunctionEditor *ui;
 
     CustomPlotPtr _plot;
     bool _is_new;
 
-    std::vector<SnippetData> _snipped_examples;
-    std::vector<SnippetData> _snipped_recent;
+    std::map<QString, SnippetData> _snipped_saved;
+    std::map<QString, SnippetData> _snipped_recent;
 };
 
 #endif // AddCustomPlotDialog_H

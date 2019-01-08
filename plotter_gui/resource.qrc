@@ -47,11 +47,7 @@
     <qresource prefix="/splash">
         <file>resources/splash.jpg</file>
     </qresource>
-    <qresource prefix="/js">
-        <file>resources/common.js</file>
-        <file>resources/geographiclib.min.js</file>
-    </qresource>
     <qresource prefix="/">
-        <file>resources/snippets.xml</file>
+        <file>resources/default.snippets.xml</file>
     </qresource>
 </RCC>

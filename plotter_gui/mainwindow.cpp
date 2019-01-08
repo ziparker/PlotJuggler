@@ -30,14 +30,12 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "busydialog.h"
-#include "busytaskdialog.h"
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
 #include "selectlistdialog.h"
 #include "aboutdialog.h"
 #include "PlotJuggler/plotdata.h"
-#include "add_custom_plot.h"
+#include "transforms/function_editor.h"
 
 
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :
@@ -588,7 +586,7 @@ void MainWindow::buildDummyData()
         for (unsigned indx=0; indx<SIZE; indx++)
         {
             t += 0.01;
-            plot.pushBack( PlotData::Point( t,  A*sin(B*t + C) + D*t*0.02 ) ) ;
+            plot.pushBack( PlotData::Point( t+35,  A*sin(B*t + C) + D*t*0.02 ) ) ;
         }
     }
 
@@ -599,8 +597,8 @@ void MainWindow::buildDummyData()
     for (unsigned indx=0; indx<SIZE; indx++)
     {
         t += 0.01;
-        sin_plot.pushBack( PlotData::Point( t,  1.0*sin(t*0.4) ) ) ;
-        cos_plot.pushBack( PlotData::Point( t,  2.0*cos(t*0.4) ) ) ;
+        sin_plot.pushBack( PlotData::Point( t+20,  sin(t*0.4) ) ) ;
+        cos_plot.pushBack( PlotData::Point( t+20,  cos(t*0.4) ) ) ;
     }
 
     importPlotDataMap(datamap,true);
@@ -1121,7 +1119,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
     if( delete_older && _mapped_plot_data.numeric.size() > new_data.numeric.size() )
     {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(0, tr("Warning"),
+        reply = QMessageBox::question(nullptr, tr("Warning"),
                                       tr("Do you want to remove the previously loaded data?\n"),
                                       QMessageBox::Yes | QMessageBox::No,
                                       QMessageBox::Yes );
@@ -1549,7 +1547,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
 
             msgBox.setDefaultButton(buttonBoth);
             int res = msgBox.exec();
-            if( res == QMessageBox::NoButton || res == QMessageBox::Cancel)
+            if( res < 0 || res == QMessageBox::Cancel)
             {
                 return;
             }
@@ -1595,7 +1593,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
                  custom_eq.isNull() == false;
                  custom_eq = custom_eq.nextSiblingElement( "snippet" ) )
             {
-                CustomPlotPtr new_custom_plot = CustomPlot::createFromXML(custom_eq);
+                CustomPlotPtr new_custom_plot = CustomFunction::createFromXML(custom_eq);
                 const auto& name = new_custom_plot->name();
                 auto custom_plot_it = findCustomPlot(name);
                 if( custom_plot_it == _custom_plots.end() )
@@ -1605,7 +1603,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
                 else{
                     *custom_plot_it = new_custom_plot;
                 }
-                new_custom_plot->calculate( _mapped_plot_data );
+                new_custom_plot->calculateAndAdd( _mapped_plot_data );
                 _curvelist_widget->addItem( QString::fromStdString( name ) );
             }
         }
@@ -1819,7 +1817,7 @@ void MainWindow::updateDataAndReplot()
 
         for( auto& custom_it: _custom_plots)
         {
-            custom_it->calculate(_mapped_plot_data);
+            custom_it->calculateAndAdd(_mapped_plot_data);
         }
 
     }
@@ -1849,6 +1847,11 @@ void MainWindow::updateDataAndReplot()
 
 void MainWindow::on_streamingSpinBox_valueChanged(int value)
 {
+    if( isStreamingActive() == false)
+    {
+        return;
+    }
+
     for (auto& it : _mapped_plot_data.numeric )
     {
         it.second.setMaximumRangeX( value );
@@ -2093,7 +2096,7 @@ void MainWindow::onRefreshMathPlot(const std::string &plot_name)
         }
         CustomPlotPtr ce = *it;
 
-        ce->calculate(_mapped_plot_data);
+        ce->calculateAndAdd(_mapped_plot_data);
 
         onUpdateLeftTableValues();
         updateDataAndReplot();
@@ -2107,9 +2110,9 @@ void MainWindow::onRefreshMathPlot(const std::string &plot_name)
 void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
 {
     AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
+
     if(!edit)
     {
-        // add
         dialog.setLinkedPlotName(QString::fromStdString(name));
     }
     else
@@ -2120,6 +2123,14 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
             qWarning("failed to find custom equation");
             return;
         }
+
+        // clear already existing data first
+        auto data_it = _mapped_plot_data.numeric.find( name );
+        if( data_it != _mapped_plot_data.numeric.end())
+        {
+           data_it->second.clear();
+        }
+
         dialog.editExistingPlot(*it);
     }
 
@@ -2129,7 +2140,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
         std::string plot_name = qplot_name.toStdString();
         CustomPlotPtr eq = dialog.getCustomPlotData();
 
-        eq->calculate(_mapped_plot_data);
+        eq->calculateAndAdd(_mapped_plot_data);
 
         // keep data for reference
         auto custom_plot_it = findCustomPlot(plot_name);
@@ -2152,4 +2163,11 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
             updateDataAndReplot();
         }
     }
+}
+
+void MainWindow::on_actionFunction_editor_triggered()
+{
+    AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
+    dialog.setEditorMode(true);
+    dialog.exec();
 }

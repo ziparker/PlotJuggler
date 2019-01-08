@@ -1,17 +1,27 @@
-#include "custom_plot.h"
+#include "custom_function.h"
 
 #include <limits>
 #include <QFile>
 #include <QMessageBox>
+#include <QElapsedTimer>
 
-CustomPlot::CustomPlot(const std::string &linkedPlot,
-                   const std::string &plotName,
-                   const QString &globalVars,
-                   const QString &equation):
+CustomFunction::CustomFunction(const std::string &linkedPlot,
+                               const SnippetData &snippet):
+    CustomFunction(linkedPlot,
+                   snippet.name.toStdString(),
+                   snippet.globalVars,
+                   snippet.equation )
+{
+}
+
+CustomFunction::CustomFunction(const std::string &linkedPlot,
+                               const std::string &plotName,
+                               const QString &globalVars,
+                               const QString &function):
     _linked_plot_name(linkedPlot),
     _plot_name(plotName),
     _global_vars(globalVars),
-    _function(equation),
+    _function(function),
     _last_updated_timestamp( - std::numeric_limits<double>::max() )
 {
 
@@ -51,7 +61,19 @@ CustomPlot::CustomPlot(const std::string &linkedPlot,
     initJsEngine();
 }
 
-void CustomPlot::initJsEngine()
+void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
+{
+    auto dst_data_it = plotData.numeric.find(_plot_name);
+    if(dst_data_it == plotData.numeric.end())
+    {
+        dst_data_it = plotData.addNumeric(_plot_name);
+    }
+    PlotData& dst_data = dst_data_it->second;
+
+    calculate(plotData, &dst_data);
+}
+
+void CustomFunction::initJsEngine()
 {
     _jsEngine = std::make_shared<QJSEngine>();
 
@@ -62,24 +84,9 @@ void CustomPlot::initJsEngine()
     }
     QString calcMethodStr = QString("function calc(time, value, CHANNEL_VALUES){with (Math){\n%1\n}}").arg(_function);
     _jsEngine->evaluate(calcMethodStr);
-
-    static QStringList files{":/js/resources/common.js", ":/js/resources/geographiclib.min.js" };
-    for(QString fileName : files)
-    {
-        QFile file(fileName);
-        if(file.open(QIODevice::ReadOnly))
-        {
-            QString commonData = QString::fromUtf8(file.readAll());
-            QJSValue out = _jsEngine->evaluate(commonData);
-            if(out.isError())
-            {
-                qWarning() << "JS Engine : " << out.toString();
-            }
-        }
-    }
 }
 
-PlotData::Point CustomPlot::calculatePoint(QJSValue& calcFct,
+PlotData::Point CustomFunction::calculatePoint(QJSValue& calcFct,
                                 const PlotData& src_data,
                                 const std::vector<const PlotData*>& channels_data,
                                 QJSValue& chan_values,
@@ -98,7 +105,6 @@ PlotData::Point CustomPlot::calculatePoint(QJSValue& calcFct,
         else{
             value = std::numeric_limits<double>::quiet_NaN();
         }
-
         chan_values.setProperty(static_cast<quint32>(chan_index++), QJSValue(value));
     }
 
@@ -115,7 +121,7 @@ PlotData::Point CustomPlot::calculatePoint(QJSValue& calcFct,
     return new_point;
 }
 
-void CustomPlot::calculate(PlotDataMapRef &plotData)
+void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_data)
 {
     QJSValue calcFct = _jsEngine->evaluate("calc");
 
@@ -131,19 +137,12 @@ void CustomPlot::calculate(PlotDataMapRef &plotData)
         return;
     }
     const PlotData& src_data = src_data_it->second;
-
-    auto dst_data_it = plotData.numeric.find(_plot_name);
-    if(dst_data_it == plotData.numeric.end())
-    {
-        dst_data_it = plotData.addNumeric(_plot_name);
-    }
-    PlotData& dst_data = dst_data_it->second;
-    // clean up
+    // clean up old data
     double first_time = src_data.front().x;
 
-    while(dst_data.size() > 0 && dst_data.front().x <  first_time)
+    while(dst_data->size() > 0 && dst_data->front().x <  first_time)
     {
-        dst_data.popFront();
+        dst_data->popFront();
     }
 
     std::vector<const PlotData*> channel_data;
@@ -166,35 +165,36 @@ void CustomPlot::calculate(PlotDataMapRef &plotData)
     {
         if( src_data.at(i).x > _last_updated_timestamp)
         {
-            dst_data.pushBack( calculatePoint(calcFct, src_data, channel_data, chan_values, i ) );
+            dst_data->pushBack( calculatePoint(calcFct, src_data, channel_data, chan_values, i ) );
         }
     }
-    _last_updated_timestamp = dst_data.back().x;
+    _last_updated_timestamp = dst_data->back().x;
 }
 
-const std::string &CustomPlot::name() const
+
+const std::string &CustomFunction::name() const
 {
     return _plot_name;
 }
 
-const std::string &CustomPlot::linkedPlotName() const
+const std::string &CustomFunction::linkedPlotName() const
 {
     return _linked_plot_name;
 }
 
-const QString &CustomPlot::globalVars() const
+const QString &CustomFunction::globalVars() const
 {
     return _global_vars;
 }
 
-const QString &CustomPlot::function() const
+const QString &CustomFunction::function() const
 {
     return _function;
 }
 
 
 
-QDomElement CustomPlot::xmlSaveState(QDomDocument &doc) const
+QDomElement CustomFunction::xmlSaveState(QDomDocument &doc) const
 {
     QDomElement snippet = doc.createElement("snippet");
     snippet.setAttribute("name", QString::fromStdString(_plot_name) );
@@ -214,13 +214,43 @@ QDomElement CustomPlot::xmlSaveState(QDomDocument &doc) const
     return snippet;
 }
 
-CustomPlotPtr CustomPlot::createFromXML(QDomElement &element)
+CustomPlotPtr CustomFunction::createFromXML(QDomElement &element)
 {
     auto name   = element.attribute("name").toStdString();
     auto linkedPlot = element.firstChildElement("linkedPlot").text().trimmed().toStdString();
     auto globalVars = element.firstChildElement("global").text().trimmed();
     auto calcEquation = element.firstChildElement("equation").text().trimmed();
 
-    return std::make_shared<CustomPlot>(linkedPlot, name, globalVars, calcEquation );
+    return std::make_shared<CustomFunction>(linkedPlot, name, globalVars, calcEquation );
 }
 
+
+std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text)
+{
+    std::map<QString, SnippetData> snippets;
+
+    QDomDocument doc;
+    QString parseErrorMsg;
+    int parseErrorLine;
+    if(!doc.setContent(xml_text, &parseErrorMsg, &parseErrorLine))
+    {
+        QMessageBox::critical(nullptr, "Error",
+                              QString("Failed to parse snippets.xml, error %1 at line %2")
+                              .arg(parseErrorMsg).arg(parseErrorLine));
+    }
+    else
+    {
+        QDomElement docElem = doc.documentElement();
+        for (auto elem = docElem.firstChildElement("snippet");
+             !elem.isNull();
+             elem = elem.nextSiblingElement("snippet"))
+        {
+            SnippetData snippet;
+            snippet.name = elem.attribute("name");
+            snippet.globalVars = elem.firstChildElement("global").text().trimmed();
+            snippet.equation = elem.firstChildElement("equation").text().trimmed();
+            snippets.insert( {snippet.name, snippet } );
+        }
+    }
+    return snippets;
+}
