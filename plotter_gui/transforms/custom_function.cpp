@@ -14,6 +14,28 @@ CustomFunction::CustomFunction(const std::string &linkedPlot,
 {
 }
 
+QStringList CustomFunction::getChannelsFromFuntion(const QString& function)
+{
+    QStringList output;
+    int offset = 0;
+    while(true)
+    {
+        int pos1 = function.indexOf("$$", offset);
+        if(pos1 == -1){
+            break;
+        }
+
+        int pos2 = function.indexOf("$$", pos1+2);
+        if(pos2 == -1)
+        {
+            return {};
+        }
+        output.push_back( function.mid(pos1+2, pos2-pos1-2) );
+        offset = pos2+2;
+    }
+    return output;
+}
+
 CustomFunction::CustomFunction(const std::string &linkedPlot,
                                const std::string &plotName,
                                const QString &globalVars,
@@ -171,19 +193,6 @@ void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_dat
     _last_updated_timestamp = dst_data->back().x;
 }
 
-bool CustomFunction::isValid(const PlotDataMapRef &plotData) const
-{
-    for(const auto& channel: _used_channels)
-    {
-        if(plotData.numeric.count(channel) == 0)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-
 const std::string &CustomFunction::name() const
 {
     return _plot_name;
@@ -235,7 +244,6 @@ CustomPlotPtr CustomFunction::createFromXML(QDomElement &element)
 
     return std::make_shared<CustomFunction>(linkedPlot, name, globalVars, calcEquation );
 }
-
 
 std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text)
 {

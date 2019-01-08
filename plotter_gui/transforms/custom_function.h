@@ -36,8 +36,6 @@ public:
 
     void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
 
-    bool isValid(const PlotDataMapRef &plotData) const;
-
     const std::string& name() const;
 
     const std::string& linkedPlotName() const;
@@ -49,6 +47,8 @@ public:
     QDomElement xmlSaveState(QDomDocument &doc) const;
 
     static CustomPlotPtr createFromXML(QDomElement &element );
+
+    static QStringList getChannelsFromFuntion(const QString& function);
 
 private:
     void initJsEngine();

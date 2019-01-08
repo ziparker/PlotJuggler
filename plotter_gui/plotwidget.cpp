@@ -1281,8 +1281,24 @@ void PlotWidget::on_customTransformsDialog()
     updateAvailableTransformers();
 
     QStringList available_trans;
-    for (const auto& it: _snippets) {
-        available_trans.push_back( it.first );
+    for (const auto& it: _snippets)
+    {
+        bool valid = true;
+        QStringList required_channels = CustomFunction::getChannelsFromFuntion( it.second.equation );
+        for (const auto& channel: required_channels)
+        {
+            if( _mapped_data.numeric.count( channel.toStdString() ) == 0)
+            {
+                valid = false;
+                break;
+            }
+        }
+        valid = valid && it.second.equation.contains("value");
+
+        if( valid )
+        {
+            available_trans.push_back( it.first );
+        }
     }
 
     TransformSelector dialog( builtin_trans, available_trans,
@@ -1295,7 +1311,6 @@ void PlotWidget::on_customTransformsDialog()
     }
 
     transformCustomCurves();
-
     zoomOut(false);
     replot();
 }
