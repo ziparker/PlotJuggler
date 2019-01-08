@@ -22,7 +22,6 @@ public:
     void addCurveName(const QString& name, const QColor &color);
 
 private slots:
-    void on_listCurveWidget_itemClicked(QListWidgetItem *item);
 
     void on_pushButtonRemove_pressed();
 
