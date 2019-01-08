@@ -171,6 +171,18 @@ void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_dat
     _last_updated_timestamp = dst_data->back().x;
 }
 
+bool CustomFunction::isValid(const PlotDataMapRef &plotData) const
+{
+    for(const auto& channel: _used_channels)
+    {
+        if(plotData.numeric.count(channel) == 0)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 const std::string &CustomFunction::name() const
 {

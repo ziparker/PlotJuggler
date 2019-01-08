@@ -1229,27 +1229,50 @@ void PlotWidget::updateAvailableTransformers()
 
 void PlotWidget::transformCustomCurves()
 {
+    std::string error_message;
+
     for (auto& curve_it: _curve_list)
     {
         auto& curve = curve_it.second;
         const auto& curve_name = curve_it.first;
         const auto& transform = _curves_transform.at(curve_name);
 
-        if( transform == noTransform || transform.isEmpty())
-        {
-            curve->setTitle( QString::fromStdString(curve_name) );
-        }
-        else{
-            curve->setTitle( QString::fromStdString(curve_name) + tr(" [") + transform +  tr("]") );
-        }
-
         auto data_it = _mapped_data.numeric.find( curve_name );
         if( data_it != _mapped_data.numeric.end())
         {
             auto& data = data_it->second;
-            auto data_series = createSeriesData( transform, &data);
-            curve->setData( data_series );
+            try {
+                auto data_series = createSeriesData( transform, &data);
+                curve->setData( data_series );
+
+                if( transform == noTransform || transform.isEmpty())
+                {
+                    curve->setTitle( QString::fromStdString(curve_name) );
+                }
+                else{
+                    curve->setTitle( QString::fromStdString(curve_name) + tr(" [") + transform +  tr("]") );
+                }
+            }
+            catch (...)
+            {
+                _curves_transform[curve_name] = noTransform;
+                auto data_series = createSeriesData( noTransform, &data);
+                curve->setData( data_series );
+
+                error_message += curve_name + (" [") + transform.toStdString() + ("]\n");
+
+                curve->setTitle( QString::fromStdString(curve_name) );
+            }
         }
+    }
+    if( error_message.size() > 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Warnings");
+        msgBox.setText(tr("Something went wront while creating the following curves. "
+                          "Please check that the transform equation is correct.\n\n") +
+                       QString::fromStdString(error_message) );
+        msgBox.exec();
     }
 }
 
