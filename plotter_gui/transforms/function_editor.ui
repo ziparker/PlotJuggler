@@ -65,11 +65,14 @@
             </item>
             <item row="0" column="1">
              <widget class="QLineEdit" name="nameLineEdit">
+              <property name="toolTip">
+               <string>name of the new function/timeseries</string>
+              </property>
               <property name="text">
                <string/>
               </property>
               <property name="placeholderText">
-               <string>name of the new function/timeserie</string>
+               <string/>
               </property>
              </widget>
             </item>

@@ -2107,16 +2107,19 @@ void MainWindow::onRefreshMathPlot(const std::string &plot_name)
     }
 }
 
-void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
+void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
 {
     AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
 
-    if(!edit)
+    if(!modifying)
     {
         dialog.setLinkedPlotName(QString::fromStdString(name));
+        dialog.setEditorMode( AddCustomPlotDialog::FUNCTION_OR_TIMESERIES );
     }
     else
     {
+        dialog.setEditorMode( AddCustomPlotDialog::TIMESERIES_ONLY );
+
         auto it = findCustomPlot(name);
         if(it == _custom_plots.end())
         {
@@ -2161,13 +2164,13 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
             *custom_plot_it = eq;
         }
 
-        if(!edit)
+        if(!modifying)
         {
             _curvelist_widget->addItem(qplot_name);
         }
         onUpdateLeftTableValues();
 
-        if(edit)
+        if(modifying)
         {
             updateDataAndReplot();
         }
@@ -2177,6 +2180,6 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
 void MainWindow::on_actionFunction_editor_triggered()
 {
     AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
-    dialog.setEditorMode(true);
+    dialog.setEditorMode( AddCustomPlotDialog::FUNCTION_ONLY );
     dialog.exec();
 }

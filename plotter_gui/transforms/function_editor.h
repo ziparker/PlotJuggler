@@ -23,7 +23,13 @@ public:
     void setLinkedPlotName(const QString &linkedPlotName);
     virtual void accept() override;
 
-    void setEditorMode(bool editor_only);
+    enum EditorMode{
+      FUNCTION_OR_TIMESERIES,
+      TIMESERIES_ONLY,
+      FUNCTION_ONLY
+    };
+
+    void setEditorMode(EditorMode mode);
 
     QString getLinkedData() const;
     QString getGlobalVars() const;

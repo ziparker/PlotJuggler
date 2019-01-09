@@ -115,11 +115,12 @@ void AddCustomPlotDialog::accept()
     }
 }
 
-void AddCustomPlotDialog::setEditorMode(bool editor_only)
+void AddCustomPlotDialog::setEditorMode(EditorMode mode)
 {
-    ui->label_linkeChannel->setVisible( !editor_only );
-    ui->combo_linkedChannel->setVisible( !editor_only );
-    ui->pushButtonCreate->setVisible( !editor_only );
+    ui->label_linkeChannel->setVisible( mode != FUNCTION_ONLY );
+    ui->combo_linkedChannel->setVisible( mode != FUNCTION_ONLY );
+    ui->pushButtonCreate->setVisible( mode != FUNCTION_ONLY );
+    ui->pushButtonSave->setVisible( mode != TIMESERIES_ONLY );
 }
 
 QString AddCustomPlotDialog::getLinkedData() const
