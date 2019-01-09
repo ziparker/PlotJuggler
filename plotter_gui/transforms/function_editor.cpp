@@ -270,8 +270,8 @@ void AddCustomPlotDialog::on_snippetsListRecent_currentRowChanged(int current_ro
 
 void AddCustomPlotDialog::on_snippetsListRecent_doubleClicked(const QModelIndex &index)
 {
-    const auto& name = ui->snippetsListSaved->item( index.row() )->text();
-    const SnippetData& snippet = _snipped_saved.at(name);
+    const auto& name = ui->snippetsListRecent->item( index.row() )->text();
+    const SnippetData& snippet = _snipped_recent.at(name);
 
     ui->globalVarsTextField->setPlainText(snippet.globalVars);
     ui->mathEquation->setPlainText(snippet.equation);
@@ -288,23 +288,23 @@ void AddCustomPlotDialog::recentContextMenu(const QPoint &pos)
 
     auto list_saved = ui->snippetsListSaved;
 
-    QMenu menu;
+    auto item = list_recent->selectedItems().first();
+    const auto& name = item->text();
 
+    QMenu menu;
     QAction* move_item = new QAction("Move to Saved", this);
     menu.addAction( move_item );
 
     connect(move_item, &QAction::triggered,
-            this, [list_recent, list_saved, this]()
+            this, [=]()
     {
-        auto item = list_recent->selectedItems().first();
-        const auto& name = item->text();
+        auto snippet_it = _snipped_recent.find(name);
 
-        _snipped_saved.insert( {name, _snipped_recent.at(name) } );
-        list_saved->addItem( name );
-        list_saved->sortItems();
-
-        _snipped_recent.erase( name );
-        delete list_recent->takeItem( list_recent->row(item) );
+        if( addToSaved( name, snippet_it->second ) )
+        {
+            _snipped_recent.erase( snippet_it );
+            delete list_recent->takeItem( list_recent->row(item) );
+        }
     });
 
     menu.exec( list_recent->mapToGlobal(pos) );
@@ -340,10 +340,18 @@ void AddCustomPlotDialog::savedContextMenu(const QPoint &pos)
     menu.exec( list_saved->mapToGlobal(pos) );
 }
 
-void AddCustomPlotDialog::on_nameLineEdit_textChanged(const QString &arg1)
+void AddCustomPlotDialog::on_nameLineEdit_textChanged(const QString &name)
 {
-    ui->pushButtonCreate->setEnabled( !arg1.isEmpty() );
-    ui->pushButtonSave->setEnabled(   !arg1.isEmpty() );
+    ui->pushButtonCreate->setEnabled( !name.isEmpty() );
+    ui->pushButtonSave->setEnabled(   !name.isEmpty() );
+
+    if( _plot_map_data.numeric.count( name.toStdString() ) == 0)
+    {
+        ui->pushButtonCreate->setText("Create New Timeseries");
+    }
+    else{
+        ui->pushButtonCreate->setText("Modify Timeseries");
+    }
 }
 
 void AddCustomPlotDialog::on_buttonLoadFunctions_clicked()
@@ -410,6 +418,13 @@ void AddCustomPlotDialog::on_pushButtonSave_clicked()
     snippet.globalVars = ui->globalVarsTextField->toPlainText();
     snippet.equation   = ui->mathEquation->toPlainText();
 
+    addToSaved( name, snippet);
+
+    on_snippetsListSaved_currentRowChanged( ui->snippetsListSaved->currentRow() );
+}
+
+bool AddCustomPlotDialog::addToSaved(const QString& name, const SnippetData& snippet)
+{
     if( _snipped_saved.count(name) )
     {
         QMessageBox msgBox;
@@ -422,16 +437,15 @@ void AddCustomPlotDialog::on_pushButtonSave_clicked()
         int res = msgBox.exec();
 
         if( res < 0 ||  res == QMessageBox::Cancel) {
-            return;
+            return false;
         }
     }
     else{
         ui->snippetsListSaved->addItem(name);
+        ui->snippetsListSaved->sortItems();
     }
     _snipped_saved[name] = snippet;
-    ui->snippetsListSaved->sortItems();
-
-    on_snippetsListSaved_currentRowChanged( ui->snippetsListSaved->currentRow() );
+    return true;
 }
 
 void AddCustomPlotDialog::onRenameSaved()

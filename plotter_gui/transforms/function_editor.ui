@@ -157,7 +157,7 @@
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
-            <string>Create Timeserie</string>
+            <string>Create New Timeseries</string>
            </property>
            <property name="default">
             <bool>true</bool>
@@ -196,7 +196,7 @@
             <enum>Qt::NoFocus</enum>
            </property>
            <property name="text">
-            <string>Close Editor</string>
+            <string>Cancel</string>
            </property>
            <property name="autoDefault">
             <bool>true</bool>

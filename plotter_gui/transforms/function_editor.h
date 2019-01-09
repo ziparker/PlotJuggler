@@ -64,6 +64,7 @@ private:
 
     QByteArray exportSnippets() const;
 
+    bool addToSaved(const QString& name, const SnippetData &snippet);
 
     PlotDataMapRef &_plot_map_data;
     const std::vector<CustomPlotPtr> &_custom_plots;
