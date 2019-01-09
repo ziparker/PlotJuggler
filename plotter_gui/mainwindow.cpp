@@ -774,7 +774,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     {
         if( TabbedPlotWidget::instance( it.first ) == nullptr)
         {
-            createTabbedDialog( it.first, NULL );
+            createTabbedDialog( it.first, nullptr );
         }
     }
 
@@ -992,7 +992,7 @@ void MainWindow::onActionLoadDataFile()
 {
     if( _data_loader.empty())
     {
-        QMessageBox::warning(0, tr("Warning"),
+        QMessageBox::warning(nullptr, tr("Warning"),
                              tr("No plugin was loaded to process a data file\n") );
         return;
     }
@@ -1720,8 +1720,8 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
 {
     if( !source || !destination ) return;
 
-    PlotMatrix* src_matrix = NULL;
-    PlotMatrix* dst_matrix = NULL;
+    PlotMatrix* src_matrix = nullptr;
+    PlotMatrix* dst_matrix = nullptr;
     QPoint src_pos;
     QPoint dst_pos;
 
@@ -1917,7 +1917,7 @@ void MainWindow::on_actionStopStreaming_triggered()
 void MainWindow::on_actionExit_triggered()
 {
     QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(0, tr("Warning"),
+    reply = QMessageBox::question(nullptr, tr("Warning"),
                                   tr("Do you really want quit?\n"),
                                   QMessageBox::Yes | QMessageBox::No,
                                   QMessageBox::Yes );
@@ -2038,7 +2038,7 @@ void MainWindow::on_minimizeView()
     if( first_call && !_minimized )
     {
         first_call = false;
-        QMessageBox::information(0,"Remember!", "Press F10 to switch back to the normal view");
+        QMessageBox::information(nullptr,"Remember!", "Press F10 to switch back to the normal view");
     }
 
     _minimized = !_minimized;
@@ -2054,7 +2054,7 @@ void MainWindow::on_minimizeView()
     }
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent *)
 {
     _replot_timer->stop();
     if( _current_streamer )
@@ -2130,7 +2130,6 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
         {
            data_it->second.clear();
         }
-
         dialog.editExistingPlot(*it);
     }
 
@@ -2140,7 +2139,17 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool edit)
         std::string plot_name = qplot_name.toStdString();
         CustomPlotPtr eq = dialog.getCustomPlotData();
 
-        eq->calculateAndAdd(_mapped_plot_data);
+        try {
+            eq->calculateAndAdd(_mapped_plot_data);
+        }
+        catch(std::exception& ex)
+        {
+            QMessageBox::warning(nullptr, tr("Warning"),
+                                 tr("Failed to create the custom timeseries. Error:\n\n%1")
+                                     .arg( ex.what() ) );
+
+            return;
+        }
 
         // keep data for reference
         auto custom_plot_it = findCustomPlot(plot_name);

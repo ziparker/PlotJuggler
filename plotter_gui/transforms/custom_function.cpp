@@ -85,14 +85,27 @@ CustomFunction::CustomFunction(const std::string &linkedPlot,
 
 void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
 {
+    bool newly_added = false;
+
     auto dst_data_it = plotData.numeric.find(_plot_name);
     if(dst_data_it == plotData.numeric.end())
     {
         dst_data_it = plotData.addNumeric(_plot_name);
+        newly_added = true;
     }
     PlotData& dst_data = dst_data_it->second;
 
-    calculate(plotData, &dst_data);
+    try{
+        calculate(plotData, &dst_data);
+    }
+    catch(...)
+    {
+        if( newly_added )
+        {
+            plotData.numeric.erase( dst_data_it );
+        }
+        std::rethrow_exception( std::current_exception() );
+    }
 }
 
 void CustomFunction::initJsEngine()
