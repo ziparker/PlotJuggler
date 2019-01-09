@@ -2162,6 +2162,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
         }
         else{
             *custom_plot_it = eq;
+            modifying = true;
         }
 
         if(!modifying)

@@ -90,31 +90,6 @@ void AddCustomPlotDialog::setLinkedPlotName(const QString &linkedPlotName)
     ui->combo_linkedChannel->setCurrentText(linkedPlotName);
 }
 
-void AddCustomPlotDialog::accept()
-{
-    try {
-        std::string plotName = getName().toStdString();
-        if(_is_new)
-        {
-            // check if name is unique
-            if(_plot_map_data.numeric.count(plotName) != 0)
-            {
-                throw std::runtime_error("plot name already exists");
-            }
-        }
-        _plot = std::make_shared<CustomFunction>(getLinkedData().toStdString(),
-                                           plotName,
-                                           getGlobalVars(),
-                                           getEquation());
-        QDialog::accept();
-    }
-    catch (const std::runtime_error &e) {
-        _plot.reset();
-        QMessageBox::critical(this, "Error", "Failed to create math plot : "
-                              + QString::fromStdString(e.what()));
-    }
-}
-
 void AddCustomPlotDialog::setEditorMode(EditorMode mode)
 {
     ui->label_linkeChannel->setVisible( mode != FUNCTION_ONLY );
@@ -474,3 +449,40 @@ void AddCustomPlotDialog::onRenameSaved()
     ui->snippetsListSaved->sortItems();
 }
 
+
+void AddCustomPlotDialog::on_pushButtonCreate_clicked()
+{
+    try {
+        std::string plotName = getName().toStdString();
+
+        // check if name is unique
+        if(_plot_map_data.numeric.count(plotName) != 0)
+        {
+            bool is_custom = false;
+            for( const auto& custom_plot: _custom_plots)
+            {
+                if( custom_plot->name() == plotName)
+                {
+                    is_custom = true;
+                    break;
+                }
+            }
+            if( !is_custom )
+            {
+                throw std::runtime_error("plot name already exists and can't be modified");
+            }
+        }
+
+        _plot = std::make_shared<CustomFunction>(getLinkedData().toStdString(),
+                                           plotName,
+                                           getGlobalVars(),
+                                           getEquation());
+        QDialog::accept();
+    }
+    catch (const std::runtime_error &e) {
+        _plot.reset();
+        QMessageBox::critical(this, "Error", "Failed to create math plot : "
+                              + QString::fromStdString(e.what()));
+        QDialog::reject();
+    }
+}

@@ -21,7 +21,6 @@ public:
     virtual ~AddCustomPlotDialog() override;
 
     void setLinkedPlotName(const QString &linkedPlotName);
-    virtual void accept() override;
 
     enum EditorMode{
       FUNCTION_OR_TIMESERIES,
@@ -64,6 +63,8 @@ private slots:
     void on_pushButtonSave_clicked();
 
     void onRenameSaved();
+
+    void on_pushButtonCreate_clicked();
 
 private:
     void importSnippets(const QByteArray &xml_text);

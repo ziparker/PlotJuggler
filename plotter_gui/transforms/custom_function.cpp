@@ -93,7 +93,9 @@ void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
         dst_data_it = plotData.addNumeric(_plot_name);
         newly_added = true;
     }
+
     PlotData& dst_data = dst_data_it->second;
+    dst_data.clear();
 
     try{
         calculate(plotData, &dst_data);
