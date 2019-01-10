@@ -826,14 +826,22 @@ void MainWindow::onActionSaveLayout()
     title->setStyleSheet("font-weight: bold");
     QFrame* separator = new QFrame;
     separator->setFrameStyle(QFrame::HLine | QFrame::Plain);
-    QCheckBox* checkbox = new QCheckBox("save data source");
-    checkbox->setToolTip("Do you want the layout to remember the source of your data,\n"
+
+    auto checkbox_datasource = new QCheckBox("Save data source");
+    checkbox_datasource->setToolTip("Do you want the layout to remember the source of your data,\n"
                          "i.e. the Datafile used or the Streaming Plugin loaded ?");
-    checkbox->setFocusPolicy( Qt::NoFocus );
-    checkbox->setChecked( settings.value("MainWindow.saveLayoutDataSource", true).toBool() );
+    checkbox_datasource->setFocusPolicy( Qt::NoFocus );
+    checkbox_datasource->setChecked( settings.value("MainWindow.saveLayoutDataSource", true).toBool() );
+
+    auto checkbox_snippets = new QCheckBox("Save custom transformations");
+    checkbox_snippets->setToolTip("Do you want the layout to save the custom transformations?");
+    checkbox_snippets->setFocusPolicy( Qt::NoFocus );
+    checkbox_snippets->setChecked( settings.value("MainWindow.saveLayoutSnippets", true).toBool() );
+
     vbox->addWidget(title);
     vbox->addWidget(separator);
-    vbox->addWidget(checkbox);
+    vbox->addWidget(checkbox_datasource);
+    vbox->addWidget(checkbox_snippets);
     frame->setLayout(vbox);
 
     int rows = save_layout->rowCount();
@@ -859,11 +867,13 @@ void MainWindow::onActionSaveLayout()
 
     directory_path = QFileInfo(fileName).absolutePath();
     settings.setValue("MainWindow.lastLayoutDirectory", directory_path);
-    settings.setValue("MainWindow.saveLayoutDataSource", checkbox->isChecked() );
+    settings.setValue("MainWindow.saveLayoutDataSource", checkbox_datasource->isChecked() );
+    settings.setValue("MainWindow.saveLayoutSnippets",   checkbox_snippets->isChecked() );
 
-    if( checkbox->isChecked() )
+    QDomElement root = doc.namedItem("root").toElement();
+
+    if( checkbox_datasource->isChecked() )
     {
-        QDomElement root = doc.namedItem("root").toElement();
         if( _loaded_datafile.isEmpty() == false)
         {
             QDomElement previously_loaded_datafile =  doc.createElement( "previouslyLoadedDatafile" );
@@ -888,7 +898,17 @@ void MainWindow::onActionSaveLayout()
         }
         root.appendChild(custom_equations);
     }
+    //-----------------------------------
+    if( checkbox_snippets->isChecked() )
+    {
+        QByteArray snippets_xml_text = settings.value("AddCustomPlotDialog.savedXML",
+                                                  QByteArray() ).toByteArray();
+        auto snipped_saved = GetSnippetsFromXML(snippets_xml_text);
+        auto snippets_root = ExportSnippets( snipped_saved, doc);
+        root.appendChild(snippets_root);
+    }
 
+    //------------------------------------
     QFile file(fileName);
     if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
