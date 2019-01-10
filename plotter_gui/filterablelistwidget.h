@@ -12,7 +12,7 @@
 #include "transforms/custom_function.h"
 #include "tree_completer.h"
 
-class CustomSortedTableItem;
+class SortedTableItem;
 
 namespace Ui {
 class FilterableListWidget;
@@ -23,9 +23,10 @@ class FilterableListWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit FilterableListWidget(const std::vector<CustomPlotPtr>& mapped_math_plots,
-                                  QWidget *parent = 0);
-    ~FilterableListWidget();
+    explicit FilterableListWidget(const CustomPlotMap& mapped_math_plots,
+                                  QWidget *parent);
+
+    ~FilterableListWidget() override;
 
     int rowCount() const;
 
@@ -81,8 +82,6 @@ private slots:
 
     void on_buttonEditCustom_clicked();
 
-    void on_buttonRefreshAll_clicked();
-
     void onCustomSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 
 private:
@@ -105,7 +104,7 @@ private:
 
     QStandardItemModel* _model;
 
-    const std::vector<CustomPlotPtr>& _mapped_math_plots;
+    const CustomPlotMap& _custom_plots;
 
 signals:
 

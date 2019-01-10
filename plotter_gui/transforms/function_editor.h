@@ -16,7 +16,7 @@ class AddCustomPlotDialog : public QDialog
 
 public:
     explicit AddCustomPlotDialog(PlotDataMapRef &plotMapData,
-                               const std::vector<CustomPlotPtr>& mapped_custom_plots,
+                               const CustomPlotMap& mapped_custom_plots,
                                QWidget *parent);
     virtual ~AddCustomPlotDialog() override;
 
@@ -74,7 +74,7 @@ private:
     bool addToSaved(const QString& name, const SnippetData &snippet);
 
     PlotDataMapRef &_plot_map_data;
-    const std::vector<CustomPlotPtr> &_custom_plots;
+    const CustomPlotMap &_custom_plots;
     Ui::FunctionEditor *ui;
 
     CustomPlotPtr _plot;

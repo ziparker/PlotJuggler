@@ -43,8 +43,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     ui(new Ui::MainWindow),
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
     _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this),
-    _toggle_streaming(QKeySequence(Qt::CTRL + Qt::Key_Space), this),
     _minimize_view(Qt::Key_F10, this),
+    _toggle_streaming(QKeySequence(Qt::CTRL + Qt::Key_Space), this),
     _minimized(false),
     _current_streamer(nullptr),
     _disable_undo_logging(false),
@@ -738,15 +738,6 @@ void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
     }
 }
 
-std::vector<CustomPlotPtr>::iterator MainWindow::findCustomPlot(const std::string &name)
-{
-    return std::find_if( _custom_plots.begin(), _custom_plots.end(),
-                            [&name]( const CustomPlotPtr& custom_plot)
-    {
-        return custom_plot->name() == name;
-    });
-}
-
 bool MainWindow::xmlLoadState(QDomDocument state_document)
 {
     QDomElement root = state_document.namedItem("root").toElement();
@@ -890,8 +881,9 @@ void MainWindow::onActionSaveLayout()
         }
 
         QDomElement custom_equations =  doc.createElement("customMathEquations");
-        for (const auto& custom_plot: _custom_plots)
+        for (const auto& custom_it: _custom_plots)
         {
+            const auto& custom_plot = custom_it.second;
             custom_equations.appendChild( custom_plot->xmlSaveState(doc) );
         }
         root.appendChild(custom_equations);
@@ -917,10 +909,10 @@ void MainWindow::deleteDataMultipleCurves(const std::vector<std::string> &curve_
         emit requestRemoveCurveByName( curve_name );
         _mapped_plot_data.numeric.erase( plot_curve );
 
-        auto math_curve = findCustomPlot( curve_name );
-        if( math_curve != _custom_plots.end())
+        auto custom_it = _custom_plots.find( curve_name );
+        if( custom_it != _custom_plots.end())
         {
-            _custom_plots.erase( math_curve );
+            _custom_plots.erase( custom_it );
         }
 
         int row = _curvelist_widget->findRowByName( curve_name );
@@ -1110,6 +1102,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
             curvelist_modified = true;
         }
     }
+    _curvelist_widget->refreshColumns();
 
     //---------------------------------------------
     importPlotDataMapHelper( new_data.user_defined, _mapped_plot_data.user_defined, delete_older );
@@ -1174,7 +1167,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
 
     std::vector<MapIterator> compatible_loaders;
 
-    for (MapIterator it = _data_loader.begin(); it != _data_loader.end(); it++)
+    for (MapIterator it = _data_loader.begin(); it != _data_loader.end(); ++it)
     {
         DataLoader* data_loader = it->second;
         std::vector<const char*> extensions = data_loader->compatibleFileExtensions();
@@ -1595,17 +1588,11 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
             {
                 CustomPlotPtr new_custom_plot = CustomFunction::createFromXML(custom_eq);
                 const auto& name = new_custom_plot->name();
-                auto custom_plot_it = findCustomPlot(name);
-                if( custom_plot_it == _custom_plots.end() )
-                {
-                    _custom_plots.push_back( new_custom_plot );
-                }
-                else{
-                    *custom_plot_it = new_custom_plot;
-                }
+                _custom_plots[name] = new_custom_plot;
                 new_custom_plot->calculateAndAdd( _mapped_plot_data );
                 _curvelist_widget->addItem( QString::fromStdString( name ) );
             }
+            _curvelist_widget->refreshColumns();
         }
     }
     catch( std::runtime_error& err)
@@ -1817,7 +1804,7 @@ void MainWindow::updateDataAndReplot()
 
         for( auto& custom_it: _custom_plots)
         {
-            custom_it->calculateAndAdd(_mapped_plot_data);
+            custom_it.second->calculateAndAdd(_mapped_plot_data);
         }
 
     }
@@ -2088,13 +2075,13 @@ void MainWindow::editMathPlot(const std::string &plot_name)
 void MainWindow::onRefreshMathPlot(const std::string &plot_name)
 {
     try{
-        auto it = findCustomPlot(plot_name);
-        if(it == _custom_plots.end())
+        auto custom_it = _custom_plots.find(plot_name);
+        if(custom_it == _custom_plots.end())
         {
             qWarning("failed to find custom equation");
             return;
         }
-        CustomPlotPtr ce = *it;
+        CustomPlotPtr ce = custom_it->second;
 
         ce->calculateAndAdd(_mapped_plot_data);
 
@@ -2120,8 +2107,8 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
     {
         dialog.setEditorMode( AddCustomPlotDialog::TIMESERIES_ONLY );
 
-        auto it = findCustomPlot(name);
-        if(it == _custom_plots.end())
+        auto custom_it = _custom_plots.find(name);
+        if(custom_it == _custom_plots.end())
         {
             qWarning("failed to find custom equation");
             return;
@@ -2133,7 +2120,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
         {
            data_it->second.clear();
         }
-        dialog.editExistingPlot(*it);
+        dialog.editExistingPlot(custom_it->second);
     }
 
     if(dialog.exec() == QDialog::Accepted)
@@ -2155,13 +2142,13 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
         }
 
         // keep data for reference
-        auto custom_plot_it = findCustomPlot(plot_name);
-        if( custom_plot_it == _custom_plots.end() )
+        auto custom_it = _custom_plots.find(plot_name);
+        if( custom_it == _custom_plots.end() )
         {
-            _custom_plots.push_back( eq );
+            _custom_plots.insert( {plot_name, eq} );
         }
         else{
-            *custom_plot_it = eq;
+            custom_it->second = eq;
             modifying = true;
         }
 

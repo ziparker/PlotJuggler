@@ -16,13 +16,13 @@
 #include <QStandardItem>
 #include <QItemSelectionModel>
 
-class CustomSortedTableItem: public QStandardItem
+class SortedTableItem: public QStandardItem
 {
 
 public:
-    CustomSortedTableItem(const QString& name): QStandardItem(name), str(name.toStdString()) {}
+    SortedTableItem(const QString& name): QStandardItem(name), str(name.toStdString()) {}
 
-    bool operator< (const CustomSortedTableItem &other) const
+    bool operator< (const SortedTableItem &other) const
     {
         return doj::alphanum_impl(this->str.c_str(),
                                   other.str.c_str()) < 0;
@@ -34,12 +34,12 @@ private:
 
 //-------------------------------------------------
 
-FilterableListWidget::FilterableListWidget(const std::vector<CustomPlotPtr> &mapped_math_plots,
+FilterableListWidget::FilterableListWidget(const CustomPlotMap &mapped_math_plots,
                                            QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FilterableListWidget),
     _completer( new TreeModelCompleter(this) ),
-    _mapped_math_plots(mapped_math_plots)
+    _custom_plots(mapped_math_plots)
 {
     ui->setupUi(this);
     ui->tableView->viewport()->installEventFilter( this );
@@ -109,7 +109,12 @@ void FilterableListWidget::clear()
 
 void FilterableListWidget::addItem(const QString &item_name)
 {
-    auto item = new CustomSortedTableItem(item_name);
+    if( _model->findItems(item_name).size() > 0)
+    {
+        return;
+    }
+
+    auto item = new SortedTableItem(item_name);
     QFont font = item->font();
     font.setPointSize(9);
     item->setFont(font);
@@ -345,7 +350,7 @@ void FilterableListWidget::on_radioPrefix_toggled(bool checked)
     }
 }
 
-void FilterableListWidget::on_checkBoxCaseSensitive_toggled(bool checked)
+void FilterableListWidget::on_checkBoxCaseSensitive_toggled(bool )
 {
     updateFilter();
 }
@@ -397,13 +402,7 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
         if( toHide != ui->tableView->isRowHidden(row) ) updated = true;
 
         const auto name_std = name.toStdString();
-
-        const auto found = std::find_if( _mapped_math_plots.begin(), _mapped_math_plots.end(),
-                                         [&name_std]( const CustomPlotPtr& custom_plot)
-        {
-            return custom_plot->name() == name_std;
-        });
-        const bool is_custom_plot = found != _mapped_math_plots.end();
+        const bool is_custom_plot = _custom_plots.count(name_std) > 0;
 
 
         ui->tableView->setRowHidden(row, toHide || is_custom_plot );
@@ -482,13 +481,13 @@ void FilterableListWidget::on_buttonAddCustom_clicked()
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
-void FilterableListWidget::on_buttonRefreshAll_clicked()
-{
-    for(auto& mp: _mapped_math_plots)
-    {
-        emit refreshMathPlot( mp->name() );
-    }
-}
+//void FilterableListWidget::on_buttonRefreshAll_clicked()
+//{
+//    for(auto& it: _mapped_math_plots)
+//    {
+//        emit refreshMathPlot( it.second->name() );
+//    }
+//}
 
 void FilterableListWidget::onCustomSelectionChanged(const QItemSelection&, const QItemSelection &)
 {

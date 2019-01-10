@@ -12,6 +12,7 @@
 class CustomFunction;
 class QJSEngine;
 typedef std::shared_ptr<CustomFunction> CustomPlotPtr;
+typedef std::unordered_map<std::string, CustomPlotPtr> CustomPlotMap;
 
 struct SnippetData{
     QString name;

@@ -18,7 +18,7 @@
 #include <QInputDialog>
 
 AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
-                                     const std::vector<CustomPlotPtr> &mapped_custom_plots,
+                                     const CustomPlotMap &mapped_custom_plots,
                                      QWidget *parent) :
     QDialog(parent),
     _plot_map_data(plotMapData),
@@ -160,8 +160,9 @@ void AddCustomPlotDialog::importSnippets(const QByteArray& xml_text)
         ui->snippetsListSaved->addItem( it.first );
     }
 
-    for( const auto& math_plot: _custom_plots)
+    for( const auto& custom_it: _custom_plots)
     {
+        const auto& math_plot = custom_it.second;
         SnippetData snippet;
         snippet.name = QString::fromStdString(math_plot->name());
 
@@ -455,22 +456,11 @@ void AddCustomPlotDialog::on_pushButtonCreate_clicked()
     try {
         std::string plotName = getName().toStdString();
 
-        // check if name is unique
-        if(_plot_map_data.numeric.count(plotName) != 0)
+        // check if name is unique (except if is custom_plot)
+        if(_plot_map_data.numeric.count(plotName) != 0 &&
+           _custom_plots.count(plotName) == 0 )
         {
-            bool is_custom = false;
-            for( const auto& custom_plot: _custom_plots)
-            {
-                if( custom_plot->name() == plotName)
-                {
-                    is_custom = true;
-                    break;
-                }
-            }
-            if( !is_custom )
-            {
-                throw std::runtime_error("plot name already exists and can't be modified");
-            }
+            throw std::runtime_error("plot name already exists and can't be modified");
         }
 
         _plot = std::make_shared<CustomFunction>(getLinkedData().toStdString(),

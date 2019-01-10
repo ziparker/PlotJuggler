@@ -158,7 +158,7 @@ private:
 
     PlotDataMapRef  _mapped_plot_data;
 
-    std::vector<CustomPlotPtr> _custom_plots;
+    CustomPlotMap _custom_plots;
 
     void rearrangeGridLayout();
 
@@ -178,8 +178,6 @@ private:
     bool xmlLoadState(QDomDocument state_document);
 
     void checkAllCurvesFromLayout(const QDomElement& root);
-
-    std::vector<CustomPlotPtr>::iterator findCustomPlot(const std::string& name );
 
     std::deque<QDomDocument> _undo_states;
 

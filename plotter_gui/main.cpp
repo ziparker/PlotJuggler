@@ -11,19 +11,20 @@ QString getFunnySubtitle(){
     int n = qrand() % 15;
     switch(n)
     {
-    case 0: return "Now, with less bugs than usual";
+    case 0: return "PlotJuggler does it better";
     case 1: return "Talk is cheap, show me the data!";
     case 2: return "The visualization tool that you deserve";
-    case 3: return "Timeseries, timeseries everywhere!";
+    case 3: return "Who needs Matlab?";
     case 4: return "Changing the world, one plot at a time";
     case 5: return "\"Harry Plotter\" was also an option";
-    case 6: return "Add data and mix vigorously";
-    case 7: return "Splashscreens make any app look better";
+    case 6: return "I like the smell of plots in the morning";
+    case 7: return "Timeseries, timeseries everywhere...";
     case 8: return "I didn't find a better name...";
     case 9: return "\"It won't take long to code that\"..\n"
                 "Davide, 2014";
     case 10: return "Visualize data responsibly";
-    case 11: return "I don't always visualize data,\n"
+    case 11: return "How could you live without it?";
+    case 12: return "I don't always visualize data,\n"
                     "but when I do, I use PlotJuggler";
     }
     return "Juggle with data";
