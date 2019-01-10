@@ -22,6 +22,9 @@ struct SnippetData{
 
 std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text);
 
+QDomElement ExportSnippets(const std::map<QString, SnippetData>& snippets,
+                           QDomDocument& destination_doc);
+
 class CustomFunction
 {
 public:
@@ -69,4 +72,6 @@ private:
     std::shared_ptr<QJSEngine> _jsEngine;
     double _last_updated_timestamp;
 };
+
+
 

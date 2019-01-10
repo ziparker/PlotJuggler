@@ -183,26 +183,8 @@ void AddCustomPlotDialog::importSnippets(const QByteArray& xml_text)
 QByteArray AddCustomPlotDialog::exportSnippets() const
 {
     QDomDocument doc;
-    auto root = doc.createElement("snippets");
+    auto root = ExportSnippets( _snipped_saved, doc);
     doc.appendChild( root );
-
-    for (const auto& it: _snipped_saved )
-    {
-        const auto& snippet = it.second;
-
-        auto element = doc.createElement("snippet");
-        element.setAttribute("name", it.first);
-
-        auto global_el = doc.createElement("global");
-        global_el.appendChild( doc.createTextNode( snippet.globalVars ) );
-
-        auto equation_el = doc.createElement("equation");
-        equation_el.appendChild( doc.createTextNode( snippet.equation ) );
-
-        element.appendChild( global_el );
-        element.appendChild( equation_el );
-        root.appendChild( element );
-    }
     return doc.toByteArray(2);
 }
 

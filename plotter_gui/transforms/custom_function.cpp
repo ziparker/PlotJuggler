@@ -270,7 +270,7 @@ std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text)
     if(!doc.setContent(xml_text, &parseErrorMsg, &parseErrorLine))
     {
         QMessageBox::critical(nullptr, "Error",
-                              QString("Failed to parse snippets.xml, error %1 at line %2")
+                              QString("Failed to parse snippets (xml), error %1 at line %2")
                               .arg(parseErrorMsg).arg(parseErrorLine));
     }
     else
@@ -288,4 +288,28 @@ std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text)
         }
     }
     return snippets;
+}
+
+QDomElement ExportSnippets(const std::map<QString, SnippetData> &snippets, QDomDocument &doc)
+{
+    auto root = doc.createElement("snippets");
+
+    for (const auto& it: snippets )
+    {
+        const auto& snippet = it.second;
+
+        auto element = doc.createElement("snippet");
+        element.setAttribute("name", it.first);
+
+        auto global_el = doc.createElement("global");
+        global_el.appendChild( doc.createTextNode( snippet.globalVars ) );
+
+        auto equation_el = doc.createElement("equation");
+        equation_el.appendChild( doc.createTextNode( snippet.equation ) );
+
+        element.appendChild( global_el );
+        element.appendChild( equation_el );
+        root.appendChild( element );
+    }
+    return root;
 }
