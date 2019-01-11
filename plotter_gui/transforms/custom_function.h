@@ -22,6 +22,8 @@ struct SnippetData{
 
 std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text);
 
+std::map<QString, SnippetData> GetSnippetsFromXML(const QDomElement& snippets_element);
+
 QDomElement ExportSnippets(const std::map<QString, SnippetData>& snippets,
                            QDomDocument& destination_doc);
 

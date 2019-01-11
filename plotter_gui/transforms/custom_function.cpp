@@ -262,8 +262,6 @@ CustomPlotPtr CustomFunction::createFromXML(QDomElement &element)
 
 std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text)
 {
-    std::map<QString, SnippetData> snippets;
-
     QDomDocument doc;
     QString parseErrorMsg;
     int parseErrorLine;
@@ -272,27 +270,35 @@ std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text)
         QMessageBox::critical(nullptr, "Error",
                               QString("Failed to parse snippets (xml), error %1 at line %2")
                               .arg(parseErrorMsg).arg(parseErrorLine));
+        return {};
     }
     else
     {
-        QDomElement docElem = doc.documentElement();
-        for (auto elem = docElem.firstChildElement("snippet");
-             !elem.isNull();
-             elem = elem.nextSiblingElement("snippet"))
-        {
-            SnippetData snippet;
-            snippet.name = elem.attribute("name");
-            snippet.globalVars = elem.firstChildElement("global").text().trimmed();
-            snippet.equation = elem.firstChildElement("equation").text().trimmed();
-            snippets.insert( {snippet.name, snippet } );
-        }
+        QDomElement snippets_element = doc.documentElement();
+        return GetSnippetsFromXML(snippets_element);
+    }
+}
+
+std::map<QString, SnippetData> GetSnippetsFromXML(const QDomElement &snippets_element)
+{
+    std::map<QString, SnippetData> snippets;
+
+    for (auto elem = snippets_element.firstChildElement("snippet");
+         !elem.isNull();
+         elem = elem.nextSiblingElement("snippet"))
+    {
+        SnippetData snippet;
+        snippet.name = elem.attribute("name");
+        snippet.globalVars = elem.firstChildElement("global").text().trimmed();
+        snippet.equation = elem.firstChildElement("equation").text().trimmed();
+        snippets.insert( {snippet.name, snippet } );
     }
     return snippets;
 }
 
 QDomElement ExportSnippets(const std::map<QString, SnippetData> &snippets, QDomDocument &doc)
 {
-    auto root = doc.createElement("snippets");
+    auto snippets_root = doc.createElement("snippets");
 
     for (const auto& it: snippets )
     {
@@ -309,7 +315,8 @@ QDomElement ExportSnippets(const std::map<QString, SnippetData> &snippets, QDomD
 
         element.appendChild( global_el );
         element.appendChild( equation_el );
-        root.appendChild( element );
+        snippets_root.appendChild( element );
     }
-    return root;
+    return snippets_root;
 }
+

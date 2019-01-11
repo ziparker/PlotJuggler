@@ -1621,6 +1621,50 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
                              tr("Failed to refresh a customMathEquation \n\n %1\n")
                              .arg(err.what()) );
     }
+
+    QByteArray snippets_saved_xml = settings.value("AddCustomPlotDialog.savedXML",
+                                              QByteArray() ).toByteArray();
+
+    auto snippets_previous = GetSnippetsFromXML(snippets_saved_xml);
+    auto snippets_layout   = GetSnippetsFromXML(root.firstChildElement("snippets"));
+
+    bool snippets_are_different = false;
+    for(const auto& snippet_it :  snippets_layout)
+    {
+        auto prev_it = snippets_previous.find( snippet_it.first );
+
+        if( prev_it == snippets_previous.end() ||
+            prev_it->second.equation   != snippet_it.second.equation ||
+            prev_it->second.globalVars != snippet_it.second.equation)
+        {
+            snippets_are_different = true;
+            break;
+        }
+    }
+
+    if( snippets_are_different )
+    {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Overwrite custom transforms?");
+        msgBox.setText("Your layour file contains a set of custom transforms different from "
+                       "the last one you used.\nDo you want to load these transformations?");
+        msgBox.addButton(QMessageBox::No);
+        msgBox.addButton(QMessageBox::Yes);
+        msgBox.setDefaultButton(QMessageBox::Yes);
+
+        if( msgBox.exec() == QMessageBox::Yes )
+        {
+            for(const auto& snippet_it :  snippets_layout)
+            {
+                snippets_previous[snippet_it.first] = snippet_it.second;
+            }
+            QDomDocument doc;
+            auto snippets_root_element = ExportSnippets( snippets_previous, doc);
+            doc.appendChild( snippets_root_element );
+            settings.setValue("AddCustomPlotDialog.savedXML", doc.toByteArray(2));
+        }
+    }
+
     ///--------------------------------------------------
 
     xmlLoadState( domDocument );
