@@ -27,7 +27,8 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
 {
     ui->setupUi(this);
 
-    this->setWindowTitle("Create a custom timeseries (EXPERIMENTAL)");
+    this->setWindowTitle("Create a custom timeseries");
+    ui->mathEquation->setPlainText("return value*2");
 
     const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     ui->globalVarsTextField->setFont(fixedFont);
