@@ -20,11 +20,13 @@ struct SnippetData{
     QString equation;
 };
 
-std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text);
+typedef std::map<QString, SnippetData> SnippetsMap;
 
-std::map<QString, SnippetData> GetSnippetsFromXML(const QDomElement& snippets_element);
+SnippetsMap GetSnippetsFromXML(const QString& xml_text);
 
-QDomElement ExportSnippets(const std::map<QString, SnippetData>& snippets,
+SnippetsMap GetSnippetsFromXML(const QDomElement& snippets_element);
+
+QDomElement ExportSnippets(const SnippetsMap& snippets,
                            QDomDocument& destination_doc);
 
 class CustomFunction
@@ -71,7 +73,7 @@ private:
     QString _function;
     std::vector<std::string> _used_channels;
 
-    std::shared_ptr<QJSEngine> _jsEngine;
+    std::unique_ptr<QJSEngine> _jsEngine;
     double _last_updated_timestamp;
 };
 

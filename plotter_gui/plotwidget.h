@@ -189,7 +189,7 @@ private:
 
     TransformSelector* _transform_select_dialog;
 
-    std::map<QString, SnippetData> _snippets;
+    SnippetsMap _snippets;
     void transformCustomCurves();
 };
 

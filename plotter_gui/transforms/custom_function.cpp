@@ -112,7 +112,7 @@ void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
 
 void CustomFunction::initJsEngine()
 {
-    _jsEngine = std::make_shared<QJSEngine>();
+    _jsEngine = std::unique_ptr<QJSEngine>( new QJSEngine() );
 
     QJSValue globalVarResult = _jsEngine->evaluate(_global_vars);
     if(globalVarResult.isError())
@@ -260,7 +260,7 @@ CustomPlotPtr CustomFunction::createFromXML(QDomElement &element)
     return std::make_shared<CustomFunction>(linkedPlot, name, globalVars, calcEquation );
 }
 
-std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text)
+SnippetsMap GetSnippetsFromXML(const QString& xml_text)
 {
     QDomDocument doc;
     QString parseErrorMsg;
@@ -279,9 +279,9 @@ std::map<QString, SnippetData> GetSnippetsFromXML(const QString& xml_text)
     }
 }
 
-std::map<QString, SnippetData> GetSnippetsFromXML(const QDomElement &snippets_element)
+SnippetsMap GetSnippetsFromXML(const QDomElement &snippets_element)
 {
-    std::map<QString, SnippetData> snippets;
+    SnippetsMap snippets;
 
     for (auto elem = snippets_element.firstChildElement("snippet");
          !elem.isNull();
@@ -296,7 +296,7 @@ std::map<QString, SnippetData> GetSnippetsFromXML(const QDomElement &snippets_el
     return snippets;
 }
 
-QDomElement ExportSnippets(const std::map<QString, SnippetData> &snippets, QDomDocument &doc)
+QDomElement ExportSnippets(const SnippetsMap &snippets, QDomDocument &doc)
 {
     auto snippets_root = doc.createElement("snippets");
 

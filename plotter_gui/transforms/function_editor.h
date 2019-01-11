@@ -80,8 +80,8 @@ private:
     CustomPlotPtr _plot;
     bool _is_new;
 
-    std::map<QString, SnippetData> _snipped_saved;
-    std::map<QString, SnippetData> _snipped_recent;
+    SnippetsMap _snipped_saved;
+    SnippetsMap _snipped_recent;
 };
 
 #endif // AddCustomPlotDialog_H

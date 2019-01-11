@@ -1625,43 +1625,47 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
     QByteArray snippets_saved_xml = settings.value("AddCustomPlotDialog.savedXML",
                                               QByteArray() ).toByteArray();
 
-    auto snippets_previous = GetSnippetsFromXML(snippets_saved_xml);
-    auto snippets_layout   = GetSnippetsFromXML(root.firstChildElement("snippets"));
-
-    bool snippets_are_different = false;
-    for(const auto& snippet_it :  snippets_layout)
+    auto snippets_element = root.firstChildElement("snippets");
+    if( !snippets_element.isNull() )
     {
-        auto prev_it = snippets_previous.find( snippet_it.first );
+        auto snippets_previous = GetSnippetsFromXML(snippets_saved_xml);
+        auto snippets_layout   = GetSnippetsFromXML(snippets_element);
 
-        if( prev_it == snippets_previous.end() ||
-            prev_it->second.equation   != snippet_it.second.equation ||
-            prev_it->second.globalVars != snippet_it.second.equation)
+        bool snippets_are_different = false;
+        for(const auto& snippet_it :  snippets_layout)
         {
-            snippets_are_different = true;
-            break;
-        }
-    }
+            auto prev_it = snippets_previous.find( snippet_it.first );
 
-    if( snippets_are_different )
-    {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Overwrite custom transforms?");
-        msgBox.setText("Your layour file contains a set of custom transforms different from "
-                       "the last one you used.\nDo you want to load these transformations?");
-        msgBox.addButton(QMessageBox::No);
-        msgBox.addButton(QMessageBox::Yes);
-        msgBox.setDefaultButton(QMessageBox::Yes);
-
-        if( msgBox.exec() == QMessageBox::Yes )
-        {
-            for(const auto& snippet_it :  snippets_layout)
+            if( prev_it == snippets_previous.end() ||
+                    prev_it->second.equation   != snippet_it.second.equation ||
+                    prev_it->second.globalVars != snippet_it.second.globalVars)
             {
-                snippets_previous[snippet_it.first] = snippet_it.second;
+                snippets_are_different = true;
+                break;
             }
-            QDomDocument doc;
-            auto snippets_root_element = ExportSnippets( snippets_previous, doc);
-            doc.appendChild( snippets_root_element );
-            settings.setValue("AddCustomPlotDialog.savedXML", doc.toByteArray(2));
+        }
+
+        if( snippets_are_different )
+        {
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Overwrite custom transforms?");
+            msgBox.setText("Your layour file contains a set of custom transforms different from "
+                           "the last one you used.\nDo you want to load these transformations?");
+            msgBox.addButton(QMessageBox::No);
+            msgBox.addButton(QMessageBox::Yes);
+            msgBox.setDefaultButton(QMessageBox::Yes);
+
+            if( msgBox.exec() == QMessageBox::Yes )
+            {
+                for(const auto& snippet_it :  snippets_layout)
+                {
+                    snippets_previous[snippet_it.first] = snippet_it.second;
+                }
+                QDomDocument doc;
+                auto snippets_root_element = ExportSnippets( snippets_previous, doc);
+                doc.appendChild( snippets_root_element );
+                settings.setValue("AddCustomPlotDialog.savedXML", doc.toByteArray(2));
+            }
         }
     }
 
