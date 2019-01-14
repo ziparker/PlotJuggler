@@ -749,6 +749,13 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         replot();
         emit curveListChanged();
     }
+
+    if( curve_removed || curve_added)
+    {
+        replot();
+        emit curveListChanged();
+    }
+
     //-----------------------------------------
 
     QDomElement rectangle = plot_widget.firstChildElement( "range" );
