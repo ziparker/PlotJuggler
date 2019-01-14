@@ -104,9 +104,6 @@ p, li { white-space: pre-wrap; }
               <property name="text">
                <string/>
               </property>
-              <property name="placeholderText">
-               <string/>
-              </property>
              </widget>
             </item>
             <item row="1" column="0">
@@ -153,9 +150,6 @@ p, li { white-space: pre-wrap; }
          <property name="plainText">
           <string/>
          </property>
-         <property name="placeholderText">
-          <string/>
-         </property>
         </widget>
        </item>
        <item>
@@ -168,9 +162,6 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QPlainTextEdit" name="mathEquation">
          <property name="plainText">
-          <string/>
-         </property>
-         <property name="placeholderText">
           <string/>
          </property>
         </widget>
