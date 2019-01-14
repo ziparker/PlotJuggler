@@ -11,19 +11,20 @@ QString getFunnySubtitle(){
     int n = qrand() % 15;
     switch(n)
     {
-    case 0: return "Now with less bugs than usual";
+    case 0: return "PlotJuggler does it better";
     case 1: return "Talk is cheap, show me the data!";
     case 2: return "The visualization tool that you deserve";
-    case 3: return "Timeseries, timeseries everywhere!";
+    case 3: return "Who needs Matlab?";
     case 4: return "Changing the world, one plot at a time";
     case 5: return "\"Harry Plotter\" was also an option";
-    case 6: return "Add data and mix vigorously";
-    case 7: return "Splashscreens make any app look better";
+    case 6: return "I like the smell of plots in the morning";
+    case 7: return "Timeseries, timeseries everywhere...";
     case 8: return "I didn't find a better name...";
     case 9: return "\"It won't take long to code that\"..\n"
                 "Davide, 2014";
     case 10: return "Visualize data responsibly";
-    case 11: return "I don't always visualize data,\n"
+    case 11: return "How could you live without it?";
+    case 12: return "I don't always visualize data,\n"
                     "but when I do, I use PlotJuggler";
     }
     return "Juggle with data";
@@ -41,7 +42,32 @@ int main(int argc, char *argv[])
                                 "   border: 1px solid black;\n"
                                 "   border-radius: 4px;\n"
                                 "   background: white;\n"
-                                "   color: black; }" ));
+                                "   color: black; }\n"
+                                "    QMenu {"
+                                "background-color: white;}"
+
+                                "QMenu::item {"
+                                "  padding: 2px 25px 2px 25px;"
+                                "  color:rgb(33, 33, 33);"
+                                "  border: 1px solid transparent; margin: 2px;"
+                                " }"
+
+                                " QMenu::item:disabled {"
+                                "     background: white;"
+                                "     color:grey; }"
+
+                                " QMenu::item:selected {"
+                                "     background: rgb(122, 122, 122);"
+                                "     color:white; }"
+
+                                "QMenu::item:checked { color: rgb(66, 66, 100); font: bold; }"
+                                "QMenu::item:unchecked { color: rgb(66, 66, 66); }"
+
+                                " QMenu::indicator {"
+                                "      width: 24px;"
+                                "      height: 20px; }"
+                                )
+                        );
 
     QString VERSION_STRING = QString("%1.%2.%3").
             arg(PJ_MAJOR_VERSION).
@@ -125,14 +151,12 @@ int main(int argc, char *argv[])
         const auto deadline = QDateTime::currentDateTime().addMSecs( 100*(20 + subtitle.size()*0.4) );
 
         MainWindow w( parser );
-
         while( QDateTime::currentDateTime() < deadline && !splash.isHidden() )
         {
             app.processEvents();
             QThread::msleep(100);
             splash.raise();
         }
-
         splash.close();
         w.show();
         return app.exec();
@@ -142,6 +166,5 @@ int main(int argc, char *argv[])
         w.show();
         return app.exec();
     }
-
-    return -1;
+    return 0;
 }

@@ -5,9 +5,9 @@
 #include "plotwidget.h"
 
 RemoveCurveDialog::RemoveCurveDialog(PlotWidget *parent) :
-                                                           QDialog(parent),
-                                                           ui(new Ui::RemoveCurveDialog),
-                                                           _parent(parent)
+ QDialog(parent),
+ ui(new Ui::RemoveCurveDialog),
+ _parent(parent)
 {
     ui->setupUi(this);
 }
@@ -42,11 +42,6 @@ void RemoveCurveDialog::on_pushButtonRemove_pressed()
         _parent->replot();
     }
     closeIfEmpty();
-}
-
-void RemoveCurveDialog::on_pushButtonSelectAll_pressed()
-{
-    ui->listCurveWidget->selectAll();
 }
 
 void RemoveCurveDialog::closeIfEmpty()

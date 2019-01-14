@@ -25,8 +25,6 @@ private slots:
 
     void on_pushButtonRemove_pressed();
 
-    void on_pushButtonSelectAll_pressed();
-
 private:
     Ui::RemoveCurveDialog *ui;
 
