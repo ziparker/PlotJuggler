@@ -1872,7 +1872,8 @@ void MainWindow::updateDataAndReplot()
 
         for( auto& custom_it: _custom_plots)
         {
-            custom_it.second->calculateAndAdd(_mapped_plot_data);
+            auto* dst_plot = &_mapped_plot_data.numeric.at(custom_it.first);
+            custom_it.second->calculate(_mapped_plot_data, dst_plot);
         }
 
     }

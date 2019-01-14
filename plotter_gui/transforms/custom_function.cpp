@@ -174,13 +174,9 @@ void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_dat
         return;
     }
     const PlotData& src_data = src_data_it->second;
-    // clean up old data
-    double first_time = src_data.front().x;
 
-    while(dst_data->size() > 0 && dst_data->front().x <  first_time)
-    {
-        dst_data->popFront();
-    }
+    // clean up old data
+    dst_data->setMaximumRangeX( src_data.maximumRangeX() );
 
     std::vector<const PlotData*> channel_data;
     channel_data.reserve(_used_channels.size());
