@@ -6,22 +6,29 @@ ROS Indigo/Kinetic build (Travis): [![Build Status](https://travis-ci.org/facont
 
 # PlotJuggler 2.0 (Beta)
 
-QT5 based application to display time series in plots. 
+QT5 based application to display time series in plots, using an intuitive "drag and drop" interface.
+
+It can be used either to:
+
+- load __static data from file__ or 
+- connect to live __streaming__ of data.
+
+Its functionality can be easily extended through __plugins__.
 
 To understand what PlotJuggler can do for you, take a look to the following video [PlotJuggler on Vimeo](https://vimeo.com/214389001) 
 
 ![PlotJuggler](docs/images/PlotJuggler.gif)
 
-# New in version 2.X
+## New in version 2.X
 
-It is now possible to create custom timeseries! Simply write your custom
+It is now possible to create custom timeseries! Simply write your own
 JavaScript function and apply it to one of more existing timeseries.
 
 Many thanks to [@1r0b1n0](https://github.com/1r0b1n0), who developed the
 initial version of this feature, and to our first __sponsor__, 
-a robotics company that made a donation but prefers to remain anonymous for the time being.
+a robotics company that made a donation, but prefers to remain anonymous for the time being.
 
-Watch this video for more details about how to use it.
+Watch this video to learn how to use it.
 
 [![Custom timeseries](docs/images/custom_functions.png)](https://vimeo.com/311245098)
 
