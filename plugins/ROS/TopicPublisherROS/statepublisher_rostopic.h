@@ -6,6 +6,7 @@
 #include <map>
 #include <ros/ros.h>
 #include <ros_type_introspection/ros_introspection.hpp>
+#include <tf/transform_broadcaster.h>
 #include "PlotJuggler/statepublisher_base.h"
 
 
@@ -35,6 +36,7 @@ private:
     std::map<std::string, ros::Publisher> _publishers;
     bool enabled_;
     ros::NodeHandlePtr _node;
+    std::unique_ptr<tf::TransformBroadcaster> _tf_publisher;
 
     QAction* _current_time;
     QAction* _select_topics_to_publish;

@@ -76,10 +76,11 @@ if(COMPILING_WITH_CATKIN)
         ros_type_introspection
         rostime
         topic_tools
+        tf
         )
     catkin_package(
         INCLUDE_DIRS include
-        CATKIN_DEPENDS ros_type_introspection
+        CATKIN_DEPENDS ros_type_introspection tf
         DEPENDS
         )
 
