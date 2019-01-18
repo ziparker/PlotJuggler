@@ -14,7 +14,7 @@
 #include <QPushButton>
 #include <rosbag/bag.h>
 #include <std_msgs/Header.h>
-
+#include <unordered_map>
 
 
 TopicPublisherROS::TopicPublisherROS():
@@ -168,15 +168,14 @@ void TopicPublisherROS::updateState(double current_time)
             continue;
         }
 
-        std::vector<geometry_msgs::TransformStamped> transforms;
-        transforms.reserve(last_index);
+        std::unordered_map<std::string, geometry_msgs::TransformStamped> transforms;
+
         std::vector<uint8_t> raw_buffer;
 
         for(size_t index = 0; index <= last_index; index++ )
         {
             const nonstd::any& any_value = plot_any.at(index).y;
 
-            const bool isRawBuffer     = any_value.type() == typeid( std::vector<uint8_t>);
             const bool isRosbagMessage = any_value.type() == typeid(rosbag::MessageInstance);
 
             if( isRosbagMessage )
@@ -192,7 +191,16 @@ void TopicPublisherROS::updateState(double current_time)
 
                 for(const auto& stamped_transform: tf_msg.transforms)
                 {
-                    transforms.push_back( stamped_transform );
+                    const auto& child_id = stamped_transform.child_frame_id;
+                    auto it = transforms.find(child_id);
+                    if( it == transforms.end())
+                    {
+                        transforms.insert( {stamped_transform.child_frame_id, stamped_transform} );
+                    }
+                    else if( it->second.header.stamp < stamped_transform.header.stamp)
+                    {
+                        it->second = stamped_transform;
+                    }
                 }
             }
         }
@@ -200,16 +208,20 @@ void TopicPublisherROS::updateState(double current_time)
         {
             _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
         }
-        std::sort( transforms.begin(), transforms.end(),
-                   [](const geometry_msgs::TransformStamped& a,const geometry_msgs::TransformStamped& b)
+
+        std::vector<geometry_msgs::TransformStamped> transforms_vector;
+
+        for(const auto& trans: transforms)
         {
-            return a.header.stamp < b.header.stamp;
-        });
-        for(auto& stamped_transform: transforms)
+            transforms_vector.push_back( trans.second );
+        }
+
+        for(auto& stamped_transform: transforms_vector)
         {
             stamped_transform.header.stamp = ros_time;
+
         }
-        _tf_publisher->sendTransform(transforms);
+        _tf_publisher->sendTransform(transforms_vector);
     }
 
 
