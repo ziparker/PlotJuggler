@@ -14,6 +14,7 @@
 #include <QPushButton>
 #include <rosbag/bag.h>
 #include <std_msgs/Header.h>
+#include <unordered_map>
 
 
 TopicPublisherROS::TopicPublisherROS():
@@ -144,21 +145,105 @@ void TopicPublisherROS::updateState(double current_time)
 
     const ros::Time ros_time = ros::Time::now();
 
+
     for(const auto& data_it:  _datamap->user_defined )
     {
         const std::string& topic_name = data_it.first;
+        const PlotDataAny& plot_any = data_it.second;
 
         if( _filter_topics && _topics_to_publish.count(topic_name) == 0)
         {
             continue;// Not selected
         }
-        const RosIntrospection::ShapeShifter* registered_shapeshifted_msg = RosIntrospectionFactory::get().getShapeShifter( topic_name );
-        if( ! registered_shapeshifted_msg )
+        const RosIntrospection::ShapeShifter* shapeshifter =
+                RosIntrospectionFactory::get().getShapeShifter( topic_name );
+        if( shapeshifter->getDataType() != "tf/tfMessage")
+        {
+            continue;
+        }
+        RosIntrospection::ShapeShifter shapeshifted_msg = *shapeshifter;
+        int last_index = plot_any.getIndexFromX( current_time );
+        if( last_index < 0)
+        {
+            continue;
+        }
+
+        std::unordered_map<std::string, geometry_msgs::TransformStamped> transforms;
+
+        std::vector<uint8_t> raw_buffer;
+
+        for(size_t index = 0; index <= last_index; index++ )
+        {
+            const nonstd::any& any_value = plot_any.at(index).y;
+
+            const bool isRosbagMessage = any_value.type() == typeid(rosbag::MessageInstance);
+
+            if( isRosbagMessage )
+            {
+                const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
+                raw_buffer.resize( msg_instance.size() );
+                ros::serialization::OStream ostream(raw_buffer.data(), raw_buffer.size());
+                msg_instance.write(ostream);
+
+                tf::tfMessage tf_msg;
+                ros::serialization::IStream istream( raw_buffer.data(), raw_buffer.size() );
+                ros::serialization::deserialize(istream, tf_msg);
+
+                for(const auto& stamped_transform: tf_msg.transforms)
+                {
+                    const auto& child_id = stamped_transform.child_frame_id;
+                    auto it = transforms.find(child_id);
+                    if( it == transforms.end())
+                    {
+                        transforms.insert( {stamped_transform.child_frame_id, stamped_transform} );
+                    }
+                    else if( it->second.header.stamp < stamped_transform.header.stamp)
+                    {
+                        it->second = stamped_transform;
+                    }
+                }
+            }
+        }
+        if( !_tf_publisher)
+        {
+            _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
+        }
+
+        std::vector<geometry_msgs::TransformStamped> transforms_vector;
+
+        for(const auto& trans: transforms)
+        {
+            transforms_vector.push_back( trans.second );
+        }
+
+        for(auto& stamped_transform: transforms_vector)
+        {
+            stamped_transform.header.stamp = ros_time;
+
+        }
+        _tf_publisher->sendTransform(transforms_vector);
+    }
+
+
+    //-----------------------------------------------
+    for(const auto& data_it:  _datamap->user_defined )
+    {  
+        const std::string& topic_name = data_it.first;
+        if( _filter_topics && _topics_to_publish.count(topic_name) == 0)
+        {
+            continue;// Not selected
+        }
+        const RosIntrospection::ShapeShifter* shapeshifted = RosIntrospectionFactory::get().getShapeShifter( topic_name );
+        if( ! shapeshifted )
         {
             continue;// Not registered, just skip
         }
+        if( shapeshifted->getDataType() == "tf/tfMessage")
+        {
+            continue;
+        }
 
-        RosIntrospection::ShapeShifter shapeshifted_msg = *registered_shapeshifted_msg;
+        RosIntrospection::ShapeShifter shapeshifted_msg = *shapeshifted;
         const PlotDataAny& plot_any = data_it.second;
 
         nonstd::optional<nonstd::any> any_value = plot_any.getYfromX( current_time );
@@ -214,8 +299,7 @@ void TopicPublisherROS::updateState(double current_time)
         auto publisher_it = _publishers.find( topic_name );
         if( publisher_it == _publishers.end())
         {
-            auto res = _publishers.insert( std::make_pair(topic_name,
-                                                          shapeshifted_msg.advertise( *_node, topic_name, 10, true) ) );
+            auto res = _publishers.insert( {topic_name, shapeshifted_msg.advertise( *_node, topic_name, 10, true)} );
             publisher_it = res.first;
         }
 
