@@ -243,10 +243,12 @@ void TopicPublisherROS::updateState(double current_time)
     for(const auto& data_it:  _datamap->user_defined )
     {
         const std::string& topic_name = data_it.first;
+        const PlotDataAny& plot_any = data_it.second;
         if( _filter_topics && _topics_to_publish.count(topic_name) == 0)
         {
             continue;// Not selected
         }
+(??)
         const RosIntrospection::ShapeShifter* shapeshifted = RosIntrospectionFactory::get().getShapeShifter( topic_name );
         if( ! shapeshifted )
         {
