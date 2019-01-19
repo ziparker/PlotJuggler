@@ -84,6 +84,10 @@ private slots:
 
     void onCustomSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
 
+public slots:
+
+    void clearSelections();
+
 private:
 
     Ui::FilterableListWidget *ui;

@@ -647,6 +647,9 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
     connect( &_time_offset, SIGNAL( valueChanged(double)),
              plot, SLOT(on_changeTimeOffset(double)) );
 
+    connect( plot, &PlotWidget::curvesDropped,
+             _curvelist_widget, &FilterableListWidget::clearSelections);
+
     plot->on_changeTimeOffset( _time_offset.get() );
     plot->activateGrid( ui->pushButtonActivateGrid->isChecked() );
     plot->enableTracker( !isStreamingActive() );

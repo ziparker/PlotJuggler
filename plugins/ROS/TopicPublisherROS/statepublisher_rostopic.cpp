@@ -53,6 +53,10 @@ void TopicPublisherROS::setEnabled(bool to_enable)
     if(enabled_)
     {
         ChangeFilter();
+        if( !_tf_publisher)
+        {
+            _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
+        }
     }
 }
 
@@ -138,13 +142,11 @@ void TopicPublisherROS::ChangeFilter(bool)
     }
 }
 
-
-void TopicPublisherROS::updateState(double current_time)
+void TopicPublisherROS::broadcastTF(double current_time)
 {
-    if(!enabled_ || !_node) return;
-
     const ros::Time ros_time = ros::Time::now();
 
+    const PlotDataAny* tf_data = nullptr;
 
     for(const auto& data_it:  _datamap->user_defined )
     {
@@ -161,73 +163,85 @@ void TopicPublisherROS::updateState(double current_time)
         {
             continue;
         }
-        RosIntrospection::ShapeShifter shapeshifted_msg = *shapeshifter;
-        int last_index = plot_any.getIndexFromX( current_time );
-        if( last_index < 0)
+
+        tf_data = &plot_any;
+        break;
+    }
+
+    if( !tf_data )
+    {
+        return;
+    }
+
+    int last_index = tf_data->getIndexFromX( current_time );
+
+    if( last_index < 0)
+    {
+        return;
+    }
+    std::unordered_map<std::string, geometry_msgs::TransformStamped> transforms;
+
+    std::vector<uint8_t> raw_buffer;
+
+    for(size_t index = 0; index <= last_index; index++ )
+    {
+        const nonstd::any& any_value = tf_data->at(index).y;
+
+        const bool isRosbagMessage = any_value.type() == typeid(rosbag::MessageInstance);
+
+        if( isRosbagMessage )
         {
-            continue;
-        }
+            const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
+            raw_buffer.resize( msg_instance.size() );
+            ros::serialization::OStream ostream(raw_buffer.data(), raw_buffer.size());
+            msg_instance.write(ostream);
 
-        std::unordered_map<std::string, geometry_msgs::TransformStamped> transforms;
+            tf::tfMessage tf_msg;
+            ros::serialization::IStream istream( raw_buffer.data(), raw_buffer.size() );
+            ros::serialization::deserialize(istream, tf_msg);
 
-        std::vector<uint8_t> raw_buffer;
-
-        for(size_t index = 0; index <= last_index; index++ )
-        {
-            const nonstd::any& any_value = plot_any.at(index).y;
-
-            const bool isRosbagMessage = any_value.type() == typeid(rosbag::MessageInstance);
-
-            if( isRosbagMessage )
+            for(const auto& stamped_transform: tf_msg.transforms)
             {
-                const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
-                raw_buffer.resize( msg_instance.size() );
-                ros::serialization::OStream ostream(raw_buffer.data(), raw_buffer.size());
-                msg_instance.write(ostream);
-
-                tf::tfMessage tf_msg;
-                ros::serialization::IStream istream( raw_buffer.data(), raw_buffer.size() );
-                ros::serialization::deserialize(istream, tf_msg);
-
-                for(const auto& stamped_transform: tf_msg.transforms)
+                const auto& child_id = stamped_transform.child_frame_id;
+                auto it = transforms.find(child_id);
+                if( it == transforms.end())
                 {
-                    const auto& child_id = stamped_transform.child_frame_id;
-                    auto it = transforms.find(child_id);
-                    if( it == transforms.end())
-                    {
-                        transforms.insert( {stamped_transform.child_frame_id, stamped_transform} );
-                    }
-                    else if( it->second.header.stamp < stamped_transform.header.stamp)
-                    {
-                        it->second = stamped_transform;
-                    }
+                    transforms.insert( {stamped_transform.child_frame_id, stamped_transform} );
+                }
+                else if( it->second.header.stamp < stamped_transform.header.stamp)
+                {
+                    it->second = stamped_transform;
                 }
             }
         }
-        if( !_tf_publisher)
-        {
-            _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
-        }
-
-        std::vector<geometry_msgs::TransformStamped> transforms_vector;
-
-        for(const auto& trans: transforms)
-        {
-            transforms_vector.push_back( trans.second );
-        }
-
-        for(auto& stamped_transform: transforms_vector)
-        {
-            stamped_transform.header.stamp = ros_time;
-
-        }
-        _tf_publisher->sendTransform(transforms_vector);
     }
 
+    std::vector<geometry_msgs::TransformStamped> transforms_vector;
+    transforms_vector.reserve(transforms.size());
+
+    for(auto& trans: transforms)
+    {
+        trans.second.header.stamp = ros_time;
+        transforms_vector.emplace_back( std::move(trans.second) );
+    }
+
+    _tf_publisher->sendTransform(transforms_vector);
+}
+
+
+
+void TopicPublisherROS::updateState(double current_time)
+{
+    if(!enabled_ || !_node) return;
+
+    const ros::Time ros_time = ros::Time::now();
 
     //-----------------------------------------------
+    broadcastTF(current_time);
+    //-----------------------------------------------
+
     for(const auto& data_it:  _datamap->user_defined )
-    {  
+    {
         const std::string& topic_name = data_it.first;
         if( _filter_topics && _topics_to_publish.count(topic_name) == 0)
         {

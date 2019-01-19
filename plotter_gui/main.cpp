@@ -38,36 +38,13 @@ int main(int argc, char *argv[])
     app.setOrganizationName("IcarusTechnology");
     app.setApplicationName("PlotJuggler");
 
-    qApp->setStyleSheet(QString("QToolTip {\n"
-                                "   border: 1px solid black;\n"
-                                "   border-radius: 4px;\n"
-                                "   background: white;\n"
-                                "   color: black; }\n"
-                                "    QMenu {"
-                                "background-color: white;}"
+    // Load an application style
+    QFile styleFile( "://resources/stylesheet.qss" );
+    styleFile.open( QFile::ReadOnly );
 
-                                "QMenu::item {"
-                                "  padding: 2px 25px 2px 25px;"
-                                "  color:rgb(33, 33, 33);"
-                                "  border: 1px solid transparent; margin: 2px;"
-                                " }"
-
-                                " QMenu::item:disabled {"
-                                "     background: white;"
-                                "     color:grey; }"
-
-                                " QMenu::item:selected {"
-                                "     background: rgb(122, 122, 122);"
-                                "     color:white; }"
-
-                                "QMenu::item:checked { color: rgb(66, 66, 100); font: bold; }"
-                                "QMenu::item:unchecked { color: rgb(66, 66, 66); }"
-
-                                " QMenu::indicator {"
-                                "      width: 24px;"
-                                "      height: 20px; }"
-                                )
-                        );
+    // Apply the loaded stylesheet
+    QString style( styleFile.readAll() );
+    app.setStyleSheet( style );
 
     QString VERSION_STRING = QString("%1.%2.%3").
             arg(PJ_MAJOR_VERSION).

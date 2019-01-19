@@ -33,6 +33,9 @@ public slots:
     void ChangeFilter(bool toggled = true);
 
 private:
+
+    void broadcastTF(double current_time);
+
     std::map<std::string, ros::Publisher> _publishers;
     bool enabled_;
     ros::NodeHandlePtr _node;

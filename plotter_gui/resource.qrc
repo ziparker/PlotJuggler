@@ -5,7 +5,6 @@
         <file>resources/check.png</file>
         <file>resources/checkboxalt.png</file>
         <file>resources/circle_arrow_right.png</file>
-        <file>resources/cog.png</file>
         <file>resources/line_chart_32px.png</file>
         <file>resources/line_chart_48px.png</file>
         <file>resources/line_chart_64px.png</file>
@@ -43,11 +42,18 @@
         <file>resources/line_tracker_1.png</file>
         <file>resources/line_tracker_a.png</file>
         <file>resources/line_tracker.png</file>
+        <file>resources/add_column.svg</file>
+        <file>resources/add_row.svg</file>
+        <file>resources/add_tab.svg</file>
+        <file>resources/zoom_horizontal.svg</file>
+        <file>resources/zoom_vertical.svg</file>
+        <file>resources/settings-cog.svg</file>
     </qresource>
     <qresource prefix="/splash">
         <file>resources/splash.jpg</file>
     </qresource>
     <qresource prefix="/">
         <file>resources/default.snippets.xml</file>
+        <file>resources/stylesheet.qss</file>
     </qresource>
 </RCC>

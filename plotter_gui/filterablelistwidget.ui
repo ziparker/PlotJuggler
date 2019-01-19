@@ -115,13 +115,13 @@ border: 0.5px solid rgb(150, 150, 150);</string>
             <string/>
            </property>
            <property name="icon">
-            <iconset>
-             <normaloff>:/icons/resources/cog.png</normaloff>:/icons/resources/cog.png</iconset>
+            <iconset resource="resource.qrc">
+             <normaloff>:/icons/resources/settings-cog.svg</normaloff>:/icons/resources/settings-cog.svg</iconset>
            </property>
            <property name="iconSize">
             <size>
-             <width>22</width>
-             <height>22</height>
+             <width>26</width>
+             <height>26</height>
             </size>
            </property>
            <property name="checkable">
@@ -517,6 +517,8 @@ border: 1px solid rgb(150, 150, 150);</string>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

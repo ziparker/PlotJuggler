@@ -106,7 +106,6 @@ void FilterableListWidget::clear()
     ui->labelNumberDisplayed->setText( "0 of 0");
 }
 
-
 void FilterableListWidget::addItem(const QString &item_name)
 {
     if( _model->findItems(item_name).size() > 0)
@@ -528,4 +527,10 @@ void FilterableListWidget::on_buttonEditCustom_clicked()
 
     auto item = _model->item( selected_index.row(), 0 );
     editMathPlot( item->text().toStdString() );
+}
+
+void FilterableListWidget::clearSelections()
+{
+    ui->tableViewCustom->clearSelection();
+    ui->tableView->clearSelection();
 }

@@ -69,6 +69,7 @@ signals:
     void undoableChange();
     void trackerMoved(QPointF pos);
     void curveListChanged();
+    void curvesDropped();
 
 public slots:
 

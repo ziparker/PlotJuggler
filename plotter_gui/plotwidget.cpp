@@ -502,11 +502,13 @@ void PlotWidget::dropEvent(QDropEvent *)
             bool added = addCurve( curve_name.toStdString() );
             curves_changed = curves_changed || added;
         }
+        emit curvesDropped();
     }
     else if( _dragging.mode == DragInfo::NEW_X)
     {
         changeAxisX( _dragging.curves.front() );
         curves_changed = true;
+        emit curvesDropped();
     }
     else if( _dragging.mode == DragInfo::SWAP_PLOTS )
     {
