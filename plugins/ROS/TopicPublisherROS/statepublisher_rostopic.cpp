@@ -248,7 +248,6 @@ void TopicPublisherROS::updateState(double current_time)
         {
             continue;// Not selected
         }
-(??)
         const RosIntrospection::ShapeShifter* shapeshifted = RosIntrospectionFactory::get().getShapeShifter( topic_name );
         if( ! shapeshifted )
         {
@@ -260,8 +259,6 @@ void TopicPublisherROS::updateState(double current_time)
         }
 
         RosIntrospection::ShapeShifter shapeshifted_msg = *shapeshifted;
-        const PlotDataAny& plot_any = data_it.second;
-
         nonstd::optional<nonstd::any> any_value = plot_any.getYfromX( current_time );
 
         if(!any_value)
