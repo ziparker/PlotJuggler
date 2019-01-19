@@ -4,11 +4,22 @@
 #include <QThread>
 #include <QCommandLineParser>
 #include <QDesktopWidget>
+#include <QFontDatabase>
+#include <QSettings>
 
 QString getFunnySubtitle(){
 
     qsrand(time(NULL));
+
     int n = qrand() % 15;
+    QSettings settings;
+    // do not repeat it twice in a row
+    while( settings.value("previousFunnySubtitle").toInt() == n)
+    {
+        n = qrand() % 18;
+    }
+    settings.setValue("previousFunnySubtitle", n);
+
     switch(n)
     {
     case 0: return "PlotJuggler does it better";
@@ -26,8 +37,11 @@ QString getFunnySubtitle(){
     case 11: return "How could you live without it?";
     case 12: return "I don't always visualize data,\n"
                     "but when I do, I use PlotJuggler";
+    case 13: return "Now with less bugs than usual!";
+    case 14: return "Stop debugging with printf";
+
+    default: return "Juggle with data";
     }
-    return "Juggle with data";
 }
 
 int main(int argc, char *argv[])
@@ -99,19 +113,23 @@ int main(int argc, char *argv[])
     if( parser.isSet(nosplash_option) == false)
     // if(false) // if you uncomment this line, a kitten will die somewhere in the world.
     {
-        QPixmap main_pixmap(":/splash/resources/splash.jpg");
+        QPixmap main_pixmap(":/splash/resources/splash_2.jpg");
+        QFontDatabase::addApplicationFont ( "://resources/DejaVuSans-ExtraLight.ttf" );
 
         QPainter painter;
         painter.begin( &main_pixmap);
-        painter.setPen(QColor(77, 77, 77));
+        painter.setPen(QColor(255, 255, 255));
+        painter.setRenderHint(QPainter::TextAntialiasing);
 
         QString subtitle = getFunnySubtitle();
-        int font_size = 34;
+        int font_size = 28;
         do{
-            painter.setFont( QFont("Arial", font_size-- ) );
-        }while(font_size > 22 && painter.fontMetrics().width(subtitle) > 600 );
+            painter.setFont( QFont("DejaVuSans-ExtraLight", font_size-- ) );
+        }while(font_size > 22 && painter.fontMetrics().width(subtitle) > 700 );
 
-        painter.drawText( QRect(20, 130, 620, 200),
+        QPoint topleft(50, 600);
+        QSize rect_size(700,100);
+        painter.drawText( QRect(topleft, rect_size),
                           Qt::AlignHCenter | Qt::AlignVCenter, subtitle );
         painter.end();
 
@@ -125,7 +143,7 @@ int main(int argc, char *argv[])
         app.processEvents();
         splash.raise();
 
-        const auto deadline = QDateTime::currentDateTime().addMSecs( 100*(20 + subtitle.size()*0.4) );
+        const auto deadline = QDateTime::currentDateTime().addMSecs( 100*(30 + subtitle.size()*0.4) );
 
         MainWindow w( parser );
         while( QDateTime::currentDateTime() < deadline && !splash.isHidden() )

@@ -51,9 +51,11 @@
     </qresource>
     <qresource prefix="/splash">
         <file>resources/splash.jpg</file>
+        <file>resources/splash_2.jpg</file>
     </qresource>
     <qresource prefix="/">
         <file>resources/default.snippets.xml</file>
         <file>resources/stylesheet.qss</file>
+        <file>resources/DejaVuSans-ExtraLight.ttf</file>
     </qresource>
 </RCC>
