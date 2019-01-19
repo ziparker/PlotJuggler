@@ -122,10 +122,10 @@ int main(int argc, char *argv[])
         painter.setRenderHint(QPainter::TextAntialiasing);
 
         QString subtitle = getFunnySubtitle();
-        int font_size = 28;
+        int font_size = 25;
         do{
             painter.setFont( QFont("DejaVuSans-ExtraLight", font_size-- ) );
-        }while(font_size > 22 && painter.fontMetrics().width(subtitle) > 700 );
+        }while(font_size > 20 && painter.fontMetrics().width(subtitle) > 700 );
 
         QPoint topleft(50, 600);
         QSize rect_size(700,100);
