@@ -377,26 +377,29 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
         int pos = 0;
         bool toHide = false;
 
-        if( ui->radioRegExp->isChecked())
+        if( search_string.isEmpty() == false )
         {
-            toHide = v.validate( name, pos ) != QValidator::Acceptable;
-        }
-        else if( ui->radioPrefix->isChecked())
-        {
-            toHide = !name.startsWith( search_string, cs ) ;
-        }
-        else if( ui->radioContains->isChecked())
-        {
-            for (const auto& item: spaced_items)
+            if( ui->radioRegExp->isChecked())
             {
-                if( name.contains(item, cs) == false )
+                toHide = v.validate( name, pos ) != QValidator::Acceptable;
+            }
+            else if( ui->radioPrefix->isChecked())
+            {
+                toHide = !name.startsWith( search_string, cs ) ;
+            }
+            else if( ui->radioContains->isChecked())
+            {
+                for (const auto& item: spaced_items)
                 {
-                    toHide = true;
-                    break;
+                    if( name.contains(item, cs) == false )
+                    {
+                        toHide = true;
+                        break;
+                    }
                 }
             }
+            if( !toHide ) visible_count++;
         }
-        if( !toHide ) visible_count++;
 
         if( toHide != ui->tableView->isRowHidden(row) ) updated = true;
 
