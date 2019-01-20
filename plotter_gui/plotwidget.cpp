@@ -229,7 +229,7 @@ void PlotWidget::buildActions()
             this, &PlotWidget::on_customTransformsDialog);
 
     _action_saveToFile = getActionAndIcon("&Save plot to file",
-                                                 ":/icons/resources/save.svg" );
+                                          ":/icons/resources/save.svg" );
     connect(_action_saveToFile, &QAction::triggered, this, &PlotWidget::on_savePlotToFile);
 
     auto transform_group = new QActionGroup(this);
