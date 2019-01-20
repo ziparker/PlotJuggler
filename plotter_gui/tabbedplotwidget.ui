@@ -160,11 +160,7 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximize the horizontal zoom&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="styleSheet">
-         <string notr="true">QToolTip {
-border: 1px solid black;
-border-radius: 6px;
-background: white;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string/>
@@ -215,6 +211,9 @@ background: white;
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a column to the current plot matrix&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -264,6 +263,9 @@ background: white;
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a row to the current plot matrix&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -306,6 +308,9 @@ background: white;
         </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a new plot matrix in a new tab&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
         </property>
         <property name="text">
          <string/>
@@ -352,6 +357,9 @@ background: white;
         </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove those rows and column containing only empty plots&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
         </property>
         <property name="text">
          <string/>
@@ -414,7 +422,7 @@ background: white;
          <string/>
         </property>
         <property name="styleSheet">
-         <string notr="true"/>
+         <string notr="true"> </string>
         </property>
         <property name="text">
          <string/>

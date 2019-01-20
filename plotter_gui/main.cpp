@@ -9,7 +9,7 @@
 
 QString getFunnySubtitle(){
 
-    qsrand(time(NULL));
+    qsrand(time(nullptr));
 
     int n = qrand() % 15;
     QSettings settings;
@@ -35,12 +35,13 @@ QString getFunnySubtitle(){
                 "Davide, 2014";
     case 10: return "Visualize data responsibly";
     case 11: return "How could you live without it?";
-    case 12: return "I don't always visualize data,\n"
-                    "but when I do, I use PlotJuggler";
-    case 13: return "Now with less bugs than usual!";
-    case 14: return "Stop debugging with printf";
+    case 12: return "This time you will find that nasty bug!";
+    case 13: return "Now, with less bugs than usual!";
+    case 14: return "You log them, I visualize them";
+    case 15: return "The fancy timeseries visualization tool";
 
-    default: return "Juggle with data";
+    default: return "I don't always visualize data,\n"
+                    "but when I do, I use PlotJuggler";
     }
 }
 
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
     app.setApplicationName("PlotJuggler");
 
     // Load an application style
-    QFile styleFile( "://resources/stylesheet.qss" );
+    QFile styleFile( "://style/stylesheet.qss" );
     styleFile.open( QFile::ReadOnly );
 
     // Apply the loaded stylesheet
@@ -114,21 +115,26 @@ int main(int argc, char *argv[])
     // if(false) // if you uncomment this line, a kitten will die somewhere in the world.
     {
         QPixmap main_pixmap(":/splash/resources/splash_2.jpg");
-        QFontDatabase::addApplicationFont ( "://resources/DejaVuSans-ExtraLight.ttf" );
+
+        int font_id = QFontDatabase::addApplicationFont("://resources/DejaVuSans-ExtraLight.ttf");
+        QString family = QFontDatabase::applicationFontFamilies(font_id).at(0);
+        QFont font(family);
+        font.setStyleStrategy(QFont::PreferAntialias);
 
         QPainter painter;
         painter.begin( &main_pixmap);
         painter.setPen(QColor(255, 255, 255));
-        painter.setRenderHint(QPainter::TextAntialiasing);
+        painter.setRenderHint(QPainter::TextAntialiasing, true);
 
         QString subtitle = getFunnySubtitle();
         int font_size = 25;
+        int text_width = main_pixmap.width() - 100;
         do{
-            painter.setFont( QFont("DejaVuSans-ExtraLight", font_size-- ) );
-        }while(font_size > 20 && painter.fontMetrics().width(subtitle) > 700 );
+            painter.setFont( QFont(family, font_size--) );
+        }while(font_size > 20 && painter.fontMetrics().width(subtitle) > text_width );
 
-        QPoint topleft(50, 600);
-        QSize rect_size(700,100);
+        QPoint topleft(50, main_pixmap.height()-90);
+        QSize rect_size(text_width,90);
         painter.drawText( QRect(topleft, rect_size),
                           Qt::AlignHCenter | Qt::AlignVCenter, subtitle );
         painter.end();

@@ -18,6 +18,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QCheckBox" name="checkBoxEnableRules">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>Enable renaming of ROS fields using substitution rules</string>
        </property>
@@ -34,6 +37,9 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>Edit Rules</string>
        </property>
@@ -45,6 +51,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QCheckBox" name="checkBoxPrefix">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a prefix to the name of each loaded field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -71,6 +80,9 @@
    </item>
    <item>
     <widget class="QCheckBox" name="checkBoxUseHeaderStamp">
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="text">
       <string>If present, use the timestamp in the field [header.stamp]</string>
      </property>
@@ -109,6 +121,9 @@
      </item>
      <item>
       <widget class="QToolButton" name="maximumSizeHelp">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>?</string>
        </property>

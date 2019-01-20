@@ -55,7 +55,22 @@
     </qresource>
     <qresource prefix="/">
         <file>resources/default.snippets.xml</file>
-        <file>resources/stylesheet.qss</file>
         <file>resources/DejaVuSans-ExtraLight.ttf</file>
+        <file>style/checkbox_checked.svg</file>
+        <file>style/checkbox_checked_disabled.svg</file>
+        <file>style/checkbox_checked_focus.svg</file>
+        <file>style/checkbox_indeterminate.svg</file>
+        <file>style/checkbox_indeterminate_disabled.svg</file>
+        <file>style/checkbox_indeterminate_focus.svg</file>
+        <file>style/checkbox_unchecked.svg</file>
+        <file>style/checkbox_unchecked_disabled.svg</file>
+        <file>style/checkbox_unchecked_focus.svg</file>
+        <file>style/radio_checked.svg</file>
+        <file>style/radio_checked_disabled.svg</file>
+        <file>style/radio_checked_focus.svg</file>
+        <file>style/radio_unchecked.svg</file>
+        <file>style/radio_unchecked_disabled.svg</file>
+        <file>style/radio_unchecked_focus.svg</file>
+        <file>style/stylesheet.qss</file>
     </qresource>
 </RCC>
