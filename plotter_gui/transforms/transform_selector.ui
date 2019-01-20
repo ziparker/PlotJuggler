@@ -41,6 +41,9 @@
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
         <widget class="QPushButton" name="buttonApplyDefault">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string>All to default</string>
          </property>
@@ -48,6 +51,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="buttonResetAll">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="text">
           <string>Reset all</string>
          </property>

@@ -88,6 +88,7 @@ void TopicPublisherROS::ChangeFilter(bool)
         else{
             cb->setChecked( _topics_to_publish.count(topic) != 0 );
         }
+        cb->setFocusPolicy(Qt::NoFocus);
         grid_layout->addRow( new QLabel( QString::fromStdString(topic)), cb);
         checkbox.insert( std::make_pair(topic, cb));
         connect( select_button,   &QPushButton::pressed, [cb](){ cb->setChecked(true);} );

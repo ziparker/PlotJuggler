@@ -248,6 +248,9 @@ border: 0.5px solid rgb(150, 150, 150);</string>
                 <height>18</height>
                </size>
               </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="text">
                <string>prefix</string>
               </property>
@@ -284,6 +287,9 @@ border: 0.5px solid rgb(150, 150, 150);</string>
             </item>
             <item>
              <widget class="QCheckBox" name="checkBoxHideSecondColumn">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="text">
                <string>Hide 2nd column</string>
               </property>
@@ -411,6 +417,9 @@ border: 1px solid rgb(150, 150, 150);</string>
              <height>16777215</height>
             </size>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Create a new timeseries&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
@@ -429,6 +438,9 @@ border: 1px solid rgb(150, 150, 150);</string>
              <width>60</width>
              <height>16777215</height>
             </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Modify the selected timeseries&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
