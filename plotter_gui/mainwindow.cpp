@@ -826,7 +826,6 @@ void MainWindow::onActionSaveLayout()
 
     QVBoxLayout *vbox = new QVBoxLayout;
     QLabel* title = new QLabel("Save Layout options");
-    title->setStyleSheet("font-weight: bold");
     QFrame* separator = new QFrame;
     separator->setFrameStyle(QFrame::HLine | QFrame::Plain);
 
