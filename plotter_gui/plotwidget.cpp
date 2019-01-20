@@ -130,28 +130,35 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
 
 void PlotWidget::buildActions()
 {
-    _action_removeCurve = new QAction(tr("&Remove curves"), this);
+
+    QIcon iconDeleteList;
+
+    auto getActionAndIcon = [this](const char* text, const char* file)
+    {
+        QIcon icon;
+        icon.addFile( tr(file), QSize(30,30));
+        auto action = new QAction( tr(text), this);
+        action->setIcon(icon);
+        return action;
+    };
+
+    _action_removeCurve = getActionAndIcon("&Remove curves",
+                                           ":/icons/resources/remove-list.svg" );
     _action_removeCurve->setStatusTip(tr("Remove one or more curves from this plot"));
     connect(_action_removeCurve, &QAction::triggered, this, &PlotWidget::launchRemoveCurveDialog);
 
-    QIcon iconDelete;
-    iconDelete.addFile(QStringLiteral(":/icons/resources/checkboxalt.png"), QSize(26, 26));
-    _action_removeAllCurves = new QAction(tr("&Remove all curves"), this);
-    _action_removeAllCurves->setIcon(iconDelete);
+    _action_removeAllCurves = getActionAndIcon("&Remove ALL curves",
+                                               ":/icons/resources/remove-button.svg" );
     connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::detachAllCurves);
     connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::undoableChange );
 
-    QIcon iconColors;
-    iconColors.addFile(QStringLiteral(":/icons/resources/office_chart_lines.png"), QSize(26, 26));
-    _action_changeColorsDialog = new QAction(tr("&Change colors"), this);
-    _action_changeColorsDialog->setIcon(iconColors);
+    _action_changeColorsDialog = getActionAndIcon("&Change colors",
+                                                  ":/icons/resources/colored-charts.svg" );
     _action_changeColorsDialog->setStatusTip(tr("Change the color of the curves"));
     connect(_action_changeColorsDialog, &QAction::triggered, this, &PlotWidget::on_changeColorsDialog_triggered);
 
-    QIcon iconPoints;
-    iconPoints.addFile(QStringLiteral(":/icons/resources/line_chart_32px.png"), QSize(26, 26));
-    _action_showPoints = new QAction(tr("&Show lines and points"), this);
-    _action_showPoints->setIcon(iconPoints);
+    _action_showPoints = getActionAndIcon("&Show lines and points",
+                                          ":/icons/resources/line-chart.svg" );
     _action_showPoints->setCheckable( true );
     _action_showPoints->setChecked( false );
     connect(_action_showPoints, &QAction::triggered, this, &PlotWidget::on_showPoints_triggered);
@@ -159,10 +166,8 @@ void PlotWidget::buildActions()
     _action_editLimits = new  QAction(tr("&Edit Axis Limits"), this);
     connect(_action_editLimits, &QAction::triggered, this, &PlotWidget::on_editAxisLimits_triggered);
 
-    QIcon iconZoomH;
-    iconZoomH.addFile(QStringLiteral(":/icons/resources/resize_horizontal.png"), QSize(26, 26));
-    _action_zoomOutHorizontally = new QAction(tr("&Zoom Out Horizontally"), this);
-    _action_zoomOutHorizontally->setIcon(iconZoomH);
+    _action_zoomOutHorizontally = getActionAndIcon("&Zoom Out Horizontally",
+                                                   ":/icons/resources/zoom_horizontal.svg" );
     connect(_action_zoomOutHorizontally, &QAction::triggered, this, [this]()
     {
         on_zoomOutHorizontal_triggered(true);
@@ -170,10 +175,8 @@ void PlotWidget::buildActions()
         emit undoableChange();
     });
 
-    QIcon iconZoomV;
-    iconZoomV.addFile(QStringLiteral(":/icons/resources/resize_vertical.png"), QSize(26, 26));
-    _action_zoomOutVertically = new QAction(tr("&Zoom Out Vertically"), this);
-    _action_zoomOutVertically->setIcon(iconZoomV);
+    _action_zoomOutVertically = getActionAndIcon("&Zoom Out Vertically",
+                                                 ":/icons/resources/zoom_vertical.svg" );
     connect(_action_zoomOutVertically, &QAction::triggered, this, [this]()
     {
         on_zoomOutVertical_triggered(true);
@@ -225,10 +228,8 @@ void PlotWidget::buildActions()
     connect(_action_custom_transform, &QAction::triggered,
             this, &PlotWidget::on_customTransformsDialog);
 
-    QIcon iconSave;
-    iconSave.addFile(QStringLiteral(":/icons/resources/filesave@2x.png"), QSize(26, 26));
-    _action_saveToFile = new  QAction(tr("&Save plot to file"), this);
-    _action_saveToFile->setIcon(iconSave);
+    _action_saveToFile = getActionAndIcon("&Save plot to file",
+                                                 ":/icons/resources/save.svg" );
     connect(_action_saveToFile, &QAction::triggered, this, &PlotWidget::on_savePlotToFile);
 
     auto transform_group = new QActionGroup(this);
@@ -303,11 +304,11 @@ void PlotWidget::buildLegend()
 
     _legend->setBorderRadius( 6 );
     _legend->setMargin( 1 );
-    _legend->setSpacing( 0 );
-    _legend->setItemMargin( 0 );
+    _legend->setSpacing( 1 );
+    _legend->setItemMargin( 1 );
 
     QFont font = _legend->font();
-    font.setPointSize( 8 );
+    font.setPointSize( 9 );
     _legend->setFont( font );
     _legend->setVisible( true );
 }

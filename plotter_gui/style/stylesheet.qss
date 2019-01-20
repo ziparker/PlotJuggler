@@ -34,11 +34,13 @@ QTabBar::tab:!selected {
 }
 
 QListView::item:selected {
-   background: #0068c9;
+   background: #1464a0;
+   color: white;
 }
 
 QTableView::item:selected {
-   background: #0068c9;
+   background: #1464a0;
+   color: white;
 }
 
 QToolTip {
@@ -55,7 +57,7 @@ QMenu {
 
 QMenu::item {
     padding: 2px 25px 2px 25px;
-    color:rgb(33, 33, 33);
+    color: black;
     border: 1px solid transparent;
     margin: 2px;
 }
@@ -68,7 +70,7 @@ QMenu::item:selected {
 
 
 QMenu::item:checked {
-    color: rgb(22, 22, 100);
+    color: #1464a0;
     font: bold;
 }
 
