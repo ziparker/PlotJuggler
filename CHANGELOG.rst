@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2019-01-21)
+------------------
 * important bug fix. Removed offset in X axis of PlotXY
 * fix minor visualization issue.
 * Contributors: Davide Faconti
