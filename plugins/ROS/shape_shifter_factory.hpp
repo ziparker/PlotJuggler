@@ -50,7 +50,8 @@ inline void RosIntrospectionFactory::registerMessage(const std::string &topic_na
                                                  const std::string &definition)
 {
     auto& instance = get();
-    if( instance._ss_map.find(topic_name) == instance._ss_map.end() )
+    auto it = instance._ss_map.find(topic_name);
+    if( it == instance._ss_map.end() || it->second.getMD5Sum() != md5sum )
     {
         RosIntrospection::ShapeShifter msg;
         msg.morph(md5sum, datatype,definition);
