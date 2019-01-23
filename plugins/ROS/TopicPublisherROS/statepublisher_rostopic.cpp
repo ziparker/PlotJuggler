@@ -44,7 +44,7 @@ void TopicPublisherROS::setParentMenu(QMenu *menu)
 
 void TopicPublisherROS::setEnabled(bool to_enable)
 {  
-    if( !_node )
+    if( !_node && to_enable)
     {
         _node = RosManager::getNode();
     }
