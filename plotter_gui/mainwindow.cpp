@@ -639,10 +639,11 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
              plot, &PlotWidget::removeCurve) ;
 
     connect( plot, &PlotWidget::curveListChanged,
-             this, &MainWindow::updateTimeSlider) ;
-
-    connect( plot, &PlotWidget::curveListChanged,
-             this, &MainWindow::updateTimeOffset) ;
+             this, [this]()
+    {
+        updateTimeOffset();
+        updateTimeSlider();
+    });
 
     connect( &_time_offset, SIGNAL( valueChanged(double)),
              plot, SLOT(on_changeTimeOffset(double)) );
