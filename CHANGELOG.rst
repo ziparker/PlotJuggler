@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.2 (2019-01-23)
+------------------
 * should solve issue #127 : stop publishers when data reloaded or deleted
 * fixing issues whe disabling an already disabled publisher
 * solved problem with time slider (issue #125)
