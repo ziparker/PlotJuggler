@@ -63,7 +63,7 @@ void TopicPublisherROS::setEnabled(bool to_enable)
 
 void TopicPublisherROS::ChangeFilter(bool)
 {   
-    const std::set<std::string> all_topics = RosIntrospectionFactory::get().getTopicList();
+    auto all_topics = RosIntrospectionFactory::get().getTopicList();
 
     if( all_topics.empty() ) return;
 
@@ -87,11 +87,11 @@ void TopicPublisherROS::ChangeFilter(bool)
             cb->setChecked( true );
         }
         else{
-            cb->setChecked( _topics_to_publish.count(topic) != 0 );
+            cb->setChecked( _topics_to_publish.count(*topic) != 0 );
         }
         cb->setFocusPolicy(Qt::NoFocus);
-        grid_layout->addRow( new QLabel( QString::fromStdString(topic)), cb);
-        checkbox.insert( std::make_pair(topic, cb));
+        grid_layout->addRow( new QLabel( QString::fromStdString(*topic)), cb);
+        checkbox.insert( std::make_pair(*topic, cb) );
         connect( select_button,   &QPushButton::pressed, [cb](){ cb->setChecked(true);} );
         connect( deselect_button, &QPushButton::pressed, [cb](){ cb->setChecked(false);} );
     }
@@ -175,8 +175,10 @@ void TopicPublisherROS::broadcastTF(double current_time)
          }
 
          std::vector<uint8_t> raw_buffer;
+         // 1 second in the past (to be configurable in the future
+         int initial_index = tf_data->getIndexFromX( current_time - 2.0 );
 
-         for(size_t index = std::max(0, last_index-100); index <= last_index; index++ )
+         for(size_t index = std::max(0, initial_index); index <= last_index; index++ )
          {
              const nonstd::any& any_value = tf_data->at(index).y;
 
@@ -193,11 +195,8 @@ void TopicPublisherROS::broadcastTF(double current_time)
                  ros::serialization::IStream istream( raw_buffer.data(), raw_buffer.size() );
                  ros::serialization::deserialize(istream, tf_msg);
 
-               //  qDebug() << "------";
                  for(const auto& stamped_transform: tf_msg.transforms)
                  {
-//                     qDebug() << stamped_transform.header.frame_id.c_str() <<
-//                                 " / " << stamped_transform.child_frame_id.c_str() ;
                      const auto& child_id = stamped_transform.child_frame_id;
                      auto it = transforms.find(child_id);
                      if( it == transforms.end())
@@ -216,17 +215,11 @@ void TopicPublisherROS::broadcastTF(double current_time)
     std::vector<geometry_msgs::TransformStamped> transforms_vector;
     transforms_vector.reserve(transforms.size());
 
-//    qDebug() << "-------------------";
-
     for(auto& trans: transforms)
     {
         trans.second.header.stamp = ros_time;
         transforms_vector.emplace_back( std::move(trans.second) );
-//        qDebug() << transforms_vector.back().header.frame_id.c_str()  << " / "
-//                 << transforms_vector.back().child_frame_id.c_str() ;
     }
-
-//    qDebug() << "-------------------";
 
     _tf_publisher->sendTransform(transforms_vector);
 }
