@@ -296,6 +296,14 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
             }
             if( _point_size != prev_size)
             {
+                auto horizontal = ui->tableView->horizontalHeader();
+                horizontal->setSectionResizeMode(0, QHeaderView::Fixed);
+                horizontal->setSectionResizeMode(1, QHeaderView::Fixed);
+
+                auto vertical = ui->tableView->verticalHeader();
+                vertical->setSectionResizeMode(0, QHeaderView::Fixed);
+                vertical->setSectionResizeMode(1, QHeaderView::Fixed);
+
                 for (int row=0; row< rowCount(); row++)
                 {
                     for (int col=0; col< 2; col++)
@@ -306,6 +314,12 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
                         item->setFont( font );
                     }
                 }
+
+                horizontal->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+                horizontal->setSectionResizeMode(1, QHeaderView::Stretch);
+                vertical->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+                vertical->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+
                 QSettings settings;
                 settings.setValue("FilterableListWidget/table_point_size", _point_size);
             }
