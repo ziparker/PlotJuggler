@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.3 (2019-01-25)
+------------------
 * adding descard/clamp policy to large arrays
 * fix problem with table view resizing
 * make size of fonts modifiable with CTRL + Wheel (issue #106)
