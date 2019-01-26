@@ -12,6 +12,7 @@
 #include <QDialogButtonBox>
 #include <QScrollArea>
 #include <QPushButton>
+#include <QSettings>
 #include <rosbag/bag.h>
 #include <std_msgs/Header.h>
 #include <unordered_map>
@@ -19,8 +20,12 @@
 
 TopicPublisherROS::TopicPublisherROS():
     enabled_(false ),
-    _node(nullptr)
+    _node(nullptr),
+    _publish_clock(true)
 {
+    QSettings settings;
+    _publish_clock = settings.value( "TopicPublisherROS/publish_clock", true ).toBool();
+
 }
 
 TopicPublisherROS::~TopicPublisherROS()
@@ -31,14 +36,11 @@ TopicPublisherROS::~TopicPublisherROS()
 void TopicPublisherROS::setParentMenu(QMenu *menu)
 {
     _menu = menu;
-    _current_time = new QAction(QString("Overwrite std_msg/Header/stamp"), _menu);
-    _current_time->setCheckable(true);
-    _current_time->setChecked(true);
-    _menu->addAction( _current_time );
 
     _select_topics_to_publish = new QAction(QString("Select topics to be published"), _menu);
     _menu->addAction( _select_topics_to_publish );
-    connect(_select_topics_to_publish, SIGNAL(triggered(bool)), this, SLOT(ChangeFilter(bool)));
+    connect(_select_topics_to_publish, &QAction::triggered,
+            this, &TopicPublisherROS::ChangeFilter);
 }
 
 void TopicPublisherROS::setEnabled(bool to_enable)
@@ -75,8 +77,14 @@ void TopicPublisherROS::ChangeFilter(bool)
     std::map<std::string, QCheckBox*> checkbox;
 
     QFrame* frame = new QFrame;
+    QCheckBox* publish_sim_time = new QCheckBox("Publish /clock");
     QPushButton* select_button = new QPushButton("Select all");
     QPushButton* deselect_button = new QPushButton("Deselect all");
+
+    publish_sim_time->setChecked( _publish_clock );
+    publish_sim_time->setFocusPolicy(Qt::NoFocus);
+    select_button->setFocusPolicy(Qt::NoFocus);
+    deselect_button->setFocusPolicy(Qt::NoFocus);
 
     for (const auto& topic: all_topics)
     {
@@ -107,6 +115,7 @@ void TopicPublisherROS::ChangeFilter(bool)
     select_buttons_layout->addWidget( select_button );
     select_buttons_layout->addWidget( deselect_button );
 
+    vertical_layout->addWidget( publish_sim_time );
     vertical_layout->addWidget(scrollArea);
     vertical_layout->addLayout(select_buttons_layout);
     vertical_layout->addWidget( buttons );
@@ -137,6 +146,10 @@ void TopicPublisherROS::ChangeFilter(bool)
                 it++;
             }
         }
+
+        _publish_clock = publish_sim_time->isChecked();
+        QSettings settings;
+        settings.setValue( "TopicPublisherROS/publish_clock", _publish_clock );
     }
 }
 
@@ -305,26 +318,9 @@ void TopicPublisherROS::updateState(double current_time)
             continue;
         }
 
-        if( _current_time->isChecked())
+        if( _publish_clock )
         {
-            const RosIntrospection::Parser::VisitingCallback modifyTimestamp = [&ros_time](const RosIntrospection::ROSType&, absl::Span<uint8_t>& buffer)
-            {
-                std_msgs::Header msg;
-                ros::serialization::IStream is( buffer.data(), buffer.size() );
-                ros::serialization::deserialize(is, msg);
-                msg.stamp = ros_time;
-                ros::serialization::OStream os( buffer.data(), buffer.size() );
-                ros::serialization::serialize(os, msg);
-            };
-
-            auto msg_info = RosIntrospectionFactory::parser().getMessageInfo( topic_name );
-            if(msg_info)
-            {
-                const RosIntrospection::ROSType header_type( ros::message_traits::DataType<std_msgs::Header>::value() ) ;
-                absl::Span<uint8_t> buffer_span(raw_buffer);
-                RosIntrospectionFactory::parser().applyVisitorToBuffer(topic_name, header_type,
-                                                                       buffer_span,  modifyTimestamp );
-            }
+            // TODO
         }
 
         ros::serialization::IStream stream( raw_buffer.data(), raw_buffer.size() );
