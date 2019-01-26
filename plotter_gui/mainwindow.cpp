@@ -155,7 +155,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     }
     if( commandline_parser.isSet("layout"))
     {
-        onActionLoadLayoutFromFile( commandline_parser.value("layout"), file_loaded);
+        onActionLoadLayoutFromFile( commandline_parser.value("layout"));
     }
 
     QSettings settings;
@@ -1379,10 +1379,12 @@ void MainWindow::onActionLoadLayout(bool reload_previous)
                                                 directory_path,
                                                 "*.xml");
     }
-    if (filename.isEmpty())
+    if (filename.isEmpty()){
         return;
-    else
-        onActionLoadLayoutFromFile(filename, true);
+    }
+    else{
+        onActionLoadLayoutFromFile(filename);
+    }
 }
 
 void MainWindow::loadPluginState(const QDomElement& root)
@@ -1505,7 +1507,7 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
     return std::tuple<double,double,int>( min_time, max_time, max_steps );
 }
 
-void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
+void MainWindow::onActionLoadLayoutFromFile(QString filename)
 {
     QSettings settings;
 
@@ -1542,41 +1544,29 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename, bool load_data)
     QDomElement root = domDocument.namedItem("root").toElement();
     loadPluginState(root);
     //-------------------------------------------------
-    if(load_data)
+    QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoadedDatafile" );
+    if( previously_loaded_datafile.isNull() == false)
     {
-        QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoadedDatafile" );
-        if( previously_loaded_datafile.isNull() == false)
+        QString filename = previously_loaded_datafile.attribute("filename");
+
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Load Data?");
+        msgBox.setText(tr("Do you want to reload the previous datafile?\n\n %1 \n\n").arg(filename));
+
+        msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
+        QPushButton* buttonBoth = msgBox.addButton(tr("Yes (Both Layout and Datafile)"), QMessageBox::YesRole);
+        msgBox.addButton(QMessageBox::Cancel);
+
+        msgBox.setDefaultButton(buttonBoth);
+        int res = msgBox.exec();
+        if( res < 0 || res == QMessageBox::Cancel)
         {
-            QString filename;
+            return;
+        }
 
-            //new format
-            if( previously_loaded_datafile.hasAttribute("filename"))
-            {
-                filename =  previously_loaded_datafile.attribute("filename");
-            }
-            else{  // old format
-                filename = previously_loaded_datafile.text();
-            }
-
-            QMessageBox msgBox;
-            msgBox.setWindowTitle("Load Data?");
-            msgBox.setText(tr("Do you want to reload the previous datafile?\n\n %1 \n\n").arg(filename));
-
-            msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
-            QPushButton* buttonBoth = msgBox.addButton(tr("Yes (Both Layout and Datafile)"), QMessageBox::YesRole);
-            msgBox.addButton(QMessageBox::Cancel);
-
-            msgBox.setDefaultButton(buttonBoth);
-            int res = msgBox.exec();
-            if( res < 0 || res == QMessageBox::Cancel)
-            {
-                return;
-            }
-
-            if( msgBox.clickedButton() == buttonBoth )
-            {
-                onActionLoadDataFileImpl( filename, true );
-            }
+        if( msgBox.clickedButton() == buttonBoth )
+        {
+            onActionLoadDataFileImpl( filename, true );
         }
     }
 
