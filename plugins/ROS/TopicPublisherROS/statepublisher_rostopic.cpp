@@ -246,12 +246,14 @@ void TopicPublisherROS::updateState(double current_time)
 
     int skipped = 0;
     int sent_count = 0;
+    int filtered_out = 0;
     for(const auto& data_it:  _datamap->user_defined )
     {
         const std::string& topic_name = data_it.first;
         const PlotDataAny& plot_any = data_it.second;
         if( !toPublish(topic_name) )
         {
+            filtered_out++;
             continue;// Not selected
         }
         const RosIntrospection::ShapeShifter* shapeshifted = RosIntrospectionFactory::get().getShapeShifter( topic_name );
@@ -338,5 +340,5 @@ void TopicPublisherROS::updateState(double current_time)
         const ros::Publisher& publisher = publisher_it->second;
         publisher.publish( shapeshifted_msg );
     }
-    qDebug() << skipped << " + " << sent_count << " = " << _datamap->user_defined.size();
+    //qDebug() << filtered_out << " + " << skipped << " + " << sent_count << " = " << _datamap->user_defined.size();
 }
