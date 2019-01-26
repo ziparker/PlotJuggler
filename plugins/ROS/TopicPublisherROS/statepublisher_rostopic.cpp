@@ -16,7 +16,7 @@
 #include <rosbag/bag.h>
 #include <std_msgs/Header.h>
 #include <unordered_map>
-
+#include <rosgraph_msgs/Clock.h>
 
 TopicPublisherROS::TopicPublisherROS():
     enabled_(false ),
@@ -40,7 +40,7 @@ void TopicPublisherROS::setParentMenu(QMenu *menu)
     _select_topics_to_publish = new QAction(QString("Select topics to be published"), _menu);
     _menu->addAction( _select_topics_to_publish );
     connect(_select_topics_to_publish, &QAction::triggered,
-            this, &TopicPublisherROS::ChangeFilter);
+            this, &TopicPublisherROS::filterDialog);
 }
 
 void TopicPublisherROS::setEnabled(bool to_enable)
@@ -53,7 +53,7 @@ void TopicPublisherROS::setEnabled(bool to_enable)
 
     if(enabled_)
     {
-        ChangeFilter();
+        filterDialog();
         if( !_tf_publisher)
         {
             _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
@@ -62,7 +62,7 @@ void TopicPublisherROS::setEnabled(bool to_enable)
     }
 }
 
-void TopicPublisherROS::ChangeFilter(bool)
+void TopicPublisherROS::filterDialog(bool)
 {   
     auto all_topics = RosIntrospectionFactory::get().getTopicList();
 
@@ -148,6 +148,15 @@ void TopicPublisherROS::ChangeFilter(bool)
         }
 
         _publish_clock = publish_sim_time->isChecked();
+
+        if( _publish_clock )
+        {
+            _clock_publisher = _node->advertise<rosgraph_msgs::Clock>( "/clock", 10, true);
+        }
+        else{
+            _clock_publisher.shutdown();
+        }
+
         QSettings settings;
         settings.setValue( "TopicPublisherROS/publish_clock", _publish_clock );
     }
@@ -260,6 +269,9 @@ void TopicPublisherROS::updateState(double current_time)
     int skipped = 0;
     int sent_count = 0;
     int filtered_out = 0;
+
+    ros::Time msg_time;
+
     for(const auto& data_it:  _datamap->user_defined )
     {
         const std::string& topic_name = data_it.first;
@@ -313,15 +325,12 @@ void TopicPublisherROS::updateState(double current_time)
             raw_buffer.resize( msg_instance.size() );
             ros::serialization::OStream stream(raw_buffer.data(), raw_buffer.size());
             msg_instance.write(stream);
+            msg_time = msg_instance.getTime();
         }
         else{
             continue;
         }
 
-        if( _publish_clock )
-        {
-            // TODO
-        }
 
         ros::serialization::IStream stream( raw_buffer.data(), raw_buffer.size() );
         shapeshifted_msg.read( stream );
@@ -336,5 +345,13 @@ void TopicPublisherROS::updateState(double current_time)
         const ros::Publisher& publisher = publisher_it->second;
         publisher.publish( shapeshifted_msg );
     }
+
+    if( _publish_clock )
+    {
+        rosgraph_msgs::Clock clock;
+        clock.clock = msg_time;
+       _clock_publisher.publish( clock );
+    }
+
     //qDebug() << filtered_out << " + " << skipped << " + " << sent_count << " = " << _datamap->user_defined.size();
 }

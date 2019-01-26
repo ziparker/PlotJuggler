@@ -30,7 +30,7 @@ public:
 
 public slots:
     virtual void setEnabled(bool enabled) override;
-    void ChangeFilter(bool toggled = true);
+    void filterDialog(bool toggled = true);
 
 private:
 
@@ -41,6 +41,7 @@ private:
     ros::NodeHandlePtr _node;
     bool _publish_clock;
     std::unique_ptr<tf::TransformBroadcaster> _tf_publisher;
+    ros::Publisher _clock_publisher;
 
     QAction* _select_topics_to_publish;
 
