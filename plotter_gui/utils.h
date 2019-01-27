@@ -2,6 +2,10 @@
 #define UTILS_H
 
 #include <QObject>
+#include "PlotJuggler/plotdata.h"
+
+std::vector<double> BuiltTimepointsList( PlotDataMapRef& data);
+
 
 class MonitoredValue: public QObject{
     Q_OBJECT

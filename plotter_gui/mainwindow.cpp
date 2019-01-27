@@ -36,7 +36,7 @@
 #include "aboutdialog.h"
 #include "PlotJuggler/plotdata.h"
 #include "transforms/function_editor.h"
-
+#include "utils.h"
 
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :
     QMainWindow(parent),
@@ -1752,6 +1752,8 @@ void MainWindow::updateTimeSlider()
     ui->timeSlider->setLimits(std::get<0>(range) - _time_offset.get(),
                               std::get<1>(range) - _time_offset.get(),
                               std::get<2>(range));
+
+    auto out = BuiltTimepointsList( _mapped_plot_data );
 }
 
 void MainWindow::updateTimeOffset()
