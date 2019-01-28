@@ -77,7 +77,7 @@ private slots:
 
     void onFloatingWindowDestroyed(QObject*object);
 
-    void onCreateFloatingWindow(PlotMatrix* first_tab = NULL);
+    void onCreateFloatingWindow(PlotMatrix* first_tab = nullptr);
 
     void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
@@ -85,7 +85,7 @@ private slots:
 
     void on_ToggleStreaming();
 
-    void updateDataAndReplot();
+    void updateDataAndReplot(bool replot_hidden_tabs);
 
     void on_streamingSpinBox_valueChanged(int value);
 

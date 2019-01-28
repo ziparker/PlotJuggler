@@ -121,7 +121,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     _replot_timer = new QTimer(this);
     _replot_timer->setInterval(40);
-    connect(_replot_timer, &QTimer::timeout, this, &MainWindow::updateDataAndReplot);
+    connect(_replot_timer, &QTimer::timeout, this, [this](){ updateDataAndReplot(false); } );
 
     ui->menuFile->setToolTipsVisible(true);
     ui->horizontalSpacer->changeSize(0,0, QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -1277,7 +1277,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
                              .arg(filename) );
     }
     _curvelist_widget->updateFilter();
-    updateDataAndReplot();
+    updateDataAndReplot( true );
 
 }
 
@@ -1851,7 +1851,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     }
     else{
         updateTimeSlider();
-        updateDataAndReplot();
+        updateDataAndReplot( true );
         onUndoableChange();
     }
 }
@@ -1861,7 +1861,7 @@ void MainWindow::on_ToggleStreaming()
     ui->pushButtonStreaming->setChecked( !ui->pushButtonStreaming->isChecked() );
 }
 
-void MainWindow::updateDataAndReplot()
+void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
 {
     if( _current_streamer )
     {
@@ -1894,8 +1894,19 @@ void MainWindow::updateDataAndReplot()
     //--------------------------------
     for(const auto& it: TabbedPlotWidget::instances())
     {
-        PlotMatrix* matrix =  it.second->currentTab() ;
-        matrix->maximumZoomOut(); // includes replot
+        if( replot_hidden_tabs )
+        {
+            QTabWidget* tabs = it.second->tabWidget();
+            for (int index=0; index < tabs->count(); index++)
+            {
+                PlotMatrix* matrix =  static_cast<PlotMatrix*>( tabs->widget(index) );
+                matrix->maximumZoomOut();
+            }
+        }
+        else{
+            PlotMatrix* matrix =  it.second->currentTab() ;
+            matrix->maximumZoomOut(); // includes replot
+        }
     }
 }
 
@@ -2153,7 +2164,7 @@ void MainWindow::onRefreshMathPlot(const std::string &plot_name)
         ce->calculateAndAdd(_mapped_plot_data);
 
         onUpdateLeftTableValues();
-        updateDataAndReplot();
+        updateDataAndReplot( true );
     }
     catch(const std::runtime_error &e)
     {
@@ -2227,7 +2238,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
 
         if(modifying)
         {
-            updateDataAndReplot();
+            updateDataAndReplot( true );
         }
     }
 }
