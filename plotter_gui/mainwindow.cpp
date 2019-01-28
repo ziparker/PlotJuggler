@@ -476,7 +476,7 @@ void MainWindow::loadPlugins(QString directory_name)
                 loaded_plugins.insert( plugin_name );
             }
             else{
-                QMessageBox::warning(nullptr, tr("Warning"),
+                QMessageBox::warning(this, tr("Warning"),
                                      tr("Trying to load twice a plugin with name [%1].\n"
                                         "Only the first will be loaded.").arg(plugin_name) );
                 continue;
@@ -731,7 +731,7 @@ void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
     }
     if( missing_curves.size() > 0 )
     {
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setWindowTitle("Warning");
         msgBox.setText(tr("One or more timeseries in the layout haven't been loaded yet\n"
                           "What do you want to do?"));
@@ -967,7 +967,7 @@ void MainWindow::deleteDataMultipleCurves(const std::vector<std::string> &curve_
 
 void MainWindow::onDeleteLoadedData()
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setWindowTitle("Warning");
     msgBox.setText(tr("Do you really want to REMOVE the loaded data?\n"));
     msgBox.addButton(QMessageBox::No);
@@ -1009,7 +1009,7 @@ void MainWindow::onActionLoadDataFile()
 {
     if( _data_loader.empty())
     {
-        QMessageBox::warning(nullptr, tr("Warning"),
+        QMessageBox::warning(this, tr("Warning"),
                              tr("No plugin was loaded to process a data file\n") );
         return;
     }
@@ -1149,7 +1149,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
     if( delete_older && _mapped_plot_data.numeric.size() > 0)
     {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(nullptr, tr("Warning"),
+        reply = QMessageBox::question(this, tr("Warning"),
                                       tr("Do you want to remove the previously loaded data?\n"),
                                       QMessageBox::Yes | QMessageBox::No,
                                       QMessageBox::Yes );
@@ -1549,7 +1549,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
     {
         QString filename = previously_loaded_datafile.attribute("filename");
 
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setWindowTitle("Load Data?");
         msgBox.setText(tr("Do you want to reload the previous datafile?\n\n %1 \n\n").arg(filename));
 
@@ -1575,7 +1575,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
     {
         QString streamer_name = previously_loaded_streamer.attribute("name");
 
-        QMessageBox msgBox;
+        QMessageBox msgBox(this);
         msgBox.setWindowTitle("Start Streaming?");
         msgBox.setText(tr("Do you want to start the previously used streaming plugin?\n\n %1 \n\n").arg(streamer_name));
         msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
@@ -1645,7 +1645,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
 
         if( snippets_are_different )
         {
-            QMessageBox msgBox;
+            QMessageBox msgBox(this);
             msgBox.setWindowTitle("Overwrite custom transforms?");
             msgBox.setText("Your layour file contains a set of custom transforms different from "
                            "the last one you used.\nDo you want to load these transformations?");
@@ -1981,14 +1981,7 @@ void MainWindow::on_actionStopStreaming_triggered()
 
 void MainWindow::on_actionExit_triggered()
 {
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(nullptr, tr("Warning"),
-                                  tr("Do you really want quit?\n"),
-                                  QMessageBox::Yes | QMessageBox::No,
-                                  QMessageBox::Yes );
-    if( reply == QMessageBox::Yes ) {
-        this->close();
-    }
+    this->close();
 }
 
 void MainWindow::on_actionQuick_Help_triggered()
@@ -2103,7 +2096,7 @@ void MainWindow::on_minimizeView()
     if( first_call && !_minimized )
     {
         first_call = false;
-        QMessageBox::information(nullptr,"Remember!", "Press F10 to switch back to the normal view");
+        QMessageBox::information(this, "Remember!", "Press F10 to switch back to the normal view");
     }
 
     _minimized = !_minimized;
@@ -2119,8 +2112,21 @@ void MainWindow::on_minimizeView()
     }
 }
 
-void MainWindow::closeEvent(QCloseEvent *)
+void MainWindow::closeEvent(QCloseEvent *event)
 {
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, tr("Warning"),
+                                  tr("Do you really want quit?\n"),
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::Yes );
+
+    if (reply != QMessageBox::Yes)
+    {
+        event->ignore();
+        return;
+    }
+
     _replot_timer->stop();
     if( _current_streamer )
     {
@@ -2212,7 +2218,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
         }
         catch(std::exception& ex)
         {
-            QMessageBox::warning(nullptr, tr("Warning"),
+            QMessageBox::warning(this, tr("Warning"),
                                  tr("Failed to create the custom timeseries. Error:\n\n%1")
                                      .arg( ex.what() ) );
 
