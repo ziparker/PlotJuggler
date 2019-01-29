@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.4 (2019-01-29)
+------------------
 * add parent to message boxes
 * ask confirmation at closeEvent()
 * fix problem with selection of second column
