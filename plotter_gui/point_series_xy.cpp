@@ -1,5 +1,6 @@
 #include "point_series_xy.h"
-
+#include <cmath>
+#include <cstdlib>
 
 PointSeriesXY::PointSeriesXY(const PlotData *y_axis, const PlotData *x_axis):
     DataSeriesBase( &_cached_curve ),

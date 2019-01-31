@@ -12,6 +12,8 @@
 #include <QDebug>
 #include <QColor>
 #include <type_traits>
+#include <cmath>
+#include <cstdlib>
 #include <unordered_map>
 
 template <typename Time, typename Value> class PlotDataGeneric
