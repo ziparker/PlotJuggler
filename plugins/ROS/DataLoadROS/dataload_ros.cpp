@@ -74,6 +74,8 @@ void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
 
   std::string prefixed_name;
 
+  PlotDataAny& plot_consecutive = plot_map.addUserDefined( "__consecutive_message_instances__" )->second;
+
   for(const rosbag::MessageInstance& msg_instance: bag_view )
   {
       const std::string& topic_name  = msg_instance.getTopic();
@@ -92,7 +94,10 @@ void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
           plot_pair = plot_map.addUserDefined( *key_ptr );
       }
       PlotDataAny& plot_raw = plot_pair->second;
-      plot_raw.pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(msg_instance)) ));
+      auto data_point = PlotDataAny::Point(msg_time, nonstd::any(msg_instance) );
+      plot_raw.pushBack( data_point );
+
+      plot_consecutive.pushBack( data_point );
   }
 }
 

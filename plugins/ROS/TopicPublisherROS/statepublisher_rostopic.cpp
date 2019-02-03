@@ -43,6 +43,18 @@ void TopicPublisherROS::setParentMenu(QMenu *menu)
             this, &TopicPublisherROS::filterDialog);
 }
 
+void TopicPublisherROS::play(double time)
+{
+   auto data_it = _datamap->user_defined.find( "__consecutive_message_instances__" );
+   if( data_it == _datamap->user_defined.end() )
+   {
+       return;
+   }
+   const PlotDataAny& continuous_msgs = data_it->second;
+
+   qDebug() << continuous_msgs.getIndexFromX(time);
+}
+
 void TopicPublisherROS::setEnabled(bool to_enable)
 {  
     if( !_node && to_enable)
@@ -260,8 +272,8 @@ void TopicPublisherROS::updateState(double current_time)
 {
     if(!enabled_ || !_node) return;
 
-    const ros::Time ros_time = ros::Time::now();
-
+    qDebug() << QString("%1").arg( current_time, 0, 'f', 4 );
+    play(current_time);
     //-----------------------------------------------
     broadcastTF(current_time);
     //-----------------------------------------------

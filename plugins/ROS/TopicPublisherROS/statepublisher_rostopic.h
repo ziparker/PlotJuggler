@@ -28,6 +28,8 @@ public:
 
     void setParentMenu(QMenu *menu) override;
 
+    virtual void play(double interval)  override;
+
 public slots:
     virtual void setEnabled(bool enabled) override;
     void filterDialog(bool toggled = true);
@@ -49,6 +51,8 @@ private:
     std::unordered_map<const PlotDataAny*, int> _previous_published_msg;
 
     bool toPublish(const std::string& topic_name);
+
+    double previous_time;
 
 };
 
