@@ -80,6 +80,8 @@ void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
   {
       const std::string& topic_name  = msg_instance.getTopic();
       double msg_time = msg_instance.getTime().toSec();
+      auto data_point = PlotDataAny::Point(msg_time, nonstd::any(msg_instance) );
+      plot_consecutive.pushBack( data_point );
 
       if( prefix.empty() == false)
       {
@@ -94,10 +96,7 @@ void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
           plot_pair = plot_map.addUserDefined( *key_ptr );
       }
       PlotDataAny& plot_raw = plot_pair->second;
-      auto data_point = PlotDataAny::Point(msg_time, nonstd::any(msg_instance) );
       plot_raw.pushBack( data_point );
-
-      plot_consecutive.pushBack( data_point );
   }
 }
 

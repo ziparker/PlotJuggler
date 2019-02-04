@@ -1,6 +1,5 @@
 #include "statepublisher_rostopic.h"
 #include "PlotJuggler/any.hpp"
-#include "../shape_shifter_factory.hpp"
 #include "../qnodedialog.h"
 #include "ros_type_introspection/ros_introspection.hpp"
 #include <QDialog>
@@ -13,6 +12,7 @@
 #include <QScrollArea>
 #include <QPushButton>
 #include <QSettings>
+#include <QRadioButton>
 #include <rosbag/bag.h>
 #include <std_msgs/Header.h>
 #include <unordered_map>
@@ -43,18 +43,6 @@ void TopicPublisherROS::setParentMenu(QMenu *menu)
             this, &TopicPublisherROS::filterDialog);
 }
 
-void TopicPublisherROS::play(double time)
-{
-   auto data_it = _datamap->user_defined.find( "__consecutive_message_instances__" );
-   if( data_it == _datamap->user_defined.end() )
-   {
-       return;
-   }
-   const PlotDataAny& continuous_msgs = data_it->second;
-
-   qDebug() << continuous_msgs.getIndexFromX(time);
-}
-
 void TopicPublisherROS::setEnabled(bool to_enable)
 {  
     if( !_node && to_enable)
@@ -71,6 +59,7 @@ void TopicPublisherROS::setEnabled(bool to_enable)
             _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
         }
         _previous_published_msg.clear();
+        _previous_play_index = std::numeric_limits<int>::max();
     }
 }
 
@@ -89,12 +78,23 @@ void TopicPublisherROS::filterDialog(bool)
     std::map<std::string, QCheckBox*> checkbox;
 
     QFrame* frame = new QFrame;
-    QCheckBox* publish_sim_time = new QCheckBox("Publish /clock");
+
+    auto publish_sim_time  = new QRadioButton("Keep original timestamp and publish [/clock]");
+    auto publish_real_time = new QRadioButton("Overwrite timestamp [std_msgs/Header/stamp]");
     QPushButton* select_button = new QPushButton("Select all");
     QPushButton* deselect_button = new QPushButton("Deselect all");
 
     publish_sim_time->setChecked( _publish_clock );
     publish_sim_time->setFocusPolicy(Qt::NoFocus);
+    publish_sim_time->setToolTip("Publish the topic [/clock].\n"
+                                 "You might want to set rosparam use_sim_time = true" );
+
+    publish_real_time->setChecked( !_publish_clock );
+    publish_real_time->setFocusPolicy(Qt::NoFocus);
+    publish_real_time->setToolTip("Pretend it is a new message.\n"
+                                 "The timestamp of the original message will be overwritten"
+                                 "with ros::Time::Now()");
+
     select_button->setFocusPolicy(Qt::NoFocus);
     deselect_button->setFocusPolicy(Qt::NoFocus);
 
@@ -128,6 +128,7 @@ void TopicPublisherROS::filterDialog(bool)
     select_buttons_layout->addWidget( deselect_button );
 
     vertical_layout->addWidget( publish_sim_time );
+    vertical_layout->addWidget( publish_real_time );
     vertical_layout->addWidget(scrollArea);
     vertical_layout->addLayout(select_buttons_layout);
     vertical_layout->addWidget( buttons );
@@ -176,8 +177,6 @@ void TopicPublisherROS::filterDialog(bool)
 
 void TopicPublisherROS::broadcastTF(double current_time)
 {
-    const ros::Time ros_time = ros::Time::now();
-
     std::unordered_map<std::string, geometry_msgs::TransformStamped> transforms;
 
     for(const auto& data_it:  _datamap->user_defined )
@@ -217,6 +216,7 @@ void TopicPublisherROS::broadcastTF(double current_time)
              if( isRosbagMessage )
              {
                  const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
+
                  raw_buffer.resize( msg_instance.size() );
                  ros::serialization::OStream ostream(raw_buffer.data(), raw_buffer.size());
                  msg_instance.write(ostream);
@@ -245,9 +245,13 @@ void TopicPublisherROS::broadcastTF(double current_time)
     std::vector<geometry_msgs::TransformStamped> transforms_vector;
     transforms_vector.reserve(transforms.size());
 
+    const auto now = ros::Time::now();
     for(auto& trans: transforms)
     {
-        trans.second.header.stamp = ros_time;
+        if( !_publish_clock )
+        {
+            trans.second.header.stamp = now;
+        }
         transforms_vector.emplace_back( std::move(trans.second) );
     }
 
@@ -267,22 +271,77 @@ bool TopicPublisherROS::toPublish(const std::string &topic_name)
 }
 
 
+void TopicPublisherROS::publishAnyMsg(const rosbag::MessageInstance& msg_instance)
+{
+    const auto& topic_name = msg_instance.getTopic();
+    RosIntrospection::ShapeShifter* shapeshifted =
+            RosIntrospectionFactory::get().getShapeShifter( topic_name );
+
+    if( ! shapeshifted )
+    {
+        return;// Not registered, just skip
+    }
+
+    std::vector<uint8_t> raw_buffer;
+    raw_buffer.resize( msg_instance.size() );
+    ros::serialization::OStream ostream(raw_buffer.data(), raw_buffer.size());
+    msg_instance.write(ostream);
+
+    if( !_publish_clock )
+    {
+        const RosIntrospection::Parser::VisitingCallback modifyTimestamp =
+                [](const RosIntrospection::ROSType&, absl::Span<uint8_t>& buffer)
+        {
+            std_msgs::Header msg;
+            ros::serialization::IStream is( buffer.data(), buffer.size() );
+            ros::serialization::deserialize(is, msg);
+            msg.stamp = ros::Time::now();
+            ros::serialization::OStream os( buffer.data(), buffer.size() );
+            ros::serialization::serialize(os, msg);
+        };
+
+        auto msg_info = RosIntrospectionFactory::parser().getMessageInfo( topic_name );
+        if(msg_info)
+        {
+            const RosIntrospection::ROSType header_type( ros::message_traits::DataType<std_msgs::Header>::value() ) ;
+            absl::Span<uint8_t> buffer_span(raw_buffer);
+            RosIntrospectionFactory::parser().applyVisitorToBuffer(topic_name, header_type,
+                                                                   buffer_span,  modifyTimestamp );
+        }
+    }
+
+    ros::serialization::IStream istream( raw_buffer.data(), raw_buffer.size() );
+    shapeshifted->read( istream );
+
+    auto publisher_it = _publishers.find( topic_name );
+    if( publisher_it == _publishers.end())
+    {
+        auto res = _publishers.insert( {topic_name, shapeshifted->advertise( *_node, topic_name, 10, true)} );
+        publisher_it = res.first;
+    }
+
+
+    const ros::Publisher& publisher = publisher_it->second;
+    publisher.publish( *shapeshifted );
+}
+
+
 
 void TopicPublisherROS::updateState(double current_time)
 {
     if(!enabled_ || !_node) return;
 
-    qDebug() << QString("%1").arg( current_time, 0, 'f', 4 );
-    play(current_time);
+//    auto data_it = _datamap->user_defined.find( "__consecutive_message_instances__" );
+//    if( data_it != _datamap->user_defined.end() )
+//    {
+//        const PlotDataAny& continuous_msgs = data_it->second;
+//        int current_index = continuous_msgs.getIndexFromX(current_time);
+//        qDebug() << QString("u: %1").arg( current_index ).arg(current_time, 0, 'f', 4 );
+//    }
+
     //-----------------------------------------------
     broadcastTF(current_time);
     //-----------------------------------------------
-
-    int skipped = 0;
-    int sent_count = 0;
-    int filtered_out = 0;
-
-    ros::Time msg_time;
 
     for(const auto& data_it:  _datamap->user_defined )
     {
@@ -290,80 +349,84 @@ void TopicPublisherROS::updateState(double current_time)
         const PlotDataAny& plot_any = data_it.second;
         if( !toPublish(topic_name) )
         {
-            filtered_out++;
             continue;// Not selected
         }
-        const RosIntrospection::ShapeShifter* shapeshifted = RosIntrospectionFactory::get().getShapeShifter( topic_name );
-        if( ! shapeshifted )
-        {
-            continue;// Not registered, just skip
-        }
-        if( shapeshifted->getDataType() == "tf/tfMessage" ||
-            shapeshifted->getDataType() == "tf2_msgs/TFMessage"  )
+
+        const RosIntrospection::ShapeShifter* shapeshifter =
+                RosIntrospectionFactory::get().getShapeShifter( topic_name );
+
+        if( shapeshifter->getDataType() == "tf/tfMessage" ||
+            shapeshifter->getDataType() == "tf2_msgs/TFMessage"   )
         {
             continue;
         }
 
-        RosIntrospection::ShapeShifter shapeshifted_msg = *shapeshifted;
         int last_index = plot_any.getIndexFromX( current_time );
         if( last_index < 0)
         {
             continue;
         }
 
-        const auto& any_value = plot_any.at( last_index ).y;
 
-        const bool isRawBuffer     = any_value.type() == typeid( std::vector<uint8_t>);
-        const bool isRosbagMessage = any_value.type() == typeid(rosbag::MessageInstance);
+        const auto& any_value = plot_any.at(last_index).y;
 
-        auto prev_it = _previous_published_msg.find( &plot_any );
-        if( prev_it == _previous_published_msg.end() || prev_it->second != last_index)
+        if( any_value.type() == typeid(rosbag::MessageInstance) )
         {
-            _previous_published_msg.insert( { &plot_any, last_index } );
-        }
-        else{
-            skipped++;
-            continue;
-        }
-        sent_count++;
-
-        std::vector<uint8_t> raw_buffer;
-
-        if( isRawBuffer){
-            raw_buffer = nonstd::any_cast<std::vector<uint8_t>>( any_value );
-        }
-        else if( isRosbagMessage ){
-            const rosbag::MessageInstance& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
-            raw_buffer.resize( msg_instance.size() );
-            ros::serialization::OStream stream(raw_buffer.data(), raw_buffer.size());
-            msg_instance.write(stream);
-            msg_time = msg_instance.getTime();
-        }
-        else{
-            continue;
+            const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
+            publishAnyMsg( msg_instance );
         }
 
-
-        ros::serialization::IStream stream( raw_buffer.data(), raw_buffer.size() );
-        shapeshifted_msg.read( stream );
-
-        auto publisher_it = _publishers.find( topic_name );
-        if( publisher_it == _publishers.end())
-        {
-            auto res = _publishers.insert( {topic_name, shapeshifted_msg.advertise( *_node, topic_name, 10, true)} );
-            publisher_it = res.first;
-        }
-
-        const ros::Publisher& publisher = publisher_it->second;
-        publisher.publish( shapeshifted_msg );
     }
 
     if( _publish_clock )
     {
         rosgraph_msgs::Clock clock;
-        clock.clock = msg_time;
+        clock.clock.fromSec( current_time );
        _clock_publisher.publish( clock );
     }
+}
 
-    //qDebug() << filtered_out << " + " << skipped << " + " << sent_count << " = " << _datamap->user_defined.size();
+
+void TopicPublisherROS::play(double current_time)
+{
+    if(!enabled_ || !_node) return;
+
+    auto data_it = _datamap->user_defined.find( "__consecutive_message_instances__" );
+    if( data_it == _datamap->user_defined.end() )
+    {
+        return;
+    }
+    const PlotDataAny& continuous_msgs = data_it->second;
+    int current_index = continuous_msgs.getIndexFromX(current_time);
+
+    if( _previous_play_index > current_index)
+    {
+        _previous_play_index = current_index;
+        updateState(current_time);
+        return;
+    }
+    else
+    {
+        const PlotDataAny& consecutive_msg = data_it->second;
+        for(int index = _previous_play_index+1; index <= current_index; index++)
+        {
+            const auto& any_value = consecutive_msg.at(index).y;
+            if( any_value.type() == typeid(rosbag::MessageInstance) )
+            {
+                const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
+//                qDebug() << QString("p: %1 %2 %3").arg( index )
+//                            .arg(msg_instance.getTime().toSec(), 0, 'f', 4 )
+//                            .arg(current_time, 0, 'f', 4 );
+                publishAnyMsg( msg_instance );
+
+                if( _publish_clock )
+                {
+                    rosgraph_msgs::Clock clock;
+                    clock.clock = msg_instance.getTime();
+                   _clock_publisher.publish( clock );
+                }
+            }
+        }
+        _previous_play_index = current_index;
+    }
 }

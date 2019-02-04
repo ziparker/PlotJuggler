@@ -2285,5 +2285,6 @@ void MainWindow::publishPeriodically()
         ui->pushButtonPlay->setChecked(false);
         _tracker_time =  ui->timeSlider->getMaximum();
     }
+
     ui->timeSlider->setRealValue( _tracker_time );
 }

@@ -8,7 +8,8 @@
 #include <ros_type_introspection/ros_introspection.hpp>
 #include <tf/transform_broadcaster.h>
 #include "PlotJuggler/statepublisher_base.h"
-
+#include "../shape_shifter_factory.hpp"
+#include <rosbag/bag.h>
 
 class  TopicPublisherROS: public QObject, StatePublisher
 {
@@ -54,6 +55,9 @@ private:
 
     double previous_time;
 
+    int _previous_play_index;
+
+    void publishAnyMsg(const rosbag::MessageInstance& msg_instance);
 };
 
 #endif // DATALOAD_CSV_H
