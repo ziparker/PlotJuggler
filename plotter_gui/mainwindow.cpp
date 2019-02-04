@@ -2279,12 +2279,29 @@ void MainWindow::on_actionFunction_editor_triggered()
 void MainWindow::publishPeriodically()
 {
     _tracker_time = std::max( _tracker_time, ui->timeSlider->getMinimum());
-    _tracker_time +=  0.01;
+    _tracker_time +=  0.02;
     if( _tracker_time >= ui->timeSlider->getMaximum())
     {
         ui->pushButtonPlay->setChecked(false);
         _tracker_time =  ui->timeSlider->getMaximum();
     }
-
+    //////////////////
+    auto prev = ui->timeSlider->blockSignals(true);
     ui->timeSlider->setRealValue( _tracker_time );
+    ui->timeSlider->blockSignals(prev);
+
+    //////////////////
+    updatedDisplayTime();
+    onUpdateLeftTableValues();
+
+    for ( auto& it: _state_publisher)
+    {
+        it.second->play( _tracker_time);
+    }
+
+    forEachWidget( [&](PlotWidget* plot)
+    {
+        plot->setTrackerPosition( _tracker_time );
+        plot->replot();
+    } );
 }

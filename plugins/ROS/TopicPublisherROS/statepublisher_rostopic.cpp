@@ -414,9 +414,7 @@ void TopicPublisherROS::play(double current_time)
             if( any_value.type() == typeid(rosbag::MessageInstance) )
             {
                 const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
-//                qDebug() << QString("p: %1 %2 %3").arg( index )
-//                            .arg(msg_instance.getTime().toSec(), 0, 'f', 4 )
-//                            .arg(current_time, 0, 'f', 4 );
+                //qDebug() << QString("p: %1").arg( index );
                 publishAnyMsg( msg_instance );
 
                 if( _publish_clock )
