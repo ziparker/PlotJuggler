@@ -1853,6 +1853,12 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     ui->streamingLabel->setHidden( !streaming );
     ui->streamingSpinBox->setHidden( !streaming );
     ui->timeSlider->setHidden( streaming );
+    ui->pushButtonPlay->setHidden( streaming );
+
+    if( streaming && ui->pushButtonPlay->isChecked() )
+    {
+        ui->pushButtonPlay->setChecked(false);
+    }
 
     forEachWidget([&](PlotWidget* plot)
     {
@@ -1874,7 +1880,18 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
 
 void MainWindow::on_ToggleStreaming()
 {
-    ui->pushButtonStreaming->setChecked( !ui->pushButtonStreaming->isChecked() );
+    if( ui->pushButtonStreaming->isEnabled() )
+    {
+        bool streaming = ui->pushButtonStreaming->isChecked();
+        ui->pushButtonStreaming->setChecked( !streaming );
+    }
+    else {
+        if( ui->pushButtonPlay->isEnabled() )
+        {
+            bool playing = ui->pushButtonPlay->isChecked();
+            ui->pushButtonPlay->setChecked( !playing );
+        }
+    }
 }
 
 void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)

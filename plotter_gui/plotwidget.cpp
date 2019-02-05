@@ -1125,6 +1125,9 @@ void PlotWidget::zoomOut(bool emit_signal)
     _magnifier->setAxisLimits( xBottom, rect.left(),   rect.right() );
     _magnifier->setAxisLimits( yLeft,   rect.bottom(), rect.top() );
 
+    _magnifier->setZoomInKey( Qt::Key_Plus, Qt::ControlModifier);
+    _magnifier->setZoomOutKey( Qt::Key_Minus, Qt::ControlModifier);
+
     this->setZoomRectangle(rect, emit_signal);
 }
 
