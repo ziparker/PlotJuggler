@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.5 (2019-02-05)
+------------------
 * fix problem in build farm
 * bug fix plot XY
 * Contributors: Davide Faconti
