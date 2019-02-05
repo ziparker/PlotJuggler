@@ -207,6 +207,12 @@ void TopicPublisherROS::broadcastTF(double current_time)
          // 1 second in the past (to be configurable in the future
          int initial_index = tf_data->getIndexFromX( current_time - 2.0 );
 
+         if( _previous_play_index < last_index &&
+             _previous_play_index > initial_index )
+         {
+             initial_index = _previous_play_index;
+         }
+
          for(size_t index = std::max(0, initial_index); index <= last_index; index++ )
          {
              const nonstd::any& any_value = tf_data->at(index).y;
@@ -331,17 +337,18 @@ void TopicPublisherROS::updateState(double current_time)
 {
     if(!enabled_ || !_node) return;
 
-//    auto data_it = _datamap->user_defined.find( "__consecutive_message_instances__" );
-//    if( data_it != _datamap->user_defined.end() )
-//    {
-//        const PlotDataAny& continuous_msgs = data_it->second;
-//        int current_index = continuous_msgs.getIndexFromX(current_time);
-//        qDebug() << QString("u: %1").arg( current_index ).arg(current_time, 0, 'f', 4 );
-//    }
-
     //-----------------------------------------------
     broadcastTF(current_time);
     //-----------------------------------------------
+
+    auto data_it = _datamap->user_defined.find( "__consecutive_message_instances__" );
+    if( data_it != _datamap->user_defined.end() )
+    {
+        const PlotDataAny& continuous_msgs = data_it->second;
+        _previous_play_index = continuous_msgs.getIndexFromX(current_time);
+        //qDebug() << QString("u: %1").arg( current_index ).arg(current_time, 0, 'f', 4 );
+    }
+
 
     for(const auto& data_it:  _datamap->user_defined )
     {
