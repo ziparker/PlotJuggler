@@ -1762,9 +1762,6 @@ void MainWindow::updateTimeSlider()
 
     _tracker_time = std::max( _tracker_time, ui->timeSlider->getMinimum() );
     _tracker_time = std::min( _tracker_time, ui->timeSlider->getMaximum() );
-
-
-    auto out = BuiltTimepointsList( _mapped_plot_data );
 }
 
 void MainWindow::updateTimeOffset()
