@@ -48,7 +48,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     _minimized(false),
     _current_streamer(nullptr),
     _disable_undo_logging(false),
-    _tracker_param( CurveTracker::VALUE )
+    _tracker_param( CurveTracker::VALUE ),
+    _tracker_time(0)
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
@@ -124,7 +125,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     connect(_replot_timer, &QTimer::timeout, this, [this](){ updateDataAndReplot(false); } );
 
     _publish_timer = new QTimer(this);
-    _publish_timer->setInterval(10);
+    _publish_timer->setInterval(20);
     connect(_publish_timer, &QTimer::timeout, this, &MainWindow::publishPeriodically );
 
 
@@ -328,6 +329,7 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time, bool do_replot)
 {
     updatedDisplayTime();
     onUpdateLeftTableValues();
+
 
     for ( auto& it: _state_publisher)
     {
@@ -1758,6 +1760,10 @@ void MainWindow::updateTimeSlider()
                               std::get<1>(range),
                               std::get<2>(range));
 
+    _tracker_time = std::max( _tracker_time, ui->timeSlider->getMinimum() );
+    _tracker_time = std::min( _tracker_time, ui->timeSlider->getMaximum() );
+
+
     auto out = BuiltTimepointsList( _mapped_plot_data );
 }
 
@@ -2278,12 +2284,11 @@ void MainWindow::on_actionFunction_editor_triggered()
 
 void MainWindow::publishPeriodically()
 {
-    _tracker_time = std::max( _tracker_time, ui->timeSlider->getMinimum());
-    _tracker_time +=  0.02;
+    _tracker_time +=  _publish_timer->interval()*0.001;
     if( _tracker_time >= ui->timeSlider->getMaximum())
     {
         ui->pushButtonPlay->setChecked(false);
-        _tracker_time =  ui->timeSlider->getMaximum();
+        _tracker_time =  ui->timeSlider->getMinimum();
     }
     //////////////////
     auto prev = ui->timeSlider->blockSignals(true);

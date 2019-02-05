@@ -367,7 +367,6 @@ void TopicPublisherROS::updateState(double current_time)
             continue;
         }
 
-
         const auto& any_value = plot_any.at(last_index).y;
 
         if( any_value.type() == typeid(rosbag::MessageInstance) )
@@ -375,14 +374,19 @@ void TopicPublisherROS::updateState(double current_time)
             const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
             publishAnyMsg( msg_instance );
         }
-
     }
 
     if( _publish_clock )
     {
         rosgraph_msgs::Clock clock;
-        clock.clock.fromSec( current_time );
-       _clock_publisher.publish( clock );
+        try{
+            clock.clock.fromSec( current_time );
+           _clock_publisher.publish( clock );
+        }
+        catch(...)
+        {
+            qDebug() << "error: " << current_time;
+        }
     }
 }
 
