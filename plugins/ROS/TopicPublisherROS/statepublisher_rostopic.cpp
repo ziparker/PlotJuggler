@@ -414,10 +414,17 @@ void TopicPublisherROS::play(double current_time)
         const PlotDataAny& consecutive_msg = data_it->second;
         for(int index = _previous_play_index+1; index <= current_index; index++)
         {
+
             const auto& any_value = consecutive_msg.at(index).y;
             if( any_value.type() == typeid(rosbag::MessageInstance) )
             {
                 const auto& msg_instance = nonstd::any_cast<rosbag::MessageInstance>( any_value );
+
+                if( !toPublish( msg_instance.getTopic() ) )
+                {
+                    continue;// Not selected
+                }
+
                 //qDebug() << QString("p: %1").arg( index );
                 publishAnyMsg( msg_instance );
 
