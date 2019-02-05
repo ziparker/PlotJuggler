@@ -2,6 +2,12 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix problem in build farm
+* bug fix plot XY
+* Contributors: Davide Faconti
+
 2.0.4 (2019-01-29)
 ------------------
 * add parent to message boxes
