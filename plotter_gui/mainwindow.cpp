@@ -2279,7 +2279,7 @@ void MainWindow::on_actionFunction_editor_triggered()
 void MainWindow::publishPeriodically()
 {
     _tracker_time = std::max( _tracker_time, ui->timeSlider->getMinimum());
-    _tracker_time +=  0.02;
+    _tracker_time +=  0.01;
     if( _tracker_time >= ui->timeSlider->getMaximum())
     {
         ui->pushButtonPlay->setChecked(false);
