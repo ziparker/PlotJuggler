@@ -1441,7 +1441,6 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
             else if( mouse_event->modifiers() == Qt::ControlModifier) // panner
             {
                 QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/move.png")));
-                qDebug() << "setOverrideCursor A";
             }
             return false; // send to canvas()
         }    
@@ -1449,7 +1448,6 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
                   mouse_event->modifiers() == Qt::NoModifier )
         {
             QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/move.png")));
-            qDebug() << "setOverrideCursor B";
             return false;
         }
         else if( mouse_event->button() == Qt::RightButton )
@@ -1510,10 +1508,8 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     }break;
     case QEvent::MouseButtonRelease :
     {
-        qDebug() << "MouseButtonRelease";
         if( _dragging.mode == DragInfo::NONE )
         {
-            qDebug() << "restore cursor";
             changeBackgroundColor( Qt::white );
             QApplication::restoreOverrideCursor();
             return false;
