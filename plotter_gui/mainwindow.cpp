@@ -1153,7 +1153,18 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
         return;
     }
 
-    if( delete_older && _mapped_plot_data.numeric.size() > 0)
+    std::vector<std::string> old_one_to_delete;
+
+    for (auto& it: _mapped_plot_data.numeric)
+    {
+        // timeseries in old but not in new
+        if( new_data.numeric.count( it.first ) == 0 )
+        {
+           old_one_to_delete.push_back( it.first );
+        }
+    }
+
+    if( !old_one_to_delete.empty() && delete_older )
     {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(this, tr("Warning"),
@@ -1162,8 +1173,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
                                       QMessageBox::Yes );
         if( reply == QMessageBox::Yes )
         {
-            deleteAllDataImpl();
-
+            deleteDataMultipleCurves(old_one_to_delete);
         }
     }
 
