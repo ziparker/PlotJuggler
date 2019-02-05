@@ -1851,16 +1851,12 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
 
     emit activateStreamingMode( streaming );
 
-    this->repaint();
-
-
     if( _current_streamer && streaming)
     {
         _replot_timer->start();
         updateTimeOffset();
     }
     else{
-        updateTimeSlider();
         updateDataAndReplot( true );
         onUndoableChange();
     }
@@ -1883,7 +1879,6 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
             auto* dst_plot = &_mapped_plot_data.numeric.at(custom_it.first);
             custom_it.second->calculate(_mapped_plot_data, dst_plot);
         }
-
     }
 
     forEachWidget( [](PlotWidget* plot)
@@ -1900,6 +1895,10 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
         _tracker_time = max_time;
 
         onTrackerTimeUpdated(_tracker_time, false);
+    }
+    else{
+        updateTimeOffset();
+        updateTimeSlider();
     }
     //--------------------------------
     for(const auto& it: TabbedPlotWidget::instances())
