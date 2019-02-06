@@ -48,7 +48,7 @@ bool PointSeriesXY::updateCache()
 {
     if( _x_axis == nullptr )
     {
-        throw std::runtime_error("The X axis is null");
+        throw std::runtime_error("the X axis is null");
     }
 
     const size_t data_size =  _x_axis->size();
