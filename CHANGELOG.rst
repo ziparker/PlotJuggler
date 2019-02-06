@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2019-02-06)
+------------------
 * fix for dark layout
 * fix issue with edited function transforms
 * about dialog updated
