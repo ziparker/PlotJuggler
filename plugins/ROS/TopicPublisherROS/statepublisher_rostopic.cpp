@@ -58,8 +58,11 @@ void TopicPublisherROS::setEnabled(bool to_enable)
         {
             _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
         }
-        _previous_published_msg.clear();
         _previous_play_index = std::numeric_limits<int>::max();
+    }
+    else{
+        _node.reset();
+        _publishers.clear();
     }
 }
 
@@ -336,6 +339,12 @@ void TopicPublisherROS::publishAnyMsg(const rosbag::MessageInstance& msg_instanc
 void TopicPublisherROS::updateState(double current_time)
 {
     if(!enabled_ || !_node) return;
+
+//    if( !ros::master::check() )
+//    {
+//        setEnabled(false);
+//        return;
+//    }
 
     //-----------------------------------------------
     broadcastTF(current_time);
