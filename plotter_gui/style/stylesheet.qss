@@ -351,33 +351,17 @@ QPushButton:checked:selected{
 /* QCombobox -------------------------------------------------------------- */
 
 QComboBox {
-
     color: black;
     background-color: white;
+    selection-background-color:  #b5b5b5;
     border-radius: 2px;
     border: 1px solid grey;
-    padding: 1px 0px 1px 3px;
+    padding-top: 2px;     /* This fix  #103, #111*/
+    padding-bottom: 2px;  /* This fix  #103, #111*/
+    padding-left: 4px;
+    padding-right: 4px;
 }
 
-QComboBox QListView
-{
-    color: black;
-}
-
-
-QComboBox QAbstractItemView {
-    color: black;
-    background-color: white;
-    border-radius: 2px;
-    border: 1px solid #32414B;
-    selection-color: white;
-    selection-background-color: blue;
-}
-
-
-QComboBox QAbstractItemView::item:hover {
-    background-color: blue;
-}
 
 /* QSlider ---------------------------------------------------------------- */
 
