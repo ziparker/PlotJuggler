@@ -119,7 +119,6 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     buildLegend();
 
     this->canvas()->setMouseTracking(true);
-    //this->canvas()->installEventFilter(this);
 
     setDefaultRangeX();
 

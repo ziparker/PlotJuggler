@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <qwt_plot_magnifier.h>
 #include <qwt_plot.h>
+#include <QEvent>
 
 class PlotMagnifier : public QwtPlotMagnifier
 {
@@ -21,8 +22,10 @@ public:
 protected:
 
     virtual void widgetMousePressEvent( QMouseEvent* event ) override;
-    virtual void widgetKeyPressEvent( QKeyEvent * event) override;
-    virtual void widgetKeyReleaseEvent( QKeyEvent *event)  override;
+//    virtual void widgetKeyPressEvent( QKeyEvent * event) override;
+//    virtual void widgetKeyReleaseEvent( QKeyEvent *event)  override;
+
+    bool eventFilter( QObject *obj, QEvent *event) override;
 
     double _lower_bounds[QwtPlot::axisCnt];
     double _upper_bounds[QwtPlot::axisCnt];
