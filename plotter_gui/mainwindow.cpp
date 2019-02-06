@@ -2020,25 +2020,6 @@ void MainWindow::on_actionExit_triggered()
     this->close();
 }
 
-void MainWindow::on_actionQuick_Help_triggered()
-{
-    const QString path =  tr(PJ_DOCUMENTATION_DIR) + "/index.html";
-    QFileInfo check_file(path);
-
-    QUrl url_SYS( tr("file:///")  + path, QUrl::TolerantMode);
-
-    if( check_file.exists() && url_SYS.isValid() )
-    {
-        if(QDesktopServices::openUrl(url_SYS))
-        {
-            return;
-        }
-    }
-    QMessageBox::warning(this, "Can't find Documentation",
-                         QString("Can't open the file:\n\n%1\n\n Is it correctly installed in your system?").arg( url_SYS.path()) );
-}
-
-
 void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool )
 {
     updateTimeOffset();
@@ -2332,4 +2313,9 @@ void MainWindow::publishPeriodically()
         plot->setTrackerPosition( _tracker_time );
         plot->replot();
     } );
+}
+
+void MainWindow::on_actionReportBug_triggered()
+{
+    QDesktopServices::openUrl( QUrl( "https://github.com/facontidavide/PlotJuggler/issues" ));
 }
