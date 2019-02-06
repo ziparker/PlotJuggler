@@ -3,9 +3,12 @@
 #include <QDebug>
 #include <limits>
 #include <QWheelEvent>
+#include <QApplication>
 
 PlotMagnifier::PlotMagnifier( QWidget *canvas) : QwtPlotMagnifier(canvas)
 {
+    _x_pressed = false;
+    _y_pressed = false;
     for ( int axisId = 0; axisId < QwtPlot::axisCnt; axisId++ )
     {
         _lower_bounds[axisId] = -std::numeric_limits<double>::max();
@@ -43,6 +46,15 @@ void PlotMagnifier::rescale( double factor )
 
     for ( int i = 0; i <2; i++ )
     {
+        if( i==1 && _x_pressed)
+        {
+            continue;
+        }
+        if( i==0 && _y_pressed)
+        {
+            continue;
+        }
+
         int axisId = axis_list[i];
 
         if ( isAxisEnabled( axisId ) )
@@ -121,4 +133,16 @@ void PlotMagnifier::widgetMousePressEvent(QMouseEvent *event)
 {
     _mouse_position = invTransform(event->pos());
     QwtPlotMagnifier::widgetMousePressEvent(event);
+}
+
+void PlotMagnifier::widgetKeyPressEvent(QKeyEvent *event)
+{
+    _x_pressed = event->key() == Qt::Key_X;
+    _y_pressed = event->key() == Qt::Key_Y;
+}
+
+void PlotMagnifier::widgetKeyReleaseEvent(QKeyEvent *event)
+{
+    _x_pressed = !(event->key() == Qt::Key_X);
+    _y_pressed = !(event->key() == Qt::Key_Y);
 }
