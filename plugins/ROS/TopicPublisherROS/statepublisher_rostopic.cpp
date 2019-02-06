@@ -36,7 +36,7 @@ TopicPublisherROS::~TopicPublisherROS()
 
 void TopicPublisherROS::setParentMenu(QMenu *menu)
 {
-    _self_action = menu->actions().back();
+    _enable_self_action = menu->actions().back();
     _menu = menu;
 
     _select_topics_to_publish = new QAction(QString("Select topics to be published"), _menu);
@@ -347,7 +347,7 @@ void TopicPublisherROS::updateState(double current_time)
         QMessageBox::warning(nullptr, tr("Disconnected!"),
                              "The roscore master cannot be detected.\n"
                              "The publisher will be disabled.");
-        _self_action->setChecked(false);
+        _enable_self_action->setChecked(false);
         return;
     }
 
@@ -421,7 +421,7 @@ void TopicPublisherROS::play(double current_time)
         QMessageBox::warning(nullptr, tr("Disconnected!"),
                              "The roscore master cannot be detected.\n"
                              "The publisher will be disabled.");
-        _self_action->setChecked(false);
+        _enable_self_action->setChecked(false);
         return;
     }
 
