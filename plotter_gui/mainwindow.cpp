@@ -35,6 +35,7 @@
 #include "selectlistdialog.h"
 #include "aboutdialog.h"
 #include "PlotJuggler/plotdata.h"
+#include "ui_cheatsheet_dialog.h"
 #include "transforms/function_editor.h"
 #include "utils.h"
 
@@ -2318,4 +2319,20 @@ void MainWindow::publishPeriodically()
 void MainWindow::on_actionReportBug_triggered()
 {
     QDesktopServices::openUrl( QUrl( "https://github.com/facontidavide/PlotJuggler/issues" ));
+}
+
+void MainWindow::on_actionCheatsheet_triggered()
+{
+    QSettings settings;
+
+    QDialog* dialog = new QDialog(this);
+    Ui_CheatsheetDialog* ui = new Ui_CheatsheetDialog;
+    ui->setupUi(dialog);
+
+    dialog->restoreGeometry(settings.value("Cheatsheet.geometry").toByteArray());
+    dialog->exec();
+    settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
+
+    delete ui;
+    delete dialog;
 }

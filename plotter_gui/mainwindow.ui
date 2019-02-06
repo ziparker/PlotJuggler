@@ -644,6 +644,7 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionCheatsheet"/>
     <addaction name="actionReportBug"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -749,6 +750,11 @@
   <action name="actionFunction_editor">
    <property name="text">
     <string>Open Function Editor</string>
+   </property>
+  </action>
+  <action name="actionCheatsheet">
+   <property name="text">
+    <string>Cheatsheet</string>
    </property>
   </action>
  </widget>

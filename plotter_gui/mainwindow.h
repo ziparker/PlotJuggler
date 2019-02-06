@@ -137,6 +137,8 @@ private slots:
 
     void on_actionReportBug_triggered();
 
+    void on_actionCheatsheet_triggered();
+
 private:
 
     Ui::MainWindow *ui;
