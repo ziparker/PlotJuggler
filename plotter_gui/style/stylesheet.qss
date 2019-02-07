@@ -1,9 +1,9 @@
 QMainWindow {
-    background: #EFEFEF;
+    background: #E5E5E5;
 }
 
 QDialog {
-    background: #EFEFEF;
+    background: #E5E5E5;
 }
 QLabel {
     color: black;
@@ -18,7 +18,7 @@ QLineEdit {
 
 QLineEdit:disabled {
     color: #666666;
-    background: #EEEEEE;
+    background: #DDDDDD;
 }
 
 
@@ -152,6 +152,11 @@ QMenu::indicator {
 
 QRadioButton{
     color: black;
+    background-color: transparent;
+    spacing: 0;
+    padding: 0;
+    border: none;
+    outline: none;
 }
 
 QRadioButton:disabled {
@@ -204,7 +209,7 @@ QRadioButton::indicator:unchecked:disabled {
 /* QCheckBox -------------------------------------------------------------- */
 
 QCheckBox{
-   background: white;
+   background-color: transparent;
    color: black;
 }
 
@@ -317,8 +322,8 @@ QPushButton[flat="false"]
 }
 
 QPushButton:disabled {
-    color: #666666;
-    background: #EEEEEE;
+    color: grey;
+    background: transparent;
 }
 
 QPushButton:focus {
@@ -380,7 +385,7 @@ QComboBox {
 /* QSlider ---------------------------------------------------------------- */
 
 QSlider:disabled {
-    background: white;
+    background: transparent;
 }
 
 QSlider:focus {
