@@ -33,7 +33,7 @@
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
 #include "selectlistdialog.h"
-#include "aboutdialog.h"
+#include "ui_aboutdialog.h"
 #include "PlotJuggler/plotdata.h"
 #include "ui_cheatsheet_dialog.h"
 #include "transforms/function_editor.h"
@@ -1980,12 +1980,6 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
     }
 }
 
-void MainWindow::on_actionAbout_triggered()
-{
-    AboutDialog* aboutdialog = new AboutDialog(this);
-    aboutdialog->show();
-}
-
 void MainWindow::on_actionStopStreaming_triggered()
 {
     ui->pushButtonStreaming->setChecked(false);
@@ -2320,13 +2314,24 @@ void MainWindow::on_actionReportBug_triggered()
 {
     QDesktopServices::openUrl( QUrl( "https://github.com/facontidavide/PlotJuggler/issues" ));
 }
+void MainWindow::on_actionAbout_triggered()
+{
+    QDialog* dialog = new QDialog(this);
+    auto ui = new Ui::AboutDialog();
+    ui->setupUi(dialog);
+
+    ui->label_version->setText( QApplication::applicationVersion() );
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    dialog->exec();
+}
 
 void MainWindow::on_actionCheatsheet_triggered()
 {
     QSettings settings;
 
-    QDialog* dialog = new QDialog(this);
-    Ui_CheatsheetDialog* ui = new Ui_CheatsheetDialog;
+    QDialog* dialog = new QDialog(this);  
+    auto* ui = new Ui_CheatsheetDialog();
     ui->setupUi(dialog);
 
     dialog->restoreGeometry(settings.value("Cheatsheet.geometry").toByteArray());

@@ -20,7 +20,6 @@ QT5_WRAP_UI ( UI_SRC
     )
 
 SET( PLOTTER_SRC
-    aboutdialog.cpp
     axis_limits_dialog.cpp
     customtracker.cpp
     curvecolorpick.cpp
