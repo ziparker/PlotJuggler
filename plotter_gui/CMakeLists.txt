@@ -12,6 +12,7 @@ QT5_WRAP_UI ( UI_SRC
     curvecolorpick.ui
     filterablelistwidget.ui
     tabbedplotwidget.ui
+    support_dialog.ui
 
     transforms/function_editor.ui
     transforms/transform_selector.ui

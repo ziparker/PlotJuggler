@@ -30,12 +30,13 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "ui_aboutdialog.h"
+#include "ui_cheatsheet_dialog.h"
+#include "ui_support_dialog.h"
 #include "filterablelistwidget.h"
 #include "tabbedplotwidget.h"
 #include "selectlistdialog.h"
-#include "ui_aboutdialog.h"
 #include "PlotJuggler/plotdata.h"
-#include "ui_cheatsheet_dialog.h"
 #include "transforms/function_editor.h"
 #include "utils.h"
 
@@ -2344,5 +2345,16 @@ void MainWindow::on_actionCheatsheet_triggered()
             {
                 QSettings settings;
                 settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
-            } );
+    } );
+}
+
+void MainWindow::on_actionSupportPlotJuggler_triggered()
+{
+    QDialog* dialog = new QDialog(this);
+    auto ui = new Ui::SupportDialog();
+    ui->setupUi(dialog);
+
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    dialog->exec();
 }
