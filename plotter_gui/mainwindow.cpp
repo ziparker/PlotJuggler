@@ -2040,13 +2040,13 @@ void MainWindow::updatedDisplayTime()
     const double relative_time = _tracker_time - _time_offset.get();
     if( ui->pushButtonUseDateTime->isChecked() )
     {
-        if( _time_offset.get() > 0 )
+        if( ui->pushButtonRemoveTimeOffset->isChecked() )
         {
-            QTime time = QTime::fromMSecsSinceStartOfDay( Round(relative_time*1000.0));
+            QTime time = QTime::fromMSecsSinceStartOfDay( std::round(relative_time*1000.0));
             ui->displayTime->setText( time.toString("HH:mm::ss.zzz") );
         }
         else{
-            QDateTime datetime = QDateTime::fromMSecsSinceEpoch( Round(relative_time*1000.0) );
+            QDateTime datetime = QDateTime::fromMSecsSinceEpoch( std::round(_tracker_time*1000.0) );
             ui->displayTime->setText( datetime.toString("d/M/yy HH:mm::ss.zzz") );
         }
     }
@@ -2330,9 +2330,14 @@ void MainWindow::on_actionCheatsheet_triggered()
     ui->setupUi(dialog);
 
     dialog->restoreGeometry(settings.value("Cheatsheet.geometry").toByteArray());
-    dialog->exec();
-    settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
 
-    delete ui;
-    delete dialog;
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    dialog->show();
+
+    connect(dialog, &QDialog::finished, this, [this, dialog]()
+            {
+                QSettings settings;
+                settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
+            } );
 }
