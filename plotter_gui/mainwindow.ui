@@ -216,7 +216,7 @@
                 </size>
                </property>
                <property name="flat">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -482,6 +482,9 @@
                 </size>
                </property>
                <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="flat">
                 <bool>true</bool>
                </property>
               </widget>

@@ -16,6 +16,12 @@ QLineEdit {
     border: 1px solid grey;
 }
 
+QLineEdit:disabled {
+    color: #666666;
+    background: #EEEEEE;
+}
+
+
 QTabWidget::pane { /* The tab widget frame */
     border: 1px solid gray;
     background: white;
@@ -288,9 +294,8 @@ QGroupBox::indicator:unchecked:disabled {
 
 /* QPushButton -------------------------------------------------------------- */
 
-QPushButton {
-    background-color: transparent ;
-    border: 1px solid grey;
+QPushButton
+{
     color: black;
     border-radius: 2px;
     padding: 6px;
@@ -299,11 +304,21 @@ QPushButton {
 
 QPushButton[flat="true"]
 {
+    background-color: transparent;
     border: 0px;
 }
 
+QPushButton[flat="false"]
+{
+    border: 1px solid grey;
+    background-color: qlineargradient(x1:0.7, y1:0, x2:1, y2:1,
+                      stop:0 white,
+                      stop:1 rgb(210, 210, 230, 255));
+}
+
 QPushButton:disabled {
-    color: grey;
+    color: #666666;
+    background: #EEEEEE;
 }
 
 QPushButton:focus {
@@ -314,7 +329,6 @@ QPushButton:focus {
 QPushButton:checked {
     background-color: #BBBBEE;
     border: 1px solid grey;
-    border-radius: 2px;
     padding: 3px;
     outline: none;
 }
@@ -322,7 +336,6 @@ QPushButton:checked {
 QPushButton:checked:disabled {
     border: 1px solid #32414B;
     color: grey;
-    border-radius: 2px;
     padding: 3px;
     outline: none;
 }
@@ -346,6 +359,7 @@ QPushButton:selected,
 QPushButton:checked:selected{
     background: #1464A0;
     color: #32414B;
+    border-radius: 2px;
 }
 
 /* QCombobox -------------------------------------------------------------- */
