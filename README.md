@@ -32,7 +32,17 @@ Watch this video to learn how to use it.
 
 [![Custom timeseries](docs/images/custom_functions.png)](https://vimeo.com/311245098)
 
-# How to build (non ROS users)
+## Just "Download and Run" (Ubuntu 16.04 Xenial or later)
+
+For those of you that can't wait to get your hands dirty, just download this AppImage:
+
+    https://github.com/facontidavide/PlotJuggler/releases/download/2.1.1/PlotJuggler-2.1.1-x86_64.AppImage
+   
+Do not forget to make it executable with the command 
+
+    chmod +x ./PlotJuggler-2.1.1-x86_64.AppImage
+
+## How to build (non ROS users)
 
 Clone the repository as usual:
 
@@ -56,7 +66,7 @@ Then compile using cmake (qmake is NOT supported):
  
  Note: the plugins need to be installed in the same folder of the executable or in __/usr/local/lib/PlotJuggler/__.
 
-# How to build (ROS users)
+## How to build (ROS users)
 
  The following instructions are for __ROS Kinetic__. Adapt them accordingly if you are using a different version of ROS.
  
