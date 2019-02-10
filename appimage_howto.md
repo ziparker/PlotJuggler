@@ -3,12 +3,12 @@
 Add the right repository form [here](https://launchpad.net/~beineri)
 
 
-    sudo add-apt-repository ppa:beineri/opt-qt512-xenial -y
+    sudo add-apt-repository ppa:beineri/opt-qt597-xenial -y
 
 Then, run:
 
     sudo apt-get update
-    sudo apt-get install qt512base qt512svg qt512declarative-y
+    sudo apt-get install qt59base qt59svg qt59declarative-y
 
 Download the latest version of [LinuxDeployQt](https://github.com/probonopd/linuxdeployqt) and make it executable with __chmod__:
 
@@ -18,8 +18,8 @@ Download the latest version of [LinuxDeployQt](https://github.com/probonopd/linu
     sudo apt-get -y install libgtk2.0-dev
     git clone http://code.qt.io/qt/qtstyleplugins.git
     cd qtstyleplugins
-    source /opt/qt512/bin/qt512-env.sh
-    /opt/qt512/bin/qmake
+    source /opt/qt59/bin/qt59-env.sh
+    /opt/qt59/bin/qmake
     make -j$(nproc)
     sudo make install 
     cd ..
@@ -29,14 +29,15 @@ Download the latest version of [LinuxDeployQt](https://github.com/probonopd/linu
 
 In the root folder of ws_plotjuggler:
 
-    rm -rf buil devel install
-    source /opt/qt512/bin/qt512-env.sh
+    rm -rf build devel install
+    source /opt/qt59/bin/qt59-env.sh
+    catkin_make -DCMAKE_BUILD_TYPE=Release  -j$(nproc) install  
     unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
     export LD_LIBRARY_PATH=/opt/ros/kinetic/lib
-    catkin_make -DCMAKE_BUILD_TYPE=Release  -j$(nproc) install  
-
+    
     export VERSION=2.1.1 
-    ~/linuxdeployq.AppImage ./install/lib/plotjuggler/PlotJuggler.desktop  -appimage -appimage -extra-plugins=iconengines,imageformats -extra-plugins=platformthemes/libqgtk2.so,styles/libqgtk2style.so
+    ~/linuxdeployq.AppImage ./install/lib/plotjuggler/PlotJuggler.desktop -appimage -bundle-non-qt-libs \ 
+         -extra-plugins=iconengines,imageformats,platformthemes/libqgtk2.so,styles/libqgtk2style.so
 
 
 

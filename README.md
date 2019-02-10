@@ -36,7 +36,7 @@ Watch this video to learn how to use it.
 
 For those of you that can't wait to get your hands dirty, just download this AppImage:
 
-    https://github.com/facontidavide/PlotJuggler/releases/download/2.1.1/PlotJuggler-2.1.1-x86_64.AppImage
+[PlotJuggler-2.1.1-x86_64.AppImage](https://github.com/facontidavide/PlotJuggler/releases/download/2.1.1/PlotJuggler-2.1.1-x86_64.AppImage).
    
 Do not forget to make it executable with the command 
 
@@ -101,15 +101,14 @@ To run the application, use the command:
 PlotJuggler required a lot of work to be developed; my goal is to build the most
 intuitive and powerfull tool to visualize data and timeseries.
 
-I have been developing PlotJuggler in my spare time since 2016, but its further development 
-is impossible without the financial support of those people and companies which use it.
-
-If you are an individual, consider making a small donation on any of these platforms: 
+If you find PlotJuggler useful, consider making a donation on any of these platforms: 
 [BuyMeACoffe](https://www.buymeacoffee.com/plotjuggler), 
 [PayPal](https://www.paypal.me/facontidavide) or 
 [LiveraPay](https://en.liberapay.com/facontidavide/).
 
-If you use PlotJuggler at work, your company can become a __sponsor__ or support the development of a specific feature.
+If you use PlotJuggler at work, your company can become a __sponsor__ and support 
+the development of those specific features they need.
+
 [Contact me](mailto:davide.faconti@gmail.com) for more details.
  
 
