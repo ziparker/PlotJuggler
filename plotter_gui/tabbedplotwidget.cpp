@@ -264,9 +264,17 @@ void TabbedPlotWidget::saveTabImage(QString fileName, PlotMatrix* matrix)
     }
 }
 
+void TabbedPlotWidget::on_pushAddRow_pressed()
+{
+    currentTab()->addRow();
+    on_pushButtonShowLabel_toggled( ui->pushButtonShowLabel->isChecked() );
+    emit undoableChangeHappened();
+}
+
 void TabbedPlotWidget::on_pushAddColumn_pressed()
 {
     currentTab()->addColumn();
+    on_pushButtonShowLabel_toggled( ui->pushButtonShowLabel->isChecked() );
     emit undoableChangeHappened();
 }
 
@@ -285,12 +293,6 @@ void TabbedPlotWidget::on_pushHorizontalResize_pressed()
 void TabbedPlotWidget::on_pushButtonZoomMax_pressed()
 {
     currentTab()->maximumZoomOut();
-    emit undoableChangeHappened();
-}
-
-void TabbedPlotWidget::on_pushAddRow_pressed()
-{
-    currentTab()->addRow();
     emit undoableChangeHappened();
 }
 
@@ -495,10 +497,14 @@ void TabbedPlotWidget::on_pushButtonShowLabel_toggled(bool checked)
         for(unsigned p=0; p< matrix->plotCount(); p++)
         {
             PlotWidget* plot = matrix->plotAt(p);
-            plot->activateLegent( checked );
+            bool prev = plot->isLegendVisible();
+            if( prev != checked)
+            {
+                plot->activateLegend( checked );
+                plot->replot();
+            }
         }
     }
-    currentTab()->replot();
 }
 
 void TabbedPlotWidget::closeEvent(QCloseEvent *event)
