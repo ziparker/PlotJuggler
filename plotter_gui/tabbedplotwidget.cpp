@@ -267,14 +267,14 @@ void TabbedPlotWidget::saveTabImage(QString fileName, PlotMatrix* matrix)
 void TabbedPlotWidget::on_pushAddRow_pressed()
 {
     currentTab()->addRow();
-    on_pushButtonShowLabel_toggled( ui->pushButtonShowLabel->isChecked() );
+    onLabelStatusChanged();
     emit undoableChangeHappened();
 }
 
 void TabbedPlotWidget::on_pushAddColumn_pressed()
 {
     currentTab()->addColumn();
-    on_pushButtonShowLabel_toggled( ui->pushButtonShowLabel->isChecked() );
+    onLabelStatusChanged();
     emit undoableChangeHappened();
 }
 
@@ -427,6 +427,17 @@ void TabbedPlotWidget::on_moveTabIntoNewWindow()
     emit sendTabToNewWindow( currentTab() );
 }
 
+void TabbedPlotWidget::on_pushButtonShowLabel_pressed()
+{
+    switch(_labels_status)
+    {
+    case LabelStatus::LEFT:  _labels_status = LabelStatus::HIDDEN;  break;
+    case LabelStatus::RIGHT: _labels_status = LabelStatus::LEFT;  break;
+    case LabelStatus::HIDDEN: _labels_status = LabelStatus::RIGHT;  break;
+    }
+    onLabelStatusChanged( );
+}
+
 
 bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
@@ -488,7 +499,7 @@ bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
     return QObject::eventFilter(obj, event);
 }
 
-void TabbedPlotWidget::on_pushButtonShowLabel_toggled(bool checked)
+void TabbedPlotWidget::onLabelStatusChanged()
 {    
     for(int i=0; i< tabWidget()->count(); i++)
     {
@@ -497,12 +508,17 @@ void TabbedPlotWidget::on_pushButtonShowLabel_toggled(bool checked)
         for(unsigned p=0; p< matrix->plotCount(); p++)
         {
             PlotWidget* plot = matrix->plotAt(p);
-            bool prev = plot->isLegendVisible();
-            if( prev != checked)
+
+            plot->activateLegend( _labels_status != LabelStatus::HIDDEN );
+            if(  _labels_status == LabelStatus::LEFT)
             {
-                plot->activateLegend( checked );
-                plot->replot();
+                plot->setLegendAlignment( Qt::AlignLeft );
             }
+            else  if(  _labels_status == LabelStatus::RIGHT)
+            {
+                plot->setLegendAlignment( Qt::AlignRight);
+            }
+            plot->replot();
         }
     }
 }

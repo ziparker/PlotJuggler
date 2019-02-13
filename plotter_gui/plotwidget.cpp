@@ -1671,3 +1671,8 @@ bool PlotWidget::isLegendVisible() const
 {
     return _legend && _legend->isVisible();
 }
+
+void PlotWidget::setLegendAlignment(Qt::Alignment alignment)
+{
+    _legend->setAlignment( Qt::Alignment( Qt::AlignTop | alignment ) );
+}

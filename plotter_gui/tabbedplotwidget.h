@@ -35,7 +35,7 @@ public:
     QDomElement xmlSaveState(QDomDocument &doc) const;
     bool xmlLoadState(QDomElement &tabbed_area);
 
-    ~TabbedPlotWidget();
+    ~TabbedPlotWidget() override;
 
     QString name() const { return _name; }
 
@@ -79,11 +79,16 @@ private slots:
 
     void on_moveTabIntoNewWindow();
 
-    void on_pushButtonShowLabel_toggled(bool checked);
+    void on_pushButtonShowLabel_pressed();
+
+    void onLabelStatusChanged();
 
     void on_pushButtonZoomMax_pressed();
 
 private:
+
+    enum LabelStatus{ LEFT, RIGHT, HIDDEN };
+
     Ui::TabbedPlotWidget *ui;
 
     QAction* _action_renameTab;
@@ -98,6 +103,8 @@ private:
     bool _horizontal_link;
 
     QString _parent_type;
+
+    LabelStatus _labels_status;
 
     virtual void closeEvent(QCloseEvent *event) override;
 

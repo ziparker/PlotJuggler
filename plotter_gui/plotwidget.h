@@ -61,6 +61,8 @@ public:
 
     bool isLegendVisible() const;
 
+    void setLegendAlignment( Qt::Alignment alignment );
+
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
