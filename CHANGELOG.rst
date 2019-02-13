@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.2 (2019-02-13)
+------------------
 * legend button now has three states: left/right/hide
 * replace tracker text when position is on the right side
 * allow again to use the header.stamp
