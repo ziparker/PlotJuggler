@@ -2367,6 +2367,7 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.exec();
 
+    uint image_number = 1;
     if(saveDialog.result() == QDialog::Accepted && !saveDialog.selectedFiles().empty())
     {
         // Save Plots
@@ -2378,8 +2379,8 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
             for(int i=0; i< tab_widget->count(); i++)
             {
                 PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(i) );
-                QString fileName = folder + "/" + matrix->name() + ".png";
-
+                QString fileName = QString("%1/%2_%3.png").arg(folder).arg(image_number, 2, 10, QLatin1Char('0')).arg(matrix->name());
+                image_number++;
                 TabbedPlotWidget::saveTabImage(fileName, matrix);
             }
         }
