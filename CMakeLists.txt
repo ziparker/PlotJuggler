@@ -149,6 +149,7 @@ add_subdirectory( qwt/src )
 add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )
+add_subdirectory( plugins/DataLoadULog )
 add_subdirectory( plugins/DataStreamSample )
 
 if (Qt5Widgets_VERSION VERSION_LESS 5.3.0)
