@@ -19,6 +19,14 @@ To understand what PlotJuggler can do for you, take a look to the following vide
 
 ![PlotJuggler](docs/images/PlotJuggler.gif)
 
+
+## Supported formats
+
+- CSV
+- Rosbags / ROS topics
+- ULog (PX4)
+- Your custom format... [contact me to know more](https://www.plotjuggler.io/support).
+
 ## New in version 2.X
 
 It is now possible to create custom timeseries! Simply write your own
@@ -109,6 +117,6 @@ If you find PlotJuggler useful, consider making a donation on any of these platf
 If you use PlotJuggler at work, your company can become a __sponsor__ and support 
 the development of those specific features they need.
 
-[Contact me](mailto:davide.faconti@gmail.com) for more details.
+[Contact me](https://www.plotjuggler.io/support) for more details.
  
 
