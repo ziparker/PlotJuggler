@@ -52,7 +52,8 @@ PlotDataMapRef DataLoadULog::readDataFromFile(const QString &file_name, bool)
 
                  for( size_t i=0; i < data.size(); i++ )
                  {
-                     PlotData::Point point( static_cast<double>(timeseries.timestamps[i]), data[i] );
+                     double msg_time = static_cast<double>(timeseries.timestamps[i]) * 0.000001;
+                     PlotData::Point point( msg_time, data[i] );
                      series->second.pushBack( point );
                  }
              }
