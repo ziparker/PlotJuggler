@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.3 (2019-02-18)
+------------------
 * BUG: fixed issue with Customtracker when the plot is zoomed
 * new icons
 * ULog plugin added
