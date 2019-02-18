@@ -163,7 +163,7 @@
                </property>
                <property name="icon">
                 <iconset resource="resource.qrc">
-                 <normaloff>:/icons/resources/settings-cog.svg</normaloff>:/icons/resources/settings-cog.svg</iconset>
+                 <normaloff>:/icons/resources/light/settings_cog.png</normaloff>:/icons/resources/light/settings_cog.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -278,8 +278,8 @@
                </property>
                <property name="icon">
                 <iconset resource="resource.qrc">
-                 <normaloff>:/icons/resources/play_arrow.svg</normaloff>
-                 <normalon>:/icons/resources/pause.svg</normalon>:/icons/resources/play_arrow.svg</iconset>
+                 <normaloff>:/icons/resources/light/play_arrow.png</normaloff>
+                 <normalon>:/icons/resources/light/pause.png</normalon>:/icons/resources/light/play_arrow.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
