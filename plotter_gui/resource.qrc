@@ -22,6 +22,10 @@
         <file>resources/light/move.png</file>
         <file>resources/light/clean_pane.png</file>
         <file>resources/light/list.png</file>
+        <file>resources/light/point_chart.png</file>
+        <file>resources/light/remove_list.png</file>
+        <file>resources/light/stacks.png</file>
+        <file>resources/light/zoom_in.png</file>
     </qresource>
     <qresource prefix="/splash">
         <file>resources/splash.jpg</file>
