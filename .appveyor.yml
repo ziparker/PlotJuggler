@@ -1,8 +1,5 @@
 clone_depth: 5
 
-build:
-  verbosity: minimal
-
 environment:
   matrix:
   - BUILD: 'Release'
