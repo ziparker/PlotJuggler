@@ -1,24 +1,22 @@
 clone_depth: 5
 
+build:
+  verbosity: minimal
+
 environment:
-  QTDIR32: C:\Qt\5.7.0\msvc2015
-  QTDIR64: C:\Qt\5.7.0
-  GENERATOR64: "Visual Studio 14 Win64"
-  GENERATOR32: "Visual Studio 14"
-  CONFIG: Release
+  matrix:
+  - BUILD: 'Release'
 
 configuration:
   - Release
-
-platform:
-  - x64
-  - Win32
 
 #branches:
   #only:
     #- master
 
 before_build:
+  - call "%ProgramFiles(x86)%\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+  - set PATH=C:\Qt\Tools\QtCreator\bin;C:\Qt\5.11\msvc2015\bin;%PATH%
   - mkdir build
   - cd build
   - set PATH=%QTDIR%\bin;%PATH%
