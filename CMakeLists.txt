@@ -6,6 +6,14 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
     set(COMPILING_WITH_CATKIN 1)
 endif()
 
+
+if(NOT CMAKE_VERSION VERSION_LESS 3.1)
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
+
 SET(PLOTJUGGLER_VERSION_MAJOR 2)
 SET(PLOTJUGGLER_VERSION_MINOR 1)
 SET(PLOTJUGGLER_VERSION_PATCH 3)
@@ -19,8 +27,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTOUIC ON)
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fno-omit-frame-pointer")
+
+if (NOT WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} g -fno-omit-frame-pointer")
+endif()
 
 if(APPLE AND EXISTS /usr/local/opt/qt5)
     # Homebrew installs Qt5 (up to at least 5.9.1) in
