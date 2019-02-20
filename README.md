@@ -1,7 +1,11 @@
-Ubuntu 14.04 build (Semaphore): [![Build Status](https://semaphoreci.com/api/v1/facontidavide/plotjuggler/branches/master/shields_badge.svg)](https://semaphoreci.com/facontidavide/plotjuggler)
+| Platform  | Build Status  |
+|---------------------|-----------|
+| Windows (Appveyor)  | [![Build status](https://ci.appveyor.com/api/projects/status/mqdmxpt0kf1cf2h3?svg=true)](https://ci.appveyor.com/project/facontidavide59577/plotjuggler)  |
+| Ubuntu (Semaphore)  | [![Build Status](https://semaphoreci.com/api/v1/facontidavide/plotjuggler/branches/master/shields_badge.svg)](https://semaphoreci.com/facontidavide/plotjuggler) |
+| Ubuntu ROS (Travis) | [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler) |
 
-ROS Indigo/Kinetic build (Travis): [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler)
 
+ROS Indigo/Kinetic/Lunar/Melodic (Travis): 
 [![Join the chat at https://gitter.im/PlotJuggler/Lobby](https://badges.gitter.im/PlotJuggler/Lobby.svg)](https://gitter.im/PlotJuggler/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # PlotJuggler 2.1.X
