@@ -5,7 +5,6 @@
 | Ubuntu ROS (Travis) | [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler) |
 
 
-ROS Indigo/Kinetic/Lunar/Melodic (Travis): 
 [![Join the chat at https://gitter.im/PlotJuggler/Lobby](https://badges.gitter.im/PlotJuggler/Lobby.svg)](https://gitter.im/PlotJuggler/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # PlotJuggler 2.1.X
