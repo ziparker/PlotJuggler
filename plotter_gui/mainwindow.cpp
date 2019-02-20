@@ -2373,15 +2373,54 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
         // Save Plots
         QString folder = saveDialog.selectedFiles().first();
 
+        QStringList file_names;
+        QStringList existing_files;
         for(const auto& it: TabbedPlotWidget::instances())
         {
             auto tab_widget = it.second->tabWidget();
             for(int i=0; i< tab_widget->count(); i++)
             {
                 PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(i) );
-                QString fileName = QString("%1/%2_%3.png").arg(folder).arg(image_number, 2, 10, QLatin1Char('0')).arg(matrix->name());
+                QString name = QString("%1/%2_%3.png").arg(folder).arg(image_number, 2, 10, QLatin1Char('0')).arg(matrix->name());
+                file_names.push_back( name );
                 image_number++;
-                TabbedPlotWidget::saveTabImage(fileName, matrix);
+
+                QFileInfo check_file( file_names.back() );
+                if( check_file.exists() && check_file.isFile() )
+                {
+                    existing_files.push_back( name );
+                }
+            }
+        }
+        if( existing_files.isEmpty() == false)
+        {
+            QMessageBox msgBox;
+            msgBox.setText("One or more files will be overwritten. Do you want to continue?");
+            QString all_files;
+            for(const auto& str: existing_files)
+            {
+                all_files.push_back("\n");
+                all_files.append(str);
+            }
+            msgBox.setInformativeText(all_files);
+            msgBox.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok );
+            msgBox.setDefaultButton(QMessageBox::Ok);
+
+            if( msgBox.exec() != QMessageBox::Ok)
+            {
+                return;
+            }
+        }
+
+        image_number = 0;
+        for(const auto& it: TabbedPlotWidget::instances())
+        {
+            auto tab_widget = it.second->tabWidget();
+            for(int i=0; i< tab_widget->count(); i++)
+            {
+                PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(i) );
+                TabbedPlotWidget::saveTabImage( file_names[image_number++], matrix);
+                image_number++;
             }
         }
     }
