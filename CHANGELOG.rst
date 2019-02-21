@@ -2,6 +2,15 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix issues #146: ULog and multiple instances of a message
+* close issue #138
+* remove svg dependency
+* Appveyor fixed (#144)
+* fancy menubar
+* Contributors: Davide Faconti
+
 2.1.3 (2019-02-18)
 ------------------
 * BUG: fixed issue with Customtracker when the plot is zoomed
