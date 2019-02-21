@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.4 (2019-02-21)
+------------------
 * Fix issues #146: ULog and multiple instances of a message
 * close issue #138
 * remove svg dependency
