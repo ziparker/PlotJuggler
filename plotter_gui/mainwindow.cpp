@@ -1298,6 +1298,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
     _curvelist_widget->updateFilter();
     updateDataAndReplot( true );
 
+    ui->timeSlider->setRealValue( ui->timeSlider->getMinimum() );
 }
 
 void MainWindow::onActionReloadRecentLayout()
@@ -1910,14 +1911,17 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
         }
     }
 
-    forEachWidget( [](PlotWidget* plot)
+    bool is_streaming_active = isStreamingActive();
+
+    forEachWidget( [is_streaming_active](PlotWidget* plot)
     {
         plot->updateCurves();
+        plot->setZoomEnabled( !is_streaming_active );
     } );
 
     //--------------------------------
     // trigger again the execution of this callback if steaming == true
-    if( isStreamingActive() )
+    if( is_streaming_active )
     {
         auto range = calculateVisibleRangeX();
         double max_time = std::get<1>(range);
