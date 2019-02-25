@@ -61,7 +61,8 @@ ULogParser::ULogParser(const std::string &filename):
             }
             _subscriptions.insert( {sub.msg_id, sub} );
 
-           // printf("ADD_LOGGED_MSG: %d %d %s\n", sub.msg_id, sub.multi_id, sub.message_name.c_str() );
+//            printf("ADD_LOGGED_MSG: %d %d %s\n", sub.msg_id, sub.multi_id, sub.message_name.c_str() );
+//            std::cout << std::endl;
         }break;
         case (int)ULogMessageType::REMOVE_LOGGED_MSG: printf("REMOVE_LOGGED_MSG\n" );
         {
@@ -81,13 +82,13 @@ ULogParser::ULogParser(const std::string &filename):
             }
             const Subscription& sub = sub_it->second;
 
-            auto ts_it = _timeseries.find( sub.format );
+            auto ts_it = _timeseries.find( &sub );
 
             if( ts_it == _timeseries.end() )
             {
                 Timeseries timseries;
                 timseries.data.resize( sub.format->fieldsCount() );
-                ts_it = _timeseries.insert( { sub.format, timseries  } ).first;
+                ts_it = _timeseries.insert( { &sub, timseries  } ).first;
             }
             Timeseries& timeseries = ts_it->second;
 
@@ -173,6 +174,11 @@ ULogParser::ULogParser(const std::string &filename):
             break;
         }
     }
+}
+
+const std::map<const ULogParser::Subscription *, ULogParser::Timeseries> &ULogParser::getData()
+{
+    return _timeseries;
 }
 
 
