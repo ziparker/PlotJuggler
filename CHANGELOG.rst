@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.5 (2019-02-25)
+------------------
 * reintroducing timestamp from header
 * added way to create installer
 * disable zooming during streaming and reset tracker when new file loaded
