@@ -49,16 +49,17 @@ public:
         const Format* format;
     };
 
-    struct Timeseries{
+    struct Timeseries
+    {
         std::vector<uint64_t> timestamps;
-        std::vector<std::vector<double>> data;
+        std::vector<std::pair<std::string,std::vector<double>>> data;
     };
 
 public:
 
     ULogParser(const std::string& filename);
 
-    const std::map<const Subscription*, Timeseries> &getData();
+    const std::map<std::string, Timeseries> &getTimeseriesMap();
 
 private:
     bool readFileHeader(std::ifstream &file);
@@ -75,6 +76,8 @@ private:
 
     size_t fieldsCount(const Format& format) const;
 
+    Timeseries createTimeseries(const Format* format);
+
     uint64_t _file_start_time;
 
     std::vector<uint8_t> _read_buffer;
@@ -89,12 +92,15 @@ private:
 
     std::map<uint16_t,Subscription> _subscriptions;
 
-    std::map<const Subscription*, Timeseries> _timeseries;
+    std::map<std::string, Timeseries> _timeseries;
 
     std::vector<StringView> splitString(const StringView& strToSplit, char delimeter);
 
-    void parseDataMessage(Timeseries& timeseries,char *message,
-                          const Format* format, size_t* index);
+    std::set<std::string> _message_name_with_multi_id;
+
+    void parseDataMessage(const Subscription& sub, char *message);
+
+    char * parseSimpleDataMessage(Timeseries &timeseries, const Format* format, char *message, size_t* index);
 };
 
 #endif // ULOG_PARSER_H

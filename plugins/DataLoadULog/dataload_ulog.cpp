@@ -15,7 +15,7 @@ DataLoadULog::DataLoadULog()
 
 const std::vector<const char*> &DataLoadULog::compatibleFileExtensions() const
 {
-    static  std::vector<const char*> extensions = { "ulg"};
+    static  std::vector<const char*> extensions = { "ulg" };
     return extensions;
 }
 
@@ -25,79 +25,27 @@ PlotDataMapRef DataLoadULog::readDataFromFile(const QString &file_name, bool)
     PlotDataMapRef plot_data;
     ULogParser parser( file_name.toStdString() );
 
-    const auto& data = parser.getData();
+    const auto& timeseries_map = parser.getTimeseriesMap();
 
-    std::map<std::string,int> name_count;
-
-    for (const auto& it: data )
+    for( const auto& it: timeseries_map)
     {
-        const ULogParser::Subscription* sub = it.first;
-        const auto& name = sub->message_name;
-        auto name_it = name_count.find( name );
-        if( name_it == name_count.end() )
+        const std::string& sucsctiption_name =  it.first;
+        const ULogParser::Timeseries& timeseries = it.second;
+
+        for (const auto& data: timeseries.data )
         {
-            name_count.insert( { name, 1} );
-        }
-        else{
-            name_it->second++;
+            std::string series_name = sucsctiption_name + data.first;
+
+            auto series = plot_data.addNumeric( series_name );
+
+            for( size_t i=0; i < data.second.size(); i++ )
+            {
+                double msg_time = static_cast<double>(timeseries.timestamps[i]) * 0.000001;
+                PlotData::Point point( msg_time, data.second[i] );
+                series->second.pushBack( point );
+            }
         }
     }
-
-    for( const auto& it: data)
-    {
-         const ULogParser::Subscription* sub = it.first;
-         const ULogParser::Format* format = sub->format;
-         const auto& timeseries = it.second;
-         //------------------------------
-
-         char prefix[400];
-
-         for (const auto& it: data )
-         {
-             const auto& name = sub->message_name;
-             if( name_count[name] > 1)
-             {
-                 sprintf(prefix,"%s.%02d", name.c_str(), sub->multi_id );
-             }
-             else{
-                 sprintf(prefix,"%s", name.c_str() );
-             }
-         }
-
-         //----------------------------
-         size_t index = 0;
-         for (const auto& field: format->fields )
-         {
-             if( field.type == ULogParser::UINT64 && field.array_size == 1 &&
-                     field.field_name == "timestamp")
-             {
-                 continue;
-             }
-             for(int array_index=0; array_index<field.array_size; array_index++ )
-             {
-                 char series_name[1000];
-                 if( field.array_size == 1)
-                 {
-                     sprintf(series_name,"%s/%s", prefix, field.field_name.c_str());
-                 }
-                 else{
-                     sprintf(series_name,"%s/%s.%02d", prefix, field.field_name.c_str(), array_index);
-                 }
-
-                 const auto& data = timeseries.data[index++];
-
-                 auto series = plot_data.addNumeric( series_name );
-
-                 for( size_t i=0; i < data.size(); i++ )
-                 {
-                     double msg_time = static_cast<double>(timeseries.timestamps[i]) * 0.000001;
-                     PlotData::Point point( msg_time, data[i] );
-                     series->second.pushBack( point );
-                 }
-             }
-         }
-    }
-
     return plot_data;
 }
 

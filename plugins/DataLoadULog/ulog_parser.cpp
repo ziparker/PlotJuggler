@@ -7,84 +7,7 @@
 
 using ios = std::ios;
 
-void ULogParser::parseDataMessage(Timeseries& timeseries, char *message,
-                                  const Format* format, size_t* index)
-{
-    for (const auto& field: format->fields)
-    {
-        if( (&field) == (&format->fields.front()) &&
-             field.type == UINT64 && field.array_size == 1 &&
-             field.field_name == "timestamp")
-        {
-            timeseries.timestamps.push_back( *reinterpret_cast<uint64_t*>(message) );
-            message += 8;
-            continue;
-        }
 
-        if( field.type == OTHER)
-        {
-            continue; //FIXME
-        }
-
-        for (int array_pos = 0; array_pos < field.array_size; array_pos++)
-        {
-            double value = 0;
-            switch( field.type )
-            {
-            case UINT8:{
-                value = static_cast<double>( *reinterpret_cast<uint8_t*>(message));
-                message += 1;
-            }break;
-            case INT8:{
-                value = static_cast<double>( *reinterpret_cast<int8_t*>(message));
-                message += 1;
-            }break;
-            case UINT16:{
-                value = static_cast<double>( *reinterpret_cast<uint16_t*>(message));
-                message += 2;
-            }break;
-            case INT16:{
-                value = static_cast<double>( *reinterpret_cast<int16_t*>(message));
-                message += 2;
-            }break;
-            case UINT32:{
-                value = static_cast<double>( *reinterpret_cast<uint32_t*>(message));
-                message += 4;
-            }break;
-            case INT32:{
-                value = static_cast<double>( *reinterpret_cast<int32_t*>(message));
-                message += 4;
-            }break;
-            case UINT64:{
-                value = static_cast<double>( *reinterpret_cast<uint64_t*>(message));
-                message += 8;
-            }break;
-            case INT64:{
-                value = static_cast<double>( *reinterpret_cast<int64_t*>(message));
-                message += 8;
-            }break;
-            case FLOAT:{
-                value = static_cast<double>( *reinterpret_cast<float*>(message));
-                message += 4;
-            }break;
-            case DOUBLE:{
-                value = ( *reinterpret_cast<double*>(message));
-                message += 8;
-            }break;
-            case CHAR:{
-                    value =  static_cast<double>( *reinterpret_cast<char*>(message));
-                    message += 1;
-            }break;
-            case BOOL:{
-                value =  static_cast<double>( *reinterpret_cast<bool*>(message));
-                message += 1;
-            }break;
-            } // end switch
-
-            timeseries.data[(*index)++].push_back( value );
-        } //end for
-    }
-}
 
 ULogParser::ULogParser(const std::string &filename):
     _file_start_time(0)
@@ -139,6 +62,11 @@ ULogParser::ULogParser(const std::string &filename):
             }
             _subscriptions.insert( {sub.msg_id, sub} );
 
+            if( sub.multi_id > 0 )
+            {
+                _message_name_with_multi_id.insert( sub.message_name );
+            }
+
 //            printf("ADD_LOGGED_MSG: %d %d %s\n", sub.msg_id, sub.multi_id, sub.message_name.c_str() );
 //            std::cout << std::endl;
         }break;
@@ -153,26 +81,13 @@ ULogParser::ULogParser(const std::string &filename):
             uint16_t msg_id = *reinterpret_cast<uint16_t*>( message );
             message += 2;
             auto sub_it = _subscriptions.find( msg_id );
-
             if( sub_it == _subscriptions.end() )
             {
                 continue;
             }
             const Subscription& sub = sub_it->second;
 
-            auto ts_it = _timeseries.find( &sub );
-
-            if( ts_it == _timeseries.end() )
-            {
-                Timeseries timseries;
-
-                timseries.data.resize( fieldsCount( *sub.format ) );
-                ts_it = _timeseries.insert( { &sub, timseries  } ).first;
-            }
-            Timeseries& timeseries = ts_it->second;
-
-            size_t index = 0;
-            parseDataMessage(timeseries, message, sub.format, &index);
+            parseDataMessage(sub, message);
 
         } break;
 
@@ -192,7 +107,120 @@ ULogParser::ULogParser(const std::string &filename):
     }
 }
 
-const std::map<const ULogParser::Subscription *, ULogParser::Timeseries> &ULogParser::getData()
+void ULogParser::parseDataMessage(const ULogParser::Subscription &sub, char *message)
+{
+    size_t other_fields_count = 0;
+    std::string ts_name = sub.message_name;
+
+    for(const auto& field: sub.format->fields)
+    {
+        if( field.type == OTHER)
+        {
+            other_fields_count++;
+        }
+    }
+
+    if( _message_name_with_multi_id.count(ts_name) > 0 )
+    {
+        char buff[10];
+        sprintf(buff,".%02d", sub.multi_id );
+        ts_name += std::string(buff);
+    }
+
+    // get the timeseries or create if if it doesn't exist
+    auto ts_it = _timeseries.find( ts_name );
+    if( ts_it == _timeseries.end() )
+    {
+        ts_it = _timeseries.insert( { ts_name, createTimeseries(sub.format)  } ).first;
+    }
+    Timeseries& timeseries = ts_it->second;
+
+    uint64_t time_val = *reinterpret_cast<uint64_t*>(message);
+    timeseries.timestamps.push_back( time_val );
+    message += sizeof(uint64_t);
+
+    size_t index = 0;
+    parseSimpleDataMessage(timeseries, sub.format, message, &index);
+
+}
+
+char* ULogParser::parseSimpleDataMessage(Timeseries& timeseries, const Format *format,
+                                         char *message, size_t* index)
+{
+    for (const auto& field: format->fields)
+    {
+        for (int array_pos = 0; array_pos < field.array_size; array_pos++)
+        {
+            double value = 0;
+            switch( field.type )
+            {
+            case UINT8:{
+                value = static_cast<double>( *reinterpret_cast<uint8_t*>(message));
+                message += 1;
+            }break;
+            case INT8:{
+                value = static_cast<double>( *reinterpret_cast<int8_t*>(message));
+                message += 1;
+            }break;
+            case UINT16:{
+                value = static_cast<double>( *reinterpret_cast<uint16_t*>(message));
+                message += 2;
+            }break;
+            case INT16:{
+                value = static_cast<double>( *reinterpret_cast<int16_t*>(message));
+                message += 2;
+            }break;
+            case UINT32:{
+                value = static_cast<double>( *reinterpret_cast<uint32_t*>(message));
+                message += 4;
+            }break;
+            case INT32:{
+                value = static_cast<double>( *reinterpret_cast<int32_t*>(message));
+                message += 4;
+            }break;
+            case UINT64:{
+                value = static_cast<double>( *reinterpret_cast<uint64_t*>(message));
+                message += 8;
+            }break;
+            case INT64:{
+                value = static_cast<double>( *reinterpret_cast<int64_t*>(message));
+                message += 8;
+            }break;
+            case FLOAT:{
+                value = static_cast<double>( *reinterpret_cast<float*>(message));
+                message += 4;
+            }break;
+            case DOUBLE:{
+                value = ( *reinterpret_cast<double*>(message));
+                message += 8;
+            }break;
+            case CHAR:{
+                    value =  static_cast<double>( *reinterpret_cast<char*>(message));
+                    message += 1;
+            }break;
+            case BOOL:{
+                value =  static_cast<double>( *reinterpret_cast<bool*>(message));
+                message += 1;
+            }break;
+            case OTHER:{
+                //recursion!!!
+                auto child_format = _formats.at( field.other_type_ID );
+                message += 8; // skip timestamp
+                message = parseSimpleDataMessage(timeseries, &child_format, message, index );
+            }break;
+
+            } // end switch
+            if( field.type != OTHER)
+            {
+                timeseries.data[(*index)++].second.push_back( value );
+            }
+        } //end for
+    }
+    return message;
+}
+
+
+const std::map<std::string, ULogParser::Timeseries> &ULogParser::getTimeseriesMap()
 {
     return _timeseries;
 }
@@ -220,10 +248,8 @@ size_t ULogParser::fieldsCount(const ULogParser::Format &format) const
     {
         if( field.type == OTHER)
         {
-            continue; //FIXME
-//            const auto& other_format = _formats.at( field.other_type_ID );
-//            //recursion, of course
-//            count += fieldsCount( other_format );
+            //recursion!
+            count += fieldsCount( _formats.at( field.other_type_ID) );
         }
         else{
             count += size_t(field.array_size);
@@ -251,6 +277,8 @@ std::vector<StringView> ULogParser::splitString(const StringView &strToSplit, ch
     }
     return splitted_strings;
 }
+
+
 
 
 bool ULogParser::readFileHeader(std::ifstream &file)
@@ -330,9 +358,10 @@ bool ULogParser::readFileDefinitions(std::ifstream &file)
             break;
         }
     }
-
     return true;
 }
+
+
 
 bool ULogParser::readFlagBits(std::ifstream &file, uint16_t msg_size)
 {
@@ -498,13 +527,21 @@ bool ULogParser::readFormat(std::ifstream &file, uint16_t msg_size)
         {
             format.padding = field.array_size;
         }
+        else if( field.type == UINT64 && field_name == StringView("timestamp") )
+        {
+            // skip
+        }
         else {
             field.field_name = field_name.to_string();
             format.fields.push_back( field );
         }
-        printf("[Format %s]:[%s]  %s %d \n", name.c_str(), field_section.to_string().c_str(),
-               field.field_name.c_str(), field.array_size);
-        std::cout << std::flush;
+       // if( field.type == OTHER)
+        {
+
+            printf("[Format %s]:[%s]  %s %d \n", name.c_str(), field_section.to_string().c_str(),
+                   field.field_name.c_str(), field.array_size);
+            std::cout << std::flush;
+        }
     }
 
     format.name = name;
@@ -556,3 +593,37 @@ bool ULogParser::readParameter(std::ifstream &file, uint16_t msg_size)
 
 
 
+ULogParser::Timeseries ULogParser::createTimeseries(const ULogParser::Format* format)
+{
+    std::function<void(const Format& format, const std::string& prefix)> appendVector;
+
+    Timeseries timeseries;
+
+    appendVector = [&appendVector,this, &timeseries](const Format& format, const std::string& prefix)
+    {
+        for( const auto& field: format.fields)
+        {
+            std::string new_prefix = prefix + "/" + field.field_name;
+            for(int i=0; i < field.array_size; i++)
+            {
+                std::string array_suffix;
+                if( field.array_size > 1)
+                {
+                    char buff[10];
+                    sprintf(buff, ".%02d", i);
+                    array_suffix = buff;
+                }
+                if( field.type != OTHER )
+                {
+                    timeseries.data.push_back( {new_prefix + array_suffix, std::vector<double>()} );
+                }
+                else{
+                    appendVector( this->_formats.at( field.other_type_ID ), new_prefix);
+                }
+            }
+        }
+    };
+
+    appendVector(*format, {});
+    return timeseries;
+}
