@@ -68,6 +68,11 @@ PlotDataMapRef DataLoadULog::readDataFromFile(const QString &file_name, bool)
          size_t index = 0;
          for (const auto& field: format->fields )
          {
+             if( field.type == ULogParser::UINT64 && field.array_size == 1 &&
+                     field.field_name == "timestamp")
+             {
+                 continue;
+             }
              for(int array_index=0; array_index<field.array_size; array_index++ )
              {
                  char series_name[1000];

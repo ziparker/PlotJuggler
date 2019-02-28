@@ -7,6 +7,85 @@
 
 using ios = std::ios;
 
+void ULogParser::parseDataMessage(Timeseries& timeseries, char *message,
+                                  const Format* format, size_t* index)
+{
+    for (const auto& field: format->fields)
+    {
+        if( (&field) == (&format->fields.front()) &&
+             field.type == UINT64 && field.array_size == 1 &&
+             field.field_name == "timestamp")
+        {
+            timeseries.timestamps.push_back( *reinterpret_cast<uint64_t*>(message) );
+            message += 8;
+            continue;
+        }
+
+        if( field.type == OTHER)
+        {
+            continue; //FIXME
+        }
+
+        for (int array_pos = 0; array_pos < field.array_size; array_pos++)
+        {
+            double value = 0;
+            switch( field.type )
+            {
+            case UINT8:{
+                value = static_cast<double>( *reinterpret_cast<uint8_t*>(message));
+                message += 1;
+            }break;
+            case INT8:{
+                value = static_cast<double>( *reinterpret_cast<int8_t*>(message));
+                message += 1;
+            }break;
+            case UINT16:{
+                value = static_cast<double>( *reinterpret_cast<uint16_t*>(message));
+                message += 2;
+            }break;
+            case INT16:{
+                value = static_cast<double>( *reinterpret_cast<int16_t*>(message));
+                message += 2;
+            }break;
+            case UINT32:{
+                value = static_cast<double>( *reinterpret_cast<uint32_t*>(message));
+                message += 4;
+            }break;
+            case INT32:{
+                value = static_cast<double>( *reinterpret_cast<int32_t*>(message));
+                message += 4;
+            }break;
+            case UINT64:{
+                value = static_cast<double>( *reinterpret_cast<uint64_t*>(message));
+                message += 8;
+            }break;
+            case INT64:{
+                value = static_cast<double>( *reinterpret_cast<int64_t*>(message));
+                message += 8;
+            }break;
+            case FLOAT:{
+                value = static_cast<double>( *reinterpret_cast<float*>(message));
+                message += 4;
+            }break;
+            case DOUBLE:{
+                value = ( *reinterpret_cast<double*>(message));
+                message += 8;
+            }break;
+            case CHAR:{
+                    value =  static_cast<double>( *reinterpret_cast<char*>(message));
+                    message += 1;
+            }break;
+            case BOOL:{
+                value =  static_cast<double>( *reinterpret_cast<bool*>(message));
+                message += 1;
+            }break;
+            } // end switch
+
+            timeseries.data[(*index)++].push_back( value );
+        } //end for
+    }
+}
+
 ULogParser::ULogParser(const std::string &filename):
     _file_start_time(0)
 {
@@ -28,7 +107,6 @@ ULogParser::ULogParser(const std::string &filename):
     {
         throw std::runtime_error("ULog: error loading definitions");
     }
-
 
     replay_file.seekg(_data_section_start);
 
@@ -87,77 +165,15 @@ ULogParser::ULogParser(const std::string &filename):
             if( ts_it == _timeseries.end() )
             {
                 Timeseries timseries;
-                timseries.data.resize( sub.format->fieldsCount() );
+
+                timseries.data.resize( fieldsCount( *sub.format ) );
                 ts_it = _timeseries.insert( { &sub, timseries  } ).first;
             }
             Timeseries& timeseries = ts_it->second;
 
-            uint64_t timestamp = *reinterpret_cast<uint64_t*>( message );
-            message += 8;
-
             size_t index = 0;
-            timeseries.timestamps.push_back( timestamp );
+            parseDataMessage(timeseries, message, sub.format, &index);
 
-            for (const auto& field: sub.format->fields)
-            {
-                for (int array_pos = 0; array_pos < field.array_size; array_pos++)
-                {
-                    double value = 0;
-                    switch( field.type )
-                    {
-                    case UINT8:{
-                        value = static_cast<double>( *reinterpret_cast<uint8_t*>(message));
-                        message += 1;
-                    }break;
-                    case INT8:{
-                        value = static_cast<double>( *reinterpret_cast<int8_t*>(message));
-                        message += 1;
-                    }break;
-                    case UINT16:{
-                        value = static_cast<double>( *reinterpret_cast<uint16_t*>(message));
-                        message += 2;
-                    }break;
-                    case INT16:{
-                        value = static_cast<double>( *reinterpret_cast<int16_t*>(message));
-                        message += 2;
-                    }break;
-                    case UINT32:{
-                        value = static_cast<double>( *reinterpret_cast<uint32_t*>(message));
-                        message += 4;
-                    }break;
-                    case INT32:{
-                        value = static_cast<double>( *reinterpret_cast<int32_t*>(message));
-                        message += 4;
-                    }break;
-                    case UINT64:{
-                        value = static_cast<double>( *reinterpret_cast<uint64_t*>(message));
-                        message += 8;
-                    }break;
-                    case INT64:{
-                        value = static_cast<double>( *reinterpret_cast<int64_t*>(message));
-                        message += 8;
-                    }break;
-                    case FLOAT:{
-                        value = static_cast<double>( *reinterpret_cast<float*>(message));
-                        message += 4;
-                    }break;
-                    case DOUBLE:{
-                        value = ( *reinterpret_cast<double*>(message));
-                        message += 8;
-                    }break;
-                    case CHAR:{
-                            value =  static_cast<double>( *reinterpret_cast<char*>(message));
-                            message += 1;
-                    }break;
-                    case BOOL:{
-                        value =  static_cast<double>( *reinterpret_cast<bool*>(message));
-                        message += 1;
-                    }break;
-                    } // end switch
-
-                    timeseries.data[index++].push_back( value );
-                } //end for
-            } // end for
         } break;
 
         case (int)ULogMessageType::LOGGING: //printf("LOGGING\n" );
@@ -195,6 +211,25 @@ bool ULogParser::readSubscription(std::ifstream &file, uint16_t msg_size)
     }
 
     return true;
+}
+
+size_t ULogParser::fieldsCount(const ULogParser::Format &format) const
+{
+    size_t count = 0;
+    for (const auto& field: format.fields)
+    {
+        if( field.type == OTHER)
+        {
+            continue; //FIXME
+//            const auto& other_format = _formats.at( field.other_type_ID );
+//            //recursion, of course
+//            count += fieldsCount( other_format );
+        }
+        else{
+            count += size_t(field.array_size);
+        }
+    }
+    return count;
 }
 
 std::vector<StringView> ULogParser::splitString(const StringView &strToSplit, char delimeter)
@@ -369,105 +404,107 @@ bool ULogParser::readFormat(std::ifstream &file, uint16_t msg_size)
     std::string name = str_format.substr(0, pos);
     std::string fields = str_format.substr(pos + 1);
 
-   // printf("[Format %d] %s >>>> %s\n\n", count++, name.c_str(), fields.c_str() );
-
     Format format;
     auto fields_split = splitString( fields, ';' );
     format.fields.reserve( fields_split.size() );
-    for (auto field_str: fields_split)
+    for (auto field_section: fields_split)
     {
+        auto field_pair = splitString( field_section, ' ');
+        auto field_type  = field_pair.at(0);
+        auto field_name  = field_pair.at(1);
+
         Field field;
-        if( field_str.substr(0, 6) == StringView("int8_t") )
+        if( field_type.starts_with("int8_t") )
         {
             field.type = INT8;
-            field_str.remove_prefix(6);
+            field_type.remove_prefix(6);
         }
-        else if( field_str.substr(0,7) == StringView("int16_t") )
+        else if( field_type.starts_with("int16_t") )
         {
             field.type = INT16;
-            field_str.remove_prefix(7);
+            field_type.remove_prefix(7);
         }
-        if( field_str.substr(0, 7) == StringView("int32_t") )
+        else if( field_type.starts_with("int32_t") )
         {
             field.type = INT32;
-            field_str.remove_prefix(7);
+            field_type.remove_prefix(7);
         }
-        if( field_str.substr(0, 7) == StringView("int64_t") )
+        else if( field_type.starts_with("int64_t") )
         {
             field.type = INT64;
-            field_str.remove_prefix(7);
+            field_type.remove_prefix(7);
         }
-        if( field_str.substr(0, 7) == StringView("uint8_t") )
+        else if( field_type.starts_with("uint8_t") )
         {
             field.type = UINT8;
-            field_str.remove_prefix(7);
+            field_type.remove_prefix(7);
         }
-        else if( field_str.substr(0,8) == StringView("uint16_t") )
+        else if( field_type.starts_with("uint16_t") )
         {
             field.type = UINT16;
-            field_str.remove_prefix(8);
+            field_type.remove_prefix(8);
         }
-        if( field_str.substr(0, 8) == StringView("uint32_t") )
+        else if( field_type.starts_with("uint32_t") )
         {
             field.type = UINT32;
-            field_str.remove_prefix(8);
+            field_type.remove_prefix(8);
         }
-        if( field_str.substr(0, 8) == StringView("uint64_t") )
+        else if( field_type.starts_with("uint64_t") )
         {
             field.type = UINT64;
-           field_str.remove_prefix(8);
+           field_type.remove_prefix(8);
         }
-        if( field_str.substr(0, 6) == StringView("double") )
+        else if( field_type.starts_with("double") )
         {
             field.type = DOUBLE;
-            field_str.remove_prefix(6);
+            field_type.remove_prefix(6);
         }
-        if( field_str.substr(0, 5) == StringView("float") )
+        else if( field_type.starts_with("float") )
         {
             field.type = FLOAT;
-            field_str.remove_prefix(5);
+            field_type.remove_prefix(5);
         }
-        if( field_str.substr(0, 4) == StringView("bool") )
+        else if( field_type.starts_with("bool") )
         {
             field.type = BOOL;
-            field_str.remove_prefix(4);
+            field_type.remove_prefix(4);
         }
-        if( field_str.substr(0, 4) == StringView("char") )
+        else if( field_type.starts_with("char") )
         {
             field.type = CHAR;
-            field_str.remove_prefix(4);
+            field_type.remove_prefix(4);
+        }
+        else{
+            field.type = OTHER;
+            field.other_type_ID = field_type.to_string();
         }
 
-        if( field_str[0] == ' ' )
-        {
-            field.array_size = 1;
-            field_str.remove_prefix(1);
-        }
-        else if( field_str[0] == '[' )
-        {
-            field_str.remove_prefix(1);
-            field.array_size = field_str[0] - '0';
-            field_str.remove_prefix(1);
+        field.array_size = 1;
 
-            while (field_str[0] != ']')
+        if( field_type.size() > 0 && field_type[0] == '[' )
+        {
+            field_type.remove_prefix(1);
+            field.array_size = field_type[0] - '0';
+            field_type.remove_prefix(1);
+
+            while (field_type[0] != ']')
             {
-                field.array_size = 10*field.array_size + field_str[0] - '0';
-                field_str.remove_prefix(1);
+                field.array_size = 10*field.array_size + field_type[0] - '0';
+                field_type.remove_prefix(1);
             }
-            field_str.remove_prefix(2);
         }
 
-        if( field.type == UINT8 && field_str == StringView("_padding0") )
+        if( field.type == UINT8 && field_name == StringView("_padding0") )
         {
             format.padding = field.array_size;
         }
-        else if( field.type == UINT64 && field_str == StringView("timestamp") ){
-            // skip
-        }
         else {
-            field.field_name = field_str.to_string();
-            format.fields.push_back( std::move(field) );
+            field.field_name = field_name.to_string();
+            format.fields.push_back( field );
         }
+        printf("[Format %s]:[%s]  %s %d \n", name.c_str(), field_section.to_string().c_str(),
+               field.field_name.c_str(), field.array_size);
+        std::cout << std::flush;
     }
 
     format.name = name;
@@ -519,12 +556,3 @@ bool ULogParser::readParameter(std::ifstream &file, uint16_t msg_size)
 
 
 
-size_t ULogParser::Format::fieldsCount() const
-{
-    size_t count = 0;
-    for (const auto& field: fields)
-    {
-        count += size_t(field.array_size);
-    }
-    return count;
-}

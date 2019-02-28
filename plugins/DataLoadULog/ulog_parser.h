@@ -20,13 +20,14 @@ public:
         UINT8, UINT16, UINT32, UINT64,
         INT8, INT16, INT32, INT64,
         FLOAT, DOUBLE,
-        BOOL, CHAR
+        BOOL, CHAR, OTHER
     };
 
     struct Field{
         Field(): array_size(1) {}
         FormatType type;
         std::string field_name;
+        std::string other_type_ID;
         int array_size;
     };
 
@@ -36,7 +37,6 @@ public:
         std::string name;
         std::vector<Field> fields;
         int padding;
-        size_t fieldsCount() const;
     };
 
     struct Subscription
@@ -73,6 +73,8 @@ private:
 
     bool readSubscription(std::ifstream &file, uint16_t msg_size);
 
+    size_t fieldsCount(const Format& format) const;
+
     uint64_t _file_start_time;
 
     std::vector<uint8_t> _read_buffer;
@@ -91,6 +93,8 @@ private:
 
     std::vector<StringView> splitString(const StringView& strToSplit, char delimeter);
 
+    void parseDataMessage(Timeseries& timeseries,char *message,
+                          const Format* format, size_t* index);
 };
 
 #endif // ULOG_PARSER_H
