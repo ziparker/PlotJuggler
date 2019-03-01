@@ -4,7 +4,8 @@
 #include <fstream>
 #include <string.h>
 #include <iosfwd>
-
+#include <sstream>
+#include <iomanip>
 using ios = std::ios;
 
 
@@ -101,7 +102,9 @@ ULogParser::ULogParser(const std::string &filename):
             break;
         case (int)ULogMessageType::INFO_MULTIPLE: //printf("INFO_MULTIPLE\n" );
             break;
-        case (int)ULogMessageType::PARAMETER: //printf("PARAMETER\n" );
+        case (int)ULogMessageType::PARAMETER:
+            printf("PARAMETER changed at run-time. Ignored\n" );
+            std::cout << std::flush;
             break;
         }
     }
@@ -220,9 +223,19 @@ char* ULogParser::parseSimpleDataMessage(Timeseries& timeseries, const Format *f
 }
 
 
-const std::map<std::string, ULogParser::Timeseries> &ULogParser::getTimeseriesMap()
+const std::map<std::string, ULogParser::Timeseries> &ULogParser::getTimeseriesMap() const
 {
     return _timeseries;
+}
+
+const std::vector<ULogParser::Parameter>& ULogParser::getParameters() const
+{
+    return _parameters;
+}
+
+const std::map<std::string, std::string> &ULogParser::getInfo() const
+{
+    return _info;
 }
 
 
@@ -230,7 +243,7 @@ bool ULogParser::readSubscription(std::ifstream &file, uint16_t msg_size)
 {
     _read_buffer.reserve(msg_size + 1);
     char *message = (char *)_read_buffer.data();
-    std::streampos this_message_pos = file.tellg() - (std::streamoff)ULOG_MSG_HEADER_LEN;
+
     file.read(message, msg_size);
     message[msg_size] = 0;
 
@@ -346,7 +359,12 @@ bool ULogParser::readFileDefinitions(std::ifstream &file)
             return true;
         }
 
-        case (int)ULogMessageType::INFO: //skip
+        case (int)ULogMessageType::INFO:
+        {
+            if (!readInfo(file, message_header.msg_size)) {
+                return false;
+            }
+        }break;
         case (int)ULogMessageType::INFO_MULTIPLE: //skip
             file.seekg(message_header.msg_size, ios::cur);
             break;
@@ -536,17 +554,117 @@ bool ULogParser::readFormat(std::ifstream &file, uint16_t msg_size)
             format.fields.push_back( field );
         }
        // if( field.type == OTHER)
-        {
+//        {
 
-            printf("[Format %s]:[%s]  %s %d \n", name.c_str(), field_section.to_string().c_str(),
-                   field.field_name.c_str(), field.array_size);
-            std::cout << std::flush;
-        }
+//            printf("[Format %s]:[%s]  %s %d \n", name.c_str(), field_section.to_string().c_str(),
+//                   field.field_name.c_str(), field.array_size);
+//            std::cout << std::flush;
+//        }
     }
 
     format.name = name;
     _formats[name] = std::move(format);
 
+    return true;
+}
+
+template< typename T >
+std::string int_to_hex( T i )
+{
+  std::stringstream stream;
+  stream << "0x"
+         << std::setfill ('0') << std::setw(sizeof(T)*2)
+         << std::hex << i;
+  return stream.str();
+}
+
+bool ULogParser::readInfo(std::ifstream &file, uint16_t msg_size)
+{
+    _read_buffer.reserve(msg_size);
+    uint8_t *message = (uint8_t *)_read_buffer.data();
+    file.read((char *)message, msg_size);
+
+    if (!file) {
+        return false;
+    }
+    uint8_t key_len = message[0];
+    message++;
+    std::string raw_key((char *)message, key_len);
+    message += key_len;
+
+    auto key_parts = splitString( raw_key, ' ' );
+
+    std::string key = key_parts[1].to_string();
+
+    std::string value;
+    if( key_parts[0].starts_with("char["))
+    {
+        value = std::string( (char *)message, msg_size - key_len - 1  );
+    }
+    else if( key_parts[0] == StringView("bool"))
+    {
+        bool val = *reinterpret_cast<const bool*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("uint8_t"))
+    {
+        uint8_t val = *reinterpret_cast<const uint8_t*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("int8_t"))
+    {
+        int8_t val = *reinterpret_cast<const int8_t*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("uint16_t"))
+    {
+        uint16_t val = *reinterpret_cast<const uint16_t*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("int16_t"))
+    {
+        int16_t val = *reinterpret_cast<const int16_t*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("uint32_t"))
+    {
+        uint32_t val = *reinterpret_cast<const uint32_t*>(key_parts[0].data());
+        if( key_parts[1].starts_with("ver_") && key_parts[1].ends_with( "_release") )
+        {
+            value = int_to_hex(val);
+        }
+        else{
+            value = std::to_string( val );
+        }
+    }
+    else if( key_parts[0] == StringView("int32_t"))
+    {
+        int32_t val = *reinterpret_cast<const int32_t*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("float"))
+    {
+        float val = *reinterpret_cast<const float*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("double"))
+    {
+        double val = *reinterpret_cast<const double*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("uint64_t"))
+    {
+        uint64_t val = *reinterpret_cast<const uint64_t*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+    else if( key_parts[0] == StringView("int64_t"))
+    {
+        int64_t val = *reinterpret_cast<const int64_t*>(key_parts[0].data());
+        value = std::to_string( val );
+    }
+
+
+    _info.insert( { key, value} );
     return true;
 }
 
@@ -570,24 +688,24 @@ bool ULogParser::readParameter(std::ifstream &file, uint16_t msg_size)
     }
 
     std::string type = key.substr(0, pos);
-    std::string param_name = key.substr(pos + 1);
 
-   // printf("[Param %d] %s >>>> %s >>>> ", count++, type.c_str(), param_name.c_str() );
+    Parameter param;
+    param.name = key.substr(pos + 1);
 
     if( type == "int32_t" )
     {
-        int32_t val = *reinterpret_cast<int32_t*>(message + 1 + key_len);
-   //     printf("%d\n\n", val);
+        param.value.val_int = *reinterpret_cast<int32_t*>(message + 1 + key_len);
+        param.val_type = INT32;
     }
     else if( type == "float" )
     {
-        float val = *reinterpret_cast<float*>(message + 1 + key_len);
-    //    printf("%f\n\n", val);
+        param.value.val_real = *reinterpret_cast<float*>(message + 1 + key_len);
+        param.val_type = FLOAT;
     }
     else {
-        printf("unknown parameter type %s, name %s (ignoring it)", type.c_str(), param_name.c_str());
-        return true;
+        throw std::runtime_error("unknown parameter type");
     }
+    _parameters.push_back( param );
     return true;
 }
 

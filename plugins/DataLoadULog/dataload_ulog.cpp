@@ -7,6 +7,7 @@
 #include <QProgressDialog>
 #include "selectlistdialog.h"
 #include "ulog_parser.h"
+#include "ulog_parameters_dialog.h"
 
 DataLoadULog::DataLoadULog()
 {
@@ -46,6 +47,39 @@ PlotDataMapRef DataLoadULog::readDataFromFile(const QString &file_name, bool)
             }
         }
     }
+
+    std::vector<std::pair<QString, QString>> info;
+    std::vector<std::pair<QString, QString>> params;
+
+    const auto& parameters = parser.getParameters();
+
+    for(const auto& par: parameters)
+    {
+        QString val;
+        if( par.val_type == ULogParser::INT32)
+        {
+            val = QString::number( par.value.val_int );
+        }
+        else{
+            val = QString::number( par.value.val_real );
+        }
+        params.push_back( { QString::fromStdString(par.name), val } );
+    }
+
+    const auto& information = parser.getInfo();
+
+    for(const auto& info_it: information)
+    {
+        info.push_back( { QString::fromStdString(info_it.first),
+                          QString::fromStdString(info_it.second)} );
+    }
+
+    ULogParametersDialog* dialog = new ULogParametersDialog( info, params );
+    dialog->setWindowTitle( QString("ULog file %1").arg(file_name) );
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->restoreSettings();
+    dialog->show();
+
     return plot_data;
 }
 

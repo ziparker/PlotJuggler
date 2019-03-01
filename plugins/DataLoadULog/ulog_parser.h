@@ -31,6 +31,15 @@ public:
         int array_size;
     };
 
+    struct Parameter{
+        std::string name;
+        union{
+            int32_t val_int;
+            float   val_real;
+        }value;
+        FormatType val_type;
+    };
+
     struct Format
     {
         Format(): padding(0) {}
@@ -59,7 +68,11 @@ public:
 
     ULogParser(const std::string& filename);
 
-    const std::map<std::string, Timeseries> &getTimeseriesMap();
+    const std::map<std::string, Timeseries> &getTimeseriesMap() const;
+
+    const std::vector<Parameter> &getParameters() const;
+
+    const std::map<std::string, std::string> &getInfo() const;
 
 private:
     bool readFileHeader(std::ifstream &file);
@@ -69,6 +82,8 @@ private:
     bool readFormat(std::ifstream &file, uint16_t msg_size);
 
     bool readFlagBits(std::ifstream &file, uint16_t msg_size);
+
+    bool readInfo(std::ifstream &file, uint16_t msg_size);
 
     bool readParameter(std::ifstream &file, uint16_t msg_size);
 
@@ -80,6 +95,8 @@ private:
 
     uint64_t _file_start_time;
 
+    std::vector<Parameter> _parameters;
+
     std::vector<uint8_t> _read_buffer;
 
     std::streampos _data_section_start; ///< first ADD_LOGGED_MSG message
@@ -89,6 +106,8 @@ private:
     std::set<std::string> _overridden_params;  
 
     std::map<std::string, Format> _formats;
+
+    std::map<std::string, std::string> _info;
 
     std::map<uint16_t,Subscription> _subscriptions;
 
