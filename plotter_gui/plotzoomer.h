@@ -11,7 +11,7 @@ public:
 
     explicit PlotZoomer( QWidget *, bool doReplot = true );
 
-    virtual ~PlotZoomer() = default;
+    virtual ~PlotZoomer() override = default;
 protected:
     virtual void widgetMousePressEvent( QMouseEvent * event)  override;
     virtual void widgetMouseReleaseEvent( QMouseEvent * event) override;
