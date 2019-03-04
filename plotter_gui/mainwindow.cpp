@@ -2142,19 +2142,6 @@ void MainWindow::on_minimizeView()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, tr("Warning"),
-                                  tr("Do you really want quit?\n"),
-                                  QMessageBox::Yes | QMessageBox::No,
-                                  QMessageBox::Yes );
-
-    if (reply != QMessageBox::Yes)
-    {
-        event->ignore();
-        return;
-    }
-
     _replot_timer->stop();
     _publish_timer->stop();
 
