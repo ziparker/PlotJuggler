@@ -100,7 +100,7 @@ ULogParser::ULogParser(const std::string &filename):
             msg.timestamp = *reinterpret_cast<uint64_t*>(message);
             message += sizeof( uint64_t );
             msg.msg.assign( message, message_header.msg_size - 9 );
-            printf("LOG %c (%ld): %s\n", msg.level, msg.timestamp, msg.msg.c_str() );
+            //printf("LOG %c (%ld): %s\n", msg.level, msg.timestamp, msg.msg.c_str() );
             _message_logs.push_back( std::move( msg ) );
 
         } break;

@@ -3,15 +3,24 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QDebug>
+#include <QWidget>
 #include <QSettings>
 #include <QProgressDialog>
+#include <QMainWindow>
 #include "selectlistdialog.h"
 #include "ulog_parser.h"
 #include "ulog_parameters_dialog.h"
 
-DataLoadULog::DataLoadULog()
+DataLoadULog::DataLoadULog(): _main_win(nullptr)
 {
-
+    foreach(QWidget *widget, qApp->topLevelWidgets())
+    {
+        if(widget->inherits("QMainWindow"))
+        {
+            _main_win = widget;
+            break;
+        }
+    }
 }
 
 const std::vector<const char*> &DataLoadULog::compatibleFileExtensions() const
@@ -48,7 +57,7 @@ PlotDataMapRef DataLoadULog::readDataFromFile(const QString &file_name, bool)
         }
     }
 
-    ULogParametersDialog* dialog = new ULogParametersDialog( parser );
+    ULogParametersDialog* dialog = new ULogParametersDialog( parser, _main_win );
     dialog->setWindowTitle( QString("ULog file %1").arg(file_name) );
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->restoreSettings();
