@@ -512,18 +512,17 @@ void MainWindow::loadPlugins(QString directory_name)
                 }
                 else
                 {
-                    _state_publisher.insert( std::make_pair(plugin_name, publisher) );
+                    ui->menuPublishers->setEnabled(true);
 
+                    _state_publisher.insert( std::make_pair(plugin_name, publisher) );
                     QAction* activatePublisher = new QAction(tr("Start: ") + plugin_name , this);
                     activatePublisher->setProperty("starter_button", true);
                     activatePublisher->setCheckable(true);
                     activatePublisher->setChecked(false);
-                    ui->menuPublishers->setEnabled(true);
-                    ui->menuPublishers->addAction(activatePublisher);
-
-                    publisher->setParentMenu( ui->menuPublishers );
 
                     ui->menuPublishers->addSeparator();
+                    ui->menuPublishers->addAction(activatePublisher);
+                    publisher->setParentMenu( ui->menuPublishers );
 
                     connect(activatePublisher, &QAction::toggled,
                             [=](bool enable)
@@ -536,7 +535,6 @@ void MainWindow::loadPlugins(QString directory_name)
                             activatePublisher->blockSignals(false);
                         }
                     } );
-
                 }
             }
             else if (streamer)
@@ -561,6 +559,9 @@ void MainWindow::loadPlugins(QString directory_name)
 
                     connect(streamer, &DataStreamer::connectionClosed,
                             ui->actionStopStreaming, &QAction::trigger );
+
+                    connect(streamer, &DataStreamer::clearBuffers,
+                            this, &MainWindow::on_actionClearBuffer_triggered );
                 }
             }
         }
