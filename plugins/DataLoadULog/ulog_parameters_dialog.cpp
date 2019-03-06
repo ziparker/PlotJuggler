@@ -45,9 +45,7 @@ ULogParametersDialog::ULogParametersDialog(const ULogParser &parser,
     row = 0;
     for(const auto& log_msg: parser.getLogs() )
     {
-        int time_sec = log_msg.timestamp / 1000000;
-        int time_uec = (log_msg.timestamp & 1000000)/1000;
-        QString time = QString("%1.%2").arg(time_sec).arg(time_uec, 3, 10, QChar('0'));
+        QString time = QString::number( 0.001 * double(log_msg.timestamp /1000), 'f', 2);
         table_logs->setItem( row, 0, new QTableWidgetItem(time) );
 
         switch(log_msg.level)
@@ -66,7 +64,6 @@ ULogParametersDialog::ULogParametersDialog(const ULogParser &parser,
         table_logs->setItem( row, 2, new QTableWidgetItem( QString::fromStdString( log_msg.msg ) ) );
         row++;
     }
-    table_logs->sortItems(0);
 }
 
 void ULogParametersDialog::restoreSettings()
