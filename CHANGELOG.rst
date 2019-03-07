@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.6 (2019-03-07)
+------------------
 * removed obsolate question
 * remember RemoveTimeOffset state
 * add clear buffer from data stream
