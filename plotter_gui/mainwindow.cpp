@@ -178,6 +178,9 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     bool datetime_display  = settings.value("MainWindow.dateTimeDisplay", false).toBool();
     ui->pushButtonUseDateTime->setChecked( datetime_display );
 
+    bool remove_time_offset = settings.value("MainWindow.removeTimeOffset", true).toBool();
+    ui->pushButtonRemoveTimeOffset->setChecked(remove_time_offset);
+
     ui->widgetOptions->setVisible( ui->pushButtonOptions->isChecked() );
     ui->line->setVisible( ui->pushButtonOptions->isChecked() );
 
@@ -521,6 +524,7 @@ void MainWindow::loadPlugins(QString directory_name)
                     activatePublisher->setChecked(false);
 
                     ui->menuPublishers->addSeparator();
+                    ui->menuPublishers->addSection(plugin_name);
                     ui->menuPublishers->addAction(activatePublisher);
                     publisher->setParentMenu( ui->menuPublishers );
 
@@ -2155,7 +2159,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("MainWindow.geometry", saveGeometry());
     settings.setValue("MainWindow.activateGrid", ui->pushButtonActivateGrid->isChecked() );
     settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value() );
-    settings.setValue("MainWindow.dateTimeDisplay",ui->pushButtonUseDateTime->isChecked() );
+    settings.setValue("MainWindow.removeTimeOffset",ui->pushButtonRemoveTimeOffset->isChecked() );
+    settings.setValue("MainWindow.dateTimeDisplay", ui->pushButtonUseDateTime->isChecked() );
     settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param );
 
     // clean up all the plugins
