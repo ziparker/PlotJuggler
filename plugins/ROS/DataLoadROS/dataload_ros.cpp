@@ -123,7 +123,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     auto all_topics = getAndRegisterAllTopics();
 
     //----------------------------------
-    QSettings settings( "IcarusTechnology", "PlotJuggler");
+    QSettings settings;
 
     _use_renaming_rules = settings.value("DataLoadROS/use_renaming").toBool();
 
