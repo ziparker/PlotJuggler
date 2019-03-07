@@ -1574,22 +1574,22 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
     {
         QString filename = previously_loaded_datafile.attribute("filename");
 
-        QMessageBox msgBox(this);
-        msgBox.setWindowTitle("Load Data?");
-        msgBox.setText(tr("Do you want to reload the previous datafile?\n\n %1 \n\n").arg(filename));
+//        QMessageBox msgBox(this);
+//        msgBox.setWindowTitle("Load Data?");
+//        msgBox.setText(tr("Do you want to reload the previous datafile?\n\n %1 \n\n").arg(filename));
 
-        msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
-        QPushButton* buttonBoth = msgBox.addButton(tr("Yes (Both Layout and Datafile)"), QMessageBox::YesRole);
-        msgBox.addButton(QMessageBox::Cancel);
+//        msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
+//        QPushButton* buttonBoth = msgBox.addButton(tr("Yes (Both Layout and Datafile)"), QMessageBox::YesRole);
+//        msgBox.addButton(QMessageBox::Cancel);
 
-        msgBox.setDefaultButton(buttonBoth);
-        int res = msgBox.exec();
-        if( res < 0 || res == QMessageBox::Cancel)
-        {
-            return;
-        }
+//        msgBox.setDefaultButton(buttonBoth);
+//        int res = msgBox.exec();
+//        if( res < 0 || res == QMessageBox::Cancel)
+//        {
+//            return;
+//        }
 
-        if( msgBox.clickedButton() == buttonBoth )
+//        if( msgBox.clickedButton() == buttonBoth )
         {
             onActionLoadDataFileImpl( filename, true );
         }
