@@ -144,7 +144,13 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
             val_d = static_cast<double>(val_i);
         }
         else{
-            val_d = value.convert<double>();
+            try{
+                val_d = value.convert<double>();
+            }
+            catch(std::exception&)
+            {
+                continue;
+            }
         }
 
         auto plot_it = dataMap().numeric.find(key);
@@ -152,7 +158,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
         {
             plot_it = dataMap().addNumeric( key );
         }
-        plot_it->second.pushBack( PlotData::Point(msg_time, val_d));
+        plot_it->second.pushBack( PlotData::Point(msg_time, val_d) );
     }
 
     //------------------------------
