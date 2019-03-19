@@ -29,10 +29,10 @@ void PlotMagnifier::setAxisLimits(int axis, double lower, double upper)
 
 void PlotMagnifier::rescale( double factor )
 {
-    factor = qAbs( factor );
+    factor = qAbs( 1.0/factor );
 
     QwtPlot* plt = plot();
-    if ( plt == NULL || factor == 1.0 ){
+    if ( plt == nullptr || factor == 1.0 ){
         return;
     }
 
