@@ -1438,40 +1438,32 @@ void PlotWidget::on_editAxisLimits_triggered()
 
 bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
-    if( obj == canvas())
-    {
-        return canvasEventFilter(event);
-    }
     QwtScaleWidget *bottomAxis = this->axisWidget(xBottom);
     QwtScaleWidget *leftAxis = this->axisWidget(yLeft);
 
-    if( obj == bottomAxis || obj == leftAxis)
+    if( _magnifier && (obj == bottomAxis || obj == leftAxis))
     {
         if( event->type() == QEvent::Wheel)
         {
             auto wheel_event = dynamic_cast<QWheelEvent*>(event);
-            if ( wheel_event->modifiers() != _magnifier->wheelModifiers() )
-            {
-                return false;
+            if( obj == bottomAxis) {
+                _magnifier->setDefaultMode( PlotMagnifier::X_AXIS);
             }
-
-            if ( _magnifier->wheelFactor() != 0.0 )
-            {
-                double f = qPow( _magnifier->wheelFactor(),
-                    qAbs( wheel_event->delta() / 120.0 ) );
-
-                if ( wheel_event->delta() > 0 ){
-                    f = 1 / f;
-                }
-                if( obj == bottomAxis) {
-                    _magnifier->rescale( f, PlotMagnifier::X_AXIS );
-                }
-                else{
-                    _magnifier->rescale( f, PlotMagnifier::Y_AXIS );
-                }
+            else{
+                _magnifier->setDefaultMode( PlotMagnifier::Y_AXIS );
             }
+            _magnifier->widgetWheelEvent(wheel_event);
         }
     }
+
+    if( obj == canvas() )
+    {
+        if( _magnifier ){
+            _magnifier->setDefaultMode( PlotMagnifier::BOTH_AXES);
+        }
+        return canvasEventFilter(event);
+    }
+
     return false;
 }
 

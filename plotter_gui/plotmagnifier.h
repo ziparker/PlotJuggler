@@ -17,13 +17,16 @@ public:
     void setAxisLimits(int axis,double lower, double upper);
     virtual void widgetWheelEvent( QWheelEvent *event ) override;
 
-    enum Axis {X_AXIS, Y_AXIS, BOTH_AXES};
+    enum AxisMode {X_AXIS, Y_AXIS, BOTH_AXES};
 
     virtual void rescale( double factor ) override
     {
-        rescale( factor, BOTH_AXES );
+        rescale( factor, _default_mode );
     }
-    void rescale( double factor, Axis axis );
+
+    void setDefaultMode(AxisMode mode) { _default_mode = mode; }
+
+    void rescale( double factor, AxisMode axis );
 protected:
 
     virtual void widgetMousePressEvent( QMouseEvent* event ) override;
@@ -39,6 +42,7 @@ signals:
 private:
     QPointF invTransform(QPoint pos);
     QTimer _future_emit;
+    AxisMode _default_mode;
 
 };
 

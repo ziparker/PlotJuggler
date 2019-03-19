@@ -5,7 +5,9 @@
 #include <QWheelEvent>
 #include <QApplication>
 
-PlotMagnifier::PlotMagnifier( QWidget *canvas) : QwtPlotMagnifier(canvas)
+PlotMagnifier::PlotMagnifier( QWidget *canvas) :
+    QwtPlotMagnifier(canvas),
+    _default_mode(BOTH_AXES)
 {
     for ( int axisId = 0; axisId < QwtPlot::axisCnt; axisId++ )
     {
@@ -25,7 +27,7 @@ void PlotMagnifier::setAxisLimits(int axis, double lower, double upper)
     }
 }
 
-void PlotMagnifier::rescale( double factor, Axis axis )
+void PlotMagnifier::rescale( double factor, AxisMode axis )
 {
     factor = qAbs( 1.0/factor );
 
