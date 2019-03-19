@@ -2072,6 +2072,7 @@ void MainWindow::on_pushButtonPlay_toggled(bool checked)
     if( checked )
     {
         _publish_timer->start();
+        _prev_publish_time = QDateTime::currentDateTime();
     }
     else{
         _publish_timer->stop();
@@ -2281,7 +2282,11 @@ void MainWindow::on_actionFunction_editor_triggered()
 
 void MainWindow::publishPeriodically()
 {
-    _tracker_time +=  _publish_timer->interval()*0.001;
+    qint64 delta_ms = (QDateTime::currentMSecsSinceEpoch() - _prev_publish_time.toMSecsSinceEpoch());
+    _prev_publish_time = QDateTime::currentDateTime();
+    delta_ms = std::max( (qint64)_publish_timer->interval(), delta_ms);
+
+    _tracker_time +=  delta_ms*0.001;
     if( _tracker_time >= ui->timeSlider->getMaximum())
     {
         ui->pushButtonPlay->setChecked(false);
@@ -2298,7 +2303,7 @@ void MainWindow::publishPeriodically()
 
     for ( auto& it: _state_publisher)
     {
-        it.second->play( _tracker_time);
+        it.second->play( _tracker_time );
     }
 
     forEachWidget( [&](PlotWidget* plot)
