@@ -2,8 +2,8 @@
 #define PLOTMAGNIFIER_H
 
 #include <QTimer>
-#include <qwt_plot_magnifier.h>
-#include <qwt_plot.h>
+#include "qwt_plot_magnifier.h"
+#include "qwt_plot.h"
 #include <QEvent>
 
 class PlotMagnifier : public QwtPlotMagnifier

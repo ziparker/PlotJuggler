@@ -1,9 +1,9 @@
-#include "plotmagnifier.h"
-#include <qwt_plot.h>
-#include <QDebug>
 #include <limits>
+#include <QDebug>
 #include <QWheelEvent>
 #include <QApplication>
+#include "plotmagnifier.h"
+#include "qwt_plot.h"
 
 PlotMagnifier::PlotMagnifier( QWidget *canvas) :
     QwtPlotMagnifier(canvas),

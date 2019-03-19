@@ -1,31 +1,31 @@
-#include "plotwidget.h"
+#include <QAction>
+#include <QActionGroup>
+#include <QApplication>
 #include <QDebug>
 #include <QDrag>
-#include <QMimeData>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
-#include <qwt_scale_widget.h>
-#include <qwt_plot_canvas.h>
-#include <qwt_scale_engine.h>
-#include <qwt_plot_layout.h>
-#include <qwt_scale_draw.h>
-#include <QAction>
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QMenu>
+#include <QMimeData>
 #include <QPushButton>
+#include <QWheelEvent>
+#include <QSettings>
 #include <iostream>
 #include <limits>
-#include "removecurvedialog.h"
-#include "curvecolorpick.h"
-#include <QApplication>
 #include <set>
 #include <memory>
-#include <qwt_text.h>
-#include <QActionGroup>
-#include <QWheelEvent>
-#include <QFileDialog>
-#include <QSettings>
 #include <QtXml/QDomElement>
+#include "qwt_scale_widget.h"
+#include "qwt_plot_canvas.h"
+#include "qwt_scale_engine.h"
+#include "qwt_plot_layout.h"
+#include "qwt_scale_draw.h"
+#include "qwt_text.h"
+#include "plotwidget.h"
+#include "removecurvedialog.h"
+#include "curvecolorpick.h"
 #include "qwt_plot_renderer.h"
 #include "qwt_series_data.h"
 #include "PlotJuggler/random_color.h"
@@ -1439,7 +1439,7 @@ void PlotWidget::on_editAxisLimits_triggered()
 bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
     QwtScaleWidget *bottomAxis = this->axisWidget(xBottom);
-    QwtScaleWidget *leftAxis = this->axisWidget(yLeft);
+    QwtScaleWidget *leftAxis   = this->axisWidget(yLeft);
 
     if( _magnifier && (obj == bottomAxis || obj == leftAxis))
     {
