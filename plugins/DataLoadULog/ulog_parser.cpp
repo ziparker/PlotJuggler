@@ -164,9 +164,9 @@ char* ULogParser::parseSimpleDataMessage(Timeseries& timeseries, const Format *f
     {
         // skip _padding messages which are one byte in size
         if (StringView(field.field_name).starts_with("_padding")) {
-                message += field.array_size;
-                continue;
-            }
+            message += field.array_size;
+            continue;
+        }
 
         for (int array_pos = 0; array_pos < field.array_size; array_pos++)
         {
@@ -749,8 +749,8 @@ ULogParser::Timeseries ULogParser::createTimeseries(const ULogParser::Format* fo
         for( const auto& field: format.fields)
         {
             // skip padding messages
-            if (field.field_name == "_padding0") {
-                    continue;
+            if (StringView(field.field_name).starts_with("_padding")) {
+                continue;
             }
 
             std::string new_prefix = prefix + "/" + field.field_name;
