@@ -73,6 +73,8 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
     void dragLeaveEvent(QDragLeaveEvent *event) override;
 
+    bool canvasEventFilter(QEvent *event);
+
 signals:
     void swapWidgetsRequested(PlotWidget* source, PlotWidget* destination);
     void rectChanged(PlotWidget* self, QRectF rect );

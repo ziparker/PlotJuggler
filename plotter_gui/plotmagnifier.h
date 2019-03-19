@@ -10,22 +10,23 @@ class PlotMagnifier : public QwtPlotMagnifier
 {
     Q_OBJECT
 
-
 public:
     explicit PlotMagnifier( QWidget *canvas);
     virtual ~PlotMagnifier() override;
 
     void setAxisLimits(int axis,double lower, double upper);
-    virtual void rescale( double factor ) override;
     virtual void widgetWheelEvent( QWheelEvent *event ) override;
 
+    enum Axis {X_AXIS, Y_AXIS, BOTH_AXES};
+
+    virtual void rescale( double factor ) override
+    {
+        rescale( factor, BOTH_AXES );
+    }
+    void rescale( double factor, Axis axis );
 protected:
 
     virtual void widgetMousePressEvent( QMouseEvent* event ) override;
-//    virtual void widgetKeyPressEvent( QKeyEvent * event) override;
-//    virtual void widgetKeyReleaseEvent( QKeyEvent *event)  override;
-
-    bool eventFilter( QObject *obj, QEvent *event) override;
 
     double _lower_bounds[QwtPlot::axisCnt];
     double _upper_bounds[QwtPlot::axisCnt];
@@ -38,8 +39,7 @@ signals:
 private:
     QPointF invTransform(QPoint pos);
     QTimer _future_emit;
-    bool _x_pressed;
-    bool _y_pressed;
+
 };
 
 #endif // PLOTMAGNIFIER_H

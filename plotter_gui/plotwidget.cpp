@@ -127,6 +127,12 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
 
     _custom_Y_limits.min = (-MAX_DOUBLE );
     _custom_Y_limits.max = ( MAX_DOUBLE );
+
+    QwtScaleWidget *bottomAxis = this->axisWidget(xBottom);
+    QwtScaleWidget *leftAxis = this->axisWidget(yLeft);
+
+    bottomAxis->installEventFilter(this);
+    leftAxis->installEventFilter(this);
 }
 
 void PlotWidget::buildActions()
@@ -1432,11 +1438,51 @@ void PlotWidget::on_editAxisLimits_triggered()
 
 bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 {
+    if( obj == canvas())
+    {
+        return canvasEventFilter(event);
+    }
+    QwtScaleWidget *bottomAxis = this->axisWidget(xBottom);
+    QwtScaleWidget *leftAxis = this->axisWidget(yLeft);
+
+    if( obj == bottomAxis || obj == leftAxis)
+    {
+        if( event->type() == QEvent::Wheel)
+        {
+            auto wheel_event = dynamic_cast<QWheelEvent*>(event);
+            if ( wheel_event->modifiers() != _magnifier->wheelModifiers() )
+            {
+                return false;
+            }
+
+            if ( _magnifier->wheelFactor() != 0.0 )
+            {
+                double f = qPow( _magnifier->wheelFactor(),
+                    qAbs( wheel_event->delta() / 120.0 ) );
+
+                if ( wheel_event->delta() > 0 ){
+                    f = 1 / f;
+                }
+                if( obj == bottomAxis) {
+                    _magnifier->rescale( f, PlotMagnifier::X_AXIS );
+                }
+                else{
+                    _magnifier->rescale( f, PlotMagnifier::Y_AXIS );
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool PlotWidget::canvasEventFilter(QEvent *event)
+{
     switch( event->type() )
     {
     case QEvent::Wheel:
     {
         auto mouse_event = dynamic_cast<QWheelEvent*>(event);
+
         bool ctrl_modifier = mouse_event->modifiers() == Qt::ControlModifier;
         auto legend_rect = _legend->geometry( canvas()->rect() );
 
@@ -1571,7 +1617,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
 
     } //end switch
 
-    return QWidget::eventFilter( obj, event );
+    return false;
 }
 
 void PlotWidget::setDefaultRangeX()
