@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.7 (2019-03-20)
+------------------
 * Date time visualization on X axis
 * fix slow PLAY when rendering takes more than 20 msec
 * new way to zoom a single axis (issues #153 and #135)
