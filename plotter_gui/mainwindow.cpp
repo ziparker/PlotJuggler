@@ -671,10 +671,14 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
     connect( &_time_offset, SIGNAL( valueChanged(double)),
              plot, SLOT(on_changeTimeOffset(double)) );
 
+    connect( ui->pushButtonUseDateTime, &QPushButton::toggled,
+             plot, &PlotWidget::on_changeDateTimeScale);
+
     connect( plot, &PlotWidget::curvesDropped,
              _curvelist_widget, &FilterableListWidget::clearSelections);
 
     plot->on_changeTimeOffset( _time_offset.get() );
+    plot->on_changeDateTimeScale( ui->pushButtonUseDateTime->isChecked() );
     plot->activateGrid( ui->pushButtonActivateGrid->isChecked() );
     plot->enableTracker( !isStreamingActive() );
     plot->configureTracker( _tracker_param );

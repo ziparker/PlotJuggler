@@ -28,10 +28,25 @@
 #include "curvecolorpick.h"
 #include "qwt_plot_renderer.h"
 #include "qwt_series_data.h"
+#include "qwt_date_scale_draw.h"
 #include "PlotJuggler/random_color.h"
 #include "point_series_xy.h"
 #include "transforms/custom_function.h"
 #include "transforms/custom_timeseries.h"
+
+class TimeScaleDraw: public QwtScaleDraw
+{
+    virtual QwtText label(double v) const
+    {
+            QDateTime t = QDateTime::fromMSecsSinceEpoch((qint64)(v*1000));	//cf fromTime_t
+            if( t.time().msec() == 0){
+                return t.toString("hh:mm:ss\nyyyy MMM dd");
+            }
+            else{
+                return t.toString("hh:mm:ss.z\nyyyy MMM dd");
+            }
+    }
+};
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2 ;
 
@@ -61,7 +76,8 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _time_offset(0.0),
     _axisX(nullptr),
     _transform_select_dialog(nullptr),
-    _zoom_enabled(true)
+    _zoom_enabled(true),
+    _use_date_time_scale(false)
 {
     this->setAcceptDrops( true );
 
@@ -919,6 +935,21 @@ void PlotWidget::on_changeTimeOffset(double offset)
         series->setTimeOffset(_time_offset);
     }
     zoomOut(false);
+}
+
+void PlotWidget::on_changeDateTimeScale(bool enable)
+{
+    if( enable != _use_date_time_scale)
+    {
+        _use_date_time_scale = enable;
+        if( enable  )
+        {
+            setAxisScaleDraw(QwtPlot::xBottom, new TimeScaleDraw());
+        }
+        else{
+            setAxisScaleDraw(QwtPlot::xBottom, new QwtScaleDraw);
+        }
+    }
 }
 
 

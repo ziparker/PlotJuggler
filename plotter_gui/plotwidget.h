@@ -114,6 +114,8 @@ public slots:
 
     void on_changeTimeOffset(double offset);
 
+    void on_changeDateTimeScale(bool enable);
+
 private slots:
 
     void on_changeToBuiltinTransforms(QString new_transform);
@@ -167,6 +169,8 @@ private:
     CurveTracker* _tracker;
     QwtPlotLegendItem* _legend;
     QwtPlotGrid* _grid;
+
+    bool _use_date_time_scale;
 
     PlotDataMapRef& _mapped_data;
     QString _default_transform;
