@@ -43,6 +43,10 @@ public:
 
     virtual ~MessageParser() {}
 
+    virtual bool addSchema(const MessageKey& key, const std::string& schema) {}
+
+    virtual bool addSchema(const std::string& schema) {}
+
     virtual const std::vector<MessageKey>& getCompatibleMessageKeys() const = 0;
 
     // return true if succesfull + an optional warning string
