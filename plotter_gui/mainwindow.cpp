@@ -2366,8 +2366,12 @@ void MainWindow::on_actionSupportPlotJuggler_triggered()
 
 void MainWindow::on_actionSaveAllPlotTabs_triggered()
 {
+    QSettings settings;
+    QString directory_path  = settings.value("MainWindow.saveAllPlotTabs",
+                                             QDir::currentPath() ).toString();
     // Get destination folder
     QFileDialog saveDialog;
+    saveDialog.setDirectory(directory_path);
     saveDialog.setFileMode(QFileDialog::FileMode::Directory);
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.exec();
@@ -2376,7 +2380,8 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
     if(saveDialog.result() == QDialog::Accepted && !saveDialog.selectedFiles().empty())
     {
         // Save Plots
-        QString folder = saveDialog.selectedFiles().first();
+        QString directory = saveDialog.selectedFiles().first();
+        settings.setValue("MainWindow.saveAllPlotTabs", directory);
 
         QStringList file_names;
         QStringList existing_files;
@@ -2388,7 +2393,10 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
             for(int i=0; i< tab_widget->count(); i++)
             {
                 PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(i) );
-                QString name = QString("%1/%2_%3_%4.png").arg(folder).arg(current_date_time_name).arg(image_number, 2, 10, QLatin1Char('0')).arg(matrix->name());
+                QString name = QString("%1/%2_%3_%4.png")
+                        .arg(directory)
+                        .arg(current_date_time_name)
+                        .arg(image_number, 2, 10, QLatin1Char('0')).arg(matrix->name());
                 file_names.push_back( name );
                 image_number++;
 
@@ -2426,7 +2434,7 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
             for(int i=0; i< tab_widget->count(); i++)
             {
                 PlotMatrix* matrix = static_cast<PlotMatrix*>( tab_widget->widget(i) );
-                TabbedPlotWidget::saveTabImage( file_names[image_number++], matrix);
+                TabbedPlotWidget::saveTabImage( file_names[image_number], matrix);
                 image_number++;
             }
         }
