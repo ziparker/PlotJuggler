@@ -20,7 +20,7 @@ class DataStreamer: public QObject{
 
     Q_OBJECT
 public:
-    DataStreamer(): _menu(NULL){}
+    DataStreamer(): _menu(nullptr){}
 
     virtual bool start() = 0;
 
