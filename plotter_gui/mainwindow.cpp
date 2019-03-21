@@ -2044,22 +2044,27 @@ void MainWindow::on_pushButtonOptions_toggled(bool checked)
 
 void MainWindow::updatedDisplayTime()
 {
+    QLineEdit* timeLine = ui->displayTime;
     const double relative_time = _tracker_time - _time_offset.get();
     if( ui->pushButtonUseDateTime->isChecked() )
     {
         if( ui->pushButtonRemoveTimeOffset->isChecked() )
         {
             QTime time = QTime::fromMSecsSinceStartOfDay( std::round(relative_time*1000.0));
-            ui->displayTime->setText( time.toString("HH:mm::ss.zzz") );
+            timeLine->setText( time.toString("HH:mm::ss.zzz") );
         }
         else{
             QDateTime datetime = QDateTime::fromMSecsSinceEpoch( std::round(_tracker_time*1000.0) );
-            ui->displayTime->setText( datetime.toString("d/M/yy HH:mm::ss.zzz") );
+            timeLine->setText( datetime.toString("[yyyy MMM dd] HH:mm::ss.zzz") );
         }
     }
     else{
-        ui->displayTime->setText( QString::number(relative_time, 'f', 3));
+        timeLine->setText( QString::number(relative_time, 'f', 3));
     }
+
+    QFontMetrics fm( timeLine->font() );
+    int width = fm.width( timeLine->text()) + 10;
+    timeLine->setFixedWidth( std::max( 100, width ) );
 }
 
 void MainWindow::on_pushButtonActivateGrid_toggled(bool checked)

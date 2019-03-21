@@ -38,13 +38,13 @@ class TimeScaleDraw: public QwtScaleDraw
 {
     virtual QwtText label(double v) const
     {
-            QDateTime t = QDateTime::fromMSecsSinceEpoch((qint64)(v*1000));	//cf fromTime_t
-            if( t.time().msec() == 0){
-                return t.toString("hh:mm:ss\nyyyy MMM dd");
+            QDateTime dt = QDateTime::fromMSecsSinceEpoch((qint64)(v*1000));
+            if( dt.date().year() == 1970 && dt.date().month() == 1 && dt.date().day() == 1)
+            {
+                return dt.toString("hh:mm:ss.z");
             }
-            else{
-                return t.toString("hh:mm:ss.z\nyyyy MMM dd");
-            }
+            return dt.toString("hh:mm:ss.z\nyyyy MMM dd");
+
     }
 };
 
