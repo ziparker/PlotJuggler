@@ -74,6 +74,8 @@ public:
 
     virtual void updateLayout() override;
 
+    void setConstantRatioXY(bool active);
+
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
@@ -222,6 +224,8 @@ private:
     QRectF _data_boundingbox;
 
     bool _zoom_enabled;
+
+    bool _keep_aspect_ratio;
 
     void transformCustomCurves();
 };

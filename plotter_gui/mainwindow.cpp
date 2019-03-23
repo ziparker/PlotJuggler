@@ -2075,6 +2075,14 @@ void MainWindow::on_pushButtonActivateGrid_toggled(bool checked)
     });
 }
 
+void MainWindow::on_pushButtonRatio_toggled(bool checked)
+{
+    forEachWidget( [checked](PlotWidget* plot) {
+        plot->setConstantRatioXY( checked );
+        plot->replot();
+    });
+}
+
 void MainWindow::on_pushButtonPlay_toggled(bool checked)
 {
     if( checked )

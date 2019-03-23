@@ -38,12 +38,12 @@ class TimeScaleDraw: public QwtScaleDraw
 {
     virtual QwtText label(double v) const
     {
-            QDateTime dt = QDateTime::fromMSecsSinceEpoch((qint64)(v*1000));
-            if( dt.date().year() == 1970 && dt.date().month() == 1 && dt.date().day() == 1)
-            {
-                return dt.toString("hh:mm:ss.z");
-            }
-            return dt.toString("hh:mm:ss.z\nyyyy MMM dd");
+        QDateTime dt = QDateTime::fromMSecsSinceEpoch((qint64)(v*1000));
+        if( dt.date().year() == 1970 && dt.date().month() == 1 && dt.date().day() == 1)
+        {
+            return dt.toString("hh:mm:ss.z");
+        }
+        return dt.toString("hh:mm:ss.z\nyyyy MMM dd");
 
     }
 };
@@ -76,8 +76,9 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _time_offset(0.0),
     _axisX(nullptr),
     _transform_select_dialog(nullptr),
+    _use_date_time_scale(false),
     _zoom_enabled(true),
-    _use_date_time_scale(false)
+    _keep_aspect_ratio(true)
 {
 
     connect(this, &PlotWidget::curveListChanged, this, [this](){ this->updatedDataBoundingBox(); } );
@@ -133,6 +134,9 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
 
     _magnifier->setAxisEnabled(xTop, false);
     _magnifier->setAxisEnabled(yRight, false);
+
+    _magnifier->setZoomInKey( Qt::Key_Plus, Qt::ControlModifier);
+    _magnifier->setZoomOutKey( Qt::Key_Minus, Qt::ControlModifier);
 
     // disable right button. keep mouse wheel
     _magnifier->setMouseButton( Qt::NoButton );
@@ -266,7 +270,9 @@ void PlotWidget::buildActions()
 
     _action_phaseXY = new QAction(tr("&XY plot"), this);
     _action_phaseXY->setCheckable( true );
+
     _action_phaseXY->setEnabled(false);
+
     connect(_action_phaseXY, &QAction::triggered, this, &PlotWidget::on_convertToXY_triggered);
 
     _action_custom_transform = new QAction(tr("&Custom..."), this);
@@ -848,19 +854,43 @@ void PlotWidget::updateLayout()
 {
     QwtPlot::updateLayout();
 
-    const QwtScaleMap xMap = canvasMap( QwtPlot::xBottom );
-    const QwtScaleMap yMap = canvasMap( QwtPlot::yLeft );
+    QRectF rect = _data_boundingbox;
+    const QRectF canvas_rect = canvas()->contentsRect();
+    const double canvas_ratio = fabs( canvas_rect.width() /  canvas_rect.height() );
+    const double data_ratio = fabs(rect.width() /  rect.height());
 
-    const QRect cr = canvas()->contentsRect();
-    const double x1 = xMap.invTransform( cr.left() );
-    const double x2 = xMap.invTransform( cr.right() );
-    const double y1 = yMap.invTransform( cr.bottom() );
-    const double y2 = yMap.invTransform( cr.top() );
+    qDebug() << "canvas_ratio: " << canvas_ratio << " data_ratio: " << data_ratio;
 
-    const double xRatio = ( x2 - x1 ) / cr.width();
-    const double yRatio = ( y2 - y1 ) / cr.height();
+    if( isXYPlot() && _keep_aspect_ratio )
+    {
+        if( data_ratio < canvas_ratio )
+        {
+            double new_width = fabs(rect.height() * canvas_ratio);
+            double increment = new_width - rect.width();
+            rect.setWidth( new_width );
+            rect.moveLeft( rect.left() - 0.5*increment );
+        }
+        else{
+            double new_height = fabs(rect.width() / canvas_ratio);
+            double increment = new_height - rect.height();
+            rect.setHeight( new_height );
+            rect.moveTop( rect.top() - 0.5*increment );
+        }
+    }
 
-    qDebug() << "canvas: " << cr << " bounding rect: " << canvasBoundingRect() ;
+    _magnifier->setAxisLimits( xBottom, rect.left(),   rect.right() );
+    _magnifier->setAxisLimits( yLeft,   rect.bottom(), rect.top() );
+}
+
+void PlotWidget::setConstantRatioXY(bool active)
+{
+    _keep_aspect_ratio = active;
+    _rescaler->setEnabled( isXYPlot() && active );
+    if( _rescaler->isEnabled() )
+    {
+        _rescaler->rescale();
+    }
+    _zoomer->keepAspectratio( isXYPlot() && active );
 }
 
 void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
@@ -1116,12 +1146,7 @@ void PlotWidget::updateCurves()
 
 void PlotWidget::replot()
 {
-    static int replot_count = 0;
-    if( _zoomer )
-        _zoomer->setZoomBase( false );
-
     QwtPlot::replot();
-    qDebug() << replot_count++;
 }
 
 void PlotWidget::launchRemoveCurveDialog()
@@ -1225,8 +1250,9 @@ void PlotWidget::zoomOut(bool emit_signal)
     {
         _rescaler->setIntervalHint( QwtPlot::xBottom, QwtInterval( rect.left(),   rect.right() ) );
         _rescaler->setIntervalHint( QwtPlot::yLeft,   QwtInterval( rect.bottom(), rect.top() ) );
+        _rescaler->setEnabled( _keep_aspect_ratio );
         _rescaler->rescale();
-        _rescaler->setEnabled( true );
+        _zoomer->keepAspectratio( _keep_aspect_ratio );
     }
     else{
 
@@ -1242,8 +1268,6 @@ void PlotWidget::zoomOut(bool emit_signal)
     }
     _magnifier->setAxisLimits( xBottom, rect.left(),   rect.right() );
     _magnifier->setAxisLimits( yLeft,   rect.bottom(), rect.top() );
-    _magnifier->setZoomInKey( Qt::Key_Plus, Qt::ControlModifier);
-    _magnifier->setZoomOutKey( Qt::Key_Minus, Qt::ControlModifier);
 }
 
 void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
@@ -1569,7 +1593,7 @@ bool PlotWidget::canvasEventFilter(QEvent *event)
         if ( ctrl_modifier)
         {
             if( legend_rect.contains( mouse_event->pos() )
-                && _legend->isVisible() )
+                    && _legend->isVisible() )
             {
                 int point_size = _legend->font().pointSize();
                 if( mouse_event->delta() > 0 && point_size < 12)
@@ -1750,15 +1774,15 @@ DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *
                 msgBox.setText( tr("The creation of the XY plot failed with the following message:\n %1")
                                 .arg( ex.what()) );
 
-//                QAbstractButton* buttonDontRepear = msgBox.addButton("Don't show again",
-//                                                                     QMessageBox::ActionRole);
+                //                QAbstractButton* buttonDontRepear = msgBox.addButton("Don't show again",
+                //                                                                     QMessageBox::ActionRole);
                 msgBox.addButton("Continue", QMessageBox::AcceptRole);
                 msgBox.exec();
 
-//                if (msgBox.clickedButton() == buttonDontRepear)
-//                {
-//                    if_xy_plot_failed_show_dialog = false;
-//                }
+                //                if (msgBox.clickedButton() == buttonDontRepear)
+                //                {
+                //                    if_xy_plot_failed_show_dialog = false;
+                //                }
             }
             throw std::runtime_error("Creation of XY plot failed");
         }
