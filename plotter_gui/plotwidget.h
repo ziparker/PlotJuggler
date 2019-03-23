@@ -15,6 +15,7 @@
 #include "qwt_plot_grid.h"
 #include "qwt_symbol.h"
 #include "qwt_legend.h"
+#include "qwt_plot_rescaler.h"
 #include "qwt_plot_panner.h"
 #include "qwt_plot_legenditem.h"
 #include "timeseries_qwt.h"
@@ -41,11 +42,11 @@ public:
 
     bool xmlLoadState(QDomElement &element);
 
-    QRectF currentBoundingRect() const;
-
     PlotData::RangeTime getMaximumRangeX() const;
 
     PlotData::RangeValue getMaximumRangeY( PlotData::RangeTime range_X, bool absolute_time ) const;
+
+    void updatedDataBoundingBox();
 
     void setZoomRectangle( QRectF rect, bool emit_signal );
 
@@ -66,6 +67,12 @@ public:
     void setZoomEnabled(bool enabled);
 
     bool isZoomEnabled() const;
+
+    QRectF canvasBoundingRect() const;
+
+    QRectF dataBoundingRect() const;
+
+    virtual void updateLayout() override;
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -209,6 +216,10 @@ private:
     TransformSelector* _transform_select_dialog;
 
     SnippetsMap _snippets;
+
+    QwtPlotRescaler *_rescaler;
+
+    QRectF _data_boundingbox;
 
     bool _zoom_enabled;
 
