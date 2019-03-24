@@ -1345,6 +1345,7 @@ void PlotWidget::on_convertToXY_triggered(bool)
             auto& curve =  it.second;
             auto& data = _mapped_data.numeric.find(curve_name)->second;
             xy_timeseries.push_back( new PointSeriesXY( &data, _axisX) );
+            _curves_transform[curve_name] = "XYPlot";
         }
     }
     catch(std::exception& ex)
