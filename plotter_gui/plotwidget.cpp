@@ -685,7 +685,6 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
 
 bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
 {
-    detachAllCurves();
     std::set<std::string> added_curve_names;
 
     QDomElement transform = plot_widget.firstChildElement( "transform" );
@@ -762,7 +761,8 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
     if( !transform.isNull()  )
     {
         QString trans_value = transform.attribute("value");
-        if( trans_value.isEmpty() ) {
+        if( trans_value.isEmpty() || trans_value == "noTransform" )
+        {
             _action_noTransform->trigger();
         }
         else if( trans_value == Derivative1st )
