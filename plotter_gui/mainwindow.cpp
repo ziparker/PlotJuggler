@@ -225,7 +225,7 @@ void MainWindow::onUndoableChange()
     while( _undo_states.size() >= 100 ) _undo_states.pop_front();
     _undo_states.push_back( xmlSaveState() );
     _redo_states.clear();
-    //  qDebug() << "undo " << _undo_states.size();
+//    qDebug() << "undo " << _undo_states.size();
 }
 
 
@@ -241,8 +241,27 @@ void MainWindow::onRedoInvoked()
 
         xmlLoadState( state_document );
     }
+//    qDebug() << "undo " << _undo_states.size();
     _disable_undo_logging = false;
 }
+
+void MainWindow::onUndoInvoked( )
+{
+    _disable_undo_logging = true;
+    if( _undo_states.size() > 1)
+    {
+        QDomDocument state_document = _undo_states.back();
+        while( _redo_states.size() >= 100 ) _redo_states.pop_front();
+        _redo_states.push_back( state_document );
+        _undo_states.pop_back();
+        state_document = _undo_states.back();
+
+        xmlLoadState( state_document );
+    }
+//    qDebug() << "undo " << _undo_states.size();
+    _disable_undo_logging = false;
+}
+
 
 
 void MainWindow::onUpdateLeftTableValues()
@@ -1704,23 +1723,6 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
 }
 
 
-void MainWindow::onUndoInvoked( )
-{
-    _disable_undo_logging = true;
-    if( _undo_states.size() > 1)
-    {
-        QDomDocument state_document = _undo_states.back();
-        while( _redo_states.size() >= 100 ) _redo_states.pop_front();
-        _redo_states.push_back( state_document );
-        _undo_states.pop_back();
-        state_document = _undo_states.back();
-
-        xmlLoadState( state_document );
-    }
-    _disable_undo_logging = false;
-}
-
-
 void MainWindow::on_tabbedAreaDestroyed(QObject *object)
 {
     this->setFocus();
@@ -2032,6 +2034,12 @@ void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool )
 {
     updateTimeOffset();
     updatedDisplayTime();
+
+    forEachWidget( [](PlotWidget* plot)
+    {
+        plot->replot();
+    } );
+
     if (this->signalsBlocked() == false)  onUndoableChange();
 }
 

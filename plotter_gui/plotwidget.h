@@ -44,9 +44,7 @@ public:
 
     PlotData::RangeTime getMaximumRangeX() const;
 
-    PlotData::RangeValue getMaximumRangeY( PlotData::RangeTime range_X, bool absolute_time ) const;
-
-    void updatedDataBoundingBox();
+    PlotData::RangeValue getMaximumRangeY(PlotData::RangeTime range_X) const;
 
     void setZoomRectangle( QRectF rect, bool emit_signal );
 
@@ -70,7 +68,7 @@ public:
 
     QRectF canvasBoundingRect() const;
 
-    QRectF dataBoundingRect() const;
+    virtual void resizeEvent( QResizeEvent *ev ) override;
 
     virtual void updateLayout() override;
 
@@ -221,13 +219,12 @@ private:
 
     QwtPlotRescaler *_rescaler;
 
-    QRectF _data_boundingbox;
-
     bool _zoom_enabled;
 
     bool _keep_aspect_ratio;
 
     void transformCustomCurves();
+    QRectF updateMaximumZoomArea();
 };
 
 #endif

@@ -80,8 +80,8 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _zoom_enabled(true),
     _keep_aspect_ratio(true)
 {
-
-    connect(this, &PlotWidget::curveListChanged, this, [this](){ this->updatedDataBoundingBox(); } );
+    _default_transform = "noTransform";
+    connect(this, &PlotWidget::curveListChanged, this, [this](){ this->updateMaximumZoomArea(); } );
 
     this->setAcceptDrops( true );
 
@@ -398,7 +398,6 @@ bool PlotWidget::addCurve(const std::string &name)
         curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
         curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
         curve->setData( plot_qwt );
-
     }
     catch( std::exception& ex)
     {
@@ -593,10 +592,10 @@ void PlotWidget::dropEvent(QDropEvent *)
     if( curves_changed )
     {
         emit curveListChanged();
-        emit undoableChange();
         zoomOut(false);
+        emit undoableChange();
     }
-    if( curves_changed || background_changed)
+    if( curves_changed || background_changed )
     {
         replot();
     }
@@ -619,7 +618,6 @@ void PlotWidget::detachAllCurves()
     _curves_transform.clear();
     _point_marker.clear();
     emit _tracker->setPosition( _tracker->actualPosition() );
-
     emit curveListChanged();
 
     replot();
@@ -687,19 +685,10 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
 
 bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
 {
+    detachAllCurves();
     std::set<std::string> added_curve_names;
 
     QDomElement transform = plot_widget.firstChildElement( "transform" );
-    if( !transform.isNull()    )
-    {
-        if( transform.attribute("value") == "XYPlot")
-        {
-            QString axisX_name = transform.attribute("axisX");
-            if( axisX_name.size()>0){
-                changeAxisX( axisX_name );
-            }
-        }
-    }
 
     QDomElement limitY_el = plot_widget.firstChildElement("limitY");
     if( !limitY_el.isNull() )
@@ -811,22 +800,17 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         }
     }
 
-    if( curve_removed || curve_added)
-    {
-        replot();
-        emit curveListChanged();
-    }
-
-    if( curve_removed || curve_added)
-    {
-        replot();
-        emit curveListChanged();
-    }
-
     //-----------------------------------------
+    emit curveListChanged();
 
     QDomElement rectangle = plot_widget.firstChildElement( "range" );
-    if( !rectangle.isNull()){
+    if( isXYPlot() )
+    {
+        updateMaximumZoomArea();
+    }
+
+    if( !rectangle.isNull() )
+    {
         QRectF rect;
         rect.setBottom( rectangle.attribute("bottom").toDouble());
         rect.setTop( rectangle.attribute("top").toDouble());
@@ -834,6 +818,8 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         rect.setRight( rectangle.attribute("right").toDouble());
         this->setZoomRectangle( rect, false);
     }
+
+    replot();
 
     return true;
 }
@@ -850,36 +836,67 @@ QRectF PlotWidget::canvasBoundingRect() const
 }
 
 
-void PlotWidget::updateLayout()
+QRectF PlotWidget::updateMaximumZoomArea()
 {
-    QwtPlot::updateLayout();
+    QRectF max_rect ;
+    auto rangeX = getMaximumRangeX();
+    max_rect.setLeft( rangeX.min );
+    max_rect.setRight( rangeX.max );
 
-    QRectF rect = _data_boundingbox;
-    const QRectF canvas_rect = canvas()->contentsRect();
-    const double canvas_ratio = fabs( canvas_rect.width() /  canvas_rect.height() );
-    const double data_ratio = fabs(rect.width() /  rect.height());
-
-    qDebug() << "canvas_ratio: " << canvas_ratio << " data_ratio: " << data_ratio;
+    auto rangeY = getMaximumRangeY( rangeX );
+    max_rect.setBottom( rangeY.min );
+    max_rect.setTop(  rangeY.max  );
 
     if( isXYPlot() && _keep_aspect_ratio )
     {
+        const QRectF canvas_rect = canvas()->contentsRect();
+        const double canvas_ratio = fabs( canvas_rect.width()  /  canvas_rect.height() );
+        const double data_ratio   = fabs(max_rect.width() /  max_rect.height());
         if( data_ratio < canvas_ratio )
         {
-            double new_width = fabs(rect.height() * canvas_ratio);
-            double increment = new_width - rect.width();
-            rect.setWidth( new_width );
-            rect.moveLeft( rect.left() - 0.5*increment );
+            // height is negative!!!!
+            double new_width = fabs( max_rect.height() * canvas_ratio );
+            double increment = new_width - max_rect.width();
+            max_rect.setWidth( new_width );
+            max_rect.moveLeft( max_rect.left() - 0.5*increment );
         }
         else{
-            double new_height = fabs(rect.width() / canvas_ratio);
-            double increment = new_height - rect.height();
-            rect.setHeight( new_height );
-            rect.moveTop( rect.top() - 0.5*increment );
+            // height must be negative!!!!
+            double new_height = -(max_rect.width() / canvas_ratio);
+            double increment = fabs(new_height - max_rect.height());
+            max_rect.setHeight( new_height );
+            max_rect.moveTop( max_rect.top() + 0.5*increment );
         }
-    }
+        _magnifier->setAxisLimits( xBottom, max_rect.left(),   max_rect.right() );
+        _magnifier->setAxisLimits( yLeft,   max_rect.bottom(), max_rect.top() );
 
-    _magnifier->setAxisLimits( xBottom, rect.left(),   rect.right() );
-    _magnifier->setAxisLimits( yLeft,   rect.bottom(), rect.top() );
+        _rescaler->setIntervalHint( QwtPlot::xBottom, QwtInterval( max_rect.left(),   max_rect.right() ) );
+        _rescaler->setIntervalHint( QwtPlot::yLeft,   QwtInterval( max_rect.bottom(), max_rect.top() ) );
+
+        _zoomer->keepAspectratio( true );
+        _rescaler->setEnabled( true );
+    }
+    else{
+
+        _magnifier->setAxisLimits( xBottom, max_rect.left(),   max_rect.right() );
+        _magnifier->setAxisLimits( yLeft,   max_rect.bottom(), max_rect.top() );
+
+        _zoomer->keepAspectratio( false );
+        _rescaler->setEnabled( false );
+    }
+    return max_rect;
+}
+
+void PlotWidget::resizeEvent( QResizeEvent *ev )
+{
+    QwtPlot::resizeEvent(ev);
+    updateMaximumZoomArea();
+}
+
+void PlotWidget::updateLayout()
+{
+    QwtPlot::updateLayout();
+   // qDebug() << canvasBoundingRect();
 }
 
 void PlotWidget::setConstantRatioXY(bool active)
@@ -895,6 +912,11 @@ void PlotWidget::setConstantRatioXY(bool active)
 
 void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
 {
+    QRectF current_rect = canvasBoundingRect();
+    if( current_rect == rect)
+    {
+        return;
+    }
     this->setAxisScale( yLeft, rect.bottom(), rect.top());
     this->setAxisScale( xBottom, rect.left(), rect.right());
 
@@ -1001,7 +1023,13 @@ void PlotWidget::on_changeTimeOffset(double offset)
             auto series = static_cast<DataSeriesBase*>( it.second->data() );
             series->setTimeOffset(_time_offset);
         }
-        zoomOut(false);
+        if( !isXYPlot() )
+        {
+            QRectF rect = canvasBoundingRect();
+            double delta = prev_offset - offset;
+            rect.moveLeft( rect.left() + delta );
+            setZoomRectangle( rect, false );
+        }
     }
 }
 
@@ -1053,8 +1081,7 @@ PlotData::RangeTime PlotWidget::getMaximumRangeX() const
 }
 
 //TODO report failure for empty dataset
-PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X,
-                                                    bool absolute_time) const
+PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X) const
 {
     double top    = -std::numeric_limits<double>::max();
     double bottom =  std::numeric_limits<double>::max();
@@ -1069,13 +1096,10 @@ PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X,
         double left  = std::max(max_range_X->min, range_X.min);
         double right = std::min(max_range_X->max, range_X.max);
 
-        if( !absolute_time )
-        {
-            left += _time_offset;
-            right += _time_offset;
-            left = std::nextafter(left, right);
-            right = std::nextafter(right, left);
-        }
+        left += _time_offset;
+        right += _time_offset;
+        left = std::nextafter(left, right);
+        right = std::nextafter(right, left);
 
         auto range_Y = series->getVisualizationRangeY( {left, right} );
         if( !range_Y )
@@ -1123,15 +1147,6 @@ PlotData::RangeValue  PlotWidget::getMaximumRangeY( PlotData::RangeTime range_X,
     return PlotData::RangeValue({ bottom,  top});
 }
 
-void PlotWidget::updatedDataBoundingBox()
-{
-    auto rangeX = getMaximumRangeX();
-    auto rangeY = getMaximumRangeY( rangeX, false );
-    _data_boundingbox.setLeft( rangeX.min );
-    _data_boundingbox.setRight( rangeX.max );
-    _data_boundingbox.setBottom( rangeY.min );
-    _data_boundingbox.setTop(  rangeY.max  );
-}
 
 void PlotWidget::updateCurves()
 {
@@ -1141,12 +1156,6 @@ void PlotWidget::updateCurves()
         bool res = series->updateCache();
         //TODO check res and do something if false.
     }
-}
-
-
-void PlotWidget::replot()
-{
-    QwtPlot::replot();
 }
 
 void PlotWidget::launchRemoveCurveDialog()
@@ -1225,6 +1234,12 @@ void PlotWidget::on_showPoints_triggered(bool checked)
 
 void PlotWidget::on_externallyResized(const QRectF& rect)
 {
+    QRectF current_rect = canvasBoundingRect();
+    if( current_rect == rect)
+    {
+        return;
+    }
+
     if( isXYPlot() )
     {
         emit undoableChange();
@@ -1244,30 +1259,8 @@ void PlotWidget::zoomOut(bool emit_signal)
         return;
     }
 
-    QRectF rect = _data_boundingbox;
-
-    if( isXYPlot() )
-    {
-        _rescaler->setIntervalHint( QwtPlot::xBottom, QwtInterval( rect.left(),   rect.right() ) );
-        _rescaler->setIntervalHint( QwtPlot::yLeft,   QwtInterval( rect.bottom(), rect.top() ) );
-        _rescaler->setEnabled( _keep_aspect_ratio );
-        _rescaler->rescale();
-        _zoomer->keepAspectratio( _keep_aspect_ratio );
-    }
-    else{
-
-        auto rangeX = getMaximumRangeX();
-        rect.setLeft( rangeX.min );
-        rect.setRight( rangeX.max );
-        auto rangeY = getMaximumRangeY( rangeX, false );
-        rect.setBottom( rangeY.min   );
-        rect.setTop(  rangeY.max  );
-
-        this->setZoomRectangle(rect, emit_signal);
-        _rescaler->setEnabled( false );
-    }
-    _magnifier->setAxisLimits( xBottom, rect.left(),   rect.right() );
-    _magnifier->setAxisLimits( yLeft,   rect.bottom(), rect.top() );
+    QRectF max_area = updateMaximumZoomArea();
+    setZoomRectangle(max_area, emit_signal);
 }
 
 void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
@@ -1283,7 +1276,7 @@ void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
 void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 {
     QRectF rect = canvasBoundingRect();
-    auto rangeY = getMaximumRangeY( {rect.left(), rect.right()}, false );
+    auto rangeY = getMaximumRangeY( {rect.left(), rect.right()} );
 
     rect.setBottom(  rangeY.min );
     rect.setTop(     rangeY.max );
@@ -1295,6 +1288,10 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 
 void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
 {
+    if( _default_transform == new_transform)
+    {
+        return;
+    }
     enableTracker(true);
 
     for(auto& it : _curve_list)
@@ -1304,12 +1301,6 @@ void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
 
         _point_marker[ curve_name ]->setVisible(false);
         curve->setTitle( QString::fromStdString( curve_name ) );
-
-        if( _curves_transform[curve_name] == new_transform )
-        {
-            // skip if it is the same
-            continue;
-        }
         _curves_transform[curve_name] = new_transform;
 
         auto data_it = _mapped_data.numeric.find( curve_name );
@@ -1320,8 +1311,8 @@ void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
             curve->setData( data_series );
         }
     }
-    _default_transform = new_transform;
 
+    _default_transform = new_transform;
     zoomOut(true);
     replot();
 }
@@ -1535,7 +1526,7 @@ void PlotWidget::on_editAxisLimits_triggered()
     _custom_Y_limits.min = -MAX_DOUBLE;
     _custom_Y_limits.max =  MAX_DOUBLE;
 
-    auto rangeY = getMaximumRangeY(rangeX, false);
+    auto rangeY = getMaximumRangeY(rangeX);
 
     _axis_limits_dialog->setDefaultRange(rangeY);
     _axis_limits_dialog->exec();
@@ -1803,10 +1794,10 @@ DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *
 
 void PlotWidget::changeBackgroundColor(QColor color)
 {
-    if( this->canvasBackground().color() != color)
+    if( canvasBackground().color() != color)
     {
-        this->setCanvasBackground( color );
-        this->replot();
+        setCanvasBackground( color );
+        replot();
     }
 }
 
@@ -1841,3 +1832,13 @@ bool PlotWidget::isZoomEnabled() const
 {
     return _zoom_enabled;
 }
+
+
+
+void PlotWidget::replot()
+{
+    static int replot_count = 0;
+    QwtPlot::replot();
+  //  qDebug() << replot_count++;
+}
+
