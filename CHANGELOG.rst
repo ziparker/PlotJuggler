@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.8 (2019-03-24)
+------------------
 * bug fixes
 * xy equal scaling seems to work
 * Super fancy Video cheatsheet (#164)
