@@ -1595,26 +1595,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
     if( previously_loaded_datafile.isNull() == false)
     {
         QString filename = previously_loaded_datafile.attribute("filename");
-
-//        QMessageBox msgBox(this);
-//        msgBox.setWindowTitle("Load Data?");
-//        msgBox.setText(tr("Do you want to reload the previous datafile?\n\n %1 \n\n").arg(filename));
-
-//        msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
-//        QPushButton* buttonBoth = msgBox.addButton(tr("Yes (Both Layout and Datafile)"), QMessageBox::YesRole);
-//        msgBox.addButton(QMessageBox::Cancel);
-
-//        msgBox.setDefaultButton(buttonBoth);
-//        int res = msgBox.exec();
-//        if( res < 0 || res == QMessageBox::Cancel)
-//        {
-//            return;
-//        }
-
-//        if( msgBox.clickedButton() == buttonBoth )
-        {
-            onActionLoadDataFileImpl( filename, true );
-        }
+        onActionLoadDataFileImpl( filename, true );
     }
 
     QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoadedStreamer" );
@@ -1717,6 +1698,11 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
     ///--------------------------------------------------
 
     xmlLoadState( domDocument );
+
+    forEachWidget([&](PlotWidget* plot)
+    {
+        plot->zoomOut(false);
+    } );
 
     _undo_states.clear();
     _undo_states.push_back( domDocument );
