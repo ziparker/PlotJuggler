@@ -128,8 +128,11 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
 
     // disable right button. keep mouse wheel
     _magnifier->setMouseButton( Qt::NoButton );
-    connect(_magnifier, &PlotMagnifier::rescaled, this, &PlotWidget::on_externallyResized );
-    connect(_magnifier, &PlotMagnifier::rescaled, this, &PlotWidget::replot );
+    connect(_magnifier, &PlotMagnifier::rescaled, this, [this](QRectF rect)
+    {
+        on_externallyResized(rect);
+        replot();
+    });
 
     _panner1->setMouseButton( Qt::LeftButton, Qt::ControlModifier);
     _panner2->setMouseButton( Qt::MiddleButton, Qt::NoModifier);
@@ -895,6 +898,10 @@ void PlotWidget::rescaleEqualAxisScaling()
         rect.setHeight( new_height );
         rect.moveTop( rect.top() + 0.5*increment );
     }
+    if( rect.contains(_max_zoom_rect) )
+    {
+       rect = _max_zoom_rect;
+    }
 
     this->setAxisScale( yLeft,
                         std::min(rect.bottom(), rect.top() ),
@@ -1282,18 +1289,20 @@ void PlotWidget::on_externallyResized(const QRectF& rect)
 
 
 void PlotWidget::zoomOut(bool emit_signal)
-{   
+{
     if( _curve_list.size() == 0)
     {
         QRectF rect(0, 1, 1, -1);
         this->setZoomRectangle(rect, false);
         return;
     }
+    updateMaximumZoomArea();
     setZoomRectangle( _max_zoom_rect, emit_signal);
 }
 
 void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
 {
+    updateMaximumZoomArea();
     QRectF act = canvasBoundingRect();
     auto rangeX = getMaximumRangeX();
 
@@ -1304,13 +1313,12 @@ void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
 
 void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 {
+    updateMaximumZoomArea();
     QRectF rect = canvasBoundingRect();
     auto rangeY = getMaximumRangeY( {rect.left(), rect.right()} );
 
     rect.setBottom(  rangeY.min );
     rect.setTop(     rangeY.max );
-
-    _magnifier->setAxisLimits( yLeft, rect.bottom(), rect.top() );
     this->setZoomRectangle(rect, emit_signal);
 }
 
