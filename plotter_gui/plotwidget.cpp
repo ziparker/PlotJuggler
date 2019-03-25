@@ -918,10 +918,7 @@ void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
     }
     this->setAxisScale( yLeft, rect.bottom(), rect.top());
     this->setAxisScale( xBottom, rect.left(), rect.right());
-
     this->updateAxes();
-
-    _zoomer->setZoomBase(rect);
 
     if( emit_signal )
     {
@@ -1841,6 +1838,11 @@ bool PlotWidget::isZoomEnabled() const
 void PlotWidget::replot()
 {
     static int replot_count = 0;
+
+    if( _zoomer ){
+        _zoomer->setZoomBase( false );
+    }
+
     QwtPlot::replot();
   //  qDebug() << replot_count++;
 }
