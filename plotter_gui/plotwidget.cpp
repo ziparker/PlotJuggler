@@ -106,18 +106,6 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     this->plotLayout()->setAlignCanvasToScales( true );
 
     //--------------------------
-    _rescaler =  new QwtPlotRescaler(canvas);
-    _rescaler->setReferenceAxis( QwtPlot::xBottom );
-    _rescaler->setAspectRatio( QwtPlot::yLeft, 1.0 );
-    _rescaler->setAspectRatio( QwtPlot::yRight, 0.0 );
-    _rescaler->setAspectRatio( QwtPlot::xTop, 0.0 );
-    _rescaler->setEnabled( false );
-    _rescaler->setRescalePolicy( QwtPlotRescaler::Fitting );
-    for ( int axis = 0; axis < QwtPlot::axisCnt; axis++ )
-    {
-        _rescaler->setExpandingDirection( QwtPlotRescaler::ExpandBoth );
-    }
-    //--------------------------
     _grid = new QwtPlotGrid();
     _zoomer = ( new PlotZoomer( this->canvas() ) );
     _magnifier = ( new PlotMagnifier( this->canvas() ) );
@@ -613,7 +601,6 @@ void PlotWidget::detachAllCurves()
         _axisX = nullptr;
         _action_noTransform->trigger();
     }
-
     _curve_list.clear();
     _curves_transform.clear();
     _point_marker.clear();
@@ -820,7 +807,6 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
     }
 
     replot();
-
     return true;
 }
 
@@ -835,8 +821,7 @@ QRectF PlotWidget::canvasBoundingRect() const
     return rect;
 }
 
-
-QRectF PlotWidget::updateMaximumZoomArea()
+void PlotWidget::updateMaximumZoomArea()
 {
     QRectF max_rect ;
     auto rangeX = getMaximumRangeX();
@@ -869,27 +854,66 @@ QRectF PlotWidget::updateMaximumZoomArea()
         }
         _magnifier->setAxisLimits( xBottom, max_rect.left(),   max_rect.right() );
         _magnifier->setAxisLimits( yLeft,   max_rect.bottom(), max_rect.top() );
-
-        _rescaler->setIntervalHint( QwtPlot::xBottom, QwtInterval( max_rect.left(),   max_rect.right() ) );
-        _rescaler->setIntervalHint( QwtPlot::yLeft,   QwtInterval( max_rect.bottom(), max_rect.top() ) );
-
         _zoomer->keepAspectratio( true );
     }
     else{
-
         _magnifier->setAxisLimits( xBottom, max_rect.left(),   max_rect.right() );
         _magnifier->setAxisLimits( yLeft,   max_rect.bottom(), max_rect.top() );
-
         _zoomer->keepAspectratio( false );
     }
-    return max_rect;
+    _max_zoom_rect = max_rect;
+}
+
+void PlotWidget::rescaleEqualAxisScaling()
+{
+    const QwtScaleMap xMap = canvasMap( QwtPlot::xBottom );
+    const QwtScaleMap yMap = canvasMap( QwtPlot::yLeft );
+
+    QRectF canvas_rect = canvas()->contentsRect();
+    canvas_rect = canvas_rect.normalized();
+    const double x1 = xMap.invTransform( canvas_rect.left() );
+    const double x2 = xMap.invTransform( canvas_rect.right() );
+    const double y1 = yMap.invTransform( canvas_rect.bottom() );
+    const double y2 = yMap.invTransform( canvas_rect.top() );
+
+    const double data_ratio = ( x2 - x1 ) / ( y2 - y1 );
+    const double canvas_ratio = canvas_rect.width() / canvas_rect.height();
+    const double max_ratio    = fabs( _max_zoom_rect.width() / _max_zoom_rect.height() );
+
+    QRectF rect( QPointF(x1,y2), QPointF(x2,y1) );
+
+    if( data_ratio < canvas_ratio )
+    {
+        double new_width = fabs( rect.height() * canvas_ratio );
+        double increment = new_width - rect.width();
+        rect.setWidth( new_width );
+        rect.moveLeft( rect.left() - 0.5*increment );
+    }
+    else{
+        double new_height = -(rect.width() / canvas_ratio);
+        double increment = fabs(new_height - rect.height());
+        rect.setHeight( new_height );
+        rect.moveTop( rect.top() + 0.5*increment );
+    }
+
+    this->setAxisScale( yLeft,
+                        std::min(rect.bottom(), rect.top() ),
+                        std::max(rect.bottom(), rect.top() ));
+    this->setAxisScale( xBottom,
+                        std::min( rect.left(), rect.right()),
+                        std::max( rect.left(), rect.right()) );
+    this->updateAxes();
 }
 
 void PlotWidget::resizeEvent( QResizeEvent *ev )
 {
     QwtPlot::resizeEvent(ev);
     updateMaximumZoomArea();
-    _rescaler->rescale();
+
+    if( isXYPlot() && _keep_aspect_ratio )
+    {
+        rescaleEqualAxisScaling();
+    }
 }
 
 void PlotWidget::updateLayout()
@@ -901,12 +925,14 @@ void PlotWidget::updateLayout()
 void PlotWidget::setConstantRatioXY(bool active)
 {
     _keep_aspect_ratio = active;
-   // _rescaler->setEnabled( isXYPlot() && active );
-//    if( _rescaler->isEnabled() )
-//    {
-//        _rescaler->rescale();
-//    }
-    _zoomer->keepAspectratio( isXYPlot() && active );
+    if( isXYPlot() && active)
+    {
+        // TODo rescaler
+        _zoomer->keepAspectratio( true );
+    }
+    else{
+        _zoomer->keepAspectratio( false );
+    }
 }
 
 void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
@@ -916,9 +942,18 @@ void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
     {
         return;
     }
-    this->setAxisScale( yLeft, rect.bottom(), rect.top());
-    this->setAxisScale( xBottom, rect.left(), rect.right());
+    this->setAxisScale( yLeft,
+                        std::min(rect.bottom(), rect.top() ),
+                        std::max(rect.bottom(), rect.top() ));
+    this->setAxisScale( xBottom,
+                        std::min( rect.left(), rect.right()),
+                        std::max( rect.left(), rect.right()) );
     this->updateAxes();
+
+    if( isXYPlot() && _keep_aspect_ratio )
+    {
+        rescaleEqualAxisScaling();
+    }
 
     if( emit_signal )
     {
@@ -966,8 +1001,6 @@ void PlotWidget::reloadPlotData()
 
 void PlotWidget::activateLegend(bool activate)
 {
-    //    if( activate ) _legend->attach(this);
-    //    else           _legend->detach();
     _legend->setVisible(activate);
 }
 
@@ -1256,9 +1289,7 @@ void PlotWidget::zoomOut(bool emit_signal)
         this->setZoomRectangle(rect, false);
         return;
     }
-
-    QRectF max_area = updateMaximumZoomArea();
-    setZoomRectangle(max_area, emit_signal);
+    setZoomRectangle( _max_zoom_rect, emit_signal);
 }
 
 void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
@@ -1280,7 +1311,6 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
     rect.setTop(     rangeY.max );
 
     _magnifier->setAxisLimits( yLeft, rect.bottom(), rect.top() );
-
     this->setZoomRectangle(rect, emit_signal);
 }
 
