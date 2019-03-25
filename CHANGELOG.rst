@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.9 (2019-03-25)
+------------------
 * QwtRescaler replaced
 * fix issues related to #118 (PlotZoom)
 * Contributors: Davide Faconti
