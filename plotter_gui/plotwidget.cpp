@@ -874,7 +874,6 @@ QRectF PlotWidget::updateMaximumZoomArea()
         _rescaler->setIntervalHint( QwtPlot::yLeft,   QwtInterval( max_rect.bottom(), max_rect.top() ) );
 
         _zoomer->keepAspectratio( true );
-        _rescaler->setEnabled( true );
     }
     else{
 
@@ -882,7 +881,6 @@ QRectF PlotWidget::updateMaximumZoomArea()
         _magnifier->setAxisLimits( yLeft,   max_rect.bottom(), max_rect.top() );
 
         _zoomer->keepAspectratio( false );
-        _rescaler->setEnabled( false );
     }
     return max_rect;
 }
@@ -891,6 +889,7 @@ void PlotWidget::resizeEvent( QResizeEvent *ev )
 {
     QwtPlot::resizeEvent(ev);
     updateMaximumZoomArea();
+    _rescaler->rescale();
 }
 
 void PlotWidget::updateLayout()
@@ -902,11 +901,11 @@ void PlotWidget::updateLayout()
 void PlotWidget::setConstantRatioXY(bool active)
 {
     _keep_aspect_ratio = active;
-    _rescaler->setEnabled( isXYPlot() && active );
-    if( _rescaler->isEnabled() )
-    {
-        _rescaler->rescale();
-    }
+   // _rescaler->setEnabled( isXYPlot() && active );
+//    if( _rescaler->isEnabled() )
+//    {
+//        _rescaler->rescale();
+//    }
     _zoomer->keepAspectratio( isXYPlot() && active );
 }
 
@@ -921,6 +920,8 @@ void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
     this->setAxisScale( xBottom, rect.left(), rect.right());
 
     this->updateAxes();
+
+    _zoomer->setZoomBase(rect);
 
     if( emit_signal )
     {
@@ -1545,12 +1546,13 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     QwtScaleWidget *bottomAxis = this->axisWidget(xBottom);
     QwtScaleWidget *leftAxis   = this->axisWidget(yLeft);
 
-    if( _magnifier && (obj == bottomAxis || obj == leftAxis))
+    if( _magnifier && (obj == bottomAxis || obj == leftAxis)
+         && !(isXYPlot() && _keep_aspect_ratio ) )
     {
         if( event->type() == QEvent::Wheel)
         {
             auto wheel_event = dynamic_cast<QWheelEvent*>(event);
-            if( obj == bottomAxis) {
+            if( obj == bottomAxis ) {
                 _magnifier->setDefaultMode( PlotMagnifier::X_AXIS);
             }
             else{
