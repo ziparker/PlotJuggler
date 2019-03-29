@@ -2,6 +2,11 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* critical bug fixed in CustomFunctions
+* Contributors: Davide Faconti
+
 2.1.9 (2019-03-25)
 ------------------
 * QwtRescaler replaced
