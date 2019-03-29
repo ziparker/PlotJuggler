@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.10 (2019-03-29)
+-------------------
 * critical bug fixed in CustomFunctions
 * Contributors: Davide Faconti
 
