@@ -60,7 +60,6 @@ void CurveTracker::setEnabled(bool enable)
     {
         _marker[i]->setVisible( enable );
     }
-
 }
 
 void CurveTracker::setPosition(const QPointF& position)
@@ -90,7 +89,6 @@ void CurveTracker::setPosition(const QPointF& position)
         _marker[i]->attach( _plot );
     }
 
-
     double text_X_offset = 0;
 
     std::multimap<double,QString> text_lines;
@@ -98,6 +96,12 @@ void CurveTracker::setPosition(const QPointF& position)
     for ( int i = 0; i < curves.size(); i++ )
     {
         QwtPlotCurve *curve = static_cast<QwtPlotCurve *>(curves[i]);
+        _marker[i]->setVisible( curve->isVisible() );
+
+        if( curve->isVisible() == false)
+        {
+            continue;
+        }
         QColor color = curve->pen().color();
 
         text_X_offset =  rect.width() * 0.02;

@@ -27,6 +27,7 @@ SET( PLOTTER_SRC
     main.cpp
     mainwindow.cpp
     menubar.cpp
+    plotlegend.cpp
     plotwidget.cpp
     plotmatrix.cpp
     plotmagnifier.cpp

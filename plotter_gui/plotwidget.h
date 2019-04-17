@@ -23,6 +23,7 @@
 #include "axis_limits_dialog.h"
 #include "transforms/transform_selector.h"
 #include "transforms/custom_function.h"
+#include "plotlegend.h"
 
 class PlotWidget : public QwtPlot
 {
@@ -55,6 +56,8 @@ public:
     bool isXYPlot() const;
 
     void changeBackgroundColor(QColor color);
+
+    const PlotLegend* legend() const { return _legend; }
 
     void setLegendSize(int size);
 
@@ -174,7 +177,7 @@ private:
     QwtPlotPanner* _panner2;
 
     CurveTracker* _tracker;
-    QwtPlotLegendItem* _legend;
+    PlotLegend* _legend;
     QwtPlotGrid* _grid;
 
     bool _use_date_time_scale;
