@@ -72,7 +72,7 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _grid( nullptr ),
     _mapped_data( datamap ),
     _dragging( { DragInfo::NONE, {}, nullptr } ),
-    _show_line_and_points(false),
+    _curve_style(QwtPlotCurve::Lines),
     _time_offset(0.0),
     _axisX(nullptr),
     _transform_select_dialog(nullptr),
@@ -190,10 +190,8 @@ void PlotWidget::buildActions()
     _action_changeColorsDialog->setStatusTip(tr("Change the color of the curves"));
     connect(_action_changeColorsDialog, &QAction::triggered, this, &PlotWidget::on_changeColorsDialog_triggered);
 
-    _action_showPoints = getActionAndIcon("&Show lines and points",
+    _action_showPoints = getActionAndIcon("&Show lines and/or points",
                                           ":/icons/resources/light/point_chart.png" );
-    _action_showPoints->setCheckable( true );
-    _action_showPoints->setChecked( false );
     connect(_action_showPoints, &QAction::triggered, this, &PlotWidget::on_showPoints_triggered);
 
     _action_editLimits = new  QAction(tr("&Edit Axis Limits"), this);
@@ -396,12 +394,7 @@ bool PlotWidget::addCurve(const std::string &name)
         return false;
     }
 
-    if( _show_line_and_points ) {
-        curve->setStyle( QwtPlotCurve::LinesAndDots);
-    }
-    else{
-        curve->setStyle( QwtPlotCurve::Lines);
-    }
+    curve->setStyle( _curve_style );
 
     QColor color = data.getColorHint();
     if( color == Qt::black)
@@ -409,7 +402,7 @@ bool PlotWidget::addCurve(const std::string &name)
         color = randomColorHint();
         data.setColorHint(color);
     }
-    curve->setPen( color,  0.8 );
+    curve->setPen( color,  (_curve_style == QwtPlotCurve::Dots) ? 4 : 0.8 );
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
     curve->attach( this );
@@ -1253,19 +1246,26 @@ void PlotWidget::on_changeColor(QString curve_name, QColor new_color)
     }
 }
 
-void PlotWidget::on_showPoints_triggered(bool checked)
+void PlotWidget::on_showPoints_triggered()
 {
-    _show_line_and_points = checked;
+    if( _curve_style == QwtPlotCurve::Lines )
+    {
+        _curve_style = QwtPlotCurve::LinesAndDots;
+    }
+    else if( _curve_style == QwtPlotCurve::LinesAndDots )
+    {
+        _curve_style = QwtPlotCurve::Dots;
+    }
+    else if( _curve_style == QwtPlotCurve::Dots )
+    {
+        _curve_style = QwtPlotCurve::Lines;
+    }
+
     for(auto& it: _curve_list)
     {
         auto& curve = it.second;
-        if( _show_line_and_points )
-        {
-            curve->setStyle( QwtPlotCurve::LinesAndDots);
-        }
-        else{
-            curve->setStyle( QwtPlotCurve::Lines);
-        }
+        curve->setPen( curve->pen().color(),  (_curve_style == QwtPlotCurve::Dots) ? 4 : 0.8 );
+        curve->setStyle( _curve_style );
     }
     replot();
 }

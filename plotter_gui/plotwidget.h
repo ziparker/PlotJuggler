@@ -144,7 +144,7 @@ private slots:
 
     void on_changeColor(QString curve_name, QColor new_color);
 
-    void on_showPoints_triggered(bool checked);
+    void on_showPoints_triggered();
 
     void on_externallyResized(const QRectF &new_rect);
 
@@ -199,7 +199,7 @@ private:
 
     void updateAvailableTransformers();
 
-    bool _show_line_and_points;
+    QwtPlotCurve::CurveStyle _curve_style;
 
     void setDefaultRangeX();
     
