@@ -329,7 +329,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 
 void PlotWidget::buildLegend()
 {
-    _legend = new QwtPlotLegendItem();
+    _legend = new PlotLegend(this);
 
     _legend->attach( this );
 
@@ -345,7 +345,7 @@ void PlotWidget::buildLegend()
     _legend->setAlignment( Qt::Alignment( Qt::AlignTop | Qt::AlignRight ) );
     _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
 
-    _legend->setBorderRadius( 6 );
+    _legend->setBorderRadius( 4 );
     _legend->setMargin( 1 );
     _legend->setSpacing( 1 );
     _legend->setItemMargin( 1 );
@@ -441,7 +441,7 @@ void PlotWidget::removeCurve(const std::string &curve_name)
             }
             _point_marker.erase(marker_it);
         }
-
+        _tracker->redraw();
         emit curveListChanged();
     }
     _curves_transform.erase( curve_name );
@@ -464,6 +464,8 @@ void PlotWidget::removeCurve(const std::string &curve_name)
             }
         }
         on_changeToBuiltinTransforms( _default_transform );
+
+        _tracker->redraw();
         emit curveListChanged();
     }
 }
@@ -581,6 +583,7 @@ void PlotWidget::dropEvent(QDropEvent *)
     }
     if( curves_changed || background_changed )
     {
+        _tracker->redraw();
         replot();
     }
     _dragging.mode = DragInfo::NONE;
@@ -600,7 +603,9 @@ void PlotWidget::detachAllCurves()
     _curve_list.clear();
     _curves_transform.clear();
     _point_marker.clear();
-    emit _tracker->setPosition( _tracker->actualPosition() );
+
+    _tracker->redraw();
+
     emit curveListChanged();
 
     replot();
@@ -783,8 +788,14 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         }
     }
 
+    if( curve_removed || curve_added)
+    {
+        _tracker->redraw();
+        replot();
+        emit curveListChanged();
+    }
+
     //-----------------------------------------
-    emit curveListChanged();
 
     QDomElement rectangle = plot_widget.firstChildElement( "range" );
     if( isXYPlot() )
@@ -1651,17 +1662,34 @@ bool PlotWidget::canvasEventFilter(QEvent *event)
 
         if( mouse_event->button() == Qt::LeftButton )
         {
+            const QPoint press_point = mouse_event->pos();
             if( mouse_event->modifiers() == Qt::ShiftModifier) // time tracker
             {
-                const QPoint point = mouse_event->pos();
-                QPointF pointF ( invTransform( xBottom, point.x()),
-                                 invTransform( yLeft, point.y()) );
+                QPointF pointF ( invTransform( xBottom, press_point.x()),
+                                 invTransform( yLeft, press_point.y()) );
                 emit trackerMoved(pointF);
                 return true; // don't pass to canvas().
             }
             else if( mouse_event->modifiers() == Qt::ControlModifier) // panner
             {
                 QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/light/move.png")));
+            }
+            else{
+                auto clicked_item = _legend->processMousePressEvent(mouse_event);
+                if( clicked_item )
+                {
+                    for( const auto& curve_it: _curve_list)
+                    {
+                        if( clicked_item == curve_it.second)
+                        {
+                            auto &curve = _curve_list.at( curve_it.first );
+                            curve->setVisible( !curve->isVisible() );
+                            _tracker->redraw();
+                            replot();
+                            return true;
+                        }
+                    }
+                }
             }
             return false; // send to canvas()
         }
