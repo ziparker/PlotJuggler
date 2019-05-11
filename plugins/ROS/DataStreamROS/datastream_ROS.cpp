@@ -19,13 +19,13 @@
 #include <topic_tools/shape_shifter.h>
 #include <ros/transport_hints.h>
 
-
 #include "../dialog_select_ros_topics.h"
 #include "../rule_editing.h"
 #include "../qnodedialog.h"
 #include "../shape_shifter_factory.hpp"
 
 DataStreamROS::DataStreamROS():
+    DataStreamer(),
     _node(nullptr),
     _action_saveIntoRosbag(nullptr),
     _clock_time(0)
@@ -36,7 +36,6 @@ DataStreamROS::DataStreamROS():
     connect( _periodic_timer, &QTimer::timeout,
              this, &DataStreamROS::timerCallback);
 }
-
 
 void DataStreamROS::clockCallback(const rosgraph_msgs::Clock::ConstPtr& msg)
 {
@@ -436,7 +435,8 @@ bool DataStreamROS::start()
     _prefix = dialog.prefix().toStdString();
     _max_array_size = dialog.maxArraySize();
     //-------------------------
-    setMaxArrayPolicy( _parser.get(), dialog.discardEntireArrayIfTooLarge() );
+
+    // TODO setMaxArrayPolicy( _parser.get(), dialog.discardEntireArrayIfTooLarge() );
 
     subscribe();
 
@@ -482,28 +482,6 @@ DataStreamROS::~DataStreamROS()
     shutdown();
 }
 
-void DataStreamROS::setParentMenu(QMenu *menu)
-{
-    _menu = menu;
-
-    _action_saveIntoRosbag = new QAction(QString("Save cached value in a rosbag"), _menu);
-    QIcon iconSave;
-    iconSave.addFile(QStringLiteral(":/icons/resources/light/save.png"), QSize(26, 26));
-    _action_saveIntoRosbag->setIcon(iconSave);
-    _menu->addAction( _action_saveIntoRosbag );
-
-    connect( _action_saveIntoRosbag, &QAction::triggered, this, &DataStreamROS::saveIntoRosbag );
-
-    _action_clearBuffer = new QAction(QString("Clear buffer if Loop restarts"), _menu);
-    _action_clearBuffer->setCheckable( true );
-
-    QSettings settings;
-    bool reset_loop = settings.value("DataStreamROS/resetAtLoop", false).toBool();
-    _action_clearBuffer->setChecked( reset_loop );
-
-    _menu->addAction( _action_clearBuffer );
-}
-
 QDomElement DataStreamROS::xmlSaveState(QDomDocument &doc) const
 {
     QString topics_list = _default_topic_names.join(";");
@@ -525,5 +503,25 @@ bool DataStreamROS::xmlLoadState(QDomElement &parent_element)
         }
     }
     return false;
+}
+
+void DataStreamROS::addActionsToParentMenu(QMenu *menu)
+{
+    _action_saveIntoRosbag = new QAction(QString("Save cached value in a rosbag"), menu);
+    QIcon iconSave;
+    iconSave.addFile(QStringLiteral(":/icons/resources/light/save.png"), QSize(26, 26));
+    _action_saveIntoRosbag->setIcon(iconSave);
+    menu->addAction( _action_saveIntoRosbag );
+
+    connect( _action_saveIntoRosbag, &QAction::triggered, this, &DataStreamROS::saveIntoRosbag );
+
+    _action_clearBuffer = new QAction(QString("Clear buffer if Loop restarts"), menu);
+    _action_clearBuffer->setCheckable( true );
+
+    QSettings settings;
+    bool reset_loop = settings.value("DataStreamROS/resetAtLoop", false).toBool();
+    _action_clearBuffer->setChecked( reset_loop );
+
+    menu->addAction( _action_clearBuffer );
 }
 

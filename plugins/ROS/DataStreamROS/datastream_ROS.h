@@ -30,11 +30,11 @@ public:
 
     virtual const char* name() const override { return "ROS Topic Streamer";  }
 
-    virtual void setParentMenu(QMenu* menu) override;
-
     virtual QDomElement xmlSaveState(QDomDocument &doc) const override;
 
     virtual bool xmlLoadState(QDomElement &parent_element ) override;
+
+    virtual void addActionsToParentMenu( QMenu* menu ) override;
 
 private:
 

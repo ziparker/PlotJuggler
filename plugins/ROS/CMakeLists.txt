@@ -19,6 +19,8 @@ SET( COMMON_SRC
     rule_editing.cpp
     qnodedialog.h
     qnodedialog.cpp
+    introspection_parser.h
+    introspection_parser.cpp
     dialog_select_ros_topics.h
     dialog_select_ros_topics.cpp
     dialog_with_itemlist.h
