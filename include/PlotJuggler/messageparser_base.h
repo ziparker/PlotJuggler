@@ -6,11 +6,12 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#include <absl/types/span.h>
 #include "PlotJuggler/plotdata.h"
 
 typedef std::string MessageKey;
 
-typedef std::vector<uint8_t> RawMessage;
+typedef absl::Span<uint8_t> RawMessage;
 /**
  * @brief The MessageParser is the base class to create plugins that are able to parse one or
  * multiple Message types.
@@ -28,38 +29,39 @@ public:
 
     virtual const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const = 0;
 
-    virtual void pushRawMessage(const MessageKey& key, const RawMessage& msg, double timestamp) = 0;
+    virtual void pushRawMessage(const MessageKey& key,
+                                const RawMessage& msg,
+                                double timestamp) = 0;
 
-    virtual void extractData(PlotDataMapRef&) = 0;
+    virtual void extractData(PlotDataMapRef& destination,
+                             const std::string& prefix) = 0;
 
-};
+protected:
 
-/// Factory to store and retrieve parsers.
-
-class ParsersRegistry
-{
-
-public:
-
-    void addParser(MessageParser* parser)
+    static void appendData(PlotDataMapRef& destination_plot_map,
+                           const std::string& field_name,
+                           PlotData& in_data)
     {
-        for( MessageKey key: parser->getCompatibleMessageKeys() )
+        if( in_data.size() == 0 )
         {
-            parsers_map.insert( { key, parser } );
+            return;
         }
-        parsers.push_back( std::unique_ptr<MessageParser>(parser) );
+        auto plot_pair = destination_plot_map.numeric.find( field_name );
+        if( (plot_pair == destination_plot_map.numeric.end()) )
+        {
+            plot_pair = destination_plot_map.addNumeric( field_name );
+            plot_pair->second.swapData( in_data );
+        }
+        else{
+            PlotData& plot_data = plot_pair->second;
+            for(size_t i=0; i < in_data.size(); i++)
+            {
+                plot_data.pushBack( in_data[i] );
+            }
+        }
+        in_data.clear();
     }
-
-    const MessageParser& operator[](const MessageKey& key)
-    {
-        return *(parsers_map[key]);
-    }
-private:
-
-    std::unordered_map<MessageKey, const MessageParser*> parsers_map;
-    std::vector<std::unique_ptr<MessageParser>> parsers;
 };
-
 
 QT_BEGIN_NAMESPACE
 
