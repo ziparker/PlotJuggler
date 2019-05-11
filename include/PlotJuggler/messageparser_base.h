@@ -4,28 +4,11 @@
 #include <QtPlugin>
 #include <array>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 #include "PlotJuggler/plotdata.h"
 
-typedef std::array<uint8_t, 16> MessageKey;
-
-namespace std {
-
-  template <> struct hash<MessageKey>
-  {
-    std::size_t operator()(const MessageKey& key) const
-    {
-        const int S = sizeof(size_t);
-        size_t temp = 0, h = 0;
-
-        for (size_t i = 0; i < sizeof(key); i += S){
-            memcpy(&temp, key.data() + i, S);
-            h = h ^ ( std::hash<size_t>()( temp ) << 1);
-        }
-        return h;
-    }
-  };
-}
+typedef std::string MessageKey;
 
 typedef std::vector<uint8_t> RawMessage;
 /**
@@ -43,54 +26,38 @@ public:
 
     virtual ~MessageParser() {}
 
-    virtual bool addSchema(const MessageKey& key, const std::string& schema) {}
+    virtual const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const = 0;
 
-    virtual bool addSchema(const std::string& schema) {}
+    virtual void pushRawMessage(const MessageKey& key, const RawMessage& msg, double timestamp) = 0;
 
-    virtual const std::vector<MessageKey>& getCompatibleMessageKeys() const = 0;
+    virtual void extractData(PlotDataMapRef&) = 0;
 
-    // return true if succesfull + an optional warning string
-    virtual std::pair<bool, std::string>
-    pushRawMessage(const MessageKey& key, const RawMessage& msg) = 0;
-
-    virtual const PlotData& plotData() const
-    {
-        return _plot_data;
-    }
-
-    virtual PlotData& plotData()
-    {
-        return _plot_data;
-    }
-
-private:
-
-    PlotData _plot_data;
 };
 
-/// Factory and Singleton to store and retrieve parsers.
+/// Factory to store and retrieve parsers.
 
-class RegisteredParsers
+class ParsersRegistry
 {
+
 public:
-    typedef std::unordered_map<MessageKey, std::unique_ptr<MessageParser>> ParserMap;
 
-    ParserMap& get()
+    void addParser(MessageParser* parser)
     {
-        static std::unordered_map<MessageKey, std::unique_ptr<MessageParser>> parsers;
-        return parsers;
+        for( MessageKey key: parser->getCompatibleMessageKeys() )
+        {
+            parsers_map.insert( { key, parser } );
+        }
+        parsers.push_back( std::unique_ptr<MessageParser>(parser) );
     }
 
-    void addParser(const MessageKey& key, MessageParser* parser)
+    const MessageParser& operator[](const MessageKey& key)
     {
-        get().insert( { key, std::unique_ptr<MessageParser>(parser) });
+        return *(parsers_map[key]);
     }
+private:
 
-    MessageParser& operator[](const MessageKey& key)
-    {
-        get()[key];
-    }
-
+    std::unordered_map<MessageKey, const MessageParser*> parsers_map;
+    std::vector<std::unique_ptr<MessageParser>> parsers;
 };
 
 

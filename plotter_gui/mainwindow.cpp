@@ -573,7 +573,7 @@ void MainWindow::loadPlugins(QString directory_name)
                     ui->menuStreaming->setEnabled(true);
                     ui->menuStreaming->addAction(startStreamer);
 
-                    streamer->setParentMenu( ui->menuStreaming );
+                    streamer->addActionsToParentMenu( ui->menuStreaming );
                     ui->menuStreaming->addSeparator();
 
                     connect(startStreamer, SIGNAL(triggered()), _streamer_signal_mapper, SLOT(map()) );

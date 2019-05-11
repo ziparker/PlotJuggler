@@ -7,7 +7,7 @@
 #include "PlotJuggler/dataloader_base.h"
 
 
-class  DataLoadULog: public QObject, DataLoader
+class DataLoadULog: public DataLoader
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "com.icarustechnology.PlotJuggler.DataLoader" "../dataloader.json")

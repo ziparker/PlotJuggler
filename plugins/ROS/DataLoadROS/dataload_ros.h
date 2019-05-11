@@ -8,9 +8,9 @@
 #include <rosbag/bag.h>
 
 #include "PlotJuggler/dataloader_base.h"
-#include <ros_type_introspection/ros_introspection.hpp>
+#include "../introspection_parser.h"
 
-class  DataLoadROS: public QObject, DataLoader
+class  DataLoadROS: public DataLoader
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "com.icarustechnology.PlotJuggler.DataLoader" "../dataloader.json")
@@ -18,13 +18,14 @@ class  DataLoadROS: public QObject, DataLoader
 
 public:
     DataLoadROS();
+
     virtual const std::vector<const char*>& compatibleFileExtensions() const override;
 
     virtual PlotDataMapRef readDataFromFile(const QString& file_name, bool use_previous_configuration ) override;
 
     virtual const char* name() const override { return "DataLoad ROS bags"; }
 
-    virtual ~DataLoadROS();
+    virtual ~DataLoadROS() override;
 
     virtual QDomElement xmlSaveState(QDomDocument &doc) const override;
 
@@ -35,13 +36,11 @@ protected:
     std::shared_ptr<rosbag::Bag> _bag;
 
 private:
-    RosIntrospection::SubstitutionRuleMap  _rules;
+    IntrospectionParser _introspection_parser;
 
     std::vector<const char*> _extensions;
 
     QStringList _default_topic_names;
-
-    std::unique_ptr<RosIntrospection::Parser> _parser;
 
     bool _use_renaming_rules;
 

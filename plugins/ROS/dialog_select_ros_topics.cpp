@@ -80,13 +80,10 @@ DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString
 
     on_spinBoxArraySize_valueChanged( ui->spinBoxArraySize->value() );
 
-    if( ! has_setMaxArrayPolicy<RosIntrospection::Parser>::value)
-    {
-        ui->radioMaxDiscard->setChecked(true);
-        ui->radioMaxClamp->setEnabled(false);
-        ui->radioMaxClamp->setToolTip("To enable this policy you must link to an up-to-date "
-                                      "version of ros_type_introspection");
-    }
+    ui->radioMaxDiscard->setChecked(true);
+    ui->radioMaxClamp->setEnabled(false);
+    ui->radioMaxClamp->setToolTip("To enable this policy you must link to an up-to-date "
+                                  "version of ros_type_introspection");
 }
 
 void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QString> > topic_list )
