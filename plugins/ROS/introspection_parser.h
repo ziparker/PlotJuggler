@@ -1,43 +1,33 @@
 #ifndef INTROSPECTIONPARSER_H
 #define INTROSPECTIONPARSER_H
 
-#include "PlotJuggler/messageparser_base.h"
+#include "RosMsgParsers/ros_messageparser.h"
 #include <ros_type_introspection/ros_introspection.hpp>
 
 class IntrospectionParser : public MessageParser
 {
 public:
-    IntrospectionParser() {}
+    IntrospectionParser();
 
-    void clear()
-    {
-        //TODO
-    }
+    void clear();
 
-    void setMaxArrayPolicy(size_t max_array_size, bool discard_entire_array);
-
-    void setUseHeaderStamp( bool use )
-    {
-        // TODO
-    }
+    void setMaxArrayPolicy(size_t max_array_size,
+                           bool discard_entire_array);
 
     void addRules( const RosIntrospection::SubstitutionRuleMap& rules)
     {
         for(const auto& it: rules)
         {
-            _ros_parser.registerRenamingRules(
+            _ros_parser->registerRenamingRules(
                         RosIntrospection::ROSType(it.first) ,
                         it.second );
         }
     }
 
     bool registerSchema(const std::string& topic_name,
+                        const std::string& md5sum,
                         RosIntrospection::ROSType type,
-                        const std::string& definition)
-    {
-        _ros_parser.registerMessageDefinition(topic_name, type, definition);
-        _registered_keys.insert( topic_name );
-    }
+                        const std::string& definition);
 
     virtual const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const override
     {
@@ -51,18 +41,16 @@ public:
 
     void showWarnings();
 
-    virtual void extractData(PlotDataMapRef& out) override
-    {
-        out = std::move(_plot_map);
-        _plot_map = PlotDataMapRef();
-    }
+    virtual void extractData(PlotDataMapRef& destination,
+                             const std::string& prefix) override;
+
 
 private:
     std::unordered_set<MessageKey> _registered_keys;
-    RosIntrospection::Parser _ros_parser;
+    std::unique_ptr<RosIntrospection::Parser> _ros_parser;
     PlotDataMapRef _plot_map;
 
-    ParsersRegistry _parsers;
+    std::unordered_map<std::string, MessageParser*> _builtin_parsers;
 
     uint32_t _max_array_size;
     bool _warnings_enabled;

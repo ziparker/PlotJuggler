@@ -64,6 +64,14 @@ public:
 
   PlotDataGeneric( const PlotDataGeneric<Time,Value>& other) = delete;
 
+  PlotDataGeneric(PlotDataGeneric&& other)
+  {
+      _name = std::move(other._name);
+      _points = std::move(other._points);
+      _color_hint = std::move(other._color_hint);
+      _max_range_X = other._max_range_X;
+  }
+
   void swapData( PlotDataGeneric<Time,Value>& other)
   {
       std::swap(_points, other._points);

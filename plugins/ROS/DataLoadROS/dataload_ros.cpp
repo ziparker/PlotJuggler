@@ -58,7 +58,7 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
 
         all_topics.push_back( std::make_pair(QString( topic.c_str()), QString( datatype.c_str()) ) );
         _introspection_parser.registerSchema(
-                    topic, RosIntrospection::ROSType(datatype), definition);
+                    topic, md5sum, RosIntrospection::ROSType(datatype), definition);
         RosIntrospectionFactory::registerMessage(topic, md5sum, datatype, definition);
     }
     return all_topics;
@@ -106,7 +106,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     if( _bag ) _bag->close();
 
     _bag = std::make_shared<rosbag::Bag>();
-    // TODO _parser.reset( new RosIntrospection::Parser );
+    _introspection_parser.clear();
 
     try{
         _bag->open( file_name.toStdString(), rosbag::bagmode::Read );
@@ -216,14 +216,17 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
 
         const double msg_time = msg_instance.getTime().toSec();
 
-        _introspection_parser.pushRawMessage( topic_name, buffer, msg_time );
+        RawMessage buffer_view( buffer );
+        _introspection_parser.pushRawMessage( topic_name, buffer_view, msg_time );
     }
 
-    _introspection_parser.extractData(plot_map);
+    _introspection_parser.extractData(plot_map, prefix);
 
     storeMessageInstancesAsUserDefined(plot_map, prefix);
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
+
+    _introspection_parser.showWarnings();
 
     return plot_map;
 }
