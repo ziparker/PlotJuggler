@@ -4,7 +4,7 @@
 #include "RosMsgParsers/ros_messageparser.h"
 #include <ros_type_introspection/ros_introspection.hpp>
 
-class IntrospectionParser : public MessageParser
+class IntrospectionParser : public RosMessageParser
 {
 public:
     IntrospectionParser();
@@ -18,7 +18,7 @@ public:
     {
         for(const auto& it: rules)
         {
-            _ros_parser->registerRenamingRules(
+            _introspection_parser->registerRenamingRules(
                         RosIntrospection::ROSType(it.first) ,
                         it.second );
         }
@@ -47,10 +47,10 @@ public:
 
 private:
     std::unordered_set<MessageKey> _registered_keys;
-    std::unique_ptr<RosIntrospection::Parser> _ros_parser;
+    std::unique_ptr<RosIntrospection::Parser> _introspection_parser;
     PlotDataMapRef _plot_map;
 
-    std::unordered_map<std::string, MessageParser*> _builtin_parsers;
+    std::unordered_map<std::string, RosMessageParser*> _builtin_parsers;
 
     uint32_t _max_array_size;
     bool _warnings_enabled;

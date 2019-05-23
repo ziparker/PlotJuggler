@@ -57,7 +57,7 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
         const auto&  definition =  conn->msg_def;
 
         all_topics.push_back( std::make_pair(QString( topic.c_str()), QString( datatype.c_str()) ) );
-        _introspection_parser.registerSchema(
+        _ros_parser.registerSchema(
                     topic, md5sum, RosIntrospection::ROSType(datatype), definition);
         RosIntrospectionFactory::registerMessage(topic, md5sum, datatype, definition);
     }
@@ -106,7 +106,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     if( _bag ) _bag->close();
 
     _bag = std::make_shared<rosbag::Bag>();
-    _introspection_parser.clear();
+    _ros_parser.clear();
 
     try{
         _bag->open( file_name.toStdString(), rosbag::bagmode::Read );
@@ -157,10 +157,10 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
 
     if( _use_renaming_rules )
     {
-        _introspection_parser.addRules( RuleEditing::getRenamingRules() );
+        _ros_parser.addRules( RuleEditing::getRenamingRules() );
     }
 
-    const std::string prefix    = dialog->prefix().toStdString();
+    const std::string prefix  = dialog->prefix().toStdString();
 
     //-----------------------------------
     std::set<std::string> topic_selected;
@@ -190,7 +190,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     QElapsedTimer timer;
     timer.start();
 
-    _introspection_parser.setMaxArrayPolicy(
+    _ros_parser.setMaxArrayPolicy(
                 dialog->maxArraySize(),
                 dialog->discardEntireArrayIfTooLarge() );
 
@@ -217,16 +217,16 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         const double msg_time = msg_instance.getTime().toSec();
 
         RawMessage buffer_view( buffer );
-        _introspection_parser.pushRawMessage( topic_name, buffer_view, msg_time );
+        _ros_parser.pushRawMessage( topic_name, buffer_view, msg_time );
     }
 
-    _introspection_parser.extractData(plot_map, prefix);
+    _ros_parser.extractData(plot_map, prefix);
 
     storeMessageInstancesAsUserDefined(plot_map, prefix);
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
 
-    _introspection_parser.showWarnings();
+    _ros_parser.showWarnings();
 
     return plot_map;
 }

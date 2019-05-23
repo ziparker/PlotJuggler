@@ -5,7 +5,7 @@
 #include "geometry_msgs/TwistStamped.h"
 #include "ros_messageparser.h"
 
-class GeometryMsgTwist: public RosMessageParser<geometry_msgs::Twist>
+class GeometryMsgTwist: public RosMessageParser
 {
 public:
 
@@ -17,6 +17,13 @@ public:
         _data.emplace_back( "/angular/x" );
         _data.emplace_back( "/angular/y" );
         _data.emplace_back( "/angular/z" );
+    }
+
+    const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const override
+    {
+        static std::unordered_set<MessageKey> compatible_key =
+        { ros::message_traits::MD5Sum<geometry_msgs::Twist>::value() };
+        return compatible_key;
     }
 
     virtual void pushRawMessage(const MessageKey& ,

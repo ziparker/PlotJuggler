@@ -6,7 +6,7 @@
 #include <absl/strings/str_cat.h>
 
 
-class DisagnosticMsg: public RosMessageParser<diagnostic_msgs::DiagnosticArray>
+class DisagnosticMsg: public RosMessageParser
 {
 public:
 
@@ -14,6 +14,13 @@ public:
     {
         _header_data.emplace_back( "/header/seq" );
         _header_data.emplace_back( "/header/stamp" );
+    }
+
+    const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const override
+    {
+        static std::unordered_set<MessageKey> compatible_key =
+        { ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value() };
+        return compatible_key;
     }
 
     virtual void pushRawMessage(const MessageKey& ,
