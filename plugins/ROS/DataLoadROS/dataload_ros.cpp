@@ -59,6 +59,7 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
         all_topics.push_back( std::make_pair(QString( topic.c_str()), QString( datatype.c_str()) ) );
         _ros_parser.registerSchema(
                     topic, md5sum, RosIntrospection::ROSType(datatype), definition);
+
         RosIntrospectionFactory::registerMessage(topic, md5sum, datatype, definition);
     }
     return all_topics;

@@ -62,6 +62,7 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     _ros_parser.registerSchema( topic_name, md5sum,
                                 RosIntrospection::ROSType(datatype),
                                 definition);
+
     RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition );
 
     //------------------------------------
