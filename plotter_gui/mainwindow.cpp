@@ -1482,7 +1482,7 @@ void MainWindow::savePluginState(QDomDocument& doc)
         QString name = it.first;
         const DataStreamer* datastreamer = it.second;
 
-        QDomElement elem = doc.createElement(  name );
+        QDomElement elem = doc.createElement( name );
         elem.appendChild( datastreamer->xmlSaveState(doc) );
         plugins_elem.appendChild( elem );
     }

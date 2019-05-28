@@ -64,7 +64,11 @@ bool IntrospectionParser::registerSchema(const std::string &topic_name,
                                          RosIntrospection::ROSType type,
                                          const std::string &definition)
 {
-    _introspection_parser->registerMessageDefinition(topic_name, type, definition);
+    if( _registered_keys.find(topic_name) != _registered_keys.end() )
+    {
+        return false;
+    }
+
     _registered_keys.insert( topic_name );
 
     if( md5sum == ros::message_traits::MD5Sum<geometry_msgs::Twist>::value() )
@@ -78,6 +82,9 @@ bool IntrospectionParser::registerSchema(const std::string &topic_name,
     else if( md5sum == ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value() )
     {
         _builtin_parsers.insert( {topic_name, new DisagnosticMsg() } );
+    }
+    else{
+        _introspection_parser->registerMessageDefinition(topic_name, type, definition);
     }
 }
 
@@ -97,7 +104,7 @@ void IntrospectionParser::pushRawMessage(const MessageKey &topic_name,
     FlatMessage flat_container;
     RenamedValues renamed_values;
 
-    absl::Span<uint8_t> msg_view ( const_cast<uint8_t*>(msg.data()), msg.size());
+    absl::Span<uint8_t> msg_view ( const_cast<uint8_t*>(msg.data()), msg.size() );
 
     bool max_size_ok = _introspection_parser->deserializeIntoFlatContainer(
                 topic_name,
@@ -111,23 +118,32 @@ void IntrospectionParser::pushRawMessage(const MessageKey &topic_name,
     }
 
     _introspection_parser->applyNameTransform( topic_name,
-                                     flat_container,
-                                     &renamed_values );
+                                               flat_container,
+                                               &renamed_values );
+    if(_use_header_stamp)
+    {
+        for (const auto& it: flat_container.value)
+        {
+            if( it.second.getTypeID() != RosIntrospection::TIME)
+            {
+                continue;
+            }
+            const RosIntrospection::StringTreeNode* leaf1 = it.first.node_ptr;
+            const RosIntrospection::StringTreeNode* leaf2 = leaf1->parent();
+            if( leaf2 && leaf2->value() == "header" && leaf1->value() == "stamp")
+            {
+                double heder_stamp = it.second.convert<double>();
 
-//    if(_use_header_stamp)
-//    {
-//        const auto header_stamp = FlatContainerContainHeaderStamp(flat_container);
-//        if(header_stamp)
-//        {
-//            const double time = header_stamp.value();
-//            if( time > 0 ) {
-//                timestamp = time;
-//            }
-//            else{
-//                _warn_headerstamp.insert(topic_name);
-//            }
-//        }
-//    }
+                if( heder_stamp > 0 ) {
+                    timestamp = heder_stamp;
+                }
+                else{
+                    _warn_headerstamp.insert(topic_name);
+                }
+                break;
+            }
+        }
+    }
 
     for(const auto& it: renamed_values )
     {

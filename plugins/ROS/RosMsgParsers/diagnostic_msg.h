@@ -4,7 +4,7 @@
 #include "diagnostic_msgs/DiagnosticArray.h"
 #include "ros_messageparser.h"
 #include <absl/strings/str_cat.h>
-
+#include <absl/strings/charconv.h>
 
 class DisagnosticMsg: public RosMessageParser
 {
@@ -43,7 +43,10 @@ public:
         {
             for( const auto& kv: status.values)
             {
-                double val = strtod (kv.value.data(), nullptr);
+                const char *start_ptr = kv.value.data();
+                double val = 0;
+                auto res = absl::from_chars (start_ptr, start_ptr + kv.value.size(), val);
+                if( start_ptr == res.ptr ) continue;
 
                 std::string status_prefix;
                 if( status.hardware_id.empty()){
