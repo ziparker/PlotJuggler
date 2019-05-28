@@ -201,6 +201,8 @@ private:
 
     bool _test_option;
 
+    bool _autostart_publishers;
+
     double _tracker_time;
 
     QString _loaded_datafile;

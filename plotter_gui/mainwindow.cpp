@@ -54,7 +54,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
-    _test_option = (commandline_parser.isSet("test"));
+    _test_option = commandline_parser.isSet("test");
+    _autostart_publishers = commandline_parser.isSet("publish");
 
     _curvelist_widget = new FilterableListWidget(_custom_plots, this);
     _streamer_signal_mapper = new QSignalMapper(this);
@@ -538,18 +539,12 @@ void MainWindow::loadPlugins(QString directory_name)
                     ui->menuPublishers->addSeparator();
                     ui->menuPublishers->addSection(plugin_name);
                     ui->menuPublishers->addAction(activatePublisher);
-                    publisher->setParentMenu( ui->menuPublishers );
+                    publisher->setParentMenu( ui->menuPublishers, activatePublisher );
 
                     connect(activatePublisher, &QAction::toggled,
                             [=](bool enable)
                     {
                         publisher->setEnabled( enable );
-                        if( publisher->enabled() == false )
-                        {
-                            auto prev = activatePublisher->blockSignals(true);
-                            activatePublisher->setChecked(false);
-                            activatePublisher->blockSignals(false);
-                        }
                     } );
                 }
             }
@@ -1451,7 +1446,13 @@ void MainWindow::loadPluginState(const QDomElement& root)
             }
             if( _state_publisher.find(plugin_name) != _state_publisher.end() )
             {
-                _state_publisher[plugin_name]->xmlLoadState(plugin_elem);
+                StatePublisher* publisher = _state_publisher[plugin_name];
+                publisher->xmlLoadState(plugin_elem);
+
+                if( _autostart_publishers && plugin_elem.attribute("status") == "active" )
+                {
+                    publisher->setEnabled(true);
+                }
             }
         }
     }
@@ -1493,6 +1494,7 @@ void MainWindow::savePluginState(QDomDocument& doc)
         const StatePublisher* state_publisher = it.second;
 
         QDomElement elem = doc.createElement(  name );
+        elem.setAttribute("status", state_publisher->enabled() ? "active" : "idle");
         elem.appendChild( state_publisher->xmlSaveState(doc) );
         plugins_elem.appendChild( elem );
     }
@@ -1618,7 +1620,29 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
             }
         }
     }
+    //-------------------------------------------------
+    // autostart_publishers
+    QDomElement plugins = root.firstChildElement("Plugins");
 
+    if( ! plugins.isNull() && _autostart_publishers )
+    {
+        for ( QDomElement plugin_elem = plugins.firstChildElement()  ;
+              plugin_elem.isNull() == false;
+              plugin_elem = plugin_elem.nextSiblingElement() )
+        {
+            const QString plugin_name = plugin_elem.nodeName();
+            if( _state_publisher.find(plugin_name) != _state_publisher.end() )
+            {
+                StatePublisher* publisher = _state_publisher[plugin_name];
+
+                if( plugin_elem.attribute("status") == "active" )
+                {
+                    publisher->setEnabled(true);
+                }
+            }
+        }
+    }
+    //-------------------------------------------------
     auto custom_equations = root.firstChildElement( "customMathEquations" );
 
     try{
