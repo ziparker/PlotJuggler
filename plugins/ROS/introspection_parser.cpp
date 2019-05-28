@@ -1,6 +1,7 @@
 #include "introspection_parser.h"
 #include "dialog_with_itemlist.h"
 #include "RosMsgParsers/geometry_msg_twist.h"
+#include "RosMsgParsers/diagnostic_msg.h"
 
 IntrospectionParser::IntrospectionParser()
 {
@@ -13,7 +14,7 @@ void IntrospectionParser::clear()
     _warn_cancellation.clear();
     _warn_max_arraysize.clear();
     _plot_map.numeric.clear();
-    _ros_parser.reset( new RosIntrospection::Parser );
+    _introspection_parser.reset( new RosIntrospection::Parser );
     _builtin_parsers.clear();
 }
 
@@ -55,7 +56,7 @@ void IntrospectionParser::setMaxArrayPolicy(size_t max_array_size, bool discard_
 {
     _max_array_size = max_array_size;
     _discard_large_array = discard_entire_array;
-    _ros_parser->setMaxArrayPolicy( discard_entire_array );
+    _introspection_parser->setMaxArrayPolicy( discard_entire_array );
 }
 
 bool IntrospectionParser::registerSchema(const std::string &topic_name,
@@ -63,7 +64,7 @@ bool IntrospectionParser::registerSchema(const std::string &topic_name,
                                          RosIntrospection::ROSType type,
                                          const std::string &definition)
 {
-    _ros_parser->registerMessageDefinition(topic_name, type, definition);
+    _introspection_parser->registerMessageDefinition(topic_name, type, definition);
     _registered_keys.insert( topic_name );
 
     if( md5sum == ros::message_traits::MD5Sum<geometry_msgs::Twist>::value() )
@@ -73,6 +74,10 @@ bool IntrospectionParser::registerSchema(const std::string &topic_name,
     else if( md5sum == ros::message_traits::MD5Sum<geometry_msgs::TwistStamped>::value() )
     {
         _builtin_parsers.insert( {topic_name, new GeometryMsgTwistStamped("/twist") } );
+    }
+    else if( md5sum == ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value() )
+    {
+        _builtin_parsers.insert( {topic_name, new DisagnosticMsg() } );
     }
 }
 
@@ -94,7 +99,7 @@ void IntrospectionParser::pushRawMessage(const MessageKey &topic_name,
 
     absl::Span<uint8_t> msg_view ( const_cast<uint8_t*>(msg.data()), msg.size());
 
-    bool max_size_ok = _ros_parser->deserializeIntoFlatContainer(
+    bool max_size_ok = _introspection_parser->deserializeIntoFlatContainer(
                 topic_name,
                 msg_view,
                 &flat_container,
@@ -105,7 +110,7 @@ void IntrospectionParser::pushRawMessage(const MessageKey &topic_name,
         _warn_max_arraysize.insert(topic_name);
     }
 
-    _ros_parser->applyNameTransform( topic_name,
+    _introspection_parser->applyNameTransform( topic_name,
                                      flat_container,
                                      &renamed_values );
 

@@ -52,8 +52,8 @@ FilterableListWidget::FilterableListWidget(const CustomPlotMap &mapped_math_plot
     {
         table_view->viewport()->installEventFilter( this );
         table_view->setModel( _model );
+        table_view->horizontalHeader()->setStretchLastSection (true);
         table_view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        table_view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     }
 
     ui->widgetOptions->setVisible(false);
@@ -144,6 +144,10 @@ void FilterableListWidget::refreshColumns()
 {
     ui->tableView->sortByColumn(0,Qt::AscendingOrder);
     ui->tableViewCustom->sortByColumn(0,Qt::AscendingOrder);
+
+    ui->tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    ui->tableViewCustom->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+
     updateFilter();
 }
 

@@ -58,113 +58,49 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     const auto&  datatype   =  msg->getDataType();
     const auto&  definition =  msg->getMessageDefinition() ;
 
-      // register the message type
-    _parser->registerMessageDefinition(topic_name, ROSType(datatype), definition);
+    // register the message type
+    _ros_parser.registerSchema( topic_name, md5sum,
+                                RosIntrospection::ROSType(datatype),
+                                definition);
     RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition );
-
-    if( _using_renaming_rules ){
-      for (auto& it: _rules)
-      {
-        _parser->registerRenamingRules( it.first, it.second );
-      }
-    }
 
     //------------------------------------
 
     // it is more efficient to recycle this elements
     static std::vector<uint8_t> buffer;
-    static FlatMessage flat_container;
-    static RenamedValues renamed_value;
     
     buffer.resize( msg->size() );
     
     ros::serialization::OStream stream(buffer.data(), buffer.size());
     msg->write(stream);
 
-    // WORKAROUND. There are some problems related to renaming when the character / is
-    // used as prefix. We will remove that here.
-    //if( topicname_SS.at(0) == '/' ) topicname_SS = SString( topic_name.data() +1,  topic_name.size()-1 );
-
-    _parser->deserializeIntoFlatContainer( topic_name, absl::Span<uint8_t>(buffer), &flat_container, _max_array_size);
-    _parser->applyNameTransform( topic_name, flat_container, &renamed_value );
-
     double msg_time = ros::Time::now().toSec();
 
-    if( _use_header_stamp )
-    {
-        const auto header_stamp = FlatContainerContainHeaderStamp(flat_container);
-        if(header_stamp)
-        {
-            const double time = header_stamp.value();
-            if( time > 0 ) {
-              msg_time = time;
-            }
-        }
-    }
-    else{
-        if( _clock_time.toSec() != 0.0)
-        {
-            msg_time = _clock_time.toSec();
-        }
-    }
+    RawMessage buffer_view( buffer );
+    _ros_parser.pushRawMessage( topic_name, buffer_view, msg_time );
 
     std::lock_guard<std::mutex> lock( mutex() );
+    const std::string full_prefix = _prefix + topic_name;
 
     // adding raw serialized msg for future uses.
     // do this before msg_time normalization
     {
-        const std::string key = _prefix + topic_name;
-        auto plot_pair = dataMap().user_defined.find( key );
+        auto plot_pair = dataMap().user_defined.find( full_prefix );
         if( plot_pair == dataMap().user_defined.end() )
         {
-            plot_pair = dataMap().addUserDefined( key );
+            plot_pair = dataMap().addUserDefined( full_prefix );
         }
         PlotDataAny& user_defined_data = plot_pair->second;
         user_defined_data.pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer)) ));
     }
 
-    for(auto& it: renamed_value )
-    {
-        const std::string key = ( _prefix + it.first  );
-        const auto& value = it.second;
-        double val_d = 0.0;
-
-        // FIXME
-        // bypass the error checking in Variant::convert.
-        // Related to issue #100 on Github
-        if( value.getTypeID() == RosIntrospection::UINT64)
-        {
-            uint64_t val_i = value.extract<uint64_t>();
-            val_d = static_cast<double>(val_i);
-        }
-        else if( value.getTypeID() == RosIntrospection::INT64)
-        {
-            int64_t val_i = value.extract<int64_t>();
-            val_d = static_cast<double>(val_i);
-        }
-        else{
-            try{
-                val_d = value.convert<double>();
-            }
-            catch(std::exception&)
-            {
-                continue;
-            }
-        }
-
-        auto plot_it = dataMap().numeric.find(key);
-        if( plot_it == dataMap().numeric.end())
-        {
-            plot_it = dataMap().addNumeric( key );
-        }
-        plot_it->second.pushBack( PlotData::Point(msg_time, val_d) );
-    }
+    _ros_parser.extractData(dataMap(), full_prefix);
 
     //------------------------------
     {
         int& index = _msg_index[topic_name];
         index++;
-        const std::string key = _prefix + topic_name + ("/_MSG_INDEX_") ;
+        const std::string key = full_prefix + ("/_MSG_INDEX_") ;
         auto index_it = dataMap().numeric.find(key);
         if( index_it == dataMap().numeric.end())
         {
@@ -241,8 +177,8 @@ void DataStreamROS::timerCallback()
         }
         else if( ret == 0)
         {
-          this->shutdown();
-          emit connectionClosed();
+            this->shutdown();
+            emit connectionClosed();
         }
     }
 }
@@ -292,8 +228,8 @@ void DataStreamROS::saveIntoRosbag()
 
                 if(type_erased_buffer.type() != typeid( std::vector<uint8_t> ))
                 {
-                  // can't cast to expected type
-                  continue;
+                    // can't cast to expected type
+                    continue;
                 }
 
                 std::vector<uint8_t> raw_buffer =  nonstd::any_cast<std::vector<uint8_t>>( type_erased_buffer );
@@ -348,7 +284,7 @@ void DataStreamROS::subscribe()
 
 bool DataStreamROS::start()
 {
-    _parser.reset( new RosIntrospection::Parser );
+    _ros_parser.clear();
     if( !_node )
     {
         _node =  RosManager::getNode();
@@ -412,31 +348,28 @@ bool DataStreamROS::start()
 
     int res = dialog.exec();
 
-
     timer.stop();
-
-    _use_header_stamp = dialog.checkBoxTimestamp()->isChecked();
-    _using_renaming_rules = dialog.checkBoxUseRenamingRules()->isChecked();
 
     if( res != QDialog::Accepted || dialog.getSelectedItems().empty() )
     {
         return false;
     }
 
-     _default_topic_names = dialog.getSelectedItems();
+    _ros_parser.setUseHeaderStamp( dialog.checkBoxTimestamp()->isChecked() );
+
+    if( dialog.checkBoxUseRenamingRules()->isChecked() )
+    {
+        _ros_parser.addRules( RuleEditing::getRenamingRules() );
+    }
+
+    _default_topic_names = dialog.getSelectedItems();
 
     settings.setValue("DataStreamROS/default_topics", _default_topic_names);
 
-    // load the rules
-    if( dialog.checkBoxUseRenamingRules()->isChecked() ){
-        _rules = RuleEditing::getRenamingRules();
-    }
+    _ros_parser.setMaxArrayPolicy(dialog.maxArraySize(), dialog.discardEntireArrayIfTooLarge() );
 
     _prefix = dialog.prefix().toStdString();
-    _max_array_size = dialog.maxArraySize();
     //-------------------------
-
-    // TODO setMaxArrayPolicy( _parser.get(), dialog.discardEntireArrayIfTooLarge() );
 
     subscribe();
 

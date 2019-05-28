@@ -225,7 +225,7 @@ void MainWindow::onUndoableChange()
     while( _undo_states.size() >= 100 ) _undo_states.pop_front();
     _undo_states.push_back( xmlSaveState() );
     _redo_states.clear();
-//    qDebug() << "undo " << _undo_states.size();
+    //    qDebug() << "undo " << _undo_states.size();
 }
 
 
@@ -241,7 +241,7 @@ void MainWindow::onRedoInvoked()
 
         xmlLoadState( state_document );
     }
-//    qDebug() << "undo " << _undo_states.size();
+    //    qDebug() << "undo " << _undo_states.size();
     _disable_undo_logging = false;
 }
 
@@ -258,7 +258,7 @@ void MainWindow::onUndoInvoked( )
 
         xmlLoadState( state_document );
     }
-//    qDebug() << "undo " << _undo_states.size();
+    //    qDebug() << "undo " << _undo_states.size();
     _disable_undo_logging = false;
 }
 
@@ -270,62 +270,57 @@ void MainWindow::onUpdateLeftTableValues()
 
     for(auto table_view: { _curvelist_widget->getTableView(), _curvelist_widget->getCustomView() } )
     {
-        if( _curvelist_widget->is2ndColumnHidden() == false)
+        if( _curvelist_widget->is2ndColumnHidden() )
         {
-            table_view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-            table_view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+            continue;
+        }
 
-            const int vertical_height = table_view->visibleRegion().boundingRect().height();
+        const int vertical_height = table_view->visibleRegion().boundingRect().height();
 
-            for (int row = 0; row < _curvelist_widget->rowCount(); row++)
+        for (int row = 0; row < _curvelist_widget->rowCount(); row++)
+        {
+            int vertical_pos = table_view->rowViewportPosition(row);
+            if( vertical_pos < 0 || table_view->isRowHidden(row) ){ continue; }
+            if( vertical_pos > vertical_height){ break; }
+
+            const std::string& name = table_model->item(row,0)->text().toStdString();
+            auto it = _mapped_plot_data.numeric.find(name);
+            if( it !=  _mapped_plot_data.numeric.end())
             {
-                int vertical_pos = table_view->rowViewportPosition(row);
-                if( vertical_pos < 0 || table_view->isRowHidden(row) ){ continue; }
-                if( vertical_pos > vertical_height){ break; }
+                auto& data = it->second;
 
-                const std::string& name = table_model->item(row,0)->text().toStdString();
-                auto it = _mapped_plot_data.numeric.find(name);
-                if( it !=  _mapped_plot_data.numeric.end())
+                double num = 0.0;
+                bool valid = false;
+
+                if( _tracker_time < std::numeric_limits<double>::max())
                 {
-                    auto& data = it->second;
-
-                    double num = 0.0;
-                    bool valid = false;
-
-                    if( _tracker_time < std::numeric_limits<double>::max())
-                    {
-                        auto value = data.getYfromX( _tracker_time );
-                        if(value){
-                            valid = true;
-                            num = value.value();
-                        }
+                    auto value = data.getYfromX( _tracker_time );
+                    if(value){
+                        valid = true;
+                        num = value.value();
                     }
-                    else{
-                        if( data.size() > 0) {
-                            valid = true;
-                            num = data.back().y;
-                        }
-                    }
-                    if( valid)
+                }
+                else if( data.size() > 0)
+                {
+                    valid = true;
+                    num = data.back().y;
+                }
+                if( valid )
+                {
+                    QString num_text = QString::number( num, 'f', 3);
+                    if(num_text.contains('.'))
                     {
-                        QString num_text = QString::number( num, 'f', 3);
-                        if(num_text.contains('.'))
+                        int idx = num_text.length() -1;
+                        while( num_text[idx] == '0' )
                         {
-                            int idx = num_text.length() -1;
-                            while( num_text[idx] == '0' )
-                            {
-                                num_text[idx] = ' ';
-                                idx--;
-                            }
-                            if(  num_text[idx] == '.') num_text[idx] = ' ';
+                            num_text[idx] = ' ';
+                            idx--;
                         }
-                        table_model->item(row,1)->setText(num_text + ' ');
+                        if(  num_text[idx] == '.') num_text[idx] = ' ';
                     }
-                    // table_model->item(row,1)->setText(num_text + ' ');
+                    table_model->item(row,1)->setText(num_text + ' ');
                 }
             }
-            table_view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-            table_view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         }
     }
 }
@@ -352,7 +347,6 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time, bool do_replot)
 {
     updatedDisplayTime();
     onUpdateLeftTableValues();
-
 
     for ( auto& it: _state_publisher)
     {
@@ -878,7 +872,7 @@ void MainWindow::onActionSaveLayout()
 
     auto checkbox_datasource = new QCheckBox("Save data source");
     checkbox_datasource->setToolTip("Do you want the layout to remember the source of your data,\n"
-                         "i.e. the Datafile used or the Streaming Plugin loaded ?");
+                                    "i.e. the Datafile used or the Streaming Plugin loaded ?");
     checkbox_datasource->setFocusPolicy( Qt::NoFocus );
     checkbox_datasource->setChecked( settings.value("MainWindow.saveLayoutDataSource", true).toBool() );
 
@@ -951,7 +945,7 @@ void MainWindow::onActionSaveLayout()
         root.appendChild(custom_equations);
 
         QByteArray snippets_xml_text = settings.value("AddCustomPlotDialog.savedXML",
-                                                  QByteArray() ).toByteArray();
+                                                      QByteArray() ).toByteArray();
         auto snipped_saved = GetSnippetsFromXML(snippets_xml_text);
         auto snippets_root = ExportSnippets( snipped_saved, doc);
         root.appendChild(snippets_root);
@@ -1182,27 +1176,29 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
         return;
     }
 
-    std::vector<std::string> old_one_to_delete;
-
-    for (auto& it: _mapped_plot_data.numeric)
+    if( delete_older )
     {
-        // timeseries in old but not in new
-        if( new_data.numeric.count( it.first ) == 0 )
+        std::vector<std::string> old_one_to_delete;
+        for (auto& it: _mapped_plot_data.numeric)
         {
-           old_one_to_delete.push_back( it.first );
+            // timeseries in old but not in new
+            if( new_data.numeric.count( it.first ) == 0 )
+            {
+                old_one_to_delete.push_back( it.first );
+            }
         }
-    }
 
-    if( !old_one_to_delete.empty() && delete_older )
-    {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, tr("Warning"),
-                                      tr("Do you want to remove the previously loaded data?\n"),
-                                      QMessageBox::Yes | QMessageBox::No,
-                                      QMessageBox::Yes );
-        if( reply == QMessageBox::Yes )
+        if( !old_one_to_delete.empty() )
         {
-            deleteDataMultipleCurves(old_one_to_delete);
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this, tr("Warning"),
+                                          tr("Do you want to remove the previously loaded data?\n"),
+                                          QMessageBox::Yes | QMessageBox::No,
+                                          QMessageBox::Yes );
+            if( reply == QMessageBox::Yes )
+            {
+                deleteDataMultipleCurves(old_one_to_delete);
+            }
         }
     }
 
@@ -1210,7 +1206,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
     for (auto& it: new_data.numeric)
     {
         const std::string& name  = it.first;
-        if( _mapped_plot_data.numeric.count(name) == 0)
+        if( it.second.size()>0 && _mapped_plot_data.numeric.count(name) == 0)
         {
             _curvelist_widget->addItem( QString::fromStdString( name ) );
             curvelist_modified = true;
@@ -1649,7 +1645,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
     }
 
     QByteArray snippets_saved_xml = settings.value("AddCustomPlotDialog.savedXML",
-                                              QByteArray() ).toByteArray();
+                                                   QByteArray() ).toByteArray();
 
     auto snippets_element = root.firstChildElement("snippets");
     if( !snippets_element.isNull() )
@@ -1907,7 +1903,7 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
         }
     }
 
-    bool is_streaming_active = isStreamingActive();
+    const bool is_streaming_active = isStreamingActive();
 
     forEachWidget( [is_streaming_active](PlotWidget* plot)
     {
@@ -2236,7 +2232,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
         auto data_it = _mapped_plot_data.numeric.find( name );
         if( data_it != _mapped_plot_data.numeric.end())
         {
-           data_it->second.clear();
+            data_it->second.clear();
         }
         dialog.editExistingPlot(custom_it->second);
     }
@@ -2254,7 +2250,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
         {
             QMessageBox::warning(this, tr("Warning"),
                                  tr("Failed to create the custom timeseries. Error:\n\n%1")
-                                     .arg( ex.what() ) );
+                                 .arg( ex.what() ) );
 
             return;
         }
@@ -2349,9 +2345,9 @@ void MainWindow::on_actionCheatsheet_triggered()
     dialog->show();
 
     connect(dialog, &QDialog::finished, this, [this, dialog]()
-            {
-                QSettings settings;
-                settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
+    {
+        QSettings settings;
+        settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
     } );
 }
 

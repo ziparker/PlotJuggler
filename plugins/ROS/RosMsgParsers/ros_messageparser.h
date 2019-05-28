@@ -8,17 +8,9 @@
 #include <ros/message_operations.h>
 #include <std_msgs/Header.h>
 
-template <typename MainType>
 class RosMessageParser : public MessageParser
 {
 public:
-
-    const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const override
-    {
-        static std::unordered_set<MessageKey> compatible_key =
-        { ros::message_traits::MD5Sum<MainType>::value() };
-        return compatible_key;
-    }
 
     void setUseHeaderStamp( bool use )
     {
@@ -30,7 +22,7 @@ protected:
 };
 
 template <typename MainType, typename SubType, class ChildParser>
-class RosMessageStampedParser: public RosMessageParser<MainType>
+class RosMessageStampedParser: public RosMessageParser
 {
 public:
     RosMessageStampedParser(const char* child_prefix):
@@ -38,6 +30,14 @@ public:
     {
         _data.emplace_back( "/header/seq" );
         _data.emplace_back( "/header/stamp" );
+    }
+
+
+    const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const override
+    {
+        static std::unordered_set<MessageKey> compatible_key =
+        { ros::message_traits::MD5Sum<MainType>::value() };
+        return compatible_key;
     }
 
     virtual void pushRawMessage(const MessageKey& key, const RawMessage& buffer, double timestamp) override
