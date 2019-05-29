@@ -7,36 +7,23 @@
 
 #include <ros/types.h>
 #include <ros/serialization.h>
-#include <ros/builtin_message_traits.h>
-#include <ros/message_operations.h>
 #include "ros_messageparser.h"
 #include <absl/strings/str_cat.h>
 #include <absl/strings/charconv.h>
 
 struct StampedDiagnostic_
 {
-    StampedDiagnostic_()
-        : status(0)
-        , stamp()
-        , key()
-        , value()  {
-    }
-
     uint8_t status;
     ros::Time stamp;
-
     std::string key;
     std::string value;
-
-}; // struct StampedDiagnostic_
+};
 
 struct NodeDiagnostics_
 {
     std::vector< StampedDiagnostic_ > diagnostics;
 };
-
 //-----------------------------------------------------
-
 
 namespace ros
 {
@@ -52,9 +39,8 @@ template<> struct Serializer< ::StampedDiagnostic_ >
         stream.next(m.key);
         stream.next(m.value);
     }
-
     ROS_DECLARE_ALLINONE_SERIALIZER
-}; // struct StampedDiagnostic_
+};
 
 template<> struct Serializer< ::NodeDiagnostics_ >
 {
@@ -62,9 +48,8 @@ template<> struct Serializer< ::NodeDiagnostics_ >
     {
         stream.next(m.diagnostics);
     }
-
     ROS_DECLARE_ALLINONE_SERIALIZER
-}; // struct NodeDiagnostics_
+};
 
 } // namespace serialization
 } // namespace ros
@@ -76,9 +61,7 @@ class FiveAiDiagnosticMsg: public RosParserBase
 {
 public:
 
-    FiveAiDiagnosticMsg()
-    {
-    }
+    FiveAiDiagnosticMsg() = default;
 
     static const char* getCompatibleKey() { return "b47994f5f7cab18367c65bedb56d7f75"; }
 
@@ -104,6 +87,7 @@ public:
             const char *start_ptr = it.value.data();
             double val = 0;
             auto res = absl::from_chars (start_ptr, start_ptr + it.value.size(), val);
+            if( start_ptr == res.ptr ) continue;
 
             auto data_it = _data.find( it.key );
             if( data_it == _data.end() )
