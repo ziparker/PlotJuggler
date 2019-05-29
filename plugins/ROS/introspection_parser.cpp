@@ -79,6 +79,10 @@ bool RosMessageParser::registerSchema(const std::string &topic_name,
     {
         _builtin_parsers.insert( {topic_name, new DiagnosticMsg() } );
     }
+    if( md5sum == FiveAiDiagnosticMsg::getCompatibleKey() )
+    {
+        _builtin_parsers.insert( {topic_name, new FiveAiDiagnosticMsg() } );
+    }
     else{
         _introspection_parser->registerMessageDefinition(topic_name, type, definition);
     }
