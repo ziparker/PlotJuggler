@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QDesktopServices>
 #include <QDomDocument>
+#include <QDoubleSpinBox>
 #include <QElapsedTimer>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -46,6 +47,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this),
     _minimize_view(Qt::Key_F10, this),
     _toggle_streaming(QKeySequence(Qt::CTRL + Qt::Key_Space), this),
+    _toggle_playback(Qt::Key_Space, this),
     _minimized(false),
     _current_streamer(nullptr),
     _disable_undo_logging(false),
@@ -99,6 +101,11 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     connect( ui->timeSlider, &RealSlider::realValueChanged,
              this, &MainWindow::onTimeSlider_valueChanged );
+
+    connect( ui->playbackRate, &QDoubleSpinBox::editingFinished, this, [this]()
+    {
+        ui->playbackRate->clearFocus();
+    });
 
     _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, nullptr, _mapped_plot_data, this);
 
@@ -410,6 +417,7 @@ void MainWindow::createActions()
     connect( &_redo_shortcut, &QShortcut::activated, this, &MainWindow::onRedoInvoked );
     connect( &_minimize_view, &QShortcut::activated, this, &MainWindow::on_minimizeView);
     connect( &_toggle_streaming, &QShortcut::activated, this, &MainWindow::on_ToggleStreaming );
+    connect( &_toggle_playback, &QShortcut::activated, ui->pushButtonPlay, &QPushButton::toggle );
 
     connect( ui->actionMaximizePlots, &QAction::triggered, this, &MainWindow::on_minimizeView);
 
@@ -2308,11 +2316,14 @@ void MainWindow::publishPeriodically()
     _prev_publish_time = QDateTime::currentDateTime();
     delta_ms = std::max( (qint64)_publish_timer->interval(), delta_ms);
 
-    _tracker_time +=  delta_ms*0.001;
+    _tracker_time +=  delta_ms*0.001*ui->playbackRate->value();
     if( _tracker_time >= ui->timeSlider->getMaximum())
     {
-        ui->pushButtonPlay->setChecked(false);
-        _tracker_time =  ui->timeSlider->getMinimum();
+        if( !ui->playbackLoop->isChecked() )
+        {
+            ui->pushButtonPlay->setChecked(false);
+        }
+        _tracker_time = ui->timeSlider->getMinimum();
     }
     //////////////////
     auto prev = ui->timeSlider->blockSignals(true);

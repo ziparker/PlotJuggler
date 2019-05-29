@@ -27,6 +27,8 @@
         <file>resources/light/stacks.png</file>
         <file>resources/light/zoom_in.png</file>
         <file>resources/light/ratio.png</file>
+        <file>resources/light/loop.png</file>
+        <file>resources/light/datetime.png</file>
     </qresource>
     <qresource prefix="/splash">
         <file>resources/splash.jpg</file>

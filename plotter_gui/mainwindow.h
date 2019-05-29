@@ -155,6 +155,7 @@ private:
     QShortcut _redo_shortcut;
     QShortcut _minimize_view;
     QShortcut _toggle_streaming;
+    QShortcut _toggle_playback;
 
     bool _minimized;
 
