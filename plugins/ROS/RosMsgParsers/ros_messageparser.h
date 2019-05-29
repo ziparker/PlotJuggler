@@ -8,7 +8,8 @@
 #include <ros/message_operations.h>
 #include <std_msgs/Header.h>
 
-class RosMessageParser : public MessageParser
+
+class RosParserBase : public MessageParser
 {
 public:
 
@@ -19,13 +20,14 @@ public:
 
 protected:
     bool _use_header_stamp;
+
 };
 
 template <typename MainType, typename SubType, class ChildParser>
-class RosMessageStampedParser: public RosMessageParser
+class RosMessageStampedParser: public RosParserBase
 {
 public:
-    RosMessageStampedParser(const char* child_prefix):
+    RosMessageStampedParser( const char* child_prefix):
         _child_prefix(child_prefix)
     {
         _data.emplace_back( "/header/seq" );
@@ -33,14 +35,16 @@ public:
     }
 
 
-    const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const override
+    const std::unordered_set<std::string>& getCompatibleKeys() const override
     {
-        static std::unordered_set<MessageKey> compatible_key =
+        static std::unordered_set<std::string> compatible_key =
         { ros::message_traits::MD5Sum<MainType>::value() };
         return compatible_key;
     }
 
-    virtual void pushRawMessage(const MessageKey& key, const RawMessage& buffer, double timestamp) override
+    virtual void pushRawMessage(const std::string& key,
+                                const RawMessage& buffer,
+                                double timestamp) override
     {
         std_msgs::Header header;
         ros::serialization::IStream is( const_cast<uint8_t*>(buffer.data()), buffer.size() );
@@ -68,6 +72,9 @@ private:
     std::vector<PlotData> _data;
     ChildParser _child_parser;
     std::string _child_prefix;
+
 };
+
+
 
 #endif // ROS_MESSAGEPARSER_H

@@ -2,23 +2,24 @@
 #include "dialog_with_itemlist.h"
 #include "RosMsgParsers/geometry_msg_twist.h"
 #include "RosMsgParsers/diagnostic_msg.h"
+#include "RosMsgParsers/fiveai_stamped_diagnostic.h"
+#include <absl/strings/charconv.h>
 
-IntrospectionParser::IntrospectionParser()
+RosMessageParser::RosMessageParser()
 {
 }
 
-void IntrospectionParser::clear()
+void RosMessageParser::clear()
 {
-    _warn_headerstamp.clear();
-    _warn_monotonic.clear();
-    _warn_cancellation.clear();
-    _warn_max_arraysize.clear();
     _plot_map.numeric.clear();
+    _registered_md5sum.clear();
     _introspection_parser.reset( new RosIntrospection::Parser );
     _builtin_parsers.clear();
+    _warn_cancellation.clear();
+    _warn_max_arraysize.clear();
 }
 
-double IntrospectionParser::extractRealValue(
+double RosMessageParser::extractRealValue(
         const RosIntrospection::Variant& value,
         const std::string& item_name)
 {
@@ -52,24 +53,19 @@ double IntrospectionParser::extractRealValue(
 
 
 
-void IntrospectionParser::setMaxArrayPolicy(size_t max_array_size, bool discard_entire_array)
+void RosMessageParser::setMaxArrayPolicy(size_t max_array_size, bool discard_entire_array)
 {
     _max_array_size = max_array_size;
     _discard_large_array = discard_entire_array;
     _introspection_parser->setMaxArrayPolicy( discard_entire_array );
 }
 
-bool IntrospectionParser::registerSchema(const std::string &topic_name,
-                                         const std::string &md5sum,
-                                         RosIntrospection::ROSType type,
-                                         const std::string &definition)
+bool RosMessageParser::registerSchema(const std::string &topic_name,
+                                      const std::string &md5sum,
+                                      RosIntrospection::ROSType type,
+                                      const std::string &definition)
 {
-    if( _registered_keys.find(topic_name) != _registered_keys.end() )
-    {
-        return false;
-    }
-
-    _registered_keys.insert( topic_name );
+    _registered_md5sum.insert( md5sum );
 
     if( md5sum == ros::message_traits::MD5Sum<geometry_msgs::Twist>::value() )
     {
@@ -77,20 +73,20 @@ bool IntrospectionParser::registerSchema(const std::string &topic_name,
     }
     else if( md5sum == ros::message_traits::MD5Sum<geometry_msgs::TwistStamped>::value() )
     {
-        _builtin_parsers.insert( {topic_name, new GeometryMsgTwistStamped("/twist") } );
+        _builtin_parsers.insert( {topic_name, new GeometryMsgTwistStamped( "/twist" ) } );
     }
     else if( md5sum == ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value() )
     {
-        _builtin_parsers.insert( {topic_name, new DisagnosticMsg() } );
+        _builtin_parsers.insert( {topic_name, new DiagnosticMsg() } );
     }
     else{
         _introspection_parser->registerMessageDefinition(topic_name, type, definition);
     }
 }
 
-void IntrospectionParser::pushRawMessage(const MessageKey &topic_name,
-                                         const RawMessage &msg,
-                                         double timestamp)
+void RosMessageParser::pushRawMessage(const std::string &topic_name,
+                                      const RawMessage &msg,
+                                      double timestamp)
 {
     auto builtin_it = _builtin_parsers.find( topic_name );
     if( builtin_it != _builtin_parsers.end() )
@@ -137,13 +133,42 @@ void IntrospectionParser::pushRawMessage(const MessageKey &topic_name,
                 if( heder_stamp > 0 ) {
                     timestamp = heder_stamp;
                 }
-                else{
-                    _warn_headerstamp.insert(topic_name);
-                }
                 break;
             }
         }
     }
+
+    //----------------------------
+    // the KeyValue message is pretty common in ROS.
+    // http://docs.ros.org/melodic/api/diagnostic_msgs/html/msg/KeyValue.html
+    // Try to convert value to double
+//    for( size_t n = 0; n+1 < flat_container.name.size(); n++ )
+//    {
+//        auto key_ptr = flat_container.name[n].first.node_ptr;
+//        auto val_ptr = flat_container.name[n+1].first.node_ptr;
+
+//        if( key_ptr->parent() == val_ptr->parent() &&
+//            key_ptr->parent()->value() == "#" &&
+//            key_ptr->value() == "key" &&
+//            val_ptr->value() == "value" )
+//        {
+//            const std::string str_value = flat_container.name[n+1].second;
+//            const char *start_ptr = str_value.data();
+//            double num = 0;
+//            auto res = absl::from_chars (start_ptr, start_ptr + str_value.size(), num);
+//            if( start_ptr == res.ptr ) continue;
+
+//            RosIntrospection::StringTreeLeaf temp_leaf;
+//            temp_leaf.node_ptr = key_ptr->parent()->parent();
+//            if( !temp_leaf.node_ptr ) continue;
+//            temp_leaf.node_ptr = temp_leaf.node_ptr->parent();
+//            if( !temp_leaf.node_ptr ) continue;
+
+//            renamed_values.push_back( { absl::StrCat( temp_leaf.toStdString(), "/", flat_container.name[n].second), num } );
+//        }
+//    }
+
+    //----------------------------
 
     for(const auto& it: renamed_values )
     {
@@ -159,14 +184,6 @@ void IntrospectionParser::pushRawMessage(const MessageKey &topic_name,
 
         PlotData& plot_data = plot_pair->second;
         size_t data_size = plot_data.size();
-        if( data_size > 0 )
-        {
-            const double last_time = plot_data.back().x;
-            if( timestamp < last_time)
-            {
-                _warn_monotonic.insert( field_name);
-            }
-        }
 
         double val_d = extractRealValue(value , field_name);
         plot_data.pushBack( PlotData::Point(timestamp, val_d) );
@@ -174,7 +191,7 @@ void IntrospectionParser::pushRawMessage(const MessageKey &topic_name,
 
 }
 
-void IntrospectionParser::showWarnings()
+void RosMessageParser::showWarnings()
 {
     if( !_warn_max_arraysize.empty() )
     {
@@ -189,14 +206,6 @@ void IntrospectionParser::showWarnings()
         DialogWithItemList::warning( message, _warn_max_arraysize );
     }
 
-    if( !_warn_monotonic.empty() )
-    {
-        QString message = "The time of one or more fields is not strictly monotonic.\n"
-                          "Some plots will not be displayed correctly\n";
-
-        DialogWithItemList::warning( message, _warn_monotonic );
-    }
-
     if( !_warn_cancellation.empty() )
     {
         QString message = "During the parsing process, one or more conversions to double failed"
@@ -205,17 +214,9 @@ void IntrospectionParser::showWarnings()
                           "You have been warned... don't trust the following timeseries\n";
         DialogWithItemList::warning( message, _warn_cancellation );
     }
-
-    if( !_warn_headerstamp.empty() )
-    {
-        QString message = "You checked the option:\n\n"
-                          "[If present, use the timestamp in the field header.stamp]\n\n"
-                          "But the [header.stamp] of one or more messages were NOT initialized correctly.\n";
-        DialogWithItemList::warning( message, _warn_headerstamp );
-    }
 }
 
-void IntrospectionParser::extractData(PlotDataMapRef &destination, const std::string &prefix)
+void RosMessageParser::extractData(PlotDataMapRef &destination, const std::string &prefix)
 {
     for (auto& it: _plot_map.numeric)
     {

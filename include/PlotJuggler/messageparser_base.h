@@ -9,7 +9,6 @@
 #include <absl/types/span.h>
 #include "PlotJuggler/plotdata.h"
 
-typedef std::string MessageKey;
 
 typedef absl::Span<uint8_t> RawMessage;
 /**
@@ -27,9 +26,9 @@ public:
 
     virtual ~MessageParser() {}
 
-    virtual const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const = 0;
+    virtual const std::unordered_set<std::string>& getCompatibleKeys() const = 0;
 
-    virtual void pushRawMessage(const MessageKey& key,
+    virtual void pushRawMessage(const std::string& key,
                                 const RawMessage& msg,
                                 double timestamp) = 0;
 

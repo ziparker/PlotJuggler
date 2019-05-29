@@ -6,24 +6,24 @@
 #include <absl/strings/str_cat.h>
 #include <absl/strings/charconv.h>
 
-class DisagnosticMsg: public RosMessageParser
+class DiagnosticMsg: public RosParserBase
 {
 public:
 
-    DisagnosticMsg()
+    DiagnosticMsg()
     {
         _header_data.emplace_back( "/header/seq" );
         _header_data.emplace_back( "/header/stamp" );
     }
 
-    const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const override
+    const std::unordered_set<std::string>& getCompatibleKeys() const override
     {
-        static std::unordered_set<MessageKey> compatible_key =
+        static std::unordered_set<std::string> compatible_key =
         { ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value() };
         return compatible_key;
     }
 
-    virtual void pushRawMessage(const MessageKey& ,
+    virtual void pushRawMessage(const std::string& ,
                                 const RawMessage& msg,
                                 double timestamp) override
     {

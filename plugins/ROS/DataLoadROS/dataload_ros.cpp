@@ -152,7 +152,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         }
     }
 
-    bool use_header_stamp = dialog->checkBoxTimestamp()->isChecked();
+    _ros_parser.setUseHeaderStamp( dialog->checkBoxTimestamp()->isChecked() );
 
     _use_renaming_rules = dialog->checkBoxUseRenamingRules()->isChecked();
 

@@ -75,7 +75,7 @@ private:
 
     QStringList _default_topic_names;
 
-    IntrospectionParser _ros_parser;
+    RosMessageParser _ros_parser;
 
     QTimer* _periodic_timer;
 

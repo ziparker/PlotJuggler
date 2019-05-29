@@ -36,7 +36,7 @@ protected:
     std::shared_ptr<rosbag::Bag> _bag;
 
 private:
-    IntrospectionParser _ros_parser;
+    RosMessageParser _ros_parser;
 
     std::vector<const char*> _extensions;
 

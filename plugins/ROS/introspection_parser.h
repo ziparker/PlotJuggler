@@ -4,10 +4,10 @@
 #include "RosMsgParsers/ros_messageparser.h"
 #include <ros_type_introspection/ros_introspection.hpp>
 
-class IntrospectionParser : public RosMessageParser
+class RosMessageParser : public RosParserBase
 {
 public:
-    IntrospectionParser();
+    RosMessageParser();
 
     void clear();
 
@@ -29,13 +29,13 @@ public:
                         RosIntrospection::ROSType type,
                         const std::string& definition);
 
-    virtual const std::unordered_set<MessageKey>& getCompatibleMessageKeys() const override
+    virtual const std::unordered_set<std::string>& getCompatibleKeys() const override
     {
-        return _registered_keys;
+        return _registered_md5sum;
     }
 
 
-    void pushRawMessage(const MessageKey& topic_name,
+    void pushRawMessage(const std::string& topic_name,
                         const RawMessage& msg,
                         double timestamp) override;
 
@@ -46,18 +46,16 @@ public:
 
 
 private:
-    std::unordered_set<MessageKey> _registered_keys;
+    std::unordered_set<std::string> _registered_md5sum;
     std::unique_ptr<RosIntrospection::Parser> _introspection_parser;
     PlotDataMapRef _plot_map;
 
-    std::unordered_map<std::string, RosMessageParser*> _builtin_parsers;
+    std::unordered_map<std::string, RosParserBase*> _builtin_parsers;
 
     uint32_t _max_array_size;
     bool _warnings_enabled;
     bool _discard_large_array;
 
-    std::unordered_set<std::string> _warn_headerstamp;
-    std::unordered_set<std::string> _warn_monotonic;
     std::unordered_set<std::string> _warn_cancellation;
     std::unordered_set<std::string> _warn_max_arraysize;
 
