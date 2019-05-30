@@ -63,11 +63,16 @@ public:
 
     FiveAiDiagnosticMsg() = default;
 
-    static const char* getCompatibleKey() { return "b47994f5f7cab18367c65bedb56d7f75"; }
+    static const std::string& getCompatibleKey()
+    {
+        static std::string temp = "b47994f5f7cab18367c65bedb56d7f75";
+        return temp;
+    }
 
     const std::unordered_set<std::string>& getCompatibleKeys() const override
     {
-        return { getCompatibleKey() };
+        static std::unordered_set<std::string> temp = { getCompatibleKey() };
+        return temp;
     }
 
     virtual void pushRawMessage(const std::string& ,

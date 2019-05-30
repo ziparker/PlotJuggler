@@ -74,11 +74,16 @@ public:
 
     PalStatisticsNamesParser() = default;
 
-    static const char* getCompatibleKey() { return "bece3d42a81d5c50cd68f110cf17bf55"; }
+    static const std::string& getCompatibleKey()
+    {
+        static std::string temp =  "bece3d42a81d5c50cd68f110cf17bf55";
+        return temp;
+    }
 
     const std::unordered_set<std::string>& getCompatibleKeys() const override
     {
-        return { getCompatibleKey() };
+        static std::unordered_set<std::string> temp = { getCompatibleKey() };
+        return temp;
     }
 
     virtual void pushRawMessage(const std::string& ,
@@ -102,11 +107,16 @@ public:
 
     PalStatisticsValuesParser() = default;
 
-    static const char* getCompatibleKey() { return "44646896ace86f96c24fbb63054eeee8"; }
+    static const std::string& getCompatibleKey()
+    {
+        static std::string temp =  "44646896ace86f96c24fbb63054eeee8";
+        return temp;
+    }
 
     const std::unordered_set<std::string>& getCompatibleKeys() const override
     {
-        return { getCompatibleKey() };
+        static std::unordered_set<std::string> temp = { getCompatibleKey() };
+        return temp;
     }
 
     virtual void pushRawMessage(const std::string& ,

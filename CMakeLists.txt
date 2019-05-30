@@ -78,10 +78,11 @@ if(COMPILING_WITH_CATKIN)
         roscpp
         roscpp_serialization
         ros_type_introspection
-        diagnostic_msgs
         rostime
         topic_tools
         tf
+        diagnostic_msgs
+        nav_msgs
     )
 
     find_package(catkin REQUIRED COMPONENTS ${ROS_DEPENDENCIES} )

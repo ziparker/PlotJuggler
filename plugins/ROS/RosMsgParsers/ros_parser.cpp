@@ -1,8 +1,9 @@
 #include "ros_parser.h"
 #include "dialog_with_itemlist.h"
-#include "geometry_msg_twist.h"
+#include "geometry_twist_msg.h"
 #include "diagnostic_msg.h"
 #include "pal_statistics_msg.h"
+#include "odometry_msg.h"
 #include "fiveai_stamped_diagnostic.h"
 #include <absl/strings/charconv.h>
 
@@ -75,6 +76,10 @@ bool RosMessageParser::registerSchema(const std::string &topic_name,
     else if( md5sum == ros::message_traits::MD5Sum<geometry_msgs::TwistStamped>::value() )
     {
         _builtin_parsers.insert( {topic_name, new GeometryMsgTwistStamped( "/twist" ) } );
+    }
+    else if( md5sum == OdemetryMsgParser::getCompatibleKey() )
+    {
+        _builtin_parsers.insert( {topic_name, new OdemetryMsgParser() } );
     }
     else if( md5sum == ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value() )
     {

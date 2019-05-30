@@ -1,8 +1,8 @@
 #ifndef GEOMETRY_MSG_TWIST_H
 #define GEOMETRY_MSG_TWIST_H
 
-#include "geometry_msgs/Twist.h"
-#include "geometry_msgs/TwistStamped.h"
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
 #include "ros_parser_base.h"
 
 class GeometryMsgTwist: public RosParserBase
@@ -19,11 +19,16 @@ public:
         _data.emplace_back( "/angular/z" );
     }
 
+    static const std::string& getCompatibleKey()
+    {
+        static std::string str = ros::message_traits::MD5Sum<geometry_msgs::Twist>::value();
+        return str;
+    }
+
     const std::unordered_set<std::string>& getCompatibleKeys() const override
     {
-        static std::unordered_set<std::string> compatible_key =
-        { ros::message_traits::MD5Sum<geometry_msgs::Twist>::value() };
-        return compatible_key;
+        static std::unordered_set<std::string> temp = {  getCompatibleKey() };
+        return temp;
     }
 
     virtual void pushRawMessage(const std::string& ,
