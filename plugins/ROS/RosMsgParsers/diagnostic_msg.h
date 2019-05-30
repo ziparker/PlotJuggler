@@ -16,11 +16,16 @@ public:
         _header_data.emplace_back( "/header/stamp" );
     }
 
+    static const std::string& getCompatibleKey()
+    {
+        static std::string str = ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value();
+        return str;
+    }
+
     const std::unordered_set<std::string>& getCompatibleKeys() const override
     {
-        static std::unordered_set<std::string> compatible_key =
-        { ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value() };
-        return compatible_key;
+        static std::unordered_set<std::string> temp = { getCompatibleKey() };
+        return temp;
     }
 
     virtual void pushRawMessage(const std::string& ,

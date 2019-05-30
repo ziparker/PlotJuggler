@@ -123,48 +123,43 @@ public:
                                 const RawMessage& msg,
                                 double timestamp) override
     {
-        PalStatisticsValues_ pal_values;
+        PalStatisticsValues_ pal_msg;
         ros::serialization::IStream is( const_cast<uint8_t*>(msg.data()), msg.size() );
-        ros::serialization::deserialize(is, pal_values);
+        ros::serialization::deserialize(is, pal_msg);
 
-        const auto& names = _stored_pal_statistics_names[ pal_values.names_version ];
-        const auto& values = pal_values.values;
+        auto& values = _data[ pal_msg.names_version ];
 
         if( _use_header_stamp )
         {
-            timestamp = pal_values.header.stamp.toSec();
+            timestamp = pal_msg.header.stamp.toSec();
         }
 
-        for( size_t index = 0; index < values.size(); index++)
+        for( size_t index = 0; index < pal_msg.values.size(); index++)
         {
-            if( index >= names.size() ) break;
-
-            const auto &key = names[index] ;
-
-            auto data_it = _data.find( key );
-            if( data_it == _data.end() )
+            if( index >= values.size() )
             {
-                data_it = _data.emplace( std::piecewise_construct,
-                                         std::forward_as_tuple(key),
-                                         std::forward_as_tuple(key)
-                                         ).first;
+                values.emplace_back( "placeholder" );
             }
-            data_it->second.pushBack( { timestamp, values[index] } );
+            values[index].pushBack( { timestamp, pal_msg.values[index] } );
         }
     }
 
     void extractData(PlotDataMapRef& plot_map, const std::string& prefix) override
     {
-        for (auto& it: _data)
+        for ( auto& it_version: _data)
         {
-            appendData(plot_map,
-                       absl::StrCat(prefix, "/", it.first),
-                       it.second);
+            const auto& names = _stored_pal_statistics_names[ it_version.first ];
+            auto& vect = it_version.second;
+            for ( size_t index = 0; index < vect.size(); index++ )
+            {
+                appendData(plot_map,  absl::StrCat(prefix, "/", names.at(index) ), vect[index]);
+            }
         }
     }
 
 private:
-    std::unordered_map<std::string,PlotData> _data;
+    std::unordered_map<uint32_t, std::vector< PlotData > > _data;
+
 };
 
 

@@ -62,6 +62,22 @@ void RosMessageParser::setMaxArrayPolicy(size_t max_array_size, bool discard_ent
     _introspection_parser->setMaxArrayPolicy( discard_entire_array );
 }
 
+template <typename T>
+bool InsertParser(std::unordered_map<std::string, RosParserBase*>& parsers,
+                  const std::string &topic_name,
+                  const std::string &md5sum)
+{
+    if( md5sum != T::getCompatibleKey() )
+    {
+        return false;
+    }
+    if( parsers.find(topic_name) == parsers.end())
+    {
+        parsers.insert( {topic_name, new T() } );
+    }
+    return true;
+}
+
 bool RosMessageParser::registerSchema(const std::string &topic_name,
                                       const std::string &md5sum,
                                       RosIntrospection::ROSType type,
@@ -69,35 +85,15 @@ bool RosMessageParser::registerSchema(const std::string &topic_name,
 {
     _registered_md5sum.insert( md5sum );
 
-    if( md5sum == ros::message_traits::MD5Sum<geometry_msgs::Twist>::value() )
-    {
-        _builtin_parsers.insert( {topic_name, new GeometryMsgTwist() } );
-    }
-    else if( md5sum == ros::message_traits::MD5Sum<geometry_msgs::TwistStamped>::value() )
-    {
-        _builtin_parsers.insert( {topic_name, new GeometryMsgTwistStamped( "/twist" ) } );
-    }
-    else if( md5sum == OdemetryMsgParser::getCompatibleKey() )
-    {
-        _builtin_parsers.insert( {topic_name, new OdemetryMsgParser() } );
-    }
-    else if( md5sum == ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value() )
-    {
-        _builtin_parsers.insert( {topic_name, new DiagnosticMsg() } );
-    }
-    else if( md5sum == FiveAiDiagnosticMsg::getCompatibleKey() )
-    {
-        _builtin_parsers.insert( {topic_name, new FiveAiDiagnosticMsg() } );
-    }
-    else if( md5sum == PalStatisticsNamesParser::getCompatibleKey() )
-    {
-        _builtin_parsers.insert( {topic_name, new PalStatisticsNamesParser() } );
-    }
-    else if( md5sum == PalStatisticsValuesParser::getCompatibleKey() )
-    {
-        _builtin_parsers.insert( {topic_name, new PalStatisticsValuesParser() } );
-    }
-    else{
+    bool inserted =
+            InsertParser<GeometryMsgTwist>( _builtin_parsers, topic_name, md5sum ) ||
+            InsertParser<OdometryMsgParser>( _builtin_parsers, topic_name, md5sum ) ||
+            InsertParser<DiagnosticMsg>( _builtin_parsers, topic_name, md5sum ) ||
+            InsertParser<FiveAiDiagnosticMsg>( _builtin_parsers, topic_name, md5sum ) ||
+            InsertParser<PalStatisticsNamesParser>( _builtin_parsers, topic_name, md5sum ) ||
+            InsertParser<PalStatisticsValuesParser>( _builtin_parsers, topic_name, md5sum );
+
+    if( !inserted ) {
         _introspection_parser->registerMessageDefinition(topic_name, type, definition);
     }
 }

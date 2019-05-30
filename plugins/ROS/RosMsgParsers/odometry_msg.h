@@ -5,24 +5,24 @@
 #include <nav_msgs/Odometry.h>
 #include "ros_parser_base.h"
 
-class OdemetryMsgParser: public RosParserBase
+class OdometryMsgParser: public RosParserBase
 {
 public:
 
-    OdemetryMsgParser()
+    OdometryMsgParser()
     {
         _data.emplace_back( "/header/seq" ); //0
         _data.emplace_back( "/header/stamp" ); //1
 
-        _data.emplace_back( "/twist/position/x" ); //2
-        _data.emplace_back( "/twist/position/y" ); //3
-        _data.emplace_back( "/twist/position/z" ); //4
+        _data.emplace_back( "/pose/position/x" ); //2
+        _data.emplace_back( "/pose/position/y" ); //3
+        _data.emplace_back( "/pose/position/z" ); //4
 
-        _data.emplace_back( "/twist/orientation/quat_x" ); // 5
-        _data.emplace_back( "/twist/orientation/quat_y" ); // 6
-        _data.emplace_back( "/twist/orientation/quat_z" ); // 7
-        _data.emplace_back( "/twist/orientation/quat_w" ); // 8
-        _data.emplace_back( "/twist/orientation/yaw_degrees" ); // 9
+        _data.emplace_back( "/pose/orientation/quat_x" ); // 5
+        _data.emplace_back( "/pose/orientation/quat_y" ); // 6
+        _data.emplace_back( "/pose/orientation/quat_z" ); // 7
+        _data.emplace_back( "/pose/orientation/quat_w" ); // 8
+        _data.emplace_back( "/pose/orientation/yaw_degrees" ); // 9
 
         _data.emplace_back( "/twist/linear/x" );// 10
         _data.emplace_back( "/twist/linear/y" );// 11
