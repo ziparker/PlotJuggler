@@ -14,7 +14,7 @@
    <string>TabbedPlotWidget</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="resource.qrc">
     <normaloff>:/icons/resources/light/line_tracker.png</normaloff>:/icons/resources/light/line_tracker.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -34,7 +34,7 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="TabWidget" name="tabWidget">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -558,6 +558,14 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>TabWidget</class>
+   <extends>QTabWidget</extends>
+   <header location="global">tab_widget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resource.qrc"/>
  </resources>

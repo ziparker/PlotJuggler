@@ -37,6 +37,7 @@ SET( PLOTTER_SRC
     subwindow.cpp
     timeseries_qwt.cpp
     tabbedplotwidget.cpp
+    tab_widget.h
     tree_completer.h
 
     transforms/custom_function.cpp

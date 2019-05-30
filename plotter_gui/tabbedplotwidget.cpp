@@ -6,13 +6,15 @@
 #include <QFileDialog>
 #include <QApplication>
 #include "qwt_plot_renderer.h"
+#include "mainwindow.h"
 #include "tabbedplotwidget.h"
+#include "tab_widget.h"
 #include "ui_tabbedplotwidget.h"
 
 std::map<QString,TabbedPlotWidget*> TabbedPlotWidget::_instances;
 
 TabbedPlotWidget::TabbedPlotWidget(QString name,
-                                   QMainWindow *main_window,
+                                   QMainWindow *main_window_,
                                    PlotMatrix  *first_tab,
                                    PlotDataMapRef &mapped_data,
                                    QMainWindow *parent ) :
@@ -22,6 +24,7 @@ TabbedPlotWidget::TabbedPlotWidget(QString name,
     _name(name),
     _labels_status (LabelStatus::RIGHT)
 {
+    MainWindow* main_window = static_cast<MainWindow*>(main_window_);
 
     if( main_window == parent){
         _parent_type = "main_window";
@@ -59,10 +62,12 @@ TabbedPlotWidget::TabbedPlotWidget(QString name,
     _tab_menu->addAction( _action_savePlots );
     _tab_menu->addSeparator();
 
-    connect( this, SIGNAL(destroyed(QObject*)),             main_window, SLOT(on_tabbedAreaDestroyed(QObject*)) );
-    connect( this, SIGNAL(sendTabToNewWindow(PlotMatrix*)), main_window, SLOT(onCreateFloatingWindow(PlotMatrix*)) );
-    connect( this, SIGNAL(matrixAdded(PlotMatrix*)),        main_window, SLOT(onPlotMatrixAdded(PlotMatrix*)) );
-    connect( this, SIGNAL(undoableChangeHappened()),        main_window, SLOT(onUndoableChange()) );
+    connect( this, &TabbedPlotWidget::destroyed,          main_window, &MainWindow::on_tabbedAreaDestroyed );
+    connect( this, &TabbedPlotWidget::sendTabToNewWindow, main_window, &MainWindow::onCreateFloatingWindow);
+    connect( this, &TabbedPlotWidget::matrixAdded,        main_window, &MainWindow::onPlotMatrixAdded);
+    connect( this, &TabbedPlotWidget::undoableChangeHappened, main_window, &MainWindow::onUndoableChange);
+
+    connect( ui->tabWidget, &TabWidget::movingPlotWidgetToTab, this, &TabbedPlotWidget::onMoveWidgetIntoNewTab);
 
     this->addTab(first_tab);
 }
@@ -104,7 +109,6 @@ void TabbedPlotWidget::addTab( PlotMatrix* tab)
     }
 
     tabWidget()->setCurrentWidget( tab );
-
     tab->setHorizontalLink( _horizontal_link );
 }
 
@@ -293,6 +297,60 @@ void TabbedPlotWidget::on_pushButtonZoomMax_pressed()
     emit undoableChangeHappened();
 }
 
+void TabbedPlotWidget::onMoveWidgetIntoNewTab(QString plot_name)
+{
+    int src_row, src_col;
+    PlotMatrix* src_matrix = nullptr;
+    PlotWidget* source = nullptr;
+
+    auto func = [&](QTabWidget * tabs)
+    {
+        for (int t=0; t < tabs->count(); t++)
+        {
+            PlotMatrix* matrix =  static_cast<PlotMatrix*>(tabs->widget(t));
+
+            for(unsigned row=0; row< matrix->rowsCount(); row++)
+            {
+                for(unsigned col=0; col< matrix->colsCount(); col++)
+                {
+                    PlotWidget* plot = matrix->plotAt(row, col);
+                    if( plot->windowTitle() == plot_name)
+                    {
+                        src_matrix = matrix;
+                        src_row = row;
+                        src_col = col;
+                        source = plot;
+                        return;
+                    }
+                }
+            }
+        }
+    };
+
+    for(const auto& it: TabbedPlotWidget::instances())
+    {
+        func( it.second->tabWidget() );
+    }
+
+    addTab();
+    PlotMatrix* dst_matrix  = currentTab();
+    PlotWidget* destination = dst_matrix->plotAt(0,0);
+
+    src_matrix->gridLayout()->removeWidget( source );
+    dst_matrix->gridLayout()->removeWidget( destination );
+
+    src_matrix->gridLayout()->addWidget( destination, src_row, src_col );
+    dst_matrix->gridLayout()->addWidget( source,      0, 0 );
+    source->changeBackgroundColor( Qt::white );
+    destination->changeBackgroundColor( Qt::white );
+
+    src_matrix->removeEmpty();
+    src_matrix->updateLayout();
+    dst_matrix->updateLayout();
+    emit undoableChangeHappened();
+
+}
+
 void TabbedPlotWidget::on_addTabButton_pressed()
 {
     addTab( nullptr );
@@ -301,28 +359,7 @@ void TabbedPlotWidget::on_addTabButton_pressed()
 
 void TabbedPlotWidget::on_pushRemoveEmpty_pressed()
 {
-    PlotMatrix *tab = currentTab();
-
-    for( unsigned row = 0; row< tab->rowsCount(); row++)
-    {
-        while( tab->rowsCount() > 1 &&
-               tab->isRowEmpty( row ) &&
-               row < tab->rowsCount() )
-        {
-            tab->removeRow( row );
-        }
-    }
-
-    for( unsigned col = 0; col< tab->colsCount(); col++)
-    {
-        while( tab->colsCount() > 1 &&
-               tab->isColumnEmpty( col ) &&
-               col < tab->colsCount() )
-        {
-            tab->removeColumn( col );
-        }
-    }
-
+    currentTab()->removeEmpty();
     emit undoableChangeHappened();
 }
 
@@ -416,7 +453,6 @@ void TabbedPlotWidget::on_requestTabMovement(const QString & destination_name)
 
     qDebug() << "move "<< tab_name<< " into " << destination_name;
     emit undoableChangeHappened();
-
 }
 
 void TabbedPlotWidget::on_moveTabIntoNewWindow()

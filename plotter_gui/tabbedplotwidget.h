@@ -33,6 +33,7 @@ public:
     void addTab(PlotMatrix *tab = nullptr);
 
     QDomElement xmlSaveState(QDomDocument &doc) const;
+
     bool xmlLoadState(QDomElement &tabbed_area);
 
     ~TabbedPlotWidget() override;
@@ -84,6 +85,8 @@ private slots:
     void onLabelStatusChanged();
 
     void on_pushButtonZoomMax_pressed();
+
+    void onMoveWidgetIntoNewTab(QString plot_name);
 
 private:
 

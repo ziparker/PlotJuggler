@@ -1832,8 +1832,8 @@ void MainWindow::onSwapPlots(PlotWidget *source, PlotWidget *destination)
         if( src_matrix != dst_matrix){
             dst_matrix->updateLayout();
         }
-        source->changeBackgroundColor( QColor( 250, 250, 250 ) );
-        destination->changeBackgroundColor( QColor( 250, 250, 250 ) );
+        source->changeBackgroundColor( Qt::white );
+        destination->changeBackgroundColor( Qt::white );
     }
     onUndoableChange();
 }

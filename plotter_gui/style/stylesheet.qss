@@ -21,6 +21,9 @@ QLineEdit:disabled {
     background: #DDDDDD;
 }
 
+QTabWidget{
+    background: white;
+}
 
 QTabWidget::pane { /* The tab widget frame */
     border: 1px solid gray;

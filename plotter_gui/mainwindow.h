@@ -37,8 +37,6 @@ public:
 public slots:
     void onUndoableChange();
 
-private slots:
-
     void onTrackerTimeUpdated(double absolute_time , bool do_replot);
 
     void onTrackerMovedFromWidget(QPointF pos );
