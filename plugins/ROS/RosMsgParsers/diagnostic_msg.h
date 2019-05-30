@@ -1,8 +1,8 @@
 #ifndef DIAGNOSTIC_MSG_H
 #define DIAGNOSTIC_MSG_H
 
-#include "diagnostic_msgs/DiagnosticArray.h"
-#include "ros_messageparser.h"
+#include "ros_parser_base.h"
+#include <diagnostic_msgs/DiagnosticArray.h>
 #include <absl/strings/str_cat.h>
 #include <absl/strings/charconv.h>
 

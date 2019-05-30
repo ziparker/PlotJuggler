@@ -3,7 +3,7 @@
 
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/TwistStamped.h"
-#include "ros_messageparser.h"
+#include "ros_parser_base.h"
 
 class GeometryMsgTwist: public RosParserBase
 {

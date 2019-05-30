@@ -9,7 +9,7 @@
 #include "PlotJuggler/datastreamer_base.h"
 #include <ros_type_introspection/ros_introspection.hpp>
 #include <rosgraph_msgs/Clock.h>
-#include "../introspection_parser.h"
+#include "../RosMsgParsers/ros_parser.h"
 
 class  DataStreamROS: public DataStreamer
 {

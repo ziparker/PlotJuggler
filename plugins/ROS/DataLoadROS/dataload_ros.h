@@ -8,7 +8,7 @@
 #include <rosbag/bag.h>
 
 #include "PlotJuggler/dataloader_base.h"
-#include "../introspection_parser.h"
+#include "../RosMsgParsers/ros_parser.h"
 
 class  DataLoadROS: public DataLoader
 {

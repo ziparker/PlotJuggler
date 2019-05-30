@@ -19,11 +19,11 @@ SET( COMMON_SRC
     rule_editing.cpp
     qnodedialog.h
     qnodedialog.cpp
-    introspection_parser.h
-    introspection_parser.cpp
     dialog_select_ros_topics.h
     dialog_select_ros_topics.cpp
     dialog_with_itemlist.h
+    ./RosMsgParsers/ros_parser.h
+    ./RosMsgParsers/ros_parser.cpp
     )
 
 QT5_WRAP_UI ( COMMON_UI_SRC

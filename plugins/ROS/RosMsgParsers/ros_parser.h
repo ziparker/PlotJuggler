@@ -1,7 +1,7 @@
 #ifndef INTROSPECTIONPARSER_H
 #define INTROSPECTIONPARSER_H
 
-#include "RosMsgParsers/ros_messageparser.h"
+#include "ros_parser_base.h"
 #include <ros_type_introspection/ros_introspection.hpp>
 
 class RosMessageParser : public RosParserBase

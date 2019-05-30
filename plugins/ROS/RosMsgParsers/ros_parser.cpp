@@ -1,8 +1,9 @@
-#include "introspection_parser.h"
+#include "ros_parser.h"
 #include "dialog_with_itemlist.h"
-#include "RosMsgParsers/geometry_msg_twist.h"
-#include "RosMsgParsers/diagnostic_msg.h"
-#include "RosMsgParsers/fiveai_stamped_diagnostic.h"
+#include "geometry_msg_twist.h"
+#include "diagnostic_msg.h"
+#include "pal_statistics_msg.h"
+#include "fiveai_stamped_diagnostic.h"
 #include <absl/strings/charconv.h>
 
 RosMessageParser::RosMessageParser()
@@ -79,9 +80,17 @@ bool RosMessageParser::registerSchema(const std::string &topic_name,
     {
         _builtin_parsers.insert( {topic_name, new DiagnosticMsg() } );
     }
-    if( md5sum == FiveAiDiagnosticMsg::getCompatibleKey() )
+    else if( md5sum == FiveAiDiagnosticMsg::getCompatibleKey() )
     {
         _builtin_parsers.insert( {topic_name, new FiveAiDiagnosticMsg() } );
+    }
+    else if( md5sum == PalStatisticsNamesParser::getCompatibleKey() )
+    {
+        _builtin_parsers.insert( {topic_name, new PalStatisticsNamesParser() } );
+    }
+    else if( md5sum == PalStatisticsValuesParser::getCompatibleKey() )
+    {
+        _builtin_parsers.insert( {topic_name, new PalStatisticsValuesParser() } );
     }
     else{
         _introspection_parser->registerMessageDefinition(topic_name, type, definition);

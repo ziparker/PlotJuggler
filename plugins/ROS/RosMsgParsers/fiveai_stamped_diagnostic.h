@@ -7,7 +7,7 @@
 
 #include <ros/types.h>
 #include <ros/serialization.h>
-#include "ros_messageparser.h"
+#include "ros_parser_base.h"
 #include <absl/strings/str_cat.h>
 #include <absl/strings/charconv.h>
 
