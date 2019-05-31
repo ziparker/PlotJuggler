@@ -53,7 +53,7 @@ bool PointSeriesXY::updateCache()
 
     const size_t data_size =  _x_axis->size();
 
-    if( data_size != _x_axis->size() )
+    if( data_size != _y_axis->size() )
     {
         _bounding_box = QRectF();
         _cached_curve.clear();
