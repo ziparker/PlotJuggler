@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QActionGroup>
 #include <QMainWindow>
 #include <QElapsedTimer>
 #include <QShortcut>
@@ -158,6 +159,8 @@ private:
 
     ReloadPolicy _reload_policy;
 
+    QActionGroup* _reload_group;
+
     bool _minimized;
 
     void createActions();
@@ -211,7 +214,9 @@ private:
 
     void createTabbedDialog(QString suggest_win_name, PlotMatrix *first_tab);
 
-    void importPlotDataMap(PlotDataMapRef &new_data, bool delete_older);
+    QString applyReloadPolicy();
+
+    void importPlotDataMap(PlotDataMapRef &new_data, bool remove_old);
 
     bool isStreamingActive() const ;
 

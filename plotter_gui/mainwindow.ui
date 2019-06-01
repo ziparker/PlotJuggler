@@ -863,20 +863,24 @@
      <addaction name="separator"/>
      <addaction name="actionClearRecentLayout"/>
     </widget>
-    <widget class="QMenu" name="menuOn_reload">
+    <widget class="QMenu" name="menuReload">
      <property name="title">
       <string>On multiple loads...</string>
      </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>:/icons/resources/light/settings_cog.png</normaloff>:/icons/resources/light/settings_cog.png</iconset>
+     </property>
      <addaction name="actionRemoveOld"/>
-     <addaction name="actionAddPrefix"/>
      <addaction name="actionMerge"/>
+     <addaction name="actionAddPrefix"/>
      <addaction name="actionAsk"/>
     </widget>
     <addaction name="actionLoadData"/>
     <addaction name="menuRecentData"/>
     <addaction name="actionQuickReload"/>
     <addaction name="actionLoadDummyData"/>
-    <addaction name="menuOn_reload"/>
+    <addaction name="menuReload"/>
     <addaction name="separator"/>
     <addaction name="actionLoadLayout"/>
     <addaction name="menuRecentLayout"/>
@@ -1060,13 +1064,8 @@
    <property name="text">
     <string>Remove old data</string>
    </property>
-  </action>
-  <action name="actionAddPrefix">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Add  prefix</string>
+   <property name="toolTip">
+    <string>Remove all the timeseries previously loaded</string>
    </property>
   </action>
   <action name="actionMerge">
@@ -1075,6 +1074,9 @@
    </property>
    <property name="text">
     <string>Merge / overwrite</string>
+   </property>
+   <property name="toolTip">
+    <string>Keep the old data. If a new timeseries has the same name, overwite the old one.</string>
    </property>
   </action>
   <action name="actionAsk">
@@ -1105,6 +1107,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+X</string>
+   </property>
+  </action>
+  <action name="actionAddPrefix">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Add  prefix (DANGER)</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add  prefix to the names of newly loaded timeseries.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;WARNING: this option will brake your Layouts and Publishers.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>

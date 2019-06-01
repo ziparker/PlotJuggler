@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <set>
 #include <numeric>
+
+#include <QActionGroup>
 #include <QCheckBox>
 #include <QCommandLineParser>
 #include <QDebug>
@@ -108,6 +110,12 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
         ui->playbackRate->clearFocus();
     });
 
+    _reload_group = new QActionGroup(ui->menuReload);
+    _reload_group->addAction(ui->actionRemoveOld);
+    _reload_group->addAction(ui->actionAddPrefix);
+    _reload_group->addAction(ui->actionMerge);
+    _reload_group->addAction(ui->actionAsk);
+
     _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, nullptr, _mapped_plot_data, this);
 
     ui->plottingLayout->insertWidget(0, _main_tabbed_widget,1);
@@ -149,8 +157,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     connect(_streamer_signal_mapper, SIGNAL(mapped(QString)),
             this, SLOT(onActionLoadStreamer(QString)) );
 
-    ui->actionDeleteAllData->setEnabled( _test_option );
-
     if( _test_option )
     {
         connect( ui->actionLoadDummyData, &QAction::triggered,
@@ -189,6 +195,24 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     ui->widgetOptions->setVisible( ui->pushButtonOptions->isChecked() );
     ui->line->setVisible( ui->pushButtonOptions->isChecked() );
+
+    QString reload_option = settings.value("MainWindow.reloadPolicy", "ASK").toString();
+    if( reload_option == "ASK" )
+    {
+        ui->actionAsk->setChecked(true);
+    }
+    else if( reload_option == "MERGE" )
+    {
+        ui->actionMerge->setChecked(true);
+    }
+    else if( reload_option == "PREFIX" )
+    {
+        ui->actionAddPrefix->setChecked(true);
+    }
+    else if( reload_option == "CLEANUP" )
+    {
+        ui->actionRemoveOld->setChecked(true);
+    }
 
     //----------------------------------------------------------
     QIcon trackerIconA, trackerIconB, trackerIconC;
@@ -472,6 +496,23 @@ void MainWindow::createActions()
         ui->menuHelp->exec( ui->menuBar->mapToGlobal(QPoint(230,25)));
     } );
 
+    connect( ui->actionRemoveOld, &QAction::toggled, this, [this](bool active)
+    {
+        if( active ) _reload_policy = ReloadPolicy::CLEANUP;
+    });
+    connect( ui->actionAddPrefix, &QAction::toggled, this, [this](bool active)
+    {
+        if( active ) _reload_policy = ReloadPolicy::PREFIX;
+    });
+    connect( ui->actionMerge, &QAction::toggled, this, [this](bool active)
+    {
+        if( active ) _reload_policy = ReloadPolicy::MERGE;
+    });
+    connect( ui->actionAsk, &QAction::toggled, this, [this](bool active)
+    {
+        if( active ) _reload_policy = ReloadPolicy::ASK;
+    });
+
     //---------------------------------------------
 
     connect(ui->actionSaveLayout, &QAction::triggered,         this, &MainWindow::onActionSaveLayout );
@@ -664,7 +705,7 @@ void MainWindow::buildDummyData()
         cos_plot.pushBack( PlotData::Point( t+20,  cos(t*0.4) ) ) ;
     }
 
-    importPlotDataMap(datamap,true);
+    importPlotDataMap(datamap, true);
 }
 
 void MainWindow::onSplitterMoved(int , int )
@@ -1010,11 +1051,6 @@ void MainWindow::deleteDataMultipleCurves(const std::vector<std::string> &curve_
         {
             _curvelist_widget->removeRow(row);
         }
-
-        if( _curvelist_widget->rowCount() == 0)
-        {
-            ui->actionDeleteAllData->setEnabled( false );
-        }
     }
 
     forEachWidget( [](PlotWidget* plot) {
@@ -1058,7 +1094,6 @@ void MainWindow::onDeleteLoadedData()
     else
     {
         deleteAllDataImpl();
-        ui->actionDeleteAllData->setEnabled( false );
     }
 }
 
@@ -1094,7 +1129,7 @@ void MainWindow::onActionLoadData()
     QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
 
     QFileDialog loadDialog( this );
-    loadDialog.setFileMode(QFileDialog::ExistingFiles);
+    loadDialog.setFileMode(QFileDialog::ExistingFile);
     loadDialog.setViewMode(QFileDialog::Detail);
     loadDialog.setNameFilter(file_extension_filter);
     loadDialog.setDirectory(directory_path);
@@ -1207,43 +1242,6 @@ void MainWindow::updateRecentLayoutMenu(QStringList new_filenames)
 }
 
 
-template <typename T>
-void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
-                             std::unordered_map<std::string,T>& destination,
-                             bool delete_older)
-{
-    for (auto& it: source)
-    {
-        const std::string& name  = it.first;
-        T& source_plot  = it.second;
-        auto plot_with_same_name = destination.find(name);
-
-        // this is a new plot
-        if( plot_with_same_name == destination.end() )
-        {
-            plot_with_same_name = destination.emplace( std::piecewise_construct,
-                                                       std::forward_as_tuple(name),
-                                                       std::forward_as_tuple(name)
-                                                       ).first;
-        }
-        T& destination_plot = plot_with_same_name->second;
-        if( delete_older )
-        {
-            double max_range_x = destination_plot.maximumRangeX();
-            destination_plot.swapData(source_plot);
-            destination_plot.setMaximumRangeX(max_range_x); // just in case
-        }
-        else
-        {
-            for (size_t i=0; i< source_plot.size(); i++)
-            {
-                destination_plot.pushBack( source_plot.at(i) );
-            }
-        }
-        source_plot.clear();
-    }
-}
-
 void MainWindow::deleteAllDataImpl()
 {
     forEachWidget( [](PlotWidget* plot) {
@@ -1273,35 +1271,107 @@ void MainWindow::deleteAllDataImpl()
 }
 
 
-void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
+QString MainWindow::applyReloadPolicy()
+{
+    if( _mapped_plot_data.numeric.empty() && _mapped_plot_data.user_defined.empty() )
+    {
+        return {};
+    }
+
+    auto reload_policy = _reload_policy;
+
+    if (reload_policy == ReloadPolicy::ASK )
+    {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle(tr("Warning"));
+        msgBox.setText("Do you want to remove the previously loaded data?\n\n"
+                       "Alternatively, add a PREFIX to the new data, "
+                       "but do remember that the prefix is not supported by Layout files nor publishers.");
+
+        QPushButton* buttonRemove   = msgBox.addButton(tr("Remove Old"), QMessageBox::YesRole);
+        QPushButton* buttonMerge    = msgBox.addButton(tr("Merge"), QMessageBox::NoRole);
+        QPushButton* buttonPrefix   = msgBox.addButton(tr("Add Prefix"), QMessageBox::ActionRole);
+
+        msgBox.setDefaultButton( buttonRemove );
+        msgBox.exec();
+
+        if( msgBox.clickedButton() == buttonRemove )
+        {
+            reload_policy = ReloadPolicy::CLEANUP;
+        }
+        else if ( msgBox.clickedButton() == buttonMerge )
+        {
+            reload_policy = ReloadPolicy::MERGE;
+        }
+        else if ( msgBox.clickedButton() == buttonPrefix )
+        {
+            reload_policy = ReloadPolicy::PREFIX;
+        }
+    }
+    //-----------
+    if( reload_policy == ReloadPolicy::CLEANUP )
+    {
+        deleteAllDataImpl();
+    }
+    else if (reload_policy == ReloadPolicy::PREFIX )
+    {
+        static int letter_count = 0;
+        QString prefix ( 'A' + letter_count);
+        bool ok = false;
+        prefix = QInputDialog::getText(this, "Prefix", "Prefix to add:",
+                                       QLineEdit::Normal, prefix, &ok);
+        if( ok && !prefix.isEmpty() )
+        {
+            letter_count++;
+        }
+        return prefix;
+    }
+    return {};
+}
+
+template <typename T>
+void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
+                             std::unordered_map<std::string,T>& destination,
+                             bool delete_older)
+{
+    for (auto& it: source)
+    {
+        const std::string& name  = it.first;
+        T& source_plot  = it.second;
+        auto plot_with_same_name = destination.find(name);
+
+        // this is a new plot
+        if( plot_with_same_name == destination.end() )
+        {
+            plot_with_same_name = destination.emplace( std::piecewise_construct,
+                                                       std::forward_as_tuple(name),
+                                                       std::forward_as_tuple(name)
+                                                       ).first;
+        }
+        T& destination_plot = plot_with_same_name->second;
+
+        if( delete_older )
+        {
+            double max_range_x = destination_plot.maximumRangeX();
+            destination_plot.swapData(source_plot);
+            destination_plot.setMaximumRangeX(max_range_x); // just in case
+        }
+        else
+        {
+            for (size_t i=0; i< source_plot.size(); i++)
+            {
+                destination_plot.pushBack( source_plot.at(i) );
+            }
+        }
+        source_plot.clear();
+    }
+}
+
+void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
 {
     if( new_data.user_defined.empty() && new_data.numeric.empty() )
     {
         return;
-    }
-
-    std::vector<std::string> old_one_to_delete;
-
-    for (auto& it: _mapped_plot_data.numeric)
-    {
-        // timeseries in old but not in new
-        if( new_data.numeric.count( it.first ) == 0 )
-        {
-            old_one_to_delete.push_back( it.first );
-        }
-    }
-
-    if( !old_one_to_delete.empty() && delete_older )
-    {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, tr("Warning"),
-                                      tr("Do you want to remove the previously loaded data?\n"),
-                                      QMessageBox::Yes | QMessageBox::No,
-                                      QMessageBox::Yes );
-        if( reply == QMessageBox::Yes )
-        {
-            deleteDataMultipleCurves(old_one_to_delete);
-        }
     }
 
     bool curvelist_modified = false;
@@ -1315,10 +1385,8 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
         }
     }
 
-    //---------------------------------------------
-    importPlotDataMapHelper( new_data.user_defined, _mapped_plot_data.user_defined, delete_older );
-    importPlotDataMapHelper( new_data.numeric, _mapped_plot_data.numeric, delete_older );
-    //---------------------------------------------
+    importPlotDataMapHelper( new_data.user_defined, _mapped_plot_data.user_defined, remove_old );
+    importPlotDataMapHelper( new_data.numeric, _mapped_plot_data.numeric, remove_old );
 
     if( curvelist_modified )
     {
@@ -1400,11 +1468,41 @@ bool MainWindow::onActionLoadDataFromFile(QString filename, bool reuse_last_conf
         file.close();
 
         _loaded_datafile = filename;
-        ui->actionDeleteAllData->setEnabled( true );
 
         try{
-            PlotDataMapRef mapped_data = _last_dataloader->readDataFromFile( filename, reuse_last_configuration );
-            importPlotDataMap(mapped_data, true);
+
+            PlotDataMapRef mapped_data = _last_dataloader->readDataFromFile(filename, reuse_last_configuration );
+
+            if( !mapped_data.numeric.empty() && !mapped_data.user_defined.empty() )
+            {
+                QString prefix = applyReloadPolicy();
+
+                if( prefix.isEmpty() )
+                {
+                    importPlotDataMap(mapped_data, true);
+                }
+                else {
+                    PlotDataMapRef prefix_data;
+
+                    prefix_data.user_defined = std::move( mapped_data.user_defined );
+
+                    std::string prefix_str = prefix.toStdString();
+
+                    for(auto& it: mapped_data.numeric)
+                    {
+                        if( it.first.front() == '/')
+                        {
+                            auto new_plot = prefix_data.addNumeric( prefix_str + it.first );
+                            new_plot->second.swapData( it.second );
+                        }
+                        else{
+                            auto new_plot = prefix_data.addNumeric( prefix_str + "/" + it.first );
+                            new_plot->second.swapData( it.second );
+                        }
+                    }
+                    importPlotDataMap(prefix_data, true);
+                }
+            }
         }
         catch(std::exception &ex)
         {
@@ -1473,18 +1571,12 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
     }
     if( started )
     {
-        {
-            std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
-            importPlotDataMap( _current_streamer->dataMap(), true );
-        }
-
         for(auto& action: ui->menuStreaming->actions()) {
             action->setEnabled(false);
         }
         ui->actionClearBuffer->setEnabled(true);
 
         ui->actionStopStreaming->setEnabled(true);
-        ui->actionDeleteAllData->setEnabled( false );
         ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
 
         ui->pushButtonStreaming->setEnabled(true);
@@ -2086,7 +2178,6 @@ void MainWindow::on_actionStopStreaming_triggered()
     ui->actionStopStreaming->setEnabled(false);
 
     if( !_mapped_plot_data.numeric.empty()){
-        ui->actionDeleteAllData->setEnabled( true );
         ui->actionDeleteAllData->setToolTip("");
     }
 
@@ -2264,6 +2355,24 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("MainWindow.removeTimeOffset",ui->pushButtonRemoveTimeOffset->isChecked() );
     settings.setValue("MainWindow.dateTimeDisplay", ui->pushButtonUseDateTime->isChecked() );
     settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param );
+
+
+    if( _reload_policy == ReloadPolicy::ASK )
+    {
+        settings.setValue("MainWindow.reloadPolicy", "ASK");
+    }
+    else if( _reload_policy == ReloadPolicy::MERGE )
+    {
+        settings.setValue("MainWindow.reloadPolicy", "MERGE");
+    }
+    else if( _reload_policy == ReloadPolicy::PREFIX )
+    {
+        settings.setValue("MainWindow.reloadPolicy", "PREFIX");
+    }
+    else if( _reload_policy == ReloadPolicy::CLEANUP )
+    {
+        settings.setValue("MainWindow.reloadPolicy", "CLEANUP");
+    }
 
     // clean up all the plugins
     for(auto& it : _data_loader ) { delete it.second; }
