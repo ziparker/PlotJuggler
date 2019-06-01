@@ -59,7 +59,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
-    _test_option = (commandline_parser.isSet("test"));
+    _test_option = commandline_parser.isSet("test");
+    _autostart_publishers = commandline_parser.isSet("publish");
 
     _curvelist_widget = new FilterableListWidget(_custom_plots, this);
     _streamer_signal_mapper = new QSignalMapper(this);
@@ -301,62 +302,57 @@ void MainWindow::onUpdateLeftTableValues()
 
     for(auto table_view: { _curvelist_widget->getTableView(), _curvelist_widget->getCustomView() } )
     {
-        if( _curvelist_widget->is2ndColumnHidden() == false)
+        if( _curvelist_widget->is2ndColumnHidden() )
         {
-            table_view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-            table_view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+            continue;
+        }
 
-            const int vertical_height = table_view->visibleRegion().boundingRect().height();
+        const int vertical_height = table_view->visibleRegion().boundingRect().height();
 
-            for (int row = 0; row < _curvelist_widget->rowCount(); row++)
+        for (int row = 0; row < _curvelist_widget->rowCount(); row++)
+        {
+            int vertical_pos = table_view->rowViewportPosition(row);
+            if( vertical_pos < 0 || table_view->isRowHidden(row) ){ continue; }
+            if( vertical_pos > vertical_height){ break; }
+
+            const std::string& name = table_model->item(row,0)->text().toStdString();
+            auto it = _mapped_plot_data.numeric.find(name);
+            if( it !=  _mapped_plot_data.numeric.end())
             {
-                int vertical_pos = table_view->rowViewportPosition(row);
-                if( vertical_pos < 0 || table_view->isRowHidden(row) ){ continue; }
-                if( vertical_pos > vertical_height){ break; }
+                auto& data = it->second;
 
-                const std::string& name = table_model->item(row,0)->text().toStdString();
-                auto it = _mapped_plot_data.numeric.find(name);
-                if( it !=  _mapped_plot_data.numeric.end())
+                double num = 0.0;
+                bool valid = false;
+
+                if( _tracker_time < std::numeric_limits<double>::max())
                 {
-                    auto& data = it->second;
-
-                    double num = 0.0;
-                    bool valid = false;
-
-                    if( _tracker_time < std::numeric_limits<double>::max())
-                    {
-                        auto value = data.getYfromX( _tracker_time );
-                        if(value){
-                            valid = true;
-                            num = value.value();
-                        }
+                    auto value = data.getYfromX( _tracker_time );
+                    if(value){
+                        valid = true;
+                        num = value.value();
                     }
-                    else{
-                        if( data.size() > 0) {
-                            valid = true;
-                            num = data.back().y;
-                        }
-                    }
-                    if( valid)
+                }
+                else if( data.size() > 0)
+                {
+                    valid = true;
+                    num = data.back().y;
+                }
+                if( valid )
+                {
+                    QString num_text = QString::number( num, 'f', 3);
+                    if(num_text.contains('.'))
                     {
-                        QString num_text = QString::number( num, 'f', 3);
-                        if(num_text.contains('.'))
+                        int idx = num_text.length() -1;
+                        while( num_text[idx] == '0' )
                         {
-                            int idx = num_text.length() -1;
-                            while( num_text[idx] == '0' )
-                            {
-                                num_text[idx] = ' ';
-                                idx--;
-                            }
-                            if(  num_text[idx] == '.') num_text[idx] = ' ';
+                            num_text[idx] = ' ';
+                            idx--;
                         }
-                        table_model->item(row,1)->setText(num_text + ' ');
+                        if(  num_text[idx] == '.') num_text[idx] = ' ';
                     }
-                    // table_model->item(row,1)->setText(num_text + ' ');
+                    table_model->item(row,1)->setText(num_text + ' ');
                 }
             }
-            table_view->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-            table_view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         }
     }
 }
@@ -383,7 +379,6 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time, bool do_replot)
 {
     updatedDisplayTime();
     onUpdateLeftTableValues();
-
 
     for ( auto& it: _state_publisher)
     {
@@ -606,18 +601,12 @@ void MainWindow::loadPlugins(QString directory_name)
                     ui->menuPublishers->addSeparator();
                     ui->menuPublishers->addSection(plugin_name);
                     ui->menuPublishers->addAction(activatePublisher);
-                    publisher->setParentMenu( ui->menuPublishers );
+                    publisher->setParentMenu( ui->menuPublishers, activatePublisher );
 
                     connect(activatePublisher, &QAction::toggled,
                             [=](bool enable)
                     {
                         publisher->setEnabled( enable );
-                        if( publisher->enabled() == false )
-                        {
-                            auto prev = activatePublisher->blockSignals(true);
-                            activatePublisher->setChecked(false);
-                            activatePublisher->blockSignals(false);
-                        }
                     } );
                 }
             }
@@ -635,7 +624,7 @@ void MainWindow::loadPlugins(QString directory_name)
                     ui->menuStreaming->setEnabled(true);
                     ui->menuStreaming->addAction(startStreamer);
 
-                    streamer->setParentMenu( ui->menuStreaming );
+                    streamer->addActionsToParentMenu( ui->menuStreaming );
                     ui->menuStreaming->addSeparator();
 
                     connect(startStreamer, SIGNAL(triggered()), _streamer_signal_mapper, SLOT(map()) );
@@ -1299,15 +1288,6 @@ QString MainWindow::applyReloadPolicy()
         {
             reload_policy = ReloadPolicy::CLEANUP;
         }
-        else if ( msgBox.clickedButton() == buttonMerge )
-        {
-            reload_policy = ReloadPolicy::MERGE;
-        }
-        else if ( msgBox.clickedButton() == buttonPrefix )
-        {
-            reload_policy = ReloadPolicy::PREFIX;
-        }
-    }
     //-----------
     if( reload_policy == ReloadPolicy::CLEANUP )
     {
@@ -1378,7 +1358,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
     for (auto& it: new_data.numeric)
     {
         const std::string& name  = it.first;
-        if( _mapped_plot_data.numeric.count(name) == 0)
+        if( it.second.size()>0 && _mapped_plot_data.numeric.count(name) == 0)
         {
             _curvelist_widget->addItem( QString::fromStdString( name ) );
             curvelist_modified = true;
@@ -1631,7 +1611,13 @@ void MainWindow::loadPluginState(const QDomElement& root)
             }
             if( _state_publisher.find(plugin_name) != _state_publisher.end() )
             {
-                _state_publisher[plugin_name]->xmlLoadState(plugin_elem);
+                StatePublisher* publisher = _state_publisher[plugin_name];
+                publisher->xmlLoadState(plugin_elem);
+
+                if( _autostart_publishers && plugin_elem.attribute("status") == "active" )
+                {
+                    publisher->setEnabled(true);
+                }
             }
         }
     }
@@ -1662,7 +1648,7 @@ void MainWindow::savePluginState(QDomDocument& doc)
         QString name = it.first;
         const DataStreamer* datastreamer = it.second;
 
-        QDomElement elem = doc.createElement(  name );
+        QDomElement elem = doc.createElement( name );
         elem.appendChild( datastreamer->xmlSaveState(doc) );
         plugins_elem.appendChild( elem );
     }
@@ -1673,6 +1659,7 @@ void MainWindow::savePluginState(QDomDocument& doc)
         const StatePublisher* state_publisher = it.second;
 
         QDomElement elem = doc.createElement(  name );
+        elem.setAttribute("status", state_publisher->enabled() ? "active" : "idle");
         elem.appendChild( state_publisher->xmlSaveState(doc) );
         plugins_elem.appendChild( elem );
     }
@@ -1792,7 +1779,29 @@ bool MainWindow::onActionLoadLayoutFromFile(QString filename)
             }
         }
     }
+    //-------------------------------------------------
+    // autostart_publishers
+    QDomElement plugins = root.firstChildElement("Plugins");
 
+    if( ! plugins.isNull() && _autostart_publishers )
+    {
+        for ( QDomElement plugin_elem = plugins.firstChildElement()  ;
+              plugin_elem.isNull() == false;
+              plugin_elem = plugin_elem.nextSiblingElement() )
+        {
+            const QString plugin_name = plugin_elem.nodeName();
+            if( _state_publisher.find(plugin_name) != _state_publisher.end() )
+            {
+                StatePublisher* publisher = _state_publisher[plugin_name];
+
+                if( plugin_elem.attribute("status") == "active" )
+                {
+                    publisher->setEnabled(true);
+                }
+            }
+        }
+    }
+    //-------------------------------------------------
     auto custom_equations = root.firstChildElement( "customMathEquations" );
 
     try{
@@ -2078,7 +2087,7 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
         }
     }
 
-    bool is_streaming_active = isStreamingActive();
+    const bool is_streaming_active = isStreamingActive();
 
     forEachWidget( [is_streaming_active](PlotWidget* plot)
     {

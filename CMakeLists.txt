@@ -81,6 +81,8 @@ if(COMPILING_WITH_CATKIN)
         rostime
         topic_tools
         tf
+        diagnostic_msgs
+        nav_msgs
     )
 
     find_package(catkin REQUIRED COMPONENTS ${ROS_DEPENDENCIES} )

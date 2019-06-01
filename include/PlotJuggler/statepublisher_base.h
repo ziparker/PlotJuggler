@@ -23,11 +23,20 @@ public:
 
     virtual ~StatePublisher() {}
 
-    virtual void setEnabled(bool enabled) = 0;
+    virtual void setEnabled(bool enabled)
+    {
+        auto prev = _action->blockSignals(true);
+        _action->setChecked(enabled);
+        _action->blockSignals(prev);
+    }
 
     virtual bool isDebugPlugin() { return false; }
 
-    virtual void setParentMenu(QMenu* menu) { _menu = menu; }
+    virtual void setParentMenu(QMenu* parent_menu, QAction* parent_action)
+    {
+        _menu   = parent_menu;
+        _action = parent_action;
+    }
 
     virtual QWidget* embeddedWidget() { return nullptr; }
 
@@ -39,6 +48,7 @@ public:
 
 protected:
     QMenu* _menu;
+    QAction* _action;
     const PlotDataMapRef *_datamap;
 };
 

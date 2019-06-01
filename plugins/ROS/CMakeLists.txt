@@ -22,6 +22,8 @@ SET( COMMON_SRC
     dialog_select_ros_topics.h
     dialog_select_ros_topics.cpp
     dialog_with_itemlist.h
+    ./RosMsgParsers/ros_parser.h
+    ./RosMsgParsers/ros_parser.cpp
     )
 
 QT5_WRAP_UI ( COMMON_UI_SRC

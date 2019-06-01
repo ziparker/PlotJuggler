@@ -20,7 +20,7 @@
 #include <QMessageBox>
 
 TopicPublisherROS::TopicPublisherROS():
-    enabled_(false ),
+    _enabled(false ),
     _node(nullptr),
     _publish_clock(true)
 {
@@ -31,13 +31,14 @@ TopicPublisherROS::TopicPublisherROS():
 
 TopicPublisherROS::~TopicPublisherROS()
 {
-    enabled_ = false;
+    _enabled = false;
 }
 
-void TopicPublisherROS::setParentMenu(QMenu *menu)
+void TopicPublisherROS::setParentMenu(QMenu *menu, QAction* action)
 {
+    StatePublisher::setParentMenu( menu, action );
+
     _enable_self_action = menu->actions().back();
-    _menu = menu;
 
     _select_topics_to_publish = new QAction(QString("Select topics to be published"), _menu);
     _menu->addAction( _select_topics_to_publish );
@@ -51,12 +52,12 @@ void TopicPublisherROS::setEnabled(bool to_enable)
     {
         _node = RosManager::getNode();
     }
-    enabled_ = (to_enable && _node);
+    _enabled = (to_enable && _node);
 
-    if(enabled_)
+    if(_enabled)
     {
-        filterDialog();
-        if( !_tf_publisher)
+        filterDialog(true);
+        if( !_tf_publisher )
         {
             _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
         }
@@ -66,9 +67,11 @@ void TopicPublisherROS::setEnabled(bool to_enable)
         _node.reset();
         _publishers.clear();
     }
+
+    StatePublisher::setEnabled(_enabled);
 }
 
-void TopicPublisherROS::filterDialog(bool)
+void TopicPublisherROS::filterDialog(bool autoconfirm)
 {   
     auto all_topics = RosIntrospectionFactory::get().getTopicList();
 
@@ -142,9 +145,13 @@ void TopicPublisherROS::filterDialog(bool)
     connect(buttons, SIGNAL(rejected()), dialog, SLOT(reject()));
 
     dialog->setLayout(vertical_layout);
-    auto result = dialog->exec();
 
-    if(result == QDialog::Accepted)
+    if( !autoconfirm )
+    {
+        auto result = dialog->exec();
+    }
+
+    if(autoconfirm || dialog->result() == QDialog::Accepted)
     {
         _topics_to_publish.clear();
         for(const auto& it: checkbox )
@@ -340,7 +347,7 @@ void TopicPublisherROS::publishAnyMsg(const rosbag::MessageInstance& msg_instanc
 
 void TopicPublisherROS::updateState(double current_time)
 {
-    if(!enabled_ || !_node) return;
+    if(!_enabled || !_node) return;
 
     if( !ros::master::check() )
     {
@@ -414,7 +421,7 @@ void TopicPublisherROS::updateState(double current_time)
 
 void TopicPublisherROS::play(double current_time)
 {
-    if(!enabled_ || !_node) return;
+    if(!_enabled || !_node) return;
 
     if( !ros::master::check() )
     {

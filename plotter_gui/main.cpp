@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include <iostream>
 #include <QApplication>
 #include <QSplashScreen>
 #include <QThread>
@@ -74,22 +75,26 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
 
     QCommandLineOption nosplash_option(QStringList() << "n" << "nosplash",
-                                       QCoreApplication::translate("main", "Don't display the splashscreen"));
+                                       "Don't display the splashscreen");
     parser.addOption(nosplash_option);
 
     QCommandLineOption test_option(QStringList() << "t" << "test",
-                                   QCoreApplication::translate("main", "Generate test curves at startup"));
+                                   "Generate test curves at startup");
     parser.addOption(test_option);
 
     QCommandLineOption loadfile_option(QStringList() << "d" << "datafile",
-                                       QCoreApplication::translate("main", "Load a file containing data"),
-                                       QCoreApplication::translate("main", "file") );
+                                       "Load a file containing data",
+                                       "file" );
     parser.addOption(loadfile_option);
 
     QCommandLineOption layout_option(QStringList() << "l" << "layout",
-                                     QCoreApplication::translate("main", "Load a file containing the layout configuration"),
-                                     QCoreApplication::translate("main", "file") );
+                                     "Load a file containing the layout configuration",
+                                     "file" );
     parser.addOption(layout_option);
+
+    QCommandLineOption publish_option(QStringList() << "p" << "publish",
+                                     "Automatically start publisher when loading the layout file" );
+    parser.addOption(publish_option);
 
     QCommandLineOption buffersize_option(QStringList() << "buffer_size",
                                      QCoreApplication::translate("main", "Change the maximum size of the streaming buffer (minimum: 10 default: 60)"),
@@ -97,6 +102,12 @@ int main(int argc, char *argv[])
     parser.addOption(buffersize_option);
 
     parser.process( *qApp );
+
+    if( parser.isSet(publish_option) && !parser.isSet(layout_option) )
+    {
+        std::cerr << "Option [ -p / --publish ] is invalid unless [ -l / --layout ] is used too." << std::endl;
+        return -1;
+    }
 
     /*
      * You, fearless code reviewer, decided to start a journey into my source code.
