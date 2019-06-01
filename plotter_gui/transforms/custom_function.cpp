@@ -260,6 +260,8 @@ CustomPlotPtr CustomFunction::createFromXML(QDomElement &element)
 
 SnippetsMap GetSnippetsFromXML(const QString& xml_text)
 {
+    if( xml_text.isEmpty() ) return {};
+
     QDomDocument doc;
     QString parseErrorMsg;
     int parseErrorLine;
