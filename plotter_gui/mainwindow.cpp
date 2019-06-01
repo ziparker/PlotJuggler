@@ -1288,6 +1288,15 @@ QString MainWindow::applyReloadPolicy()
         {
             reload_policy = ReloadPolicy::CLEANUP;
         }
+        else if( msgBox.clickedButton() == buttonMerge )
+        {
+            reload_policy = ReloadPolicy::MERGE;
+        }
+        else if( msgBox.clickedButton() == buttonPrefix )
+        {
+            reload_policy = ReloadPolicy::PREFIX;
+        }
+    }
     //-----------
     if( reload_policy == ReloadPolicy::CLEANUP )
     {
@@ -1306,6 +1315,7 @@ QString MainWindow::applyReloadPolicy()
         }
         return prefix;
     }
+
     return {};
 }
 
