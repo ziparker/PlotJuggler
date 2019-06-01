@@ -33,6 +33,7 @@
     <qresource prefix="/splash">
         <file>resources/splash.jpg</file>
         <file>resources/splash_2.jpg</file>
+        <file>resources/splash_2.2.jpg</file>
     </qresource>
     <qresource prefix="/">
         <file>resources/default.snippets.xml</file>

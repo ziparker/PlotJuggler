@@ -31,8 +31,8 @@ QString getFunnySubtitle(){
     case 6: return "I like the smell of plots in the morning";
     case 7: return "Timeseries, timeseries everywhere...";
     case 8: return "I didn't find a better name...";
-    case 9: return "\"It won't take long to code that\"..\n"
-                "Davide, 2014";
+    case 9: return "\"It won't take long to implement that\"\n"
+                   "... Davide, 2014";
     case 10: return "Visualize data responsibly";
     case 11: return "How could you live without it?";
     case 12: return "This time you will find that nasty bug!";
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     if( parser.isSet(nosplash_option) == false)
     // if(false) // if you uncomment this line, a kitten will die somewhere in the world.
     {
-        QPixmap main_pixmap(":/splash/resources/splash_2.jpg");
+        QPixmap main_pixmap(":/splash/resources/splash_2.2.jpg");
 
         int font_id = QFontDatabase::addApplicationFont("://resources/DejaVuSans-ExtraLight.ttf");
         QString family = QFontDatabase::applicationFontFamilies(font_id).at(0);
@@ -126,17 +126,29 @@ int main(int argc, char *argv[])
         painter.setPen(QColor(255, 255, 255));
         painter.setRenderHint(QPainter::TextAntialiasing, true);
 
-        QString subtitle = getFunnySubtitle();
-        int font_size = 25;
-        int text_width = main_pixmap.width() - 100;
-        do{
-            painter.setFont( QFont(family, font_size--) );
-        }while(font_size > 20 && painter.fontMetrics().width(subtitle) > text_width );
+        const QString subtitle = getFunnySubtitle();
 
-        QPoint topleft(50, main_pixmap.height()-90);
-        QSize rect_size(text_width,90);
-        painter.drawText( QRect(topleft, rect_size),
-                          Qt::AlignHCenter | Qt::AlignVCenter, subtitle );
+        {
+            const int margin = 20;
+            const int text_height = 100;
+            const int text_width = main_pixmap.width() - margin*2;
+            QPoint topleft(margin, main_pixmap.height() - text_height);
+            QSize rect_size(text_width, text_height);
+            font.setPointSize( 16 );
+            painter.setFont( font );
+            painter.drawText( QRect(topleft, rect_size),
+                              Qt::AlignHCenter | Qt::AlignVCenter, subtitle );
+        }
+        {
+            const int text_width = 100;
+            QPoint topleft( main_pixmap.width() - text_width, 0);
+            QSize rect_size( text_width, 40 );
+            font.setPointSize( 14 );
+            painter.setFont( font );
+            painter.drawText( QRect(topleft, rect_size),
+                              Qt::AlignHCenter | Qt::AlignVCenter, VERSION_STRING );
+        }
+
         painter.end();
 
         QSplashScreen splash(main_pixmap);
