@@ -86,10 +86,10 @@ int main(int argc, char *argv[])
                                        QCoreApplication::translate("main", "file") );
     parser.addOption(loadfile_option);
 
-    QCommandLineOption config_option(QStringList() << "l" << "layout",
+    QCommandLineOption layout_option(QStringList() << "l" << "layout",
                                      QCoreApplication::translate("main", "Load a file containing the layout configuration"),
                                      QCoreApplication::translate("main", "file") );
-    parser.addOption(config_option);
+    parser.addOption(layout_option);
 
     QCommandLineOption buffersize_option(QStringList() << "buffer_size",
                                      QCoreApplication::translate("main", "Change the maximum size of the streaming buffer (minimum: 10 default: 60)"),
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
      * Please don't do it.
      */
 
-    if( parser.isSet(nosplash_option) == false)
+    if( !parser.isSet(nosplash_option) && !( parser.isSet(loadfile_option) || parser.isSet(layout_option) ) )
     // if(false) // if you uncomment this line, a kitten will die somewhere in the world.
     {
         QPixmap main_pixmap(":/splash/resources/splash_2.2.jpg");

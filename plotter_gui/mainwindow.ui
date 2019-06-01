@@ -20,7 +20,7 @@
    <string>PlotJuggler</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resource.qrc">
+   <iconset>
     <normaloff>:/icons/resources/office_chart_line_stacked.png</normaloff>:/icons/resources/office_chart_line_stacked.png</iconset>
   </property>
   <property name="styleSheet">
@@ -162,7 +162,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/settings_cog.png</normaloff>:/icons/resources/light/settings_cog.png</iconset>
                </property>
                <property name="iconSize">
@@ -206,7 +206,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/line_tracker_1.png</normaloff>:/icons/resources/light/line_tracker_1.png</iconset>
                </property>
                <property name="iconSize">
@@ -285,7 +285,7 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resource.qrc">
+                  <iconset>
                    <normaloff>:/icons/resources/light/loop.png</normaloff>:/icons/resources/light/loop.png</iconset>
                  </property>
                  <property name="iconSize">
@@ -334,7 +334,7 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resource.qrc">
+                  <iconset>
                    <normaloff>:/icons/resources/light/play_arrow.png</normaloff>
                    <normalon>:/icons/resources/light/pause.png</normalon>:/icons/resources/light/play_arrow.png</iconset>
                  </property>
@@ -688,7 +688,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/datetime.png</normaloff>:/icons/resources/light/datetime.png</iconset>
                </property>
                <property name="iconSize">
@@ -738,7 +738,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/grid.png</normaloff>:/icons/resources/light/grid.png</iconset>
                </property>
                <property name="iconSize">
@@ -785,7 +785,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/ratio.png</normaloff>:/icons/resources/light/ratio.png</iconset>
                </property>
                <property name="iconSize">
@@ -863,10 +863,20 @@
      <addaction name="separator"/>
      <addaction name="actionClearRecentLayout"/>
     </widget>
+    <widget class="QMenu" name="menuOn_reload">
+     <property name="title">
+      <string>On multiple loads...</string>
+     </property>
+     <addaction name="actionRemoveOld"/>
+     <addaction name="actionAddPrefix"/>
+     <addaction name="actionMerge"/>
+     <addaction name="actionAsk"/>
+    </widget>
     <addaction name="actionLoadData"/>
     <addaction name="menuRecentData"/>
+    <addaction name="actionQuickReload"/>
     <addaction name="actionLoadDummyData"/>
-    <addaction name="actionDeleteAllData"/>
+    <addaction name="menuOn_reload"/>
     <addaction name="separator"/>
     <addaction name="actionLoadLayout"/>
     <addaction name="menuRecentLayout"/>
@@ -882,7 +892,6 @@
      <string>Streaming</string>
     </property>
     <addaction name="actionStopStreaming"/>
-    <addaction name="actionClearBuffer"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuPublishers">
@@ -918,7 +927,15 @@
     <addaction name="actionMaximizePlots"/>
     <addaction name="actionSaveAllPlotTabs"/>
    </widget>
+   <widget class="QMenu" name="menuData">
+    <property name="title">
+     <string>Data</string>
+    </property>
+    <addaction name="actionDeleteAllData"/>
+    <addaction name="actionClearBuffer"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuData"/>
    <addaction name="menuStreaming"/>
    <addaction name="menuPublishers"/>
    <addaction name="menuTools"/>
@@ -931,10 +948,8 @@
    <property name="toolTip">
     <string>Load Data</string>
    </property>
-  </action>
-  <action name="actionDeleteAllData">
-   <property name="text">
-    <string>Delete all data</string>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="actionLoadLayout">
@@ -978,7 +993,10 @@
   </action>
   <action name="actionClearBuffer">
    <property name="text">
-    <string>Clear buffer</string>
+    <string>Clear data points</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
    </property>
   </action>
   <action name="actionMaximizePlots">
@@ -1017,19 +1035,76 @@
     <string>Support PlotJuggler</string>
    </property>
   </action>
-  <action name="actionplaceholder">
-   <property name="text">
-    <string>placeholder</string>
-   </property>
-  </action>
   <action name="actionClearRecentData">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/icons/resources/light/clean_pane.png</normaloff>:/icons/resources/light/clean_pane.png</iconset>
+   </property>
    <property name="text">
     <string>Clear</string>
    </property>
   </action>
   <action name="actionClearRecentLayout">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/icons/resources/light/clean_pane.png</normaloff>:/icons/resources/light/clean_pane.png</iconset>
+   </property>
    <property name="text">
     <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionRemoveOld">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Remove old data</string>
+   </property>
+  </action>
+  <action name="actionAddPrefix">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Add  prefix</string>
+   </property>
+  </action>
+  <action name="actionMerge">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Merge / overwrite</string>
+   </property>
+  </action>
+  <action name="actionAsk">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Ask</string>
+   </property>
+  </action>
+  <action name="actionQuickReload">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Quick reload</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionDeleteAllData">
+   <property name="text">
+    <string>Delete everything</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+X</string>
    </property>
   </action>
  </widget>

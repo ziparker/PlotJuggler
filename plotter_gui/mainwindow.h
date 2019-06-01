@@ -149,6 +149,15 @@ private:
     QShortcut _toggle_streaming;
     QShortcut _toggle_playback;
 
+    enum class ReloadPolicy{
+        ASK,
+        CLEANUP,
+        MERGE,
+        PREFIX
+    };
+
+    ReloadPolicy _reload_policy;
+
     bool _minimized;
 
     void createActions();

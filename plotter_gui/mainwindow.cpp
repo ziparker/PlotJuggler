@@ -48,6 +48,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     _minimize_view(Qt::Key_F10, this),
     _toggle_streaming(QKeySequence(Qt::CTRL + Qt::Key_Space), this),
     _toggle_playback(Qt::Key_Space, this),
+    _reload_policy( ReloadPolicy::ASK),
     _minimized(false),
     _current_streamer(nullptr),
     _disable_undo_logging(false),
@@ -163,7 +164,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     bool file_loaded = false;
     if( commandline_parser.isSet("datafile"))
     {
-        onActionLoadDataFromFile( commandline_parser.value("datafile"), true);
+        onActionLoadDataFromFile( commandline_parser.value("datafile"), false);
         file_loaded = true;
     }
     if( commandline_parser.isSet("layout"))
