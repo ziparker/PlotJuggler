@@ -849,14 +849,27 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuRecentData">
+     <property name="title">
+      <string>Recent datafile...</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionClearRecentData"/>
+    </widget>
+    <widget class="QMenu" name="menuRecentLayout">
+     <property name="title">
+      <string>Recent layout...</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionClearRecentLayout"/>
+    </widget>
     <addaction name="actionLoadData"/>
-    <addaction name="actionLoadRecentDatafile"/>
+    <addaction name="menuRecentData"/>
     <addaction name="actionLoadDummyData"/>
-    <addaction name="actionReloadPrevious"/>
     <addaction name="actionDeleteAllData"/>
     <addaction name="separator"/>
     <addaction name="actionLoadLayout"/>
-    <addaction name="actionLoadRecentLayout"/>
+    <addaction name="menuRecentLayout"/>
     <addaction name="actionSaveLayout"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -919,11 +932,6 @@
     <string>Load Data</string>
    </property>
   </action>
-  <action name="actionLoadRecentDatafile">
-   <property name="text">
-    <string>Load recent datafile...</string>
-   </property>
-  </action>
   <action name="actionDeleteAllData">
    <property name="text">
     <string>Delete all data</string>
@@ -932,11 +940,6 @@
   <action name="actionLoadLayout">
    <property name="text">
     <string>Load layout</string>
-   </property>
-  </action>
-  <action name="actionLoadRecentLayout">
-   <property name="text">
-    <string>Load recent layout...</string>
    </property>
   </action>
   <action name="actionSaveLayout">
@@ -978,11 +981,6 @@
     <string>Clear buffer</string>
    </property>
   </action>
-  <action name="actionReloadPrevious">
-   <property name="text">
-    <string>Quick Data Reload</string>
-   </property>
-  </action>
   <action name="actionMaximizePlots">
    <property name="text">
     <string>Maximize plots</string>
@@ -1017,6 +1015,21 @@
   <action name="actionSupportPlotJuggler">
    <property name="text">
     <string>Support PlotJuggler</string>
+   </property>
+  </action>
+  <action name="actionplaceholder">
+   <property name="text">
+    <string>placeholder</string>
+   </property>
+  </action>
+  <action name="actionClearRecentData">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionClearRecentLayout">
+   <property name="text">
+    <string>Clear</string>
    </property>
   </action>
  </widget>

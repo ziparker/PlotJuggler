@@ -51,19 +51,13 @@ public slots:
 
     void onActionSaveLayout();
 
-    void onActionLoadLayout(bool reload_previous = false);
+    void onActionLoadLayout();
 
-    void onActionLoadLayoutFromFile(QString filename);
+    bool onActionLoadLayoutFromFile(QString filename);
 
-    void onActionLoadDataFile();
+    void onActionLoadData();
 
-    void onReloadDatafile();
-
-    void onActionLoadDataFileImpl(QString filename, bool reuse_last_configuration = false );
-
-    void onActionReloadRecentDataFile();
-
-    void onActionReloadRecentLayout();
+    bool onActionLoadDataFromFile(QString filename, bool reuse_last_configuration = false );
 
     void onActionLoadStreamer(QString streamer_name);
 
@@ -227,6 +221,10 @@ private:
     void addOrEditMathPlot(const std::string &name, bool edit);
     
     void deleteAllDataImpl();
+
+    void updateRecentDataMenu(QStringList new_filenames);
+
+    void updateRecentLayoutMenu(QStringList new_filenames);
 
 protected:
 

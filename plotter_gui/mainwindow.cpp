@@ -149,7 +149,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
             this, SLOT(onActionLoadStreamer(QString)) );
 
     ui->actionDeleteAllData->setEnabled( _test_option );
-    ui->actionReloadPrevious->setEnabled( false );
 
     if( _test_option )
     {
@@ -164,7 +163,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     bool file_loaded = false;
     if( commandline_parser.isSet("datafile"))
     {
-        onActionLoadDataFileImpl( commandline_parser.value("datafile"), true);
+        onActionLoadDataFromFile( commandline_parser.value("datafile"), true);
         file_loaded = true;
     }
     if( commandline_parser.isSet("layout"))
@@ -232,7 +231,7 @@ void MainWindow::onUndoableChange()
     while( _undo_states.size() >= 100 ) _undo_states.pop_front();
     _undo_states.push_back( xmlSaveState() );
     _redo_states.clear();
-//    qDebug() << "undo " << _undo_states.size();
+    //    qDebug() << "undo " << _undo_states.size();
 }
 
 
@@ -248,7 +247,7 @@ void MainWindow::onRedoInvoked()
 
         xmlLoadState( state_document );
     }
-//    qDebug() << "undo " << _undo_states.size();
+    //    qDebug() << "undo " << _undo_states.size();
     _disable_undo_logging = false;
 }
 
@@ -265,7 +264,7 @@ void MainWindow::onUndoInvoked( )
 
         xmlLoadState( state_document );
     }
-//    qDebug() << "undo " << _undo_states.size();
+    //    qDebug() << "undo " << _undo_states.size();
     _disable_undo_logging = false;
 }
 
@@ -421,6 +420,37 @@ void MainWindow::createActions()
 
     connect( ui->actionMaximizePlots, &QAction::triggered, this, &MainWindow::on_minimizeView);
 
+    connect( ui->actionClearRecentLayout,  &QAction::triggered, this, [this]()
+    {
+        QMenu* menu = ui->menuRecentLayout;
+        for (QAction *action: menu->actions())
+        {
+            if ( action->isSeparator() ){
+                break;
+            }
+            menu->removeAction( action );
+        }
+        menu->setEnabled(false);
+        QSettings settings;
+        settings.setValue("MainWindow.recentlyLoadedLayout", {} );
+    });
+
+    connect( ui->actionClearRecentData,  &QAction::triggered, this, [this]()
+    {
+        QMenu* menu = ui->menuRecentData;
+        for (QAction *action: menu->actions())
+        {
+            if ( action->isSeparator() ){
+                break;
+            }
+            menu->removeAction( action );
+        }
+        menu->setEnabled(false);
+        QSettings settings;
+        settings.setValue("MainWindow.recentlyLoadedDatafile", {} );
+    });
+
+
     QShortcut* open_menu_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_F), this);
     connect( open_menu_shortcut, &QShortcut::activated, [this](){
         ui->menuFile->exec( ui->menuBar->mapToGlobal(QPoint(0,25)));
@@ -445,35 +475,17 @@ void MainWindow::createActions()
 
     connect(ui->actionSaveLayout, &QAction::triggered,         this, &MainWindow::onActionSaveLayout );
     connect(ui->actionLoadLayout, &QAction::triggered,         this, &MainWindow::onActionLoadLayout );
-    connect(ui->actionLoadData, &QAction::triggered,           this, &MainWindow::onActionLoadDataFile );
-    connect(ui->actionLoadRecentDatafile, &QAction::triggered, this, &MainWindow::onActionReloadRecentDataFile );
-    connect(ui->actionLoadRecentLayout, &QAction::triggered,   this, &MainWindow::onActionReloadRecentLayout );
+    connect(ui->actionLoadData, &QAction::triggered,           this, &MainWindow::onActionLoadData );
     connect(ui->actionDeleteAllData, &QAction::triggered,      this, &MainWindow::onDeleteLoadedData );
-
-    connect(ui->actionReloadPrevious, &QAction::triggered,     this, &MainWindow::onReloadDatafile );
 
     //---------------------------------------------
 
     QSettings settings;
-    if( settings.contains("MainWindow.recentlyLoadedDatafile") )
-    {
-        QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
-        ui->actionLoadRecentDatafile->setText( "Load data from: " + filename);
-        ui->actionLoadRecentDatafile->setEnabled( true );
-    }
-    else{
-        ui->actionLoadRecentDatafile->setEnabled( false );
-    }
 
-    if( settings.contains("MainWindow.recentlyLoadedLayout") )
-    {
-        QString filename = settings.value("MainWindow.recentlyLoadedLayout").toString();
-        ui->actionLoadRecentLayout->setText( "Load layout from: " + filename);
-        ui->actionLoadRecentLayout->setEnabled( true );
-    }
-    else{
-        ui->actionLoadRecentLayout->setEnabled( false );
-    }
+    updateRecentDataMenu( settings.value("MainWindow.recentlyLoadedDatafile").toStringList() );
+
+    updateRecentLayoutMenu( settings.value("MainWindow.recentlyLoadedLayout").toStringList() );
+
 }
 
 void MainWindow::loadPlugins(QString directory_name)
@@ -886,7 +898,7 @@ void MainWindow::onActionSaveLayout()
 
     auto checkbox_datasource = new QCheckBox("Save data source");
     checkbox_datasource->setToolTip("Do you want the layout to remember the source of your data,\n"
-                         "i.e. the Datafile used or the Streaming Plugin loaded ?");
+                                    "i.e. the Datafile used or the Streaming Plugin loaded ?");
     checkbox_datasource->setFocusPolicy( Qt::NoFocus );
     checkbox_datasource->setChecked( settings.value("MainWindow.saveLayoutDataSource", true).toBool() );
 
@@ -959,7 +971,7 @@ void MainWindow::onActionSaveLayout()
         root.appendChild(custom_equations);
 
         QByteArray snippets_xml_text = settings.value("AddCustomPlotDialog.savedXML",
-                                                  QByteArray() ).toByteArray();
+                                                      QByteArray() ).toByteArray();
         auto snipped_saved = GetSnippetsFromXML(snippets_xml_text);
         auto snippets_root = ExportSnippets( snipped_saved, doc);
         root.appendChild(snippets_root);
@@ -1049,7 +1061,7 @@ void MainWindow::onDeleteLoadedData()
     }
 }
 
-void MainWindow::onActionLoadDataFile()
+void MainWindow::onActionLoadData()
 {
     if( _data_loader.empty())
     {
@@ -1080,42 +1092,119 @@ void MainWindow::onActionLoadDataFile()
 
     QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
 
-    QString filename = QFileDialog::getOpenFileName(this, "Open Datafile",
-                                                    directory_path,
-                                                    file_extension_filter);
-    if (filename.isEmpty()) {
+    QFileDialog loadDialog( this );
+    loadDialog.setFileMode(QFileDialog::ExistingFiles);
+    loadDialog.setViewMode(QFileDialog::Detail);
+    loadDialog.setNameFilter(file_extension_filter);
+    loadDialog.setDirectory(directory_path);
+
+    QStringList fileNames;
+    if (loadDialog.exec())
+    {
+        fileNames = loadDialog.selectedFiles();
+    }
+
+    if (fileNames.isEmpty()) {
         return;
     }
 
-    directory_path = QFileInfo(filename).absolutePath();
-
+    directory_path = QFileInfo(fileNames[0]).absolutePath();
     settings.setValue("MainWindow.lastDatafileDirectory", directory_path);
-    settings.setValue("MainWindow.recentlyLoadedDatafile", filename);
 
-    ui->actionLoadRecentDatafile->setText("Load data from: " + filename);
-
-    onActionLoadDataFileImpl(filename, false );
-}
-
-void MainWindow::onReloadDatafile()
-{
-    QSettings settings;
-    if( settings.contains("MainWindow.recentlyLoadedDatafile") )
+    if( onActionLoadDataFromFile(fileNames[0], false ) )
     {
-        QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
-        onActionLoadDataFileImpl(filename, true);
+        updateRecentDataMenu(fileNames);
     }
 }
 
-void MainWindow::onActionReloadRecentDataFile()
+void MainWindow::updateRecentDataMenu(QStringList new_filenames)
 {
-    QSettings settings;
-    if( settings.contains("MainWindow.recentlyLoadedDatafile") )
+    QMenu* menu =  ui->menuRecentData;
+
+    QAction* separator = nullptr;
+    QStringList prev_filenames;
+    for (QAction *action: menu->actions())
     {
-        QString filename = settings.value("MainWindow.recentlyLoadedDatafile").toString();
-        onActionLoadDataFileImpl(filename, false);
+        if ( action->isSeparator() )
+        {
+            separator = action;
+            break;
+        }
+        if(new_filenames.contains( action->text() ) == false)
+        {
+            prev_filenames.push_back( action->text() );
+        }
+        menu->removeAction( action );
     }
+
+    new_filenames.append( prev_filenames );
+    while( new_filenames.size() > 10 )
+    {
+        new_filenames.removeLast();
+    }
+
+    for (const auto& filename: new_filenames)
+    {
+        QAction* action = new QAction(filename, nullptr);
+        connect( action, &QAction::triggered, this, [this, filename]
+        {
+            if( this->onActionLoadDataFromFile(filename, false) )
+            {
+                updateRecentDataMenu( {filename} );
+            }
+        } );
+        menu->insertAction(separator, action );
+    }
+
+    QSettings settings;
+    settings.setValue("MainWindow.recentlyLoadedDatafile", new_filenames );
+    menu->setEnabled( new_filenames.size() > 0 );
 }
+
+void MainWindow::updateRecentLayoutMenu(QStringList new_filenames)
+{
+    QMenu* menu =  ui->menuRecentLayout;
+
+    QAction* separator = nullptr;
+    QStringList prev_filenames;
+    for (QAction *action: menu->actions())
+    {
+        if ( action->isSeparator() )
+        {
+            separator = action;
+            break;
+        }
+        if(new_filenames.contains( action->text() ) == false)
+        {
+            prev_filenames.push_back( action->text() );
+        }
+        menu->removeAction( action );
+    }
+
+    new_filenames.append( prev_filenames );
+    while( new_filenames.size() > 10 )
+    {
+        new_filenames.removeLast();
+    }
+
+    for (const auto& filename: new_filenames)
+    {
+        QAction* action = new QAction(filename, nullptr);
+        connect( action, &QAction::triggered, this, [this, filename]
+        {
+            if ( this->onActionLoadLayoutFromFile(filename) )
+            {
+                updateRecentLayoutMenu( {filename} );
+            }
+        } );
+        menu->insertAction(separator, action );
+    }
+
+    QSettings settings;
+    settings.setValue("MainWindow.recentlyLoadedLayout", new_filenames );
+    menu->setEnabled( new_filenames.size() > 0 );
+}
+
 
 template <typename T>
 void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
@@ -1197,7 +1286,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool delete_older)
         // timeseries in old but not in new
         if( new_data.numeric.count( it.first ) == 0 )
         {
-           old_one_to_delete.push_back( it.first );
+            old_one_to_delete.push_back( it.first );
         }
     }
 
@@ -1241,7 +1330,7 @@ bool MainWindow::isStreamingActive() const
     return ui->pushButtonStreaming->isChecked() && _current_streamer;
 }
 
-void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_configuration )
+bool MainWindow::onActionLoadDataFromFile(QString filename, bool reuse_last_configuration )
 {
     const QString extension = QFileInfo(filename).suffix().toLower();
 
@@ -1305,13 +1394,12 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
                                  tr("Cannot read file %1:\n%2.")
                                  .arg(filename)
                                  .arg(file.errorString()));
-            return;
+            return false;
         }
         file.close();
 
         _loaded_datafile = filename;
         ui->actionDeleteAllData->setEnabled( true );
-        ui->actionReloadPrevious->setEnabled( true );
 
         try{
             PlotDataMapRef mapped_data = _last_dataloader->readDataFromFile( filename, reuse_last_configuration );
@@ -1322,7 +1410,7 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
             QMessageBox::warning(this, tr("Exception from the plugin"),
                                  tr("The plugin [%1] thrown the following exception: \n\n %3\n")
                                  .arg(_last_dataloader->name()).arg(ex.what()) );
-            return;
+            return false;
         }
     }
     else{
@@ -1334,12 +1422,10 @@ void MainWindow::onActionLoadDataFileImpl(QString filename, bool reuse_last_conf
     updateDataAndReplot( true );
 
     ui->timeSlider->setRealValue( ui->timeSlider->getMinimum() );
+
+    return true;
 }
 
-void MainWindow::onActionReloadRecentLayout()
-{
-    onActionLoadLayout( true );
-}
 
 void MainWindow::onActionLoadStreamer(QString streamer_name)
 {
@@ -1399,7 +1485,6 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
         ui->actionStopStreaming->setEnabled(true);
         ui->actionDeleteAllData->setEnabled( false );
         ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
-        ui->actionReloadPrevious->setEnabled( false );
 
         ui->pushButtonStreaming->setEnabled(true);
         ui->pushButtonStreaming->setChecked(true);
@@ -1412,34 +1497,24 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
     }
 }
 
-void MainWindow::onActionLoadLayout(bool reload_previous)
+void MainWindow::onActionLoadLayout()
 {
     QSettings settings;
 
-    QString directory_path = QDir::currentPath();
-
-    if( settings.contains("MainWindow.lastLayoutDirectory") )
-    {
-        directory_path = settings.value("MainWindow.lastLayoutDirectory").toString();
-    }
-
-    QString filename;
-    if( reload_previous && settings.contains("MainWindow.recentlyLoadedLayout") )
-    {
-        filename = settings.value("MainWindow.recentlyLoadedLayout").toString();
-    }
-    else{
-        filename = QFileDialog::getOpenFileName(this,
-                                                "Open Layout",
-                                                directory_path,
-                                                "*.xml");
-    }
+    QString directory_path = settings.value("MainWindow.lastLayoutDirectory", QDir::currentPath()).toString();
+    QString filename = QFileDialog::getOpenFileName(this, "Open Layout",
+                                                    directory_path, "*.xml");
     if (filename.isEmpty()){
         return;
     }
-    else{
-        onActionLoadLayoutFromFile(filename);
+
+    if( onActionLoadLayoutFromFile(filename) )
+    {
+        updateRecentLayoutMenu( {filename} );
     }
+
+    directory_path = QFileInfo(filename).absolutePath();
+    settings.setValue("MainWindow.lastLayoutDirectory", directory_path);
 }
 
 void MainWindow::loadPluginState(const QDomElement& root)
@@ -1562,15 +1637,9 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
     return std::tuple<double,double,int>( min_time, max_time, max_steps );
 }
 
-void MainWindow::onActionLoadLayoutFromFile(QString filename)
+bool MainWindow::onActionLoadLayoutFromFile(QString filename)
 {
     QSettings settings;
-
-    QString directory_path = QFileInfo(filename).absolutePath();
-    settings.setValue("MainWindow.lastLayoutDirectory",  directory_path);
-    settings.setValue("MainWindow.recentlyLoadedLayout", filename);
-
-    ui->actionLoadRecentLayout->setText("Load layout from: " + filename);
 
     QFile file(filename);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
@@ -1578,7 +1647,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
                              tr("Cannot read file %1:\n%2.")
                              .arg(filename)
                              .arg(file.errorString()));
-        return;
+        return false;
     }
 
     QString errorStr;
@@ -1591,7 +1660,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
                                  tr("Parse error at line %1:\n%2")
                                  .arg(errorLine)
                                  .arg(errorStr));
-        return;
+        return false;
     }
 
     //-------------------------------------------------
@@ -1603,7 +1672,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
     if( previously_loaded_datafile.isNull() == false)
     {
         QString filename = previously_loaded_datafile.attribute("filename");
-        onActionLoadDataFileImpl( filename, true );
+        onActionLoadDataFromFile( filename, true );
     }
 
     QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoadedStreamer" );
@@ -1657,7 +1726,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
     }
 
     QByteArray snippets_saved_xml = settings.value("AddCustomPlotDialog.savedXML",
-                                              QByteArray() ).toByteArray();
+                                                   QByteArray() ).toByteArray();
 
     auto snippets_element = root.firstChildElement("snippets");
     if( !snippets_element.isNull() )
@@ -1714,6 +1783,7 @@ void MainWindow::onActionLoadLayoutFromFile(QString filename)
 
     _undo_states.clear();
     _undo_states.push_back( domDocument );
+    return true;
 }
 
 
@@ -1961,13 +2031,13 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
     double real_value = value;
     if ( value == ui->streamingSpinBox->maximum())
     {
-       real_value = std::numeric_limits<double>::max();
-       ui->streamingSpinBox->setStyleSheet("QSpinBox { color: red; }");
-       ui->streamingSpinBox->setSuffix("=inf");
+        real_value = std::numeric_limits<double>::max();
+        ui->streamingSpinBox->setStyleSheet("QSpinBox { color: red; }");
+        ui->streamingSpinBox->setSuffix("=inf");
     }
     else{
-       ui->streamingSpinBox->setStyleSheet("QSpinBox { color: black; }");
-       ui->streamingSpinBox->setSuffix(" sec");
+        ui->streamingSpinBox->setStyleSheet("QSpinBox { color: black; }");
+        ui->streamingSpinBox->setSuffix(" sec");
     }
 
     if( isStreamingActive() == false)
@@ -2256,7 +2326,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
         auto data_it = _mapped_plot_data.numeric.find( name );
         if( data_it != _mapped_plot_data.numeric.end())
         {
-           data_it->second.clear();
+            data_it->second.clear();
         }
         dialog.editExistingPlot(custom_it->second);
     }
@@ -2274,7 +2344,7 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
         {
             QMessageBox::warning(this, tr("Warning"),
                                  tr("Failed to create the custom timeseries. Error:\n\n%1")
-                                     .arg( ex.what() ) );
+                                 .arg( ex.what() ) );
 
             return;
         }
@@ -2372,9 +2442,9 @@ void MainWindow::on_actionCheatsheet_triggered()
     dialog->show();
 
     connect(dialog, &QDialog::finished, this, [this, dialog]()
-            {
-                QSettings settings;
-                settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
+    {
+        QSettings settings;
+        settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
     } );
 }
 
