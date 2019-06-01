@@ -65,8 +65,7 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
     return all_topics;
 }
 
-void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
-                                                     const std::string& prefix)
+void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map)
 {
     using namespace RosIntrospection;
 
@@ -85,11 +84,7 @@ void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
         auto data_point = PlotDataAny::Point(msg_time, nonstd::any(msg_instance) );
         plot_consecutive.pushBack( data_point );
 
-        if( prefix.empty() == false)
-        {
-            StrCat(prefix, topic_name, prefixed_name);
-        }
-        const std::string* key_ptr = prefix.empty() ? &topic_name : &prefixed_name;
+        const std::string* key_ptr = &topic_name ;
 
         auto plot_pair = plot_map.user_defined.find( *key_ptr );
 
@@ -161,8 +156,6 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         _ros_parser.addRules( RuleEditing::getRenamingRules() );
     }
 
-    const std::string prefix  = dialog->prefix().toStdString();
-
     //-----------------------------------
     std::set<std::string> topic_selected;
     for(const auto& topic: _default_topic_names)
@@ -187,7 +180,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     std::vector<uint8_t> buffer;
 
     int msg_count = 0;
-    std::string prefixed_name;
+
     QElapsedTimer timer;
     timer.start();
 
@@ -221,9 +214,8 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
         _ros_parser.pushRawMessage( topic_name, buffer_view, msg_time );
     }
 
-    _ros_parser.extractData(plot_map, prefix);
-
-    storeMessageInstancesAsUserDefined(plot_map, prefix);
+    _ros_parser.extractData(plot_map, "");
+    storeMessageInstancesAsUserDefined(plot_map);
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
 

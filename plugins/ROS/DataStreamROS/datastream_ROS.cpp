@@ -369,7 +369,6 @@ bool DataStreamROS::start()
 
     _ros_parser.setMaxArrayPolicy(dialog.maxArraySize(), dialog.discardEntireArrayIfTooLarge() );
 
-    _prefix = dialog.prefix().toStdString();
     //-------------------------
 
     subscribe();

@@ -36,8 +36,6 @@ public:
 
     QCheckBox * checkBoxTimestamp();
 
-    QString prefix();
-
 public slots:
 
     void updateTopicList(std::vector<std::pair<QString,QString>> topic_list);
@@ -51,8 +49,6 @@ private slots:
     void on_checkBoxEnableRules_toggled(bool checked);
 
     void on_pushButtonEditRules_pressed();
-
-    void on_checkBoxPrefix_toggled(bool checked);
 
     void on_maximumSizeHelp_pressed();
 

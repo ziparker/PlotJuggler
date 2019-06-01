@@ -46,8 +46,7 @@ private:
 
     std::vector<std::pair<QString, QString>> getAndRegisterAllTopics();
 
-    void storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map,
-                                            const std::string &prefix);
+    void storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map);
 };
 
 #endif // DATALOAD_CSV_H

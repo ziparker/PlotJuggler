@@ -176,12 +176,6 @@ QCheckBox* DialogSelectRosTopics::checkBoxTimestamp()
      return ui->checkBoxTimestamp;
 }
 
-QString DialogSelectRosTopics::prefix()
-{
-    return (ui->checkBoxPrefix->isChecked()) ? ui->linePrefix->text() : QString();
-}
-
-
 void DialogSelectRosTopics::on_buttonBox_accepted()
 {
     QModelIndexList selected_indexes = ui->listRosTopics->selectionModel()->selectedIndexes();
@@ -244,12 +238,6 @@ nonstd::optional<double> FlatContainerContainHeaderStamp(const RosIntrospection:
         }
     }
     return nonstd::optional<double>();
-}
-
-
-void DialogSelectRosTopics::on_checkBoxPrefix_toggled(bool checked)
-{
-    ui->linePrefix->setEnabled(checked);
 }
 
 void DialogSelectRosTopics::on_maximumSizeHelp_pressed()
