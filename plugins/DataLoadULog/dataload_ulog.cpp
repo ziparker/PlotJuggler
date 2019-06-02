@@ -71,10 +71,9 @@ DataLoadULog::~DataLoadULog()
 
 }
 
-QDomElement DataLoadULog::xmlSaveState(QDomDocument &doc) const
+bool DataLoadULog::xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const
 {
-    QDomElement elem = doc.createElement("no_params");
-    return elem;
+    return true;
 }
 
 bool DataLoadULog::xmlLoadState(const QDomElement &)

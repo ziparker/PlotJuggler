@@ -62,7 +62,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     _autostart_publishers = commandline_parser.isSet("publish");
 
     _curvelist_widget = new FilterableListWidget(_custom_plots, this);
-    _streamer_signal_mapper = new QSignalMapper(this);
 
     ui->setupUi(this);
 
@@ -148,9 +147,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     this->setMenuBar(ui->menuBar);
     ui->menuBar->setNativeMenuBar(false);
-
-    connect(_streamer_signal_mapper, SIGNAL(mapped(QString)),
-            this, SLOT(onActionLoadStreamer(QString)) );
 
     if( _test_option )
     {
@@ -586,8 +582,11 @@ void MainWindow::loadPlugins(QString directory_name)
                     streamer->addActionsToParentMenu( ui->menuStreaming );
                     ui->menuStreaming->addSeparator();
 
-                    connect(startStreamer, SIGNAL(triggered()), _streamer_signal_mapper, SLOT(map()) );
-                    _streamer_signal_mapper->setMapping(startStreamer, plugin_name );
+                    connect(startStreamer, &QAction::triggered, this, [this, plugin_name]()
+                    {
+                        onActionLoadStreamer(plugin_name);
+                    });
+
 
                     connect(streamer, &DataStreamer::connectionClosed,
                             ui->actionStopStreaming, &QAction::trigger );
@@ -1087,6 +1086,7 @@ void MainWindow::deleteAllDataImpl()
     _mapped_plot_data.user_defined.clear();
     _custom_plots.clear();
     _curvelist_widget->clear();
+    _loaded_datafiles.clear();
 
     bool stopped = false;
     for (QAction* action: ui->menuPublishers->actions())
@@ -1263,10 +1263,10 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info )
 
                 _loaded_datafiles.clear();
 
-                FileLoadInfo new_info = info;
+                FileLoadInfo new_info = info;  
 
-                auto elem = dataloader->xmlSaveState(new_info.plugin_config);
-                new_info.plugin_config.appendChild( elem );
+                QDomElement plugin_elem = dataloader->xmlSaveState(new_info.plugin_config);
+                new_info.plugin_config.appendChild( plugin_elem );
 
                 _loaded_datafiles.push_back(new_info);
             }
@@ -1339,6 +1339,8 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
     }
     if( started )
     {
+        deleteAllDataImpl();
+
         for(auto& action: ui->menuStreaming->actions()) {
             action->setEnabled(false);
         }
@@ -1386,19 +1388,27 @@ void MainWindow::loadPluginState(const QDomElement& root)
           plugin_elem.isNull() == false;
           plugin_elem = plugin_elem.nextSiblingElement() )
     {
-        const QString plugin_name = plugin_elem.nodeName();
+        const QString plugin_name = plugin_elem.attribute("ID");
+
+        if( plugin_elem.nodeName() != "plugin" || plugin_name.isEmpty() )
+        {
+            QMessageBox::warning(this, tr("Error loading Plugin State from Layout"),
+                                 tr("The method xmlSaveState() must return a node line this <plugin ID=\"PluginName\" ") );
+        }
+
+
         if( _data_loader.find(plugin_name) != _data_loader.end() )
         {
-            _data_loader[plugin_name]->xmlLoadState(plugin_elem);
+            _data_loader[plugin_name]->xmlLoadState( plugin_elem );
         }
         if( _data_streamer.find(plugin_name) != _data_streamer.end() )
         {
-            _data_streamer[plugin_name]->xmlLoadState(plugin_elem);
+            _data_streamer[plugin_name]->xmlLoadState( plugin_elem );
         }
         if( _state_publisher.find(plugin_name) != _state_publisher.end() )
         {
             StatePublisher* publisher = _state_publisher[plugin_name];
-            publisher->xmlLoadState(plugin_elem);
+            publisher->xmlLoadState( plugin_elem );
 
             if( _autostart_publishers && plugin_elem.attribute("status") == "active" )
             {
@@ -1410,42 +1420,54 @@ void MainWindow::loadPluginState(const QDomElement& root)
 
 QDomElement MainWindow::savePluginState(QDomDocument& doc)
 {
-    QDomElement plugins_elem = doc.createElement( "Plugins" );
+    QDomElement list_plugins = doc.createElement( "Plugins" );
+
+    auto CheckValidFormat = [this](const QString& expected_name, const QDomElement& elem)
+    {
+        if( elem.nodeName() != "plugin" || elem.attribute("ID") !=  expected_name )
+        {
+            QMessageBox::warning(this, tr("Error saving Plugin State to Layout"),
+                                 tr("[%1] The method xmlSaveState() must return a node line this <plugin ID=\"PluginName\">")
+                                 .arg(expected_name) );
+        }
+    };
 
     for (auto& it: _data_loader)
     {
-        QString name  = it.first;
         const DataLoader* dataloader = it.second;
-
-        QDomElement elem = doc.createElement( name );
-        if( elem.isNull() == false)
+        QDomElement plugin_elem =  dataloader->xmlSaveState(doc);
+        if( !plugin_elem.isNull() )
         {
-            elem.appendChild( dataloader->xmlSaveState(doc) );
+            list_plugins.appendChild( plugin_elem );
+            CheckValidFormat( it.first, plugin_elem );
         }
-        plugins_elem.appendChild( elem );
     }
 
     for (auto& it: _data_streamer)
     {
-        QString name = it.first;
         const DataStreamer* datastreamer = it.second;
-
-        QDomElement elem = doc.createElement( name );
-        elem.appendChild( datastreamer->xmlSaveState(doc) );
-        plugins_elem.appendChild( elem );
+        QDomElement plugin_elem =  datastreamer->xmlSaveState(doc);
+        if( !plugin_elem.isNull() )
+        {
+            list_plugins.appendChild( plugin_elem );
+            CheckValidFormat( it.first, plugin_elem );
+        }
     }
 
     for (auto& it: _state_publisher)
     {
-        QString name = it.first;
         const StatePublisher* state_publisher = it.second;
+        QDomElement plugin_elem = state_publisher->xmlSaveState(doc);
+        if( !plugin_elem.isNull() )
+        {
+            list_plugins.appendChild( plugin_elem );
+            CheckValidFormat( it.first, plugin_elem );
+        }
 
-        QDomElement elem = doc.createElement(  name );
-        elem.setAttribute("status", state_publisher->enabled() ? "active" : "idle");
-        elem.appendChild( state_publisher->xmlSaveState(doc) );
-        plugins_elem.appendChild( elem );
+        plugin_elem.setAttribute("status", state_publisher->enabled() ? "active" : "idle");
+
     }
-    return plugins_elem;
+    return list_plugins;
 }
 
 std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
@@ -1686,7 +1708,7 @@ bool MainWindow::loadLayoutFromFile(QString filename)
         loadDataFromFile( info );
     }
 
-    QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoadedStreamer" );
+    QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoaded_Streamer" );
     if( previously_loaded_streamer.isNull() == false)
     {
         QString streamer_name = previously_loaded_streamer.attribute("name");
@@ -1694,11 +1716,13 @@ bool MainWindow::loadLayoutFromFile(QString filename)
         QMessageBox msgBox(this);
         msgBox.setWindowTitle("Start Streaming?");
         msgBox.setText(tr("Do you want to start the previously used streaming plugin?\n\n %1 \n\n").arg(streamer_name));
-        msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
-        QPushButton* buttonBoth = msgBox.addButton(tr("Yes (Both Layout and Streaming)"), QMessageBox::YesRole);
-        msgBox.setDefaultButton(buttonBoth);
+        QPushButton* yes = msgBox.addButton(tr("Yes (start streaming)"), QMessageBox::YesRole);
+        QPushButton* no  = msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
+
+        msgBox.setDefaultButton(yes);
         msgBox.exec();
-        if( msgBox.clickedButton() == buttonBoth )
+
+        if( msgBox.clickedButton() == yes )
         {
             if( _data_streamer.count(streamer_name) != 0 )
             {

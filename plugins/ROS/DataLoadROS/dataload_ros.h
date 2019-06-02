@@ -28,7 +28,7 @@ public:
 
     virtual ~DataLoadROS() override;
 
-    virtual QDomElement xmlSaveState(QDomDocument &doc) const override;
+    virtual bool xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const override;
 
     virtual bool xmlLoadState(const QDomElement &parent_element ) override;
 
@@ -46,6 +46,10 @@ private:
     std::vector<std::pair<QString, QString>> getAndRegisterAllTopics();
 
     void storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map);
+
+    void saveDefaultSettings();
+
+    void loadDefaultSettings();
 };
 
 #endif // DATALOAD_CSV_H

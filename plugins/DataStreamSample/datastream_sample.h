@@ -28,7 +28,7 @@ public:
 
     virtual bool isDebugPlugin() override { return true; }
 
-    virtual QDomElement xmlSaveState(QDomDocument &doc) const override;
+    virtual bool xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const override;
 
     virtual bool xmlLoadState(const QDomElement &parent_element ) override;
 

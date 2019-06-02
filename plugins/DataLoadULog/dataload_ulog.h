@@ -24,7 +24,7 @@ public:
 
     const char* name() const override { return "DataLoad ULog"; }
 
-    QDomElement xmlSaveState(QDomDocument &doc) const override;
+    bool xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const override;
 
     bool xmlLoadState(const QDomElement &parent_element ) override;
 

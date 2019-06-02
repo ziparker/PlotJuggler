@@ -240,11 +240,13 @@ DataLoadCSV::~DataLoadCSV()
 
 }
 
-QDomElement DataLoadCSV::xmlSaveState(QDomDocument &doc) const
+bool DataLoadCSV::xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const
 {
     QDomElement elem = doc.createElement("default");
     elem.setAttribute("time_axis", _default_time_axis.c_str() );
-    return elem;
+
+    parent_element.appendChild( elem );
+    return true;
 }
 
 bool DataLoadCSV::xmlLoadState(const QDomElement &parent_element)

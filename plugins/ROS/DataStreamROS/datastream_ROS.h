@@ -9,6 +9,7 @@
 #include "PlotJuggler/datastreamer_base.h"
 #include <ros_type_introspection/ros_introspection.hpp>
 #include <rosgraph_msgs/Clock.h>
+#include "../dialog_select_ros_topics.h"
 #include "../RosMsgParsers/ros_parser.h"
 
 class  DataStreamROS: public DataStreamer
@@ -31,7 +32,7 @@ public:
 
     virtual const char* name() const override { return "ROS Topic Streamer";  }
 
-    virtual QDomElement xmlSaveState(QDomDocument &doc) const override;
+    virtual bool xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const override;
 
     virtual bool xmlLoadState(const QDomElement &parent_element ) override;
 
@@ -48,6 +49,10 @@ private:
     void timerCallback();
 
     void subscribe();
+
+    void saveDefaultSettings();
+
+    void loadDefaultSettings();
 
     bool _running;
 
@@ -73,7 +78,7 @@ private:
 
     std::map<std::string, int> _msg_index;
 
-    QStringList _default_topic_names;
+    DialogSelectRosTopics::Configuration _config;
 
     RosMessageParser _ros_parser;
 

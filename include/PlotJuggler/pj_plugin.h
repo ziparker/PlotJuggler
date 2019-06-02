@@ -17,14 +17,22 @@ public:
 
     virtual QWidget* optionsWidget() { return nullptr; }
 
-    virtual QDomElement xmlSaveState(QDomDocument &doc) const
+    virtual bool xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const
     {
-        return QDomElement();
+        return false;
     }
 
     virtual bool xmlLoadState(const QDomElement &parent_element )
     {
         return false;
+    }
+
+    QDomElement xmlSaveState(QDomDocument &doc) const
+    {
+        QDomElement plugin_elem = doc.createElement("plugin");
+        plugin_elem.setAttribute("ID", QString(this->name()).replace(" ", "_") );
+        xmlSaveState(doc, plugin_elem);
+        return plugin_elem;
     }
 
     virtual void addActionsToParentMenu( QMenu* menu ) {}

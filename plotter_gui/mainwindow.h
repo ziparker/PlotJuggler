@@ -201,8 +201,6 @@ private:
 
     std::vector<FileLoadInfo> _loaded_datafiles;
 
-    QSignalMapper *_streamer_signal_mapper;
-
     void createTabbedDialog(QString suggest_win_name, PlotMatrix *first_tab);
 
     void importPlotDataMap(PlotDataMapRef &new_data, bool remove_old);

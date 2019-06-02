@@ -35,6 +35,8 @@ DataStreamROS::DataStreamROS():
     _periodic_timer = new QTimer();
     connect( _periodic_timer, &QTimer::timeout,
              this, &DataStreamROS::timerCallback);
+
+    loadDefaultSettings();
 }
 
 void DataStreamROS::clockCallback(const rosgraph_msgs::Clock::ConstPtr& msg)
@@ -266,9 +268,9 @@ void DataStreamROS::subscribe()
         _clock_subscriber = _node->subscribe(ops);
     }
 
-    for (int i=0; i< _default_topic_names.size(); i++ )
+    for (int i=0; i< _config.selected_topics.size(); i++ )
     {
-        const std::string topic_name = _default_topic_names[i].toStdString();
+        const std::string topic_name = _config.selected_topics[i].toStdString();
         boost::function<void(const topic_tools::ShapeShifter::ConstPtr&) > callback;
         callback = [this, topic_name](const topic_tools::ShapeShifter::ConstPtr& msg) -> void
         {
@@ -314,24 +316,12 @@ bool DataStreamROS::start()
                                    QString(topic_info.datatype.c_str()) ) );
     }
 
-    QSettings settings;
-
-    if( _default_topic_names.empty())
-    {
-        // if _default_topic_names is empty (xmlLoad didn't work) use QSettings.
-        QVariant def = settings.value("DataStreamROS/default_topics");
-        if( !def.isNull() && def.isValid())
-        {
-            _default_topic_names = def.toStringList();
-        }
-    }
-
     QTimer timer;
     timer.setSingleShot(false);
     timer.setInterval( 1000);
     timer.start();
 
-    DialogSelectRosTopics dialog( all_topics, _default_topic_names );
+    DialogSelectRosTopics dialog( all_topics, _config );
 
     connect( &timer, &QTimer::timeout, [&]()
     {
@@ -349,25 +339,25 @@ bool DataStreamROS::start()
 
     int res = dialog.exec();
 
+    _config = dialog.getResult();
+
     timer.stop();
 
-    if( res != QDialog::Accepted || dialog.getSelectedItems().empty() )
+    if( res != QDialog::Accepted || _config.selected_topics.empty() )
     {
         return false;
     }
 
-    _ros_parser.setUseHeaderStamp( dialog.checkBoxTimestamp()->isChecked() );
+    saveDefaultSettings();
 
-    if( dialog.checkBoxUseRenamingRules()->isChecked() )
+    _ros_parser.setUseHeaderStamp( _config.use_header_stamp );
+
+    if( _config.use_renaming_rules )
     {
         _ros_parser.addRules( RuleEditing::getRenamingRules() );
     }
 
-    _default_topic_names = dialog.getSelectedItems();
-
-    settings.setValue("DataStreamROS/default_topics", _default_topic_names);
-
-    _ros_parser.setMaxArrayPolicy(dialog.maxArraySize(), dialog.discardEntireArrayIfTooLarge() );
+    _ros_parser.setMaxArrayPolicy( _config.max_array_size, _config.discard_large_arrays );
 
     //-------------------------
 
@@ -415,27 +405,51 @@ DataStreamROS::~DataStreamROS()
     shutdown();
 }
 
-QDomElement DataStreamROS::xmlSaveState(QDomDocument &doc) const
+bool DataStreamROS::xmlSaveState(QDomDocument &doc, QDomElement &plugin_elem) const
 {
-    QString topics_list = _default_topic_names.join(";");
+    QString topics_list = _config.selected_topics.join(";");
     QDomElement list_elem = doc.createElement("selected_topics");
-    list_elem.setAttribute("list", topics_list );
-    return list_elem;
+    list_elem.setAttribute("value", topics_list);
+    plugin_elem.appendChild( list_elem );
+
+    QDomElement stamp_elem = doc.createElement("use_header_stamp");
+    stamp_elem.setAttribute("value", _config.use_header_stamp ? "true" : "false");
+    plugin_elem.appendChild( stamp_elem );
+
+    QDomElement rename_elem = doc.createElement("use_renaming_rules");
+    rename_elem.setAttribute("value", _config.use_renaming_rules ? "true" : "false");
+    plugin_elem.appendChild( rename_elem );
+
+    QDomElement discard_elem = doc.createElement("discard_large_arrays");
+    discard_elem.setAttribute("value", _config.discard_large_arrays ? "true" : "false");
+    plugin_elem.appendChild( discard_elem );
+
+    QDomElement max_elem = doc.createElement("max_array_size");
+    max_elem.setAttribute("value", QString::number(_config.max_array_size));
+    plugin_elem.appendChild( max_elem );
+
+    return true;
 }
 
 bool DataStreamROS::xmlLoadState(const QDomElement &parent_element)
 {
     QDomElement list_elem = parent_element.firstChildElement( "selected_topics" );
-    if( !list_elem.isNull()    )
-    {
-        if( list_elem.hasAttribute("list") )
-        {
-            QString topics_list = list_elem.attribute("list");
-            _default_topic_names = topics_list.split(";", QString::SkipEmptyParts);
-            return true;
-        }
-    }
-    return false;
+    QString topics_list = list_elem.attribute("value");
+    _config.selected_topics = topics_list.split(";", QString::SkipEmptyParts);
+
+    QDomElement stamp_elem = parent_element.firstChildElement( "use_header_stamp" );
+    _config.use_header_stamp = ( stamp_elem.attribute("value") == "true");
+
+    QDomElement rename_elem = parent_element.firstChildElement( "use_renaming_rules" );
+    _config.use_renaming_rules = ( rename_elem.attribute("value") == "true");
+
+    QDomElement discard_elem = parent_element.firstChildElement( "discard_large_arrays" );
+    _config.discard_large_arrays = ( discard_elem.attribute("value") == "true");
+
+    QDomElement max_elem = parent_element.firstChildElement( "max_array_size" );
+    _config.max_array_size = max_elem.attribute("value").toInt();
+
+    return true;
 }
 
 void DataStreamROS::addActionsToParentMenu(QMenu *menu)
@@ -457,4 +471,27 @@ void DataStreamROS::addActionsToParentMenu(QMenu *menu)
 
     menu->addAction( _action_clearBuffer );
 }
+
+void DataStreamROS::saveDefaultSettings()
+{
+    QSettings settings;
+
+    settings.setValue("DataStreamROS/default_topics", _config.selected_topics);
+    settings.setValue("DataStreamROS/use_renaming", _config.use_renaming_rules);
+    settings.setValue("DataStreamROS/use_header_stamp", _config.use_header_stamp);
+    settings.setValue("DataStreamROS/max_array_size", (int)_config.max_array_size);
+    settings.setValue("DataStreamROS/discard_large_arrays", _config.discard_large_arrays);
+}
+
+
+void DataStreamROS::loadDefaultSettings()
+{
+    QSettings settings;
+    _config.selected_topics      = settings.value("DataStreamROS/default_topics", false ).toStringList();
+    _config.use_header_stamp     = settings.value("DataStreamROS/use_header_stamp", false ).toBool();
+    _config.use_renaming_rules   = settings.value("DataStreamROS/use_renaming", true ).toBool();
+    _config.max_array_size       = settings.value("DataStreamROS/max_array_size", 100 ).toInt();
+    _config.discard_large_arrays = settings.value("DataStreamROS/discard_large_arrays", true ).toBool();
+}
+
 
