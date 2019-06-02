@@ -25,6 +25,7 @@
 #include <QStringListModel>
 #include <QStringRef>
 #include <QThread>
+#include <QTextStream>
 #include <QWindow>
 #include <QHeaderView>
 
@@ -164,7 +165,9 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     bool file_loaded = false;
     if( commandline_parser.isSet("datafile") )
     {
-        loadDataFromFile( commandline_parser.value("datafile"), false);
+        FileLoadInfo info;
+        info.filename = commandline_parser.value("datafile");
+        loadDataFromFile( info );
         file_loaded = true;
     }
     if( commandline_parser.isSet("layout"))
@@ -856,131 +859,6 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
     return true;
 }
 
-void MainWindow::onActionSaveLayout()
-{
-    QDomDocument doc = xmlSaveState();
-
-    QSettings settings;
-
-    QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
-                                             QDir::currentPath() ).toString();
-
-    QFileDialog saveDialog;
-    saveDialog.setOption(QFileDialog::DontUseNativeDialog, true);
-
-    QGridLayout *save_layout = static_cast<QGridLayout*>(saveDialog.layout());
-
-    QFrame* frame = new QFrame;
-    frame->setFrameStyle(QFrame::Box | QFrame::Plain);
-    frame->setLineWidth(1);
-
-    QVBoxLayout *vbox = new QVBoxLayout;
-    QLabel* title = new QLabel("Save Layout options");
-    QFrame* separator = new QFrame;
-    separator->setFrameStyle(QFrame::HLine | QFrame::Plain);
-
-    auto checkbox_datasource = new QCheckBox("Save data source");
-    checkbox_datasource->setToolTip("Do you want the layout to remember the source of your data,\n"
-                                    "i.e. the Datafile used or the Streaming Plugin loaded ?");
-    checkbox_datasource->setFocusPolicy( Qt::NoFocus );
-    checkbox_datasource->setChecked( settings.value("MainWindow.saveLayoutDataSource", true).toBool() );
-
-    auto checkbox_snippets = new QCheckBox("Save custom transformations");
-    checkbox_snippets->setToolTip("Do you want the layout to save the custom transformations?");
-    checkbox_snippets->setFocusPolicy( Qt::NoFocus );
-    checkbox_snippets->setChecked( settings.value("MainWindow.saveLayoutSnippets", true).toBool() );
-
-    vbox->addWidget(title);
-    vbox->addWidget(separator);
-    vbox->addWidget(checkbox_datasource);
-    vbox->addWidget(checkbox_snippets);
-    frame->setLayout(vbox);
-
-    int rows = save_layout->rowCount();
-    int col = save_layout->columnCount();
-    save_layout->addWidget(frame, 0, col, rows, 1, Qt::AlignTop);
-
-    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-    saveDialog.setDefaultSuffix("xml");
-    saveDialog.setNameFilter("XML (*.xml)");
-    saveDialog.setDirectory(directory_path);
-    saveDialog.exec();
-
-    if(saveDialog.result() != QDialog::Accepted || saveDialog.selectedFiles().empty())
-    {
-        return;
-    }
-
-    QString fileName = saveDialog.selectedFiles().first();
-
-    if (fileName.isEmpty()){
-        return;
-    }
-
-    directory_path = QFileInfo(fileName).absolutePath();
-    settings.setValue("MainWindow.lastLayoutDirectory", directory_path);
-    settings.setValue("MainWindow.saveLayoutDataSource", checkbox_datasource->isChecked() );
-    settings.setValue("MainWindow.saveLayoutSnippets",   checkbox_snippets->isChecked() );
-
-    QDomElement root = doc.namedItem("root").toElement();
-    root.setAttribute("version", "2.2");
-
-    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
-
-    root.appendChild( savePluginState(doc) );
-
-    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
-
-    if( checkbox_datasource->isChecked() )
-    {
-        QDomElement loaded_list = doc.createElement( "previouslyLoaded_Datafiles" );
-
-        for(const auto& loaded: _loaded_datafiles)
-        {
-            QDomElement file_elem =  doc.createElement( "fileInfo" );
-            file_elem.setAttribute("filename", loaded.filename );
-            file_elem.setAttribute("prefix", loaded.prefix );
-
-            file_elem.appendChild( loaded.plugin_config.firstChild() );
-            loaded_list.appendChild( file_elem );
-        }
-        root.appendChild( loaded_list );
-
-        if( _current_streamer )
-        {
-            QDomElement loaded_streamer =  doc.createElement( "previouslyLoaded_Streamer" );
-            QString streamer_name = _current_streamer->name();
-            streamer_name.replace(" ", "_");
-            loaded_streamer.setAttribute("name", streamer_name );
-            root.appendChild( loaded_streamer );
-        }
-    }
-    //-----------------------------------
-    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
-    if( checkbox_snippets->isChecked() )
-    {
-        QDomElement custom_equations =  doc.createElement("customMathEquations");
-        for (const auto& custom_it: _custom_plots)
-        {
-            const auto& custom_plot = custom_it.second;
-            custom_equations.appendChild( custom_plot->xmlSaveState(doc) );
-        }
-        root.appendChild(custom_equations);
-
-        QByteArray snippets_xml_text = settings.value("AddCustomPlotDialog.savedXML",
-                                                      QByteArray() ).toByteArray();
-        auto snipped_saved = GetSnippetsFromXML(snippets_xml_text);
-        auto snippets_root = ExportSnippets( snipped_saved, doc);
-        root.appendChild(snippets_root);
-    }
-    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
-    //------------------------------------
-    QFile file(fileName);
-    if (file.open(QIODevice::WriteOnly)) {
-        QTextStream stream(&file);
-        stream << doc.toString() << endl;
-    }
-}
 
 void MainWindow::deleteDataMultipleCurves(const std::vector<std::string> &curve_names)
 {
@@ -1139,7 +1017,10 @@ void MainWindow::updateRecentDataMenu(QStringList new_filenames)
         QAction* action = new QAction(filename, nullptr);
         connect( action, &QAction::triggered, this, [this, filename]
         {
-            if( this->loadDataFromFile(filename, false) )
+            FileLoadInfo info;
+            info.filename = filename;
+
+            if( loadDataFromFile( info ) )
             {
                 updateRecentDataMenu( {filename} );
             }
@@ -1298,12 +1179,14 @@ bool MainWindow::isStreamingActive() const
 
 bool MainWindow::loadDataFromFiles( QStringList filenames )
 {
-    return loadDataFromFile(filenames[0]);
+    FileLoadInfo info;
+    info.filename = filenames[0];
+    return loadDataFromFile(info);
 }
 
-bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuration )
+bool MainWindow::loadDataFromFile(const FileLoadInfo& info )
 {
-    const QString extension = QFileInfo(filename).suffix().toLower();
+    const QString extension = QFileInfo(info.filename).suffix().toLower();
 
     typedef std::map<QString,DataLoader*>::iterator MapIterator;
 
@@ -1358,21 +1241,18 @@ bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuratio
 
     if( dataloader )
     {
-        QFile file(filename);
+        QFile file(info.filename);
 
         if (!file.open(QFile::ReadOnly | QFile::Text)) {
             QMessageBox::warning(this, tr("Datafile"),
                                  tr("Cannot read file %1:\n%2.")
-                                 .arg(filename)
+                                 .arg(info.filename)
                                  .arg(file.errorString()));
             return false;
         }
         file.close();
 
         try{
-
-            FileLoadInfo info;
-            info.filename = filename;
 
             PlotDataMapRef mapped_data;
 
@@ -1383,10 +1263,12 @@ bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuratio
 
                 _loaded_datafiles.clear();
 
-                auto elem = dataloader->xmlSaveState(info.plugin_config);
-                info.plugin_config.appendChild( elem );
+                FileLoadInfo new_info = info;
 
-                _loaded_datafiles.push_back(info);
+                auto elem = dataloader->xmlSaveState(new_info.plugin_config);
+                new_info.plugin_config.appendChild( elem );
+
+                _loaded_datafiles.push_back(new_info);
             }
         }
         catch(std::exception &ex)
@@ -1400,7 +1282,7 @@ bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuratio
     else{
         QMessageBox::warning(this, tr("Error"),
                              tr("Cannot read files with extension %1.\n No plugin can handle that!\n")
-                             .arg(filename) );
+                             .arg(info.filename) );
     }
     _curvelist_widget->updateFilter();
 
@@ -1500,30 +1382,27 @@ void MainWindow::loadPluginState(const QDomElement& root)
 {
     QDomElement plugins = root.firstChildElement("Plugins");
 
-    if( ! plugins.isNull() )
+    for ( QDomElement plugin_elem = plugins.firstChildElement()  ;
+          plugin_elem.isNull() == false;
+          plugin_elem = plugin_elem.nextSiblingElement() )
     {
-        for ( QDomElement plugin_elem = plugins.firstChildElement()  ;
-              plugin_elem.isNull() == false;
-              plugin_elem = plugin_elem.nextSiblingElement() )
+        const QString plugin_name = plugin_elem.nodeName();
+        if( _data_loader.find(plugin_name) != _data_loader.end() )
         {
-            const QString plugin_name = plugin_elem.nodeName();
-            if( _data_loader.find(plugin_name) != _data_loader.end() )
-            {
-                _data_loader[plugin_name]->xmlLoadState(plugin_elem);
-            }
-            if( _data_streamer.find(plugin_name) != _data_streamer.end() )
-            {
-                _data_streamer[plugin_name]->xmlLoadState(plugin_elem);
-            }
-            if( _state_publisher.find(plugin_name) != _state_publisher.end() )
-            {
-                StatePublisher* publisher = _state_publisher[plugin_name];
-                publisher->xmlLoadState(plugin_elem);
+            _data_loader[plugin_name]->xmlLoadState(plugin_elem);
+        }
+        if( _data_streamer.find(plugin_name) != _data_streamer.end() )
+        {
+            _data_streamer[plugin_name]->xmlLoadState(plugin_elem);
+        }
+        if( _state_publisher.find(plugin_name) != _state_publisher.end() )
+        {
+            StatePublisher* publisher = _state_publisher[plugin_name];
+            publisher->xmlLoadState(plugin_elem);
 
-                if( _autostart_publishers && plugin_elem.attribute("status") == "active" )
-                {
-                    publisher->setEnabled(true);
-                }
+            if( _autostart_publishers && plugin_elem.attribute("status") == "active" )
+            {
+                publisher->setEnabled(true);
             }
         }
     }
@@ -1621,6 +1500,135 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
     return std::tuple<double,double,int>( min_time, max_time, max_steps );
 }
 
+static const QString LAYOUT_VERSION = "2.2";
+
+void MainWindow::onActionSaveLayout()
+{
+    QDomDocument doc = xmlSaveState();
+
+    QSettings settings;
+
+    QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
+                                             QDir::currentPath() ).toString();
+
+    QFileDialog saveDialog;
+    saveDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+
+    QGridLayout *save_layout = static_cast<QGridLayout*>(saveDialog.layout());
+
+    QFrame* frame = new QFrame;
+    frame->setFrameStyle(QFrame::Box | QFrame::Plain);
+    frame->setLineWidth(1);
+
+    QVBoxLayout *vbox = new QVBoxLayout;
+    QLabel* title = new QLabel("Save Layout options");
+    QFrame* separator = new QFrame;
+    separator->setFrameStyle(QFrame::HLine | QFrame::Plain);
+
+    auto checkbox_datasource = new QCheckBox("Save data source");
+    checkbox_datasource->setToolTip("Do you want the layout to remember the source of your data,\n"
+                                    "i.e. the Datafile used or the Streaming Plugin loaded ?");
+    checkbox_datasource->setFocusPolicy( Qt::NoFocus );
+    checkbox_datasource->setChecked( settings.value("MainWindow.saveLayoutDataSource", true).toBool() );
+
+    auto checkbox_snippets = new QCheckBox("Save custom transformations");
+    checkbox_snippets->setToolTip("Do you want the layout to save the custom transformations?");
+    checkbox_snippets->setFocusPolicy( Qt::NoFocus );
+    checkbox_snippets->setChecked( settings.value("MainWindow.saveLayoutSnippets", true).toBool() );
+
+    vbox->addWidget(title);
+    vbox->addWidget(separator);
+    vbox->addWidget(checkbox_datasource);
+    vbox->addWidget(checkbox_snippets);
+    frame->setLayout(vbox);
+
+    int rows = save_layout->rowCount();
+    int col = save_layout->columnCount();
+    save_layout->addWidget(frame, 0, col, rows, 1, Qt::AlignTop);
+
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setDefaultSuffix("xml");
+    saveDialog.setNameFilter("XML (*.xml)");
+    saveDialog.setDirectory(directory_path);
+    saveDialog.exec();
+
+    if(saveDialog.result() != QDialog::Accepted || saveDialog.selectedFiles().empty())
+    {
+        return;
+    }
+
+    QString fileName = saveDialog.selectedFiles().first();
+
+    if (fileName.isEmpty()){
+        return;
+    }
+
+    directory_path = QFileInfo(fileName).absolutePath();
+    settings.setValue("MainWindow.lastLayoutDirectory", directory_path);
+    settings.setValue("MainWindow.saveLayoutDataSource", checkbox_datasource->isChecked() );
+    settings.setValue("MainWindow.saveLayoutSnippets",   checkbox_snippets->isChecked() );
+
+    QDomElement root = doc.namedItem("root").toElement();
+    root.setAttribute("version", LAYOUT_VERSION);
+
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
+
+    root.appendChild( savePluginState(doc) );
+
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
+
+    if( checkbox_datasource->isChecked() )
+    {
+        QDomElement loaded_list = doc.createElement( "previouslyLoaded_Datafiles" );
+
+        for(const auto& loaded: _loaded_datafiles)
+        {
+            QDomElement file_elem =  doc.createElement( "fileInfo" );
+            file_elem.setAttribute("filename", loaded.filename );
+            file_elem.setAttribute("prefix", loaded.prefix );
+
+            file_elem.appendChild( loaded.plugin_config.firstChild() );
+            loaded_list.appendChild( file_elem );
+        }
+        root.appendChild( loaded_list );
+
+        if( _current_streamer )
+        {
+            QDomElement loaded_streamer =  doc.createElement( "previouslyLoaded_Streamer" );
+            QString streamer_name = _current_streamer->name();
+            streamer_name.replace(" ", "_");
+            loaded_streamer.setAttribute("name", streamer_name );
+            root.appendChild( loaded_streamer );
+        }
+    }
+    //-----------------------------------
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
+    if( checkbox_snippets->isChecked() )
+    {
+        QDomElement custom_equations =  doc.createElement("customMathEquations");
+        for (const auto& custom_it: _custom_plots)
+        {
+            const auto& custom_plot = custom_it.second;
+            custom_equations.appendChild( custom_plot->xmlSaveState(doc) );
+        }
+        root.appendChild(custom_equations);
+
+        QByteArray snippets_xml_text = settings.value("AddCustomPlotDialog.savedXML",
+                                                      QByteArray() ).toByteArray();
+        auto snipped_saved = GetSnippetsFromXML(snippets_xml_text);
+        auto snippets_root = ExportSnippets( snipped_saved, doc);
+        root.appendChild(snippets_root);
+    }
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
+    //------------------------------------
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly)) {
+        QTextStream stream(&file);
+        stream << doc.toString() << endl;
+    }
+}
+
+
 bool MainWindow::loadLayoutFromFile(QString filename)
 {
     QSettings settings;
@@ -1650,13 +1658,32 @@ bool MainWindow::loadLayoutFromFile(QString filename)
     //-------------------------------------------------
     // refresh plugins
     QDomElement root = domDocument.namedItem("root").toElement();
+
+    if( !root.hasAttribute("version") && root.attribute("version") != LAYOUT_VERSION )
+    {
+        QMessageBox::warning(this, tr("Wrong Layout version"),
+                             tr("This Layout ID is not supported [%1].\nThis version of PlotJuggler use Layout ID [%2]")
+                             .arg(root.attribute("version"))
+                             .arg(LAYOUT_VERSION) );
+        return false;
+    }
+
     loadPluginState(root);
     //-------------------------------------------------
-    QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoadedDatafile" );
-    if( previously_loaded_datafile.isNull() == false)
+    QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoaded_Datafiles" );
+
+    for (QDomElement info_elem = previously_loaded_datafile.firstChildElement( "fileInfo" )  ;
+         !info_elem.isNull();
+         info_elem = info_elem.nextSiblingElement( "fileInfo" ) )
     {
-        QString filename = previously_loaded_datafile.attribute("filename");
-        loadDataFromFile( filename, true );
+        FileLoadInfo info;
+        info.filename = info_elem.attribute("filename");
+        info.prefix   = info_elem.attribute("prefix");
+
+        auto plugin_elem = info_elem.firstChildElement( "plugin" );
+        info.plugin_config.appendChild( info.plugin_config.importNode( plugin_elem, true ) );
+
+        loadDataFromFile( info );
     }
 
     QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoadedStreamer" );

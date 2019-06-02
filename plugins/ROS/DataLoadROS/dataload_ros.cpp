@@ -23,6 +23,7 @@ DataLoadROS::DataLoadROS()
 
     QSettings settings;
 
+    _config.selected_topics      = settings.value("DataLoadROS/default_topics", false ).toStringList();
     _config.use_header_stamp     = settings.value("DataLoadROS/use_header_stamp", false ).toBool();
     _config.use_renaming_rules   = settings.value("DataLoadROS/use_renaming", true ).toBool();
     _config.max_array_size       = settings.value("DataLoadROS/max_array_size", 100 ).toInt();
@@ -105,7 +106,7 @@ void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map)
 }
 
 
-bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& destination)
+bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plot_map)
 {
     if( _bag ) _bag->close();
 
@@ -138,19 +139,19 @@ bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& des
         if( dialog->exec() == static_cast<int>(QDialog::Accepted) )
         {
             _config = dialog->getResult();
-
-            QSettings settings;
-
-            settings.setValue("DataLoadROS/default_topics", _config.selected_topics);
-            settings.setValue("DataLoadROS/use_renaming", _config.use_renaming_rules);
-            settings.setValue("DataLoadROS/use_header_stamp", _config.use_header_stamp);
-            settings.setValue("DataLoadROS/max_array_size", (int)_config.max_array_size);
-            settings.setValue("DataLoadROS/discard_large_arrays", _config.discard_large_arrays);
         }
         else{
             return false;
         }
     }
+
+    QSettings settings;
+
+    settings.setValue("DataLoadROS/default_topics", _config.selected_topics);
+    settings.setValue("DataLoadROS/use_renaming", _config.use_renaming_rules);
+    settings.setValue("DataLoadROS/use_header_stamp", _config.use_header_stamp);
+    settings.setValue("DataLoadROS/max_array_size", (int)_config.max_array_size);
+    settings.setValue("DataLoadROS/discard_large_arrays", _config.discard_large_arrays);
 
     _ros_parser.setUseHeaderStamp( _config.use_header_stamp );
     _ros_parser.setMaxArrayPolicy( _config.max_array_size, _config.discard_large_arrays );
@@ -178,8 +179,6 @@ bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& des
     } );
     progress_dialog.setRange(0, bag_view_selected.size()-1);
     progress_dialog.show();
-
-    PlotDataMapRef& plot_map = destination;
 
     std::vector<uint8_t> buffer;
 
@@ -231,7 +230,7 @@ DataLoadROS::~DataLoadROS()
 QDomElement DataLoadROS::xmlSaveState(QDomDocument &doc) const
 {
     QDomElement plugin_elem = doc.createElement("plugin");
-    plugin_elem.setAttribute("ID", this->name() );
+    plugin_elem.setAttribute("ID", QString(this->name()).replace(" ", "_") );
 
     QString topics_list = _config.selected_topics.join(";");
     QDomElement list_elem = doc.createElement("selected_topics");
@@ -273,9 +272,9 @@ bool DataLoadROS::xmlLoadState(const QDomElement &parent_element)
     _config.discard_large_arrays = ( discard_elem.attribute("value") == "true");
 
     QDomElement max_elem = parent_element.firstChildElement( "max_array_size" );
-    _config.max_array_size = ( max_elem.attribute("value") == "true");
+    _config.max_array_size = max_elem.attribute("value").toInt();
 
-    return false;
+    return true;
 }
 
 

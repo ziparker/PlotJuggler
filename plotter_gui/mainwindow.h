@@ -38,7 +38,7 @@ public:
 
     bool loadDataFromFiles(QStringList filenames );
 
-    bool loadDataFromFile(QString filename, bool reuse_last_configuration = false );
+    bool loadDataFromFile(const FileLoadInfo &info);
 
 public slots:
     void onUndoableChange();
