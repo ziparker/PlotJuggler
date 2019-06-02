@@ -331,7 +331,7 @@ bool DataStreamROS::start()
     timer.setInterval( 1000);
     timer.start();
 
-    DialogSelectRosTopics dialog(all_topics, _default_topic_names );
+    DialogSelectRosTopics dialog( all_topics, _default_topic_names );
 
     connect( &timer, &QTimer::timeout, [&]()
     {
@@ -423,7 +423,7 @@ QDomElement DataStreamROS::xmlSaveState(QDomDocument &doc) const
     return list_elem;
 }
 
-bool DataStreamROS::xmlLoadState(QDomElement &parent_element)
+bool DataStreamROS::xmlLoadState(const QDomElement &parent_element)
 {
     QDomElement list_elem = parent_element.firstChildElement( "selected_topics" );
     if( !list_elem.isNull()    )

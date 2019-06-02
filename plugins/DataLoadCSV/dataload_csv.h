@@ -16,7 +16,7 @@ public:
     DataLoadCSV();
     virtual const std::vector<const char*>& compatibleFileExtensions() const override;
 
-    virtual PlotDataMapRef readDataFromFile(const QString& file_name, bool use_previous_configuration  ) override;
+    virtual bool readDataFromFile(const FileLoadInfo& fileload_info, PlotDataMapRef& destination) override;
 
     virtual ~DataLoadCSV();
 
@@ -24,7 +24,7 @@ public:
 
     virtual QDomElement xmlSaveState(QDomDocument &doc) const override;
 
-    virtual bool xmlLoadState(QDomElement &parent_element ) override;
+    virtual bool xmlLoadState(const QDomElement &parent_element ) override;
 
 protected:
     QSize parseHeader(QFile *file, std::vector<std::string> &ordered_names);

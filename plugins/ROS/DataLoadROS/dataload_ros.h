@@ -8,6 +8,7 @@
 #include <rosbag/bag.h>
 
 #include "PlotJuggler/dataloader_base.h"
+#include "../dialog_select_ros_topics.h"
 #include "../RosMsgParsers/ros_parser.h"
 
 class  DataLoadROS: public DataLoader
@@ -21,7 +22,7 @@ public:
 
     virtual const std::vector<const char*>& compatibleFileExtensions() const override;
 
-    virtual PlotDataMapRef readDataFromFile(const QString& file_name, bool use_previous_configuration ) override;
+    virtual bool readDataFromFile(const FileLoadInfo& fileload_info, PlotDataMapRef& destination) override;
 
     virtual const char* name() const override { return "DataLoad ROS bags"; }
 
@@ -29,7 +30,7 @@ public:
 
     virtual QDomElement xmlSaveState(QDomDocument &doc) const override;
 
-    virtual bool xmlLoadState(QDomElement &parent_element ) override;
+    virtual bool xmlLoadState(const QDomElement &parent_element ) override;
 
 protected:
     void loadSubstitutionRule(QStringList all_topic_names);
@@ -40,9 +41,7 @@ private:
 
     std::vector<const char*> _extensions;
 
-    QStringList _default_topic_names;
-
-    bool _use_renaming_rules;
+    DialogSelectRosTopics::Configuration _config;
 
     std::vector<std::pair<QString, QString>> getAndRegisterAllTopics();
 

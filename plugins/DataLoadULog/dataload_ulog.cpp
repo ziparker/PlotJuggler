@@ -13,7 +13,7 @@
 
 DataLoadULog::DataLoadULog(): _main_win(nullptr)
 {
-    foreach(QWidget *widget, qApp->topLevelWidgets())
+    for(QWidget *widget: qApp->topLevelWidgets())
     {
         if(widget->inherits("QMainWindow"))
         {
@@ -29,11 +29,11 @@ const std::vector<const char*> &DataLoadULog::compatibleFileExtensions() const
     return extensions;
 }
 
-
-PlotDataMapRef DataLoadULog::readDataFromFile(const QString &file_name, bool)
+bool DataLoadULog::readDataFromFile(const FileLoadInfo& fileload_info, PlotDataMapRef& plot_data)
 {
-    PlotDataMapRef plot_data;
-    ULogParser parser( file_name.toStdString() );
+    const auto& filename = fileload_info.filename;
+
+    ULogParser parser( filename.toStdString() );
 
     const auto& timeseries_map = parser.getTimeseriesMap();
 
@@ -58,12 +58,12 @@ PlotDataMapRef DataLoadULog::readDataFromFile(const QString &file_name, bool)
     }
 
     ULogParametersDialog* dialog = new ULogParametersDialog( parser, _main_win );
-    dialog->setWindowTitle( QString("ULog file %1").arg(file_name) );
+    dialog->setWindowTitle( QString("ULog file %1").arg(filename) );
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->restoreSettings();
     dialog->show();
 
-    return plot_data;
+    return true;
 }
 
 DataLoadULog::~DataLoadULog()
@@ -77,7 +77,7 @@ QDomElement DataLoadULog::xmlSaveState(QDomDocument &doc) const
     return elem;
 }
 
-bool DataLoadULog::xmlLoadState(QDomElement&)
+bool DataLoadULog::xmlLoadState(const QDomElement &)
 {
     return true;
 }

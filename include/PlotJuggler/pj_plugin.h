@@ -22,7 +22,7 @@ public:
         return QDomElement();
     }
 
-    virtual bool xmlLoadState(QDomElement &parent_element )
+    virtual bool xmlLoadState(const QDomElement &parent_element )
     {
         return false;
     }

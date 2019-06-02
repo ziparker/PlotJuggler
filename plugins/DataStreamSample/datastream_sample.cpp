@@ -73,7 +73,7 @@ QDomElement DataStreamSample::xmlSaveState(QDomDocument &doc) const
     return QDomElement();
 }
 
-bool DataStreamSample::xmlLoadState(QDomElement &parent_element)
+bool DataStreamSample::xmlLoadState(const QDomElement &parent_element)
 {
     return false;
 }

@@ -56,19 +56,19 @@ add_dependencies(DataLoadROS
     )
 
 #############
-SET( DATASTREAM_SRC
-    DataStreamROS/datastream_ROS.cpp
-    DataStreamROS/datastream_ROS.h
-    ../../include/PlotJuggler/datastreamer_base.h
-    )
+#SET( DATASTREAM_SRC
+#    DataStreamROS/datastream_ROS.cpp
+#    DataStreamROS/datastream_ROS.h
+#    ../../include/PlotJuggler/datastreamer_base.h
+#    )
 
-add_library( DataStreamROS SHARED ${DATASTREAM_SRC} )
-target_link_libraries( DataStreamROS  commonROS )
+#add_library( DataStreamROS SHARED ${DATASTREAM_SRC} )
+#target_link_libraries( DataStreamROS  commonROS )
 
-add_dependencies(DataStreamROS
-    ${${PROJECT_NAME}_EXPORTED_TARGETS}
-    ${catkin_EXPORTED_TARGETS}
-    )
+#add_dependencies(DataStreamROS
+#    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#    ${catkin_EXPORTED_TARGETS}
+#    )
 
 #############
 SET( PUBLISHER_SRC
@@ -108,7 +108,11 @@ add_dependencies(RosoutPublisher
     )
 
 if(COMPILING_WITH_CATKIN)
-    install(TARGETS DataLoadROS  DataStreamROS  RosTopicPublisher  RosoutPublisher
+    install(TARGETS
+        DataLoadROS
+#        DataStreamROS
+        RosTopicPublisher
+        RosoutPublisher
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

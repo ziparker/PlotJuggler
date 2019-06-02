@@ -20,6 +20,13 @@
 DataLoadROS::DataLoadROS()
 {
     _extensions.push_back( "bag");
+
+    QSettings settings;
+
+    _config.use_header_stamp     = settings.value("DataLoadROS/use_header_stamp", false ).toBool();
+    _config.use_renaming_rules   = settings.value("DataLoadROS/use_renaming", true ).toBool();
+    _config.max_array_size       = settings.value("DataLoadROS/max_array_size", 100 ).toInt();
+    _config.discard_large_arrays = settings.value("DataLoadROS/discard_large_arrays", true ).toBool();
 }
 
 void StrCat(const std::string& a, const std::string& b,  std::string& out)
@@ -97,7 +104,8 @@ void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map)
     }
 }
 
-PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_previous_configuration)
+
+bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& destination)
 {
     if( _bag ) _bag->close();
 
@@ -105,60 +113,56 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     _ros_parser.clear();
 
     try{
-        _bag->open( file_name.toStdString(), rosbag::bagmode::Read );
+        _bag->open( info.filename.toStdString(), rosbag::bagmode::Read );
     }
     catch( rosbag::BagException&  ex)
     {
         QMessageBox::warning(nullptr, tr("Error"),
                              QString("rosbag::open thrown an exception:\n")+
                              QString(ex.what()) );
-        return PlotDataMapRef();
+        return false;
     }
 
     auto all_topics = getAndRegisterAllTopics();
 
     //----------------------------------
-    QSettings settings;
 
-    _use_renaming_rules = settings.value("DataLoadROS/use_renaming").toBool();
-
-    if( _default_topic_names.empty() )
+    if( info.plugin_config.hasChildNodes() )
     {
-        // if _default_topic_names is empty (xmlLoad didn't work) use QSettings.
-        QVariant def = settings.value("DataLoadROS/default_topics");
-        if( !def.isNull() && def.isValid())
-        {
-            _default_topic_names = def.toStringList();
-        }
+        xmlLoadState( info.plugin_config.firstChildElement() );
     }
-
-    DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topics, _default_topic_names );
-
-    if( !use_previous_configuration )
+    else
     {
+        DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topics, _config );
+
         if( dialog->exec() == static_cast<int>(QDialog::Accepted) )
         {
-            _default_topic_names = dialog->getSelectedItems();
-            settings.setValue("DataLoadROS/default_topics", _default_topic_names);
-            settings.setValue("DataLoadROS/use_renaming", _use_renaming_rules);
+            _config = dialog->getResult();
+
+            QSettings settings;
+
+            settings.setValue("DataLoadROS/default_topics", _config.selected_topics);
+            settings.setValue("DataLoadROS/use_renaming", _config.use_renaming_rules);
+            settings.setValue("DataLoadROS/use_header_stamp", _config.use_header_stamp);
+            settings.setValue("DataLoadROS/max_array_size", (int)_config.max_array_size);
+            settings.setValue("DataLoadROS/discard_large_arrays", _config.discard_large_arrays);
         }
         else{
-            return PlotDataMapRef();
+            return false;
         }
     }
 
-    _ros_parser.setUseHeaderStamp( dialog->checkBoxTimestamp()->isChecked() );
+    _ros_parser.setUseHeaderStamp( _config.use_header_stamp );
+    _ros_parser.setMaxArrayPolicy( _config.max_array_size, _config.discard_large_arrays );
 
-    _use_renaming_rules = dialog->checkBoxUseRenamingRules()->isChecked();
-
-    if( _use_renaming_rules )
+    if( _config.use_renaming_rules )
     {
         _ros_parser.addRules( RuleEditing::getRenamingRules() );
     }
 
     //-----------------------------------
     std::set<std::string> topic_selected;
-    for(const auto& topic: _default_topic_names)
+    for(const auto& topic: _config.selected_topics)
     {
         topic_selected.insert( topic.toStdString() );
     }
@@ -175,7 +179,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
     progress_dialog.setRange(0, bag_view_selected.size()-1);
     progress_dialog.show();
 
-    PlotDataMapRef plot_map;
+    PlotDataMapRef& plot_map = destination;
 
     std::vector<uint8_t> buffer;
 
@@ -183,10 +187,6 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
 
     QElapsedTimer timer;
     timer.start();
-
-    _ros_parser.setMaxArrayPolicy(
-                dialog->maxArraySize(),
-                dialog->discardEntireArrayIfTooLarge() );
 
     for(const rosbag::MessageInstance& msg_instance: bag_view_selected )
     {
@@ -201,7 +201,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
             QApplication::processEvents();
 
             if( progress_dialog.wasCanceled() ) {
-                return PlotDataMapRef();
+                return false;
             }
         }
 
@@ -219,9 +219,7 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
 
-    _ros_parser.showWarnings();
-
-    return plot_map;
+    return true;
 }
 
 
@@ -232,24 +230,51 @@ DataLoadROS::~DataLoadROS()
 
 QDomElement DataLoadROS::xmlSaveState(QDomDocument &doc) const
 {
-    QString topics_list = _default_topic_names.join(";");
+    QDomElement plugin_elem = doc.createElement("plugin");
+    plugin_elem.setAttribute("ID", this->name() );
+
+    QString topics_list = _config.selected_topics.join(";");
     QDomElement list_elem = doc.createElement("selected_topics");
-    list_elem.setAttribute("list", topics_list );
-    return list_elem;
+    list_elem.setAttribute("value", topics_list);
+    plugin_elem.appendChild( list_elem );
+
+    QDomElement stamp_elem = doc.createElement("use_header_stamp");
+    stamp_elem.setAttribute("value", _config.use_header_stamp ? "true" : "false");
+    plugin_elem.appendChild( stamp_elem );
+
+    QDomElement rename_elem = doc.createElement("use_renaming_rules");
+    rename_elem.setAttribute("value", _config.use_renaming_rules ? "true" : "false");
+    plugin_elem.appendChild( rename_elem );
+
+    QDomElement discard_elem = doc.createElement("discard_large_arrays");
+    discard_elem.setAttribute("value", _config.discard_large_arrays ? "true" : "false");
+    plugin_elem.appendChild( discard_elem );
+
+    QDomElement max_elem = doc.createElement("max_array_size");
+    max_elem.setAttribute("value", QString::number(_config.max_array_size));
+    plugin_elem.appendChild( max_elem );
+
+    return plugin_elem;
 }
 
-bool DataLoadROS::xmlLoadState(QDomElement &parent_element)
+bool DataLoadROS::xmlLoadState(const QDomElement &parent_element)
 {
     QDomElement list_elem = parent_element.firstChildElement( "selected_topics" );
-    if( !list_elem.isNull()    )
-    {
-        if( list_elem.hasAttribute("list") )
-        {
-            QString topics_list = list_elem.attribute("list");
-            _default_topic_names = topics_list.split(";", QString::SkipEmptyParts);
-            return true;
-        }
-    }
+    QString topics_list = list_elem.attribute("value");
+    _config.selected_topics = topics_list.split(";", QString::SkipEmptyParts);
+
+    QDomElement stamp_elem = parent_element.firstChildElement( "use_header_stamp" );
+    _config.use_header_stamp = ( stamp_elem.attribute("value") == "true");
+
+    QDomElement rename_elem = parent_element.firstChildElement( "use_renaming_rules" );
+    _config.use_renaming_rules = ( rename_elem.attribute("value") == "true");
+
+    QDomElement discard_elem = parent_element.firstChildElement( "discard_large_arrays" );
+    _config.discard_large_arrays = ( discard_elem.attribute("value") == "true");
+
+    QDomElement max_elem = parent_element.firstChildElement( "max_array_size" );
+    _config.max_array_size = ( max_elem.attribute("value") == "true");
+
     return false;
 }
 

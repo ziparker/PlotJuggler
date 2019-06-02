@@ -9,6 +9,15 @@
 #include "PlotJuggler/pj_plugin.h"
 #include "PlotJuggler/messageparser_base.h"
 
+
+struct FileLoadInfo
+{
+    QString filename;
+    QString prefix;
+    QDomDocument plugin_config;
+};
+
+
 class DataLoader: public PlotJugglerPlugin
 {
 
@@ -17,7 +26,7 @@ public:
 
     virtual const std::vector<const char*>& compatibleFileExtensions() const = 0;
 
-    virtual PlotDataMapRef readDataFromFile(const QString& file_name, bool use_previous_configuration) = 0;
+    virtual bool readDataFromFile(const FileLoadInfo& fileload_info, PlotDataMapRef& destination) = 0;
 
     virtual ~DataLoader() {}
 

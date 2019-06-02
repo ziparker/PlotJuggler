@@ -860,10 +860,6 @@ void MainWindow::onActionSaveLayout()
 {
     QDomDocument doc = xmlSaveState();
 
-    //--------------------------
-    savePluginState(doc);
-    //--------------------------
-
     QSettings settings;
 
     QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
@@ -927,19 +923,32 @@ void MainWindow::onActionSaveLayout()
     settings.setValue("MainWindow.saveLayoutSnippets",   checkbox_snippets->isChecked() );
 
     QDomElement root = doc.namedItem("root").toElement();
+    root.setAttribute("version", "2.2");
+
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
+
+    root.appendChild( savePluginState(doc) );
+
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
 
     if( checkbox_datasource->isChecked() )
     {
-        if( _loaded_datafile.isEmpty() == false)
+        QDomElement loaded_list = doc.createElement( "previouslyLoaded_Datafiles" );
+
+        for(const auto& loaded: _loaded_datafiles)
         {
-            QDomElement previously_loaded_datafile =  doc.createElement( "previouslyLoadedDatafile" );
-            previously_loaded_datafile.setAttribute("filename", _loaded_datafile );
-            root.appendChild( previously_loaded_datafile );
+            QDomElement file_elem =  doc.createElement( "fileInfo" );
+            file_elem.setAttribute("filename", loaded.filename );
+            file_elem.setAttribute("prefix", loaded.prefix );
+
+            file_elem.appendChild( loaded.plugin_config.firstChild() );
+            loaded_list.appendChild( file_elem );
         }
+        root.appendChild( loaded_list );
 
         if( _current_streamer )
         {
-            QDomElement loaded_streamer =  doc.createElement( "previouslyLoadedStreamer" );
+            QDomElement loaded_streamer =  doc.createElement( "previouslyLoaded_Streamer" );
             QString streamer_name = _current_streamer->name();
             streamer_name.replace(" ", "_");
             loaded_streamer.setAttribute("name", streamer_name );
@@ -947,6 +956,7 @@ void MainWindow::onActionSaveLayout()
         }
     }
     //-----------------------------------
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
     if( checkbox_snippets->isChecked() )
     {
         QDomElement custom_equations =  doc.createElement("customMathEquations");
@@ -963,7 +973,7 @@ void MainWindow::onActionSaveLayout()
         auto snippets_root = ExportSnippets( snipped_saved, doc);
         root.appendChild(snippets_root);
     }
-
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
     //------------------------------------
     QFile file(fileName);
     if (file.open(QIODevice::WriteOnly)) {
@@ -1313,11 +1323,11 @@ bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuratio
         }
     }
 
-    DataLoader* last_dataloader = nullptr;
+    DataLoader* dataloader = nullptr;
 
     if( compatible_loaders.size() == 1)
     {
-        last_dataloader = compatible_loaders.front()->second;
+        dataloader = compatible_loaders.front()->second;
     }
     else{
         static QString last_plugin_name_used;
@@ -1341,12 +1351,12 @@ bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuratio
                                                     names, 0, false, &ok);
         if (ok && !plugin_name.isEmpty())
         {
-            last_dataloader = _data_loader[ plugin_name ];
+            dataloader = _data_loader[ plugin_name ];
             last_plugin_name_used = plugin_name;
         }
     }
 
-    if( last_dataloader )
+    if( dataloader )
     {
         QFile file(filename);
 
@@ -1359,23 +1369,31 @@ bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuratio
         }
         file.close();
 
-        _loaded_datafile = filename;
-
         try{
 
-            PlotDataMapRef mapped_data = last_dataloader->readDataFromFile(filename, reuse_last_configuration );
+            FileLoadInfo info;
+            info.filename = filename;
 
-            if( !mapped_data.numeric.empty() && !mapped_data.user_defined.empty() )
+            PlotDataMapRef mapped_data;
+
+            if( dataloader->readDataFromFile(info, mapped_data ) )
             {
                 deleteAllDataImpl();
                 importPlotDataMap(mapped_data, true);
+
+                _loaded_datafiles.clear();
+
+                auto elem = dataloader->xmlSaveState(info.plugin_config);
+                info.plugin_config.appendChild( elem );
+
+                _loaded_datafiles.push_back(info);
             }
         }
         catch(std::exception &ex)
         {
             QMessageBox::warning(this, tr("Exception from the plugin"),
                                  tr("The plugin [%1] thrown the following exception: \n\n %3\n")
-                                 .arg(last_dataloader->name()).arg(ex.what()) );
+                                 .arg(dataloader->name()).arg(ex.what()) );
             return false;
         }
     }
@@ -1511,12 +1529,9 @@ void MainWindow::loadPluginState(const QDomElement& root)
     }
 }
 
-void MainWindow::savePluginState(QDomDocument& doc)
+QDomElement MainWindow::savePluginState(QDomDocument& doc)
 {
-    QDomElement root = doc.namedItem("root").toElement();
-
     QDomElement plugins_elem = doc.createElement( "Plugins" );
-    root.appendChild( plugins_elem );
 
     for (auto& it: _data_loader)
     {
@@ -1551,6 +1566,7 @@ void MainWindow::savePluginState(QDomDocument& doc)
         elem.appendChild( state_publisher->xmlSaveState(doc) );
         plugins_elem.appendChild( elem );
     }
+    return plugins_elem;
 }
 
 std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()

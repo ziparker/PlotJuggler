@@ -30,7 +30,7 @@ public:
 
     virtual QDomElement xmlSaveState(QDomDocument &doc) const override;
 
-    virtual bool xmlLoadState(QDomElement &parent_element ) override;
+    virtual bool xmlLoadState(const QDomElement &parent_element ) override;
 
 private:
 

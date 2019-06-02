@@ -20,21 +20,22 @@ class DialogSelectRosTopics : public QDialog
 
 public:
 
+    struct Configuration
+    {
+        QStringList selected_topics;
+        size_t max_array_size;
+        bool use_header_stamp;
+        bool use_renaming_rules;
+        bool discard_large_arrays;
+    };
+
     explicit DialogSelectRosTopics(const std::vector<std::pair<QString,QString>>& topic_list,
-                                   QStringList default_selected_topics,
+                                   const Configuration& default_info,
                                    QWidget *parent = nullptr);
 
     ~DialogSelectRosTopics() override;
 
-    QStringList getSelectedItems();
-
-    int maxArraySize() const;
-
-    const QCheckBox *checkBoxUseRenamingRules();
-
-    bool discardEntireArrayIfTooLarge();
-
-    QCheckBox * checkBoxTimestamp();
+    Configuration getResult() const;
 
 public slots:
 

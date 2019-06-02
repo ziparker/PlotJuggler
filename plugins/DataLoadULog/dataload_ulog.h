@@ -18,7 +18,7 @@ public:
 
     const std::vector<const char*>& compatibleFileExtensions() const override;
 
-    PlotDataMapRef readDataFromFile(const QString& file_name, bool) override;
+    bool readDataFromFile(const FileLoadInfo& fileload_info, PlotDataMapRef& destination) override;
 
     ~DataLoadULog() override;
 
@@ -26,7 +26,7 @@ public:
 
     QDomElement xmlSaveState(QDomDocument &doc) const override;
 
-    bool xmlLoadState(QDomElement &parent_element ) override;
+    bool xmlLoadState(const QDomElement &parent_element ) override;
 
 private:
 

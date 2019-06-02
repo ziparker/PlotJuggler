@@ -199,7 +199,7 @@ private:
 
     double _tracker_time;
 
-    QString _loaded_datafile;
+    std::vector<FileLoadInfo> _loaded_datafiles;
 
     QSignalMapper *_streamer_signal_mapper;
 
@@ -217,7 +217,7 @@ private:
 
     void loadPluginState(const QDomElement &root);
     
-    void savePluginState(QDomDocument &doc);
+    QDomElement savePluginState(QDomDocument &doc);
 
     std::tuple<double,double,int> calculateVisibleRangeX();
 

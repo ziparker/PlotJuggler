@@ -55,15 +55,21 @@ QSize DataLoadCSV::parseHeader(QFile *file, std::vector<std::string>& ordered_na
     return table_size;
 }
 
-PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_previous_configuration)
+bool DataLoadCSV::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plot_data)
 {
+    bool use_provided_configuration = false;
+
+    if( info.plugin_config.hasChildNodes() )
+    {
+        use_provided_configuration = true;
+        xmlLoadState( info.plugin_config.firstChildElement() );
+    }
+
     const int TIME_INDEX_NOT_DEFINED = -2;
 
     int time_index = TIME_INDEX_NOT_DEFINED;
 
-    PlotDataMapRef plot_data;
-
-    QFile file( file_name );
+    QFile file( info.filename );
     file.open(QFile::ReadOnly);
 
     std::vector<std::string> column_names;
@@ -105,7 +111,7 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
         valid_field_names.push_back( field_name );
         plots_vector.push_back( &(it->second) );
 
-        if (time_index == TIME_INDEX_NOT_DEFINED && use_previous_configuration)
+        if (time_index == TIME_INDEX_NOT_DEFINED && use_provided_configuration)
         {
             if( _default_time_axis == field_name )
             {
@@ -114,7 +120,7 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
         }
     }
 
-    if( time_index == TIME_INDEX_NOT_DEFINED && !use_previous_configuration)
+    if( time_index == TIME_INDEX_NOT_DEFINED && !use_provided_configuration)
     {
         valid_field_names.push_front( "INDEX (auto-generated)" );
 
@@ -124,7 +130,7 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
 
         if (res == QDialog::Rejected )
         {
-            return PlotDataMapRef();
+            return false;
         }
 
         const int selected_item = dialog->getSelectedRowNumber().at(0);
@@ -168,7 +174,7 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
                 reply = QMessageBox::warning(0, tr("Error reading file"),
                                               tr("One of the timestamps is not a valid number. Abort\n") );
 
-                return PlotDataMapRef();
+                return false;
             }
             if( t < prev_time )
             {
@@ -176,7 +182,7 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
                 reply = QMessageBox::warning(0, tr("Error reading file"),
                                               tr("Selected time in not strictly monotonic. Loading will be aborted\n") );
 
-                return PlotDataMapRef();
+                return false;
             }
             else if (t == prev_time)
             {
@@ -226,7 +232,7 @@ PlotDataMapRef DataLoadCSV::readDataFromFile(const QString &file_name, bool use_
         QMessageBox::warning(0, tr("Warning"), message );
     }
 
-    return plot_data;
+    return true;
 }
 
 DataLoadCSV::~DataLoadCSV()
@@ -241,7 +247,7 @@ QDomElement DataLoadCSV::xmlSaveState(QDomDocument &doc) const
     return elem;
 }
 
-bool DataLoadCSV::xmlLoadState(QDomElement &parent_element)
+bool DataLoadCSV::xmlLoadState(const QDomElement &parent_element)
 {
     QDomElement elem = parent_element.firstChildElement( "default" );
     if( !elem.isNull()    )
