@@ -38,7 +38,15 @@ public:
 
     virtual void addActionsToParentMenu( QMenu* menu ) override;
 
+    virtual std::vector<QString> appendData(PlotDataMapRef& destination) override
+    {
+        _destination_data = &destination;
+        return DataStreamer::appendData(destination);
+    }
+
 private:
+
+    const PlotDataMapRef* _destination_data;
 
     void topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg, const std::string &topic_name);
 
@@ -88,9 +96,9 @@ private:
 
     ros::Time _clock_time;
 
-private slots:
+private:
 
-    void saveIntoRosbag();
+    static void saveIntoRosbag(const PlotDataMapRef& data);
 };
 
 #endif // DATALOAD_CSV_H

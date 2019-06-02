@@ -1199,7 +1199,6 @@ bool MainWindow::loadDataFromFiles( QStringList filenames )
 
     msgbox.exec();
 
-
     bool done = false;
 
     deleteAllDataImpl();
@@ -2077,7 +2076,18 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
     if( _current_streamer )
     {
         std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
-        importPlotDataMap( _current_streamer->dataMap(), false );
+
+        auto curvelist_added = _current_streamer->appendData( _mapped_plot_data );
+
+        for(const auto& str: curvelist_added)
+        {
+            _curvelist_widget->addItem(str);
+        }
+
+        if( curvelist_added.size() > 0  )
+        {
+            _curvelist_widget->refreshColumns();
+        }
 
         for( auto& custom_it: _custom_plots)
         {
@@ -2158,17 +2168,7 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
 
     if( _current_streamer )
     {
-        std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
-
-        for (auto& it : _current_streamer->dataMap().numeric )
-        {
-            it.second.setMaximumRangeX( real_value );
-        }
-
-        for (auto& it: _current_streamer->dataMap().user_defined)
-        {
-            it.second.setMaximumRangeX( real_value );
-        }
+        _current_streamer->setMaximumRange( real_value );
     }
 }
 

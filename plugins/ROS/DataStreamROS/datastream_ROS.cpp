@@ -27,6 +27,7 @@
 DataStreamROS::DataStreamROS():
     DataStreamer(),
     _node(nullptr),
+    _destination_data(nullptr),
     _action_saveIntoRosbag(nullptr),
     _clock_time(0)
 {
@@ -186,10 +187,10 @@ void DataStreamROS::timerCallback()
     }
 }
 
-void DataStreamROS::saveIntoRosbag()
+void DataStreamROS::saveIntoRosbag(const PlotDataMapRef& data)
 {
-    std::lock_guard<std::mutex> lock( mutex() );
-    if( dataMap().user_defined.empty()){
+
+    if( data.user_defined.empty()){
         QMessageBox::warning(nullptr, tr("Warning"), tr("Your buffer is empty. Nothing to save.\n") );
         return;
     }
@@ -210,7 +211,7 @@ void DataStreamROS::saveIntoRosbag()
     {
         rosbag::Bag rosbag(fileName.toStdString(), rosbag::bagmode::Write );
 
-        for (const auto& it: dataMap().user_defined )
+        for (const auto& it: data.user_defined )
         {
             const std::string& topicname = it.first;
             const auto& plotdata = it.second;
@@ -247,7 +248,7 @@ void DataStreamROS::saveIntoRosbag()
         QProcess process;
         QStringList args;
         args << "reindex" << fileName;
-        process.start("rosbag" ,args);
+        process.start("rosbag" , args);
     }
 }
 
@@ -460,7 +461,10 @@ void DataStreamROS::addActionsToParentMenu(QMenu *menu)
     _action_saveIntoRosbag->setIcon(iconSave);
     menu->addAction( _action_saveIntoRosbag );
 
-    connect( _action_saveIntoRosbag, &QAction::triggered, this, &DataStreamROS::saveIntoRosbag );
+    connect( _action_saveIntoRosbag, &QAction::triggered, this, [this]()
+    {
+        DataStreamROS::saveIntoRosbag( *_destination_data );
+    });
 
     _action_clearBuffer = new QAction(QString("Clear buffer if Loop restarts"), menu);
     _action_clearBuffer->setCheckable( true );
