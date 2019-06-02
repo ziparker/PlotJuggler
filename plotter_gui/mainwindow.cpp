@@ -961,7 +961,7 @@ void MainWindow::onActionLoadData()
     QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
 
     QFileDialog loadDialog( this );
-    loadDialog.setFileMode(QFileDialog::ExistingFile);
+    loadDialog.setFileMode(QFileDialog::ExistingFiles);
     loadDialog.setViewMode(QFileDialog::Detail);
     loadDialog.setNameFilter(file_extension_filter);
     loadDialog.setDirectory(directory_path);
@@ -1179,12 +1179,48 @@ bool MainWindow::isStreamingActive() const
 
 bool MainWindow::loadDataFromFiles( QStringList filenames )
 {
-    FileLoadInfo info;
-    info.filename = filenames[0];
-    return loadDataFromFile(info);
+    if( filenames.size() == 1 )
+    {
+        FileLoadInfo info;
+        info.filename = filenames[0];
+        return loadDataFromFile(info);
+    }
+
+    static bool show_me = true;
+
+    QMessageBox msgbox;
+    msgbox.setWindowTitle("Loading multiple files");
+    msgbox.setText("You are loading multiple files at once. A prefix will be automatically added to the name of the timeseries.\n\n"
+                   "This is an experimental feature. Publishers will not work as you may expect.");
+    msgbox.addButton(QMessageBox::Ok);
+//    QCheckBox *cb = new QCheckBox("Don't show this again");
+//    msgbox.setCheckBox(cb);
+//    connect(cb, &QCheckBox::stateChanged, this, [this, cb , &show_me]() {  show_me = !cb->isChecked(); } );
+
+    msgbox.exec();
+
+
+    bool done = false;
+
+    deleteAllDataImpl();
+
+    char prefix_ch = 'A';
+
+    for( const auto& filename: filenames)
+    {
+        FileLoadInfo info;
+        info.filename = filename;
+        info.prefix = prefix_ch++;
+
+        if( loadDataFromFile(info, false) )
+        {
+            done = true;
+        }
+    }
+    return done;
 }
 
-bool MainWindow::loadDataFromFile(const FileLoadInfo& info )
+bool MainWindow::loadDataFromFile(const FileLoadInfo& info, bool remove_previous_data )
 {
     const QString extension = QFileInfo(info.filename).suffix().toLower();
 
@@ -1258,10 +1294,16 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info )
 
             if( dataloader->readDataFromFile(info, mapped_data ) )
             {
-                deleteAllDataImpl();
+                if( remove_previous_data )
+                {
+                    deleteAllDataImpl();
+                    _loaded_datafiles.clear();
+                }
+
+                AddPrefixToPlotData( info.prefix.toStdString(), mapped_data.numeric );
+
                 importPlotDataMap(mapped_data, true);
 
-                _loaded_datafiles.clear();
 
                 FileLoadInfo new_info = info;  
 
@@ -1694,6 +1736,8 @@ bool MainWindow::loadLayoutFromFile(QString filename)
     //-------------------------------------------------
     QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoaded_Datafiles" );
 
+    deleteAllDataImpl();
+
     for (QDomElement info_elem = previously_loaded_datafile.firstChildElement( "fileInfo" )  ;
          !info_elem.isNull();
          info_elem = info_elem.nextSiblingElement( "fileInfo" ) )
@@ -1705,7 +1749,7 @@ bool MainWindow::loadLayoutFromFile(QString filename)
         auto plugin_elem = info_elem.firstChildElement( "plugin" );
         info.plugin_config.appendChild( info.plugin_config.importNode( plugin_elem, true ) );
 
-        loadDataFromFile( info );
+        loadDataFromFile( info, false );
     }
 
     QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoaded_Streamer" );
