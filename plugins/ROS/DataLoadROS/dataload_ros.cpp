@@ -210,8 +210,8 @@ PlotDataMapRef DataLoadROS::readDataFromFile(const QString &file_name, bool use_
 
         const double msg_time = msg_instance.getTime().toSec();
 
-        RawMessage buffer_view( buffer );
-        _ros_parser.pushRawMessage( topic_name, buffer_view, msg_time );
+        MessageRef buffer_view( buffer );
+        _ros_parser.pushMessageRef( topic_name, buffer_view, msg_time );
     }
 
     _ros_parser.extractData(plot_map, "");

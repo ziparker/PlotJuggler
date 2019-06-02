@@ -3,6 +3,10 @@ include_directories( ./ ../  ../include  ../common)
 
 QT5_ADD_RESOURCES (RES_SRC  resource.qrc )
 
+
+# to make QtCreator happy (find autogenereated ui_*.h)
+include_directories(include ${PROJECT_SOURCE_DIR}/build)
+
 QT5_WRAP_UI ( UI_SRC
     aboutdialog.ui
     axis_limits_dialog.ui

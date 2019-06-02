@@ -45,8 +45,8 @@ public:
         return temp;
     }
 
-    virtual void pushRawMessage(const std::string& ,
-                                const RawMessage& msg,
+    virtual void pushMessageRef(const std::string& ,
+                                const MessageRef& msg,
                                 double timestamp) override
     {
         nav_msgs::Odometry odom;

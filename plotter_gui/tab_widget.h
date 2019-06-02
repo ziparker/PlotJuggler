@@ -70,14 +70,12 @@ public:
 
     void dragLeaveEvent(QDragLeaveEvent *ev) override
     {
-        qDebug() << "dragLeaveEvent A " ;
         _plot_to_move = "";
         QApplication::restoreOverrideCursor();
     }
 
     void dropEvent(QDropEvent *ev) override
     {
-        qDebug() << "dropEvent A " ;
         emit movingPlotWidgetToTab(_plot_to_move);
         _plot_to_move = "";
         QApplication::restoreOverrideCursor();

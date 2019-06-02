@@ -1,15 +1,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QActionGroup>
-#include <QMainWindow>
-#include <QElapsedTimer>
-#include <QShortcut>
-#include <QCommandLineParser>
-#include <QSignalMapper>
 #include <set>
 #include <deque>
 #include <functional>
+
+#include <QCommandLineParser>
+#include <QElapsedTimer>
+#include <QMainWindow>
+#include <QSignalMapper>
+#include <QShortcut>
+
 #include "plotwidget.h"
 #include "plotmatrix.h"
 #include "filterablelistwidget.h"
@@ -22,18 +23,22 @@
 #include "PlotJuggler/datastreamer_base.h"
 #include "transforms/custom_function.h"
 
-namespace Ui {
-class MainWindow;
-}
-
+#include "ui_mainwindow.h"
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(const QCommandLineParser& commandline_parser, QWidget *parent = 0);
+    explicit MainWindow(const QCommandLineParser& commandline_parser, QWidget *parent = nullptr);
+
     ~MainWindow();
+
+    bool loadLayoutFromFile(QString filename);
+
+    bool loadDataFromFiles(QStringList filenames );
+
+    bool loadDataFromFile(QString filename, bool reuse_last_configuration = false );
 
 public slots:
     void onUndoableChange();
@@ -54,11 +59,7 @@ public slots:
 
     void onActionLoadLayout();
 
-    bool onActionLoadLayoutFromFile(QString filename);
-
     void onActionLoadData();
-
-    bool onActionLoadDataFromFile(QString filename, bool reuse_last_configuration = false );
 
     void onActionLoadStreamer(QString streamer_name);
 
@@ -150,17 +151,6 @@ private:
     QShortcut _toggle_streaming;
     QShortcut _toggle_playback;
 
-    enum class ReloadPolicy{
-        ASK,
-        CLEANUP,
-        MERGE,
-        PREFIX
-    };
-
-    ReloadPolicy _reload_policy;
-
-    QActionGroup* _reload_group;
-
     bool _minimized;
 
     void createActions();
@@ -187,7 +177,6 @@ private:
 
     std::map<QString,DataStreamer*>    _data_streamer;
 
-    DataLoader*   _last_dataloader;
     DataStreamer* _current_streamer;
 
     QDomDocument xmlSaveState() const;
@@ -215,8 +204,6 @@ private:
     QSignalMapper *_streamer_signal_mapper;
 
     void createTabbedDialog(QString suggest_win_name, PlotMatrix *first_tab);
-
-    QString applyReloadPolicy();
 
     void importPlotDataMap(PlotDataMapRef &new_data, bool remove_old);
 

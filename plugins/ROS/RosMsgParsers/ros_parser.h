@@ -35,8 +35,8 @@ public:
     }
 
 
-    void pushRawMessage(const std::string& topic_name,
-                        const RawMessage& msg,
+    void pushMessageRef(const std::string& topic_name,
+                        const MessageRef& msg,
                         double timestamp) override;
 
     void showWarnings();

@@ -77,8 +77,8 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
 
     double msg_time = ros::Time::now().toSec();
 
-    RawMessage buffer_view( buffer );
-    _ros_parser.pushRawMessage( topic_name, buffer_view, msg_time );
+    MessageRef buffer_view( buffer );
+    _ros_parser.pushMessageRef( topic_name, buffer_view, msg_time );
 
     std::lock_guard<std::mutex> lock( mutex() );
     const std::string full_prefix = _prefix + topic_name;

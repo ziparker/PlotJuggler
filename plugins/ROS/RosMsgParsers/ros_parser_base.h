@@ -42,22 +42,22 @@ public:
         return compatible_key;
     }
 
-    virtual void pushRawMessage(const std::string& key,
-                                const RawMessage& buffer,
+    virtual void pushMessageRef(const std::string& key,
+                                const MessageRef& buffer,
                                 double timestamp) override
     {
         std_msgs::Header header;
         ros::serialization::IStream is( const_cast<uint8_t*>(buffer.data()), buffer.size() );
         ros::serialization::deserialize(is, header);
 
-        int header_size = sizeof( ros::Time ) + 8 + header.frame_id.size();
+        size_t header_size = sizeof( ros::Time ) + 8 + header.frame_id.size();
 
         _data[0].pushBack( {timestamp, header.seq} );
         _data[1].pushBack( {timestamp, header.stamp.toSec()} );
 
-        RawMessage sub_buffer = buffer.subspan(header_size);
+        MessageRef sub_buffer( buffer.data(), header_size);
 
-        _child_parser.pushRawMessage( key, sub_buffer, timestamp );
+        _child_parser.pushMessageRef( key, sub_buffer, timestamp );
     }
 
     void extractData(PlotDataMapRef& plot_map, const std::string& prefix) override

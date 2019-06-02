@@ -98,14 +98,14 @@ bool RosMessageParser::registerSchema(const std::string &topic_name,
     }
 }
 
-void RosMessageParser::pushRawMessage(const std::string &topic_name,
-                                      const RawMessage &msg,
+void RosMessageParser::pushMessageRef(const std::string &topic_name,
+                                      const MessageRef &msg,
                                       double timestamp)
 {
     auto builtin_it = _builtin_parsers.find( topic_name );
     if( builtin_it != _builtin_parsers.end() )
     {
-        builtin_it->second->pushRawMessage( builtin_it->first, msg, timestamp );
+        builtin_it->second->pushMessageRef( builtin_it->first, msg, timestamp );
         return;
     }
 

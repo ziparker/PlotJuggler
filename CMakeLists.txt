@@ -94,6 +94,7 @@ if(COMPILING_WITH_CATKIN)
         )
 
     INCLUDE_DIRECTORIES( ${catkin_INCLUDE_DIRS} )
+
 endif()
 
 

@@ -1,6 +1,5 @@
 #include <functional>
 #include <stdio.h>
-#include <set>
 #include <numeric>
 
 #include <QActionGroup>
@@ -20,6 +19,7 @@
 #include <QMouseEvent>
 #include <QPluginLoader>
 #include <QPushButton>
+#include <QKeySequence>
 #include <QScrollBar>
 #include <QSettings>
 #include <QStringListModel>
@@ -37,7 +37,6 @@
 #include "transforms/function_editor.h"
 #include "utils.h"
 
-#include "ui_mainwindow.h"
 #include "ui_aboutdialog.h"
 #include "ui_support_dialog.h"
 #include "cheatsheet/video_cheatsheet.h"
@@ -50,7 +49,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     _minimize_view(Qt::Key_F10, this),
     _toggle_streaming(QKeySequence(Qt::CTRL + Qt::Key_Space), this),
     _toggle_playback(Qt::Key_Space, this),
-    _reload_policy( ReloadPolicy::ASK),
     _minimized(false),
     _current_streamer(nullptr),
     _disable_undo_logging(false),
@@ -111,15 +109,10 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
         ui->playbackRate->clearFocus();
     });
 
-    _reload_group = new QActionGroup(ui->menuReload);
-    _reload_group->addAction(ui->actionRemoveOld);
-    _reload_group->addAction(ui->actionAddPrefix);
-    _reload_group->addAction(ui->actionMerge);
-    _reload_group->addAction(ui->actionAsk);
 
     _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, nullptr, _mapped_plot_data, this);
 
-    ui->plottingLayout->insertWidget(0, _main_tabbed_widget,1);
+    ui->plottingLayout->insertWidget(0, _main_tabbed_widget, 1);
     ui->leftLayout->addWidget( _curvelist_widget );
 
     ui->splitter->setCollapsible(0,true);
@@ -169,14 +162,14 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     }
 
     bool file_loaded = false;
-    if( commandline_parser.isSet("datafile"))
+    if( commandline_parser.isSet("datafile") )
     {
-        onActionLoadDataFromFile( commandline_parser.value("datafile"), false);
+        loadDataFromFile( commandline_parser.value("datafile"), false);
         file_loaded = true;
     }
     if( commandline_parser.isSet("layout"))
     {
-        onActionLoadLayoutFromFile( commandline_parser.value("layout"));
+        loadLayoutFromFile( commandline_parser.value("layout"));
     }
 
     QSettings settings;
@@ -196,24 +189,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     ui->widgetOptions->setVisible( ui->pushButtonOptions->isChecked() );
     ui->line->setVisible( ui->pushButtonOptions->isChecked() );
-
-    QString reload_option = settings.value("MainWindow.reloadPolicy", "ASK").toString();
-    if( reload_option == "ASK" )
-    {
-        ui->actionAsk->setChecked(true);
-    }
-    else if( reload_option == "MERGE" )
-    {
-        ui->actionMerge->setChecked(true);
-    }
-    else if( reload_option == "PREFIX" )
-    {
-        ui->actionAddPrefix->setChecked(true);
-    }
-    else if( reload_option == "CLEANUP" )
-    {
-        ui->actionRemoveOld->setChecked(true);
-    }
 
     //----------------------------------------------------------
     QIcon trackerIconA, trackerIconB, trackerIconC;
@@ -293,8 +268,6 @@ void MainWindow::onUndoInvoked( )
     //    qDebug() << "undo " << _undo_states.size();
     _disable_undo_logging = false;
 }
-
-
 
 void MainWindow::onUpdateLeftTableValues()
 {
@@ -490,23 +463,6 @@ void MainWindow::createActions()
     connect( open_help_shortcut, &QShortcut::activated, [this](){
         ui->menuHelp->exec( ui->menuBar->mapToGlobal(QPoint(230,25)));
     } );
-
-    connect( ui->actionRemoveOld, &QAction::toggled, this, [this](bool active)
-    {
-        if( active ) _reload_policy = ReloadPolicy::CLEANUP;
-    });
-    connect( ui->actionAddPrefix, &QAction::toggled, this, [this](bool active)
-    {
-        if( active ) _reload_policy = ReloadPolicy::PREFIX;
-    });
-    connect( ui->actionMerge, &QAction::toggled, this, [this](bool active)
-    {
-        if( active ) _reload_policy = ReloadPolicy::MERGE;
-    });
-    connect( ui->actionAsk, &QAction::toggled, this, [this](bool active)
-    {
-        if( active ) _reload_policy = ReloadPolicy::ASK;
-    });
 
     //---------------------------------------------
 
@@ -1136,7 +1092,7 @@ void MainWindow::onActionLoadData()
     directory_path = QFileInfo(fileNames[0]).absolutePath();
     settings.setValue("MainWindow.lastDatafileDirectory", directory_path);
 
-    if( onActionLoadDataFromFile(fileNames[0], false ) )
+    if( loadDataFromFiles(fileNames) )
     {
         updateRecentDataMenu(fileNames);
     }
@@ -1173,7 +1129,7 @@ void MainWindow::updateRecentDataMenu(QStringList new_filenames)
         QAction* action = new QAction(filename, nullptr);
         connect( action, &QAction::triggered, this, [this, filename]
         {
-            if( this->onActionLoadDataFromFile(filename, false) )
+            if( this->loadDataFromFile(filename, false) )
             {
                 updateRecentDataMenu( {filename} );
             }
@@ -1217,7 +1173,7 @@ void MainWindow::updateRecentLayoutMenu(QStringList new_filenames)
         QAction* action = new QAction(filename, nullptr);
         connect( action, &QAction::triggered, this, [this, filename]
         {
-            if ( this->onActionLoadLayoutFromFile(filename) )
+            if ( this->loadLayoutFromFile(filename) )
             {
                 updateRecentLayoutMenu( {filename} );
             }
@@ -1259,65 +1215,6 @@ void MainWindow::deleteAllDataImpl()
     }
 }
 
-
-QString MainWindow::applyReloadPolicy()
-{
-    if( _mapped_plot_data.numeric.empty() && _mapped_plot_data.user_defined.empty() )
-    {
-        return {};
-    }
-
-    auto reload_policy = _reload_policy;
-
-    if (reload_policy == ReloadPolicy::ASK )
-    {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle(tr("Warning"));
-        msgBox.setText("Do you want to remove the previously loaded data?\n\n"
-                       "Alternatively, add a PREFIX to the new data, "
-                       "but do remember that the prefix is not supported by Layout files nor publishers.");
-
-        QPushButton* buttonRemove   = msgBox.addButton(tr("Remove Old"), QMessageBox::YesRole);
-        QPushButton* buttonMerge    = msgBox.addButton(tr("Merge"), QMessageBox::NoRole);
-        QPushButton* buttonPrefix   = msgBox.addButton(tr("Add Prefix"), QMessageBox::ActionRole);
-
-        msgBox.setDefaultButton( buttonRemove );
-        msgBox.exec();
-
-        if( msgBox.clickedButton() == buttonRemove )
-        {
-            reload_policy = ReloadPolicy::CLEANUP;
-        }
-        else if( msgBox.clickedButton() == buttonMerge )
-        {
-            reload_policy = ReloadPolicy::MERGE;
-        }
-        else if( msgBox.clickedButton() == buttonPrefix )
-        {
-            reload_policy = ReloadPolicy::PREFIX;
-        }
-    }
-    //-----------
-    if( reload_policy == ReloadPolicy::CLEANUP )
-    {
-        deleteAllDataImpl();
-    }
-    else if (reload_policy == ReloadPolicy::PREFIX )
-    {
-        static int letter_count = 0;
-        QString prefix ( 'A' + letter_count);
-        bool ok = false;
-        prefix = QInputDialog::getText(this, "Prefix", "Prefix to add:",
-                                       QLineEdit::Normal, prefix, &ok);
-        if( ok && !prefix.isEmpty() )
-        {
-            letter_count++;
-        }
-        return prefix;
-    }
-
-    return {};
-}
 
 template <typename T>
 void importPlotDataMapHelper(std::unordered_map<std::string,T>& source,
@@ -1389,7 +1286,12 @@ bool MainWindow::isStreamingActive() const
     return ui->pushButtonStreaming->isChecked() && _current_streamer;
 }
 
-bool MainWindow::onActionLoadDataFromFile(QString filename, bool reuse_last_configuration )
+bool MainWindow::loadDataFromFiles( QStringList filenames )
+{
+    return false;
+}
+
+bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuration )
 {
     const QString extension = QFileInfo(filename).suffix().toLower();
 
@@ -1411,11 +1313,11 @@ bool MainWindow::onActionLoadDataFromFile(QString filename, bool reuse_last_conf
         }
     }
 
-    _last_dataloader = nullptr;
+    DataLoader* last_dataloader = nullptr;
 
     if( compatible_loaders.size() == 1)
     {
-        _last_dataloader = compatible_loaders.front()->second;
+        last_dataloader = compatible_loaders.front()->second;
     }
     else{
         static QString last_plugin_name_used;
@@ -1439,12 +1341,12 @@ bool MainWindow::onActionLoadDataFromFile(QString filename, bool reuse_last_conf
                                                     names, 0, false, &ok);
         if (ok && !plugin_name.isEmpty())
         {
-            _last_dataloader = _data_loader[ plugin_name ];
+            last_dataloader = _data_loader[ plugin_name ];
             last_plugin_name_used = plugin_name;
         }
     }
 
-    if( _last_dataloader )
+    if( last_dataloader )
     {
         QFile file(filename);
 
@@ -1461,44 +1363,19 @@ bool MainWindow::onActionLoadDataFromFile(QString filename, bool reuse_last_conf
 
         try{
 
-            PlotDataMapRef mapped_data = _last_dataloader->readDataFromFile(filename, reuse_last_configuration );
+            PlotDataMapRef mapped_data = last_dataloader->readDataFromFile(filename, reuse_last_configuration );
 
             if( !mapped_data.numeric.empty() && !mapped_data.user_defined.empty() )
             {
-                QString prefix = applyReloadPolicy();
-
-                if( prefix.isEmpty() )
-                {
-                    importPlotDataMap(mapped_data, true);
-                }
-                else {
-                    PlotDataMapRef prefix_data;
-
-                    prefix_data.user_defined = std::move( mapped_data.user_defined );
-
-                    std::string prefix_str = prefix.toStdString();
-
-                    for(auto& it: mapped_data.numeric)
-                    {
-                        if( it.first.front() == '/')
-                        {
-                            auto new_plot = prefix_data.addNumeric( prefix_str + it.first );
-                            new_plot->second.swapData( it.second );
-                        }
-                        else{
-                            auto new_plot = prefix_data.addNumeric( prefix_str + "/" + it.first );
-                            new_plot->second.swapData( it.second );
-                        }
-                    }
-                    importPlotDataMap(prefix_data, true);
-                }
+                deleteAllDataImpl();
+                importPlotDataMap(mapped_data, true);
             }
         }
         catch(std::exception &ex)
         {
             QMessageBox::warning(this, tr("Exception from the plugin"),
                                  tr("The plugin [%1] thrown the following exception: \n\n %3\n")
-                                 .arg(_last_dataloader->name()).arg(ex.what()) );
+                                 .arg(last_dataloader->name()).arg(ex.what()) );
             return false;
         }
     }
@@ -1508,6 +1385,7 @@ bool MainWindow::onActionLoadDataFromFile(QString filename, bool reuse_last_conf
                              .arg(filename) );
     }
     _curvelist_widget->updateFilter();
+
     updateDataAndReplot( true );
 
     ui->timeSlider->setRealValue( ui->timeSlider->getMinimum() );
@@ -1591,7 +1469,7 @@ void MainWindow::onActionLoadLayout()
         return;
     }
 
-    if( onActionLoadLayoutFromFile(filename) )
+    if( loadLayoutFromFile(filename) )
     {
         updateRecentLayoutMenu( {filename} );
     }
@@ -1727,7 +1605,7 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
     return std::tuple<double,double,int>( min_time, max_time, max_steps );
 }
 
-bool MainWindow::onActionLoadLayoutFromFile(QString filename)
+bool MainWindow::loadLayoutFromFile(QString filename)
 {
     QSettings settings;
 
@@ -1762,7 +1640,7 @@ bool MainWindow::onActionLoadLayoutFromFile(QString filename)
     if( previously_loaded_datafile.isNull() == false)
     {
         QString filename = previously_loaded_datafile.attribute("filename");
-        onActionLoadDataFromFile( filename, true );
+        loadDataFromFile( filename, true );
     }
 
     QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoadedStreamer" );
@@ -2374,24 +2252,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("MainWindow.removeTimeOffset",ui->pushButtonRemoveTimeOffset->isChecked() );
     settings.setValue("MainWindow.dateTimeDisplay", ui->pushButtonUseDateTime->isChecked() );
     settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param );
-
-
-    if( _reload_policy == ReloadPolicy::ASK )
-    {
-        settings.setValue("MainWindow.reloadPolicy", "ASK");
-    }
-    else if( _reload_policy == ReloadPolicy::MERGE )
-    {
-        settings.setValue("MainWindow.reloadPolicy", "MERGE");
-    }
-    else if( _reload_policy == ReloadPolicy::PREFIX )
-    {
-        settings.setValue("MainWindow.reloadPolicy", "PREFIX");
-    }
-    else if( _reload_policy == ReloadPolicy::CLEANUP )
-    {
-        settings.setValue("MainWindow.reloadPolicy", "CLEANUP");
-    }
 
     // clean up all the plugins
     for(auto& it : _data_loader ) { delete it.second; }
