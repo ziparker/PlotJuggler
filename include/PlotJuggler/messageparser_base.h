@@ -18,7 +18,7 @@ public:
         _size(size)  {  }
 
     explicit
-    MessageRef(const std::vector<uint8_t> vect):
+    MessageRef(const std::vector<uint8_t>& vect):
         _first_ptr(vect.data()),
         _size(vect.size())  {  }
 

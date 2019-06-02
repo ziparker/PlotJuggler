@@ -1272,8 +1272,8 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
         }
     }
 
-    importPlotDataMapHelper( new_data.user_defined, _mapped_plot_data.user_defined, remove_old );
     importPlotDataMapHelper( new_data.numeric, _mapped_plot_data.numeric, remove_old );
+    importPlotDataMapHelper( new_data.user_defined, _mapped_plot_data.user_defined, remove_old );
 
     if( curvelist_modified )
     {
@@ -1288,7 +1288,7 @@ bool MainWindow::isStreamingActive() const
 
 bool MainWindow::loadDataFromFiles( QStringList filenames )
 {
-    return false;
+    return loadDataFromFile(filenames[0]);
 }
 
 bool MainWindow::loadDataFromFile(QString filename, bool reuse_last_configuration )
