@@ -96,6 +96,7 @@ bool RosMessageParser::registerSchema(const std::string &topic_name,
     if( !inserted ) {
         _introspection_parser->registerMessageDefinition(topic_name, type, definition);
     }
+    return inserted;
 }
 
 void RosMessageParser::pushMessageRef(const std::string &topic_name,
