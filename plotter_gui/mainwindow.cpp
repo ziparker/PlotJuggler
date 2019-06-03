@@ -161,10 +161,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     bool file_loaded = false;
     if( commandline_parser.isSet("datafile") )
     {
-        FileLoadInfo info;
-        info.filename = commandline_parser.value("datafile");
-        loadDataFromFile( info );
-        file_loaded = true;
+        QStringList datafiles =  commandline_parser.values("datafile");
+        file_loaded = loadDataFromFiles( datafiles );
     }
     if( commandline_parser.isSet("layout"))
     {
