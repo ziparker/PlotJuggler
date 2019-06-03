@@ -29,8 +29,9 @@ void PlotLegend::draw(QPainter *painter, const QwtScaleMap &xMap,
     {
         painter->save();
 
-        painter->setPen( Qt::white );
-        painter->setBrush( QBrush(Qt::white, Qt::SolidPattern) );
+        auto col = _collapsed ? Qt::black : Qt::white;
+        painter->setPen( col );
+        painter->setBrush( QBrush(col, Qt::SolidPattern) );
         painter->drawRect( iconRect );
 
         QPen black_pen (Qt::black);
