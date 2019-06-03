@@ -2,6 +2,57 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* minor change in Plot Legend
+* Fix memory leak reported in #179
+* missing return (this very strange with optimisation...)
+* Corretly delete all requested curves
+* avoid change the link_plot from interface if plot data did not exist yet (load from layout +
+  streaming)
+* refactor of Streaming plugin. Fix issue #176 (save to rosbag)
+* It is now possible to open multiple datafiles at once
+* refactoring of the layout and plugin system
+* load layout seems to work
+* quick reload temporary removed
+* removed prefix from ROS plugins
+* Merge branch 'parsers'
+* reload policies
+* Remember multiple recent layouts and files
+* splashscreen updated
+* relax the XY consitions as suggested in #177
+* fixed bug reported in issue #177
+* added the ability to move a PlotWidget into a new tab with CTRL + RIGHT_MOUSE
+* faster pal statistics parser
+* added odometry parser
+* files renamed and pal_statistics added
+* add playback speed and loop
+* fiveai diagnostic added
+* fix compilation on travis
+* Read out of array: access invalid data with back on empty vector (#173)
+  This could be triggered when used custom function in layout and stream.
+* Infinite size buffer for streaming : (#174)
+  When spinbox value is maximum use infinite buffer size and change color
+  to red to remember possible memory limits issue.
+* add option to autostart StatePublishers (issue #130)
+* Merge branch 'parsers' of https://github.com/facontidavide/PlotJuggler into parsers
+* bug fix. Remove QTableView header resize during streaming
+  A lot of CPU was wasted during the streaming process
+* IntrospectionParser added to ROS Streamer Plugin
+* adding diagnostic parser
+* plugin refactoring
+* virtual function to add schema
+* added new type of plugin: MessageParser
+* Fixed small typos in README.md (#172)
+* seems to work
+* plugin refactoring
+* virtual function to add schema
+* added new type of plugin: MessageParser
+* Merge branch 'master' of https://github.com/facontidavide/PlotJuggler
+* added Dots only style
+* advanced legend
+* Contributors: Alexandre Eudes, Davide Faconti, Juan Francisco Rascón Crespo, alexandre eudes
+
 2.1.10 (2019-03-29)
 -------------------
 * critical bug fixed in CustomFunctions
