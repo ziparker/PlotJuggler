@@ -89,9 +89,11 @@ HelpVideo::HelpVideo(QWidget *parent)
     videoLayout->setSpacing(20);
     videoLayout->addWidget(_text);
     videoLayout->addWidget(videoWidget);
+    videoLayout->addWidget(new QLabel("If you can't see the videos, install codecs with [sudo apt-get install libqt5multimedia5-plugins]"));
 
     videoLayout->setStretch(0,1);
     videoLayout->setStretch(1,0);
+    videoLayout->setStretch(2,0);
 
     QBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(list_widget);

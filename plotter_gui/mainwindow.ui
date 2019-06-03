@@ -20,7 +20,7 @@
    <string>PlotJuggler</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resource.qrc">
+   <iconset>
     <normaloff>:/icons/resources/office_chart_line_stacked.png</normaloff>:/icons/resources/office_chart_line_stacked.png</iconset>
   </property>
   <property name="styleSheet">
@@ -162,7 +162,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/settings_cog.png</normaloff>:/icons/resources/light/settings_cog.png</iconset>
                </property>
                <property name="iconSize">
@@ -206,7 +206,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/line_tracker_1.png</normaloff>:/icons/resources/light/line_tracker_1.png</iconset>
                </property>
                <property name="iconSize">
@@ -285,7 +285,7 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resource.qrc">
+                  <iconset>
                    <normaloff>:/icons/resources/light/loop.png</normaloff>:/icons/resources/light/loop.png</iconset>
                  </property>
                  <property name="iconSize">
@@ -334,7 +334,7 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset resource="resource.qrc">
+                  <iconset>
                    <normaloff>:/icons/resources/light/play_arrow.png</normaloff>
                    <normalon>:/icons/resources/light/pause.png</normalon>:/icons/resources/light/play_arrow.png</iconset>
                  </property>
@@ -681,7 +681,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/datetime.png</normaloff>:/icons/resources/light/datetime.png</iconset>
                </property>
                <property name="iconSize">
@@ -731,7 +731,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/grid.png</normaloff>:/icons/resources/light/grid.png</iconset>
                </property>
                <property name="iconSize">
@@ -778,7 +778,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="resource.qrc">
+                <iconset>
                  <normaloff>:/icons/resources/light/ratio.png</normaloff>:/icons/resources/light/ratio.png</iconset>
                </property>
                <property name="iconSize">
@@ -986,7 +986,7 @@
     <string>Clear data points</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+D</string>
+    <string>Ctrl+Shift+C</string>
    </property>
   </action>
   <action name="actionMaximizePlots">
@@ -995,6 +995,9 @@
    </property>
    <property name="toolTip">
     <string>Maximize plots [F10]</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
    </property>
   </action>
   <action name="actionSaveAllPlotTabs">
@@ -1027,7 +1030,7 @@
   </action>
   <action name="actionClearRecentData">
    <property name="icon">
-    <iconset resource="resource.qrc">
+    <iconset>
      <normaloff>:/icons/resources/light/clean_pane.png</normaloff>:/icons/resources/light/clean_pane.png</iconset>
    </property>
    <property name="text">
@@ -1036,22 +1039,11 @@
   </action>
   <action name="actionClearRecentLayout">
    <property name="icon">
-    <iconset resource="resource.qrc">
+    <iconset>
      <normaloff>:/icons/resources/light/clean_pane.png</normaloff>:/icons/resources/light/clean_pane.png</iconset>
    </property>
    <property name="text">
     <string>Clear</string>
-   </property>
-  </action>
-  <action name="actionQuickReload">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Quick reload</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+R</string>
    </property>
   </action>
   <action name="actionDeleteAllData">
