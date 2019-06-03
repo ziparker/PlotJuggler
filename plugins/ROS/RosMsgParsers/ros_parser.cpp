@@ -63,7 +63,7 @@ void RosMessageParser::setMaxArrayPolicy(size_t max_array_size, bool discard_ent
 }
 
 template <typename T>
-bool InsertParser(std::unordered_map<std::string, RosParserBase*>& parsers,
+bool InsertParser(RosMessageParser::ParsersMap& parsers,
                   const std::string &topic_name,
                   const std::string &md5sum)
 {
@@ -73,7 +73,9 @@ bool InsertParser(std::unordered_map<std::string, RosParserBase*>& parsers,
     }
     if( parsers.find(topic_name) == parsers.end())
     {
-        parsers.insert( {topic_name, new T() } );
+        parsers.emplace( std::piecewise_construct,
+                         std::forward_as_tuple(topic_name),
+                         std::forward_as_tuple(new T()) );
     }
     return true;
 }

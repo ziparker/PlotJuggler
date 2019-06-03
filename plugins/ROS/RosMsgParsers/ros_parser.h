@@ -44,13 +44,14 @@ public:
     virtual void extractData(PlotDataMapRef& destination,
                              const std::string& prefix) override;
 
+    typedef std::unordered_map<std::string, std::unique_ptr<RosParserBase> > ParsersMap;
 
 private:
     std::unordered_set<std::string> _registered_md5sum;
     std::unique_ptr<RosIntrospection::Parser> _introspection_parser;
     PlotDataMapRef _plot_map;
 
-    std::unordered_map<std::string, RosParserBase*> _builtin_parsers;
+    ParsersMap _builtin_parsers;
 
     uint32_t _max_array_size;
     bool _warnings_enabled;
