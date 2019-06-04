@@ -48,44 +48,18 @@ public slots:
     void onRedoInvoked();
 
     // Actions in UI
-    void on_actionSaveLayout();
-    void on_actionLoadLayout();
-    void on_actionLoadData();
-
-    void on_actionStopStreaming_triggered();
-    void on_actionAbout_triggered();
-    void on_actionExit_triggered();
-
-    void on_actionLoadStreamer(QString streamer_name);
     void on_streamingToggled();
     void on_pushButtonStreaming_toggled(bool streaming);
     void on_streamingSpinBox_valueChanged(int value);
 
     void on_splitterMoved(int, int);
 
-    void on_actionReportBug_triggered();
-    void on_actionCheatsheet_triggered();
-    void on_actionSupportPlotJuggler_triggered();
-    void on_actionSaveAllPlotTabs_triggered();
-    void on_actionClearBuffer_triggered();
-
-    void on_pushButtonOptions_toggled(bool checked);
-    void on_pushButtonActivateGrid_toggled(bool checked);
-    void on_pushButtonRatio_toggled(bool checked);
-    void on_pushButtonPlay_toggled(bool checked);
-    void on_pushButtonUseDateTime_toggled(bool checked);
-    void on_pushButtonTimeTracker_pressed();
-    void on_pushButtonRemoveTimeOffset_toggled(bool checked);
-
     void onTrackerTimeUpdated(double absolute_time , bool do_replot);
     void onTrackerMovedFromWidget(QPointF pos );
     void onTimeSlider_valueChanged(double abs_time);
 
-    void on_fullscreenToggled();
-
     void onPlotAdded(PlotWidget* plot);
     void onPlotMatrixAdded(PlotMatrix* matrix);
-    void onDeleteLoadedData();
 
     void on_tabbedAreaDestroyed(QObject*object);
 
@@ -103,7 +77,6 @@ public slots:
     void on_addMathPlot(const std::string &linked_name);
     void on_editMathPlot(const std::string &plot_name);
     void on_refreshMathPlot(const std::string &plot_name);
-    void on_actionFunction_editor_triggered();
 
     void onPlaybackLoop();
 
@@ -199,6 +172,39 @@ signals:
     void activateStreamingMode( bool active);
     void activateTracker(bool active);
 
+public slots:
+    void on_actionLoadData_triggered();
+    void on_actionLoadLayout_triggered();
+    void on_actionSaveLayout_triggered();
+    void on_actionLoadDummyData_triggered();
+
+    void on_actionFunctionEditor_triggered();
+    void on_actionClearRecentData_triggered();
+    void on_actionClearRecentLayout_triggered();
+
+    void on_actionDeleteAllData_triggered();
+    void on_actionClearBuffer_triggered();
+
+    void on_actionFullscreen_triggered();
+
+    void on_actionReportBug_triggered();
+    void on_actionCheatsheet_triggered();
+    void on_actionSupportPlotJuggler_triggered();
+    void on_actionSaveAllPlotTabs_triggered();
+
+    void on_actionStopStreaming_triggered();
+    void on_actionAbout_triggered();
+    void on_actionExit_triggered();
+
+    void on_pushButtonOptions_toggled(bool checked);
+    void on_pushButtonActivateGrid_toggled(bool checked);
+    void on_pushButtonRatio_toggled(bool checked);
+    void on_pushButtonPlay_toggled(bool checked);
+    void on_pushButtonUseDateTime_toggled(bool checked);
+    void on_pushButtonTimeTracker_pressed();
+    void on_pushButtonRemoveTimeOffset_toggled(bool checked);
+
+    void on_actionStartStreaming(QString streamer_name);
 };
 
 

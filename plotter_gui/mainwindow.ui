@@ -20,7 +20,7 @@
    <string>PlotJuggler</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="resource.qrc">
     <normaloff>:/icons/resources/office_chart_line_stacked.png</normaloff>:/icons/resources/office_chart_line_stacked.png</iconset>
   </property>
   <property name="styleSheet">
@@ -162,7 +162,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resource.qrc">
                  <normaloff>:/icons/resources/light/settings_cog.png</normaloff>:/icons/resources/light/settings_cog.png</iconset>
                </property>
                <property name="iconSize">
@@ -206,7 +206,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resource.qrc">
                  <normaloff>:/icons/resources/light/line_tracker_1.png</normaloff>:/icons/resources/light/line_tracker_1.png</iconset>
                </property>
                <property name="iconSize">
@@ -285,7 +285,7 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset>
+                  <iconset resource="resource.qrc">
                    <normaloff>:/icons/resources/light/loop.png</normaloff>:/icons/resources/light/loop.png</iconset>
                  </property>
                  <property name="iconSize">
@@ -334,7 +334,7 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset>
+                  <iconset resource="resource.qrc">
                    <normaloff>:/icons/resources/light/play_arrow.png</normaloff>
                    <normalon>:/icons/resources/light/pause.png</normalon>:/icons/resources/light/play_arrow.png</iconset>
                  </property>
@@ -681,7 +681,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resource.qrc">
                  <normaloff>:/icons/resources/light/datetime.png</normaloff>:/icons/resources/light/datetime.png</iconset>
                </property>
                <property name="iconSize">
@@ -731,7 +731,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resource.qrc">
                  <normaloff>:/icons/resources/light/grid.png</normaloff>:/icons/resources/light/grid.png</iconset>
                </property>
                <property name="iconSize">
@@ -778,7 +778,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resource.qrc">
                  <normaloff>:/icons/resources/light/ratio.png</normaloff>:/icons/resources/light/ratio.png</iconset>
                </property>
                <property name="iconSize">
@@ -912,8 +912,8 @@
      <string>Tools</string>
     </property>
     <addaction name="separator"/>
-    <addaction name="actionFunction_editor"/>
-    <addaction name="actionMaximizePlots"/>
+    <addaction name="actionFunctionEditor"/>
+    <addaction name="actionFullscreen"/>
     <addaction name="actionSaveAllPlotTabs"/>
    </widget>
    <widget class="QMenu" name="menuData">
@@ -989,9 +989,9 @@
     <string>Ctrl+Shift+C</string>
    </property>
   </action>
-  <action name="actionMaximizePlots">
+  <action name="actionFullscreen">
    <property name="text">
-    <string>Maximize plots</string>
+    <string>Fullscreen mode</string>
    </property>
    <property name="toolTip">
     <string>Maximize plots [F10]</string>
@@ -1013,7 +1013,7 @@
     <string>Load Dummy Data</string>
    </property>
   </action>
-  <action name="actionFunction_editor">
+  <action name="actionFunctionEditor">
    <property name="text">
     <string>Open Function Editor</string>
    </property>
@@ -1030,7 +1030,7 @@
   </action>
   <action name="actionClearRecentData">
    <property name="icon">
-    <iconset>
+    <iconset resource="resource.qrc">
      <normaloff>:/icons/resources/light/clean_pane.png</normaloff>:/icons/resources/light/clean_pane.png</iconset>
    </property>
    <property name="text">
@@ -1039,7 +1039,7 @@
   </action>
   <action name="actionClearRecentLayout">
    <property name="icon">
-    <iconset>
+    <iconset resource="resource.qrc">
      <normaloff>:/icons/resources/light/clean_pane.png</normaloff>:/icons/resources/light/clean_pane.png</iconset>
    </property>
    <property name="text">
