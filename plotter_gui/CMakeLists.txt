@@ -10,9 +10,9 @@ QT5_WRAP_UI ( UI_SRC
     mainwindow.ui
     removecurvedialog.ui
     curvecolorpick.ui
-    filterablelistwidget.ui
     tabbedplotwidget.ui
     support_dialog.ui
+    curvelist_panel.ui
 
     transforms/function_editor.ui
     transforms/transform_selector.ui
@@ -24,7 +24,7 @@ SET( PLOTTER_SRC
     axis_limits_dialog.cpp
     customtracker.cpp
     curvecolorpick.cpp
-    filterablelistwidget.cpp
+    curvelist_panel.cpp
     main.cpp
     mainwindow.cpp
     menubar.cpp

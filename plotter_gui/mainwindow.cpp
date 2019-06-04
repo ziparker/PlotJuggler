@@ -30,7 +30,7 @@
 #include <QHeaderView>
 
 #include "mainwindow.h"
-#include "filterablelistwidget.h"
+#include "curvelist_panel.h"
 #include "tabbedplotwidget.h"
 #include "selectlistdialog.h"
 #include "PlotJuggler/plotdata.h"
@@ -47,9 +47,9 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     ui(new Ui::MainWindow),
     _undo_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Z), this),
     _redo_shortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Z), this),
-    _minimize_view(Qt::Key_F10, this),
-    _toggle_streaming(QKeySequence(Qt::CTRL + Qt::Key_Space), this),
-    _toggle_playback(Qt::Key_Space, this),
+    _fullscreen_shortcut(Qt::Key_F10, this),
+    _streaming_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Space), this),
+    _playback_shotcut(Qt::Key_Space, this),
     _minimized(false),
     _current_streamer(nullptr),
     _disable_undo_logging(false),
@@ -61,7 +61,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     _test_option = commandline_parser.isSet("test");
     _autostart_publishers = commandline_parser.isSet("publish");
 
-    _curvelist_widget = new FilterableListWidget(_custom_plots, this);
+    _curvelist_widget = new CurveListPanel(_custom_plots, this);
 
     ui->setupUi(this);
 
@@ -83,20 +83,20 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     connect( _curvelist_widget->getTableView()->verticalScrollBar(), &QScrollBar::sliderMoved,
              this, &MainWindow::onUpdateLeftTableValues );
 
-    connect( _curvelist_widget, &FilterableListWidget::hiddenItemsChanged,
+    connect( _curvelist_widget, &CurveListPanel::hiddenItemsChanged,
              this, &MainWindow::onUpdateLeftTableValues );
 
-    connect(_curvelist_widget, &FilterableListWidget::deleteCurves,
+    connect(_curvelist_widget, &CurveListPanel::deleteCurves,
             this, &MainWindow::onDeleteMultipleCurves );
 
-    connect(_curvelist_widget, &FilterableListWidget::createMathPlot,
-            this, &MainWindow::addMathPlot);
+    connect(_curvelist_widget, &CurveListPanel::createMathPlot,
+            this, &MainWindow::on_addMathPlot);
 
-    connect(_curvelist_widget, &FilterableListWidget::editMathPlot,
-            this, &MainWindow::editMathPlot);
+    connect(_curvelist_widget, &CurveListPanel::editMathPlot,
+            this, &MainWindow::on_editMathPlot);
 
-    connect(_curvelist_widget, &FilterableListWidget::refreshMathPlot,
-            this, &MainWindow::onRefreshMathPlot);
+    connect(_curvelist_widget, &CurveListPanel::refreshMathPlot,
+            this, &MainWindow::on_refreshMathPlot);
 
     connect(_curvelist_widget->getTableView()->verticalScrollBar(), &QScrollBar::valueChanged,
             this, &MainWindow::onUpdateLeftTableValues );
@@ -121,10 +121,10 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(on_splitterMoved(int,int)) );
 
-    createActions();
+    initializeActions();
 
-    loadPlugins( QCoreApplication::applicationDirPath() );
-    loadPlugins("/usr/local/PlotJuggler/plugins");
+    initializePlugins( QCoreApplication::applicationDirPath() );
+    initializePlugins("/usr/local/PlotJuggler/plugins");
 
     _undo_timer.start();
 
@@ -137,7 +137,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
     _publish_timer = new QTimer(this);
     _publish_timer->setInterval(20);
-    connect(_publish_timer, &QTimer::timeout, this, &MainWindow::publishPeriodically );
+    connect(_publish_timer, &QTimer::timeout, this, &MainWindow::onPlaybackLoop );
 
 
     ui->menuFile->setToolTipsVisible(true);
@@ -396,19 +396,19 @@ void MainWindow::createTabbedDialog(QString suggest_win_name, PlotMatrix* first_
 }
 
 
-void MainWindow::createActions()
+void MainWindow::initializeActions()
 {
     _undo_shortcut.setContext(Qt::ApplicationShortcut);
     _redo_shortcut.setContext(Qt::ApplicationShortcut);
-    _minimize_view.setContext(Qt::ApplicationShortcut);
+    _fullscreen_shortcut.setContext(Qt::ApplicationShortcut);
 
     connect( &_undo_shortcut, &QShortcut::activated, this, &MainWindow::onUndoInvoked );
     connect( &_redo_shortcut, &QShortcut::activated, this, &MainWindow::onRedoInvoked );
-    connect( &_minimize_view, &QShortcut::activated, this, &MainWindow::on_minimizeView);
-    connect( &_toggle_streaming, &QShortcut::activated, this, &MainWindow::on_toggleStreaming );
-    connect( &_toggle_playback, &QShortcut::activated, ui->pushButtonPlay, &QPushButton::toggle );
+    connect( &_streaming_shortcut, &QShortcut::activated, this, &MainWindow::on_streamingToggled );
+    connect( &_playback_shotcut, &QShortcut::activated, ui->pushButtonPlay, &QPushButton::toggle );
 
-    connect( ui->actionMaximizePlots, &QAction::triggered, this, &MainWindow::on_minimizeView);
+    connect( &_fullscreen_shortcut, &QShortcut::activated, this, &MainWindow::on_fullscreenToggled);
+    connect( ui->actionMaximizePlots, &QAction::triggered, this, &MainWindow::on_fullscreenToggled);
 
     connect( ui->actionClearRecentLayout,  &QAction::triggered, this, [this]()
     {
@@ -471,14 +471,11 @@ void MainWindow::createActions()
     //---------------------------------------------
 
     QSettings settings;
-
     updateRecentDataMenu( settings.value("MainWindow.recentlyLoadedDatafile").toStringList() );
-
     updateRecentLayoutMenu( settings.value("MainWindow.recentlyLoadedLayout").toStringList() );
-
 }
 
-void MainWindow::loadPlugins(QString directory_name)
+void MainWindow::initializePlugins(QString directory_name)
 {
     static std::set<QString> loaded_plugins;
 
@@ -701,7 +698,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
              plot, &PlotWidget::on_changeDateTimeScale);
 
     connect( plot, &PlotWidget::curvesDropped,
-             _curvelist_widget, &FilterableListWidget::clearSelections);
+             _curvelist_widget, &CurveListPanel::clearSelections);
 
     plot->on_changeTimeOffset( _time_offset.get() );
     plot->on_changeDateTimeScale( ui->pushButtonUseDateTime->isChecked() );
@@ -923,7 +920,7 @@ void MainWindow::onDeleteLoadedData()
     }
     else
     {
-        deleteAllDataImpl();
+        deleteAllData();
     }
 }
 
@@ -1075,7 +1072,7 @@ void MainWindow::updateRecentLayoutMenu(QStringList new_filenames)
 }
 
 
-void MainWindow::deleteAllDataImpl()
+void MainWindow::deleteAllData()
 {
     forEachWidget( [](PlotWidget* plot) {
         plot->detachAllCurves();
@@ -1199,7 +1196,7 @@ bool MainWindow::loadDataFromFiles( QStringList filenames )
 
     bool done = false;
 
-    deleteAllDataImpl();
+    deleteAllData();
 
     char prefix_ch = 'A';
 
@@ -1293,7 +1290,7 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info, bool remove_previous
             {
                 if( remove_previous_data )
                 {
-                    deleteAllDataImpl();
+                    deleteAllData();
                     _loaded_datafiles.clear();
                 }
 
@@ -1378,7 +1375,7 @@ void MainWindow::on_actionLoadStreamer(QString streamer_name)
     }
     if( started )
     {
-        deleteAllDataImpl();
+        deleteAllData();
 
         for(auto& action: ui->menuStreaming->actions()) {
             action->setEnabled(false);
@@ -1733,7 +1730,7 @@ bool MainWindow::loadLayoutFromFile(QString filename)
     //-------------------------------------------------
     QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoaded_Datafiles" );
 
-    deleteAllDataImpl();
+    deleteAllData();
 
     for (QDomElement info_elem = previously_loaded_datafile.firstChildElement( "fileInfo" )  ;
          !info_elem.isNull();
@@ -2053,7 +2050,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     }
 }
 
-void MainWindow::on_toggleStreaming()
+void MainWindow::on_streamingToggled()
 {
     if( ui->pushButtonStreaming->isEnabled() )
     {
@@ -2322,7 +2319,7 @@ void MainWindow::on_pushButtonTimeTracker_pressed()
     });
 }
 
-void MainWindow::on_minimizeView()
+void MainWindow::on_fullscreenToggled()
 {
     static bool first_call = true;
     if( first_call && !_minimized )
@@ -2368,17 +2365,17 @@ void MainWindow::closeEvent(QCloseEvent *event)
     for(auto& it : _data_streamer ) { delete it.second; }
 }
 
-void MainWindow::addMathPlot(const std::string& linked_name)
+void MainWindow::on_addMathPlot(const std::string& linked_name)
 {
     addOrEditMathPlot(linked_name, false);
 }
 
-void MainWindow::editMathPlot(const std::string &plot_name)
+void MainWindow::on_editMathPlot(const std::string &plot_name)
 {
     addOrEditMathPlot(plot_name, true);
 }
 
-void MainWindow::onRefreshMathPlot(const std::string &plot_name)
+void MainWindow::on_refreshMathPlot(const std::string &plot_name)
 {
     try{
         auto custom_it = _custom_plots.find(plot_name);
@@ -2478,7 +2475,7 @@ void MainWindow::on_actionFunction_editor_triggered()
     dialog.exec();
 }
 
-void MainWindow::publishPeriodically()
+void MainWindow::onPlaybackLoop()
 {
     qint64 delta_ms = (QDateTime::currentMSecsSinceEpoch() - _prev_publish_time.toMSecsSinceEpoch());
     _prev_publish_time = QDateTime::currentDateTime();

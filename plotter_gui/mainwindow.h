@@ -13,7 +13,7 @@
 
 #include "plotwidget.h"
 #include "plotmatrix.h"
-#include "filterablelistwidget.h"
+#include "curvelist_panel.h"
 #include "tabbedplotwidget.h"
 #include "subwindow.h"
 #include "realslider.h"
@@ -57,7 +57,7 @@ public slots:
     void on_actionExit_triggered();
 
     void on_actionLoadStreamer(QString streamer_name);
-    void on_toggleStreaming();
+    void on_streamingToggled();
     void on_pushButtonStreaming_toggled(bool streaming);
     void on_streamingSpinBox_valueChanged(int value);
 
@@ -81,7 +81,7 @@ public slots:
     void onTrackerMovedFromWidget(QPointF pos );
     void onTimeSlider_valueChanged(double abs_time);
 
-    void on_minimizeView();
+    void on_fullscreenToggled();
 
     void onPlotAdded(PlotWidget* plot);
     void onPlotMatrixAdded(PlotMatrix* matrix);
@@ -100,15 +100,12 @@ public slots:
 
     void onDeleteMultipleCurves(const std::vector<std::string> &curve_names);
 
-    void addMathPlot(const std::string &linked_name);
-    void editMathPlot(const std::string &plot_name);
-    void onRefreshMathPlot(const std::string &plot_name);
-
-    void updateTimeSlider();
-    void updateTimeOffset();
-
+    void on_addMathPlot(const std::string &linked_name);
+    void on_editMathPlot(const std::string &plot_name);
+    void on_refreshMathPlot(const std::string &plot_name);
     void on_actionFunction_editor_triggered();
-    void publishPeriodically();
+
+    void onPlaybackLoop();
 
 private:
 
@@ -118,13 +115,13 @@ private:
 
     QShortcut _undo_shortcut;
     QShortcut _redo_shortcut;
-    QShortcut _minimize_view;
-    QShortcut _toggle_streaming;
-    QShortcut _toggle_playback;
+    QShortcut _fullscreen_shortcut;
+    QShortcut _streaming_shortcut;
+    QShortcut _playback_shotcut;
 
     bool _minimized;
 
-    FilterableListWidget* _curvelist_widget;
+    CurveListPanel* _curvelist_widget;
 
     PlotDataMapRef  _mapped_plot_data;
     CustomPlotMap _custom_plots;
@@ -132,14 +129,11 @@ private:
     std::map<QString,DataLoader*>      _data_loader;
     std::map<QString,StatePublisher*>  _state_publisher;
     std::map<QString,DataStreamer*>    _data_streamer;
-
     DataStreamer* _current_streamer;
 
     std::deque<QDomDocument> _undo_states;
     std::deque<QDomDocument> _redo_states;
-
     QElapsedTimer _undo_timer;
-
     bool _disable_undo_logging;
 
     bool _test_option;
@@ -149,7 +143,6 @@ private:
     double _tracker_time;
 
     std::vector<FileLoadInfo> _loaded_datafiles;
-
     CurveTracker::Parameter _tracker_param;
 
     std::map<CurveTracker::Parameter, QIcon> _tracker_button_icons;
@@ -161,20 +154,15 @@ private:
 
     QDateTime _prev_publish_time;
 
-    void createActions();
-
-    void updatedDisplayTime();
+    void initializeActions();
+    void initializePlugins(QString subdir_name);
 
     void forEachWidget(std::function<void(PlotWidget*, PlotMatrix*, int, int)> op);
-
     void forEachWidget(std::function<void(PlotWidget*)> op);
 
     void rearrangeGridLayout();
 
-    void loadPlugins(QString subdir_name);
-
     QDomDocument xmlSaveState() const;
-
     bool xmlLoadState(QDomDocument state_document);
 
     void checkAllCurvesFromLayout(const QDomElement& root);
@@ -188,18 +176,21 @@ private:
     void closeEvent(QCloseEvent *event);
 
     void loadPluginState(const QDomElement &root);
-
     QDomElement savePluginState(QDomDocument &doc);
 
     std::tuple<double,double,int> calculateVisibleRangeX();
 
     void addOrEditMathPlot(const std::string &name, bool edit);
 
-    void deleteAllDataImpl();
+    void deleteAllData();
 
     void updateRecentDataMenu(QStringList new_filenames);
-
     void updateRecentLayoutMenu(QStringList new_filenames);
+
+    void updatedDisplayTime();
+
+    void updateTimeSlider();
+    void updateTimeOffset();
 
     void buildDummyData();
 

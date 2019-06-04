@@ -1,5 +1,5 @@
-#include "filterablelistwidget.h"
-#include "ui_filterablelistwidget.h"
+#include "curvelist_panel.h"
+#include "ui_curvelist_panel.h"
 #include "PlotJuggler/alphanum.hpp"
 #include <QDebug>
 #include <QLayoutItem>
@@ -35,10 +35,10 @@ private:
 
 //-------------------------------------------------
 
-FilterableListWidget::FilterableListWidget(const CustomPlotMap &mapped_math_plots,
+CurveListPanel::CurveListPanel(const CustomPlotMap &mapped_math_plots,
                                            QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::FilterableListWidget),
+    ui(new Ui::CurveListPanel),
     _completer( new TreeModelCompleter(this) ),
     _custom_plots(mapped_math_plots),
     _point_size(9)
@@ -89,27 +89,27 @@ FilterableListWidget::FilterableListWidget(const CustomPlotMap &mapped_math_plot
     ui->splitter->setStretchFactor(1,1);
 
     connect(  ui->tableViewCustom->selectionModel(), &QItemSelectionModel::selectionChanged,
-              this, &FilterableListWidget::onCustomSelectionChanged );
+              this, &CurveListPanel::onCustomSelectionChanged );
 }
 
-FilterableListWidget::~FilterableListWidget()
+CurveListPanel::~CurveListPanel()
 {
     delete ui;
 }
 
-int FilterableListWidget::rowCount() const
+int CurveListPanel::rowCount() const
 {
     return _model->rowCount();
 }
 
-void FilterableListWidget::clear()
+void CurveListPanel::clear()
 {
     _model->setRowCount(0);
     _completer->clear();
     ui->labelNumberDisplayed->setText( "0 of 0");
 }
 
-void FilterableListWidget::addItem(const QString &item_name)
+void CurveListPanel::addItem(const QString &item_name)
 {
     if( _model->findItems(item_name).size() > 0)
     {
@@ -140,7 +140,7 @@ void FilterableListWidget::addItem(const QString &item_name)
     }
 }
 
-void FilterableListWidget::refreshColumns()
+void CurveListPanel::refreshColumns()
 {
     ui->tableView->sortByColumn(0,Qt::AscendingOrder);
     ui->tableViewCustom->sortByColumn(0,Qt::AscendingOrder);
@@ -152,7 +152,7 @@ void FilterableListWidget::refreshColumns()
 }
 
 
-int FilterableListWidget::findRowByName(const std::string &text) const
+int CurveListPanel::findRowByName(const std::string &text) const
 {
     auto item_list = _model->findItems( QString::fromStdString( text ), Qt::MatchExactly);
     if( item_list.isEmpty())
@@ -168,19 +168,19 @@ int FilterableListWidget::findRowByName(const std::string &text) const
 }
 
 
-void FilterableListWidget::updateFilter()
+void CurveListPanel::updateFilter()
 {
     on_lineEdit_textChanged( ui->lineEdit->text() );
 }
 
-void FilterableListWidget::keyPressEvent(QKeyEvent *event)
+void CurveListPanel::keyPressEvent(QKeyEvent *event)
 {
     if( event->key() == Qt::Key_Delete){
         removeSelectedCurves();
     }
 }
 
-bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
+bool CurveListPanel::eventFilter(QObject *object, QEvent *event)
 {
     auto obj = object;
     while ( obj && obj != ui->tableView && obj != ui->tableViewCustom )
@@ -335,7 +335,7 @@ bool FilterableListWidget::eventFilter(QObject *object, QEvent *event)
     return QWidget::eventFilter(object,event);
 }
 
-std::vector<std::string> FilterableListWidget::getNonHiddenSelectedRows()
+std::vector<std::string> CurveListPanel::getNonHiddenSelectedRows()
 {
     std::vector<std::string> non_hidden_list;
 
@@ -353,17 +353,17 @@ std::vector<std::string> FilterableListWidget::getNonHiddenSelectedRows()
     return non_hidden_list;
 }
 
-QTableView *FilterableListWidget::getTableView() const
+QTableView *CurveListPanel::getTableView() const
 {
     return ui->tableView;
 }
 
-QTableView *FilterableListWidget::getCustomView() const
+QTableView *CurveListPanel::getCustomView() const
 {
     return ui->tableViewCustom;
 }
 
-void FilterableListWidget::on_radioContains_toggled(bool checked)
+void CurveListPanel::on_radioContains_toggled(bool checked)
 {
     if(checked) {
         updateFilter();
@@ -373,7 +373,7 @@ void FilterableListWidget::on_radioContains_toggled(bool checked)
     }
 }
 
-void FilterableListWidget::on_radioRegExp_toggled(bool checked)
+void CurveListPanel::on_radioRegExp_toggled(bool checked)
 {
     if(checked) {
         updateFilter();
@@ -383,7 +383,7 @@ void FilterableListWidget::on_radioRegExp_toggled(bool checked)
     }
 }
 
-void FilterableListWidget::on_radioPrefix_toggled(bool checked)
+void CurveListPanel::on_radioPrefix_toggled(bool checked)
 {
     _completer_need_update = checked;
 
@@ -403,12 +403,12 @@ void FilterableListWidget::on_radioPrefix_toggled(bool checked)
     }
 }
 
-void FilterableListWidget::on_checkBoxCaseSensitive_toggled(bool )
+void CurveListPanel::on_checkBoxCaseSensitive_toggled(bool )
 {
     updateFilter();
 }
 
-void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
+void CurveListPanel::on_lineEdit_textChanged(const QString &search_string)
 {
     int item_count = rowCount();
     int visible_count = 0;
@@ -472,12 +472,12 @@ void FilterableListWidget::on_lineEdit_textChanged(const QString &search_string)
     }
 }
 
-void FilterableListWidget::on_pushButtonSettings_toggled(bool checked)
+void CurveListPanel::on_pushButtonSettings_toggled(bool checked)
 {
     ui->widgetOptions->setVisible(checked);
 }
 
-void FilterableListWidget::on_checkBoxHideSecondColumn_toggled(bool checked)
+void CurveListPanel::on_checkBoxHideSecondColumn_toggled(bool checked)
 {
     for(auto table_view: {ui->tableView, ui->tableViewCustom})
     {
@@ -491,7 +491,7 @@ void FilterableListWidget::on_checkBoxHideSecondColumn_toggled(bool checked)
     emit hiddenItemsChanged();
 }
 
-void FilterableListWidget::removeSelectedCurves()
+void CurveListPanel::removeSelectedCurves()
 {
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(nullptr, tr("Warning"),
@@ -518,12 +518,12 @@ void FilterableListWidget::removeSelectedCurves()
     updateFilter();
 }
 
-void FilterableListWidget::removeRow(int row)
+void CurveListPanel::removeRow(int row)
 {
     _model->removeRow(row);
 }
 
-void FilterableListWidget::on_buttonAddCustom_clicked()
+void CurveListPanel::on_buttonAddCustom_clicked()
 {
     auto curve_names = getNonHiddenSelectedRows();
     if( curve_names.empty() )
@@ -545,7 +545,7 @@ void FilterableListWidget::on_buttonAddCustom_clicked()
 //    }
 //}
 
-void FilterableListWidget::onCustomSelectionChanged(const QItemSelection&, const QItemSelection &)
+void CurveListPanel::onCustomSelectionChanged(const QItemSelection&, const QItemSelection &)
 {
     int selected_items = 0;
 
@@ -563,7 +563,7 @@ void FilterableListWidget::onCustomSelectionChanged(const QItemSelection&, const
                                                 "Select a single custom Timeserie to Edit it");
 }
 
-void FilterableListWidget::on_buttonEditCustom_clicked()
+void CurveListPanel::on_buttonEditCustom_clicked()
 {
     int selected_count = 0;
     QModelIndex selected_index;
@@ -586,7 +586,7 @@ void FilterableListWidget::on_buttonEditCustom_clicked()
     editMathPlot( item->text().toStdString() );
 }
 
-void FilterableListWidget::clearSelections()
+void CurveListPanel::clearSelections()
 {
     ui->tableViewCustom->clearSelection();
     ui->tableView->clearSelection();

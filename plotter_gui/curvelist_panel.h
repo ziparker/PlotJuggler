@@ -15,18 +15,18 @@
 class SortedTableItem;
 
 namespace Ui {
-class FilterableListWidget;
+class CurveListPanel;
 }
 
-class FilterableListWidget : public QWidget
+class CurveListPanel : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit FilterableListWidget(const CustomPlotMap& mapped_math_plots,
+    explicit CurveListPanel(const CustomPlotMap& mapped_math_plots,
                                   QWidget *parent);
 
-    ~FilterableListWidget() override;
+    ~CurveListPanel() override;
 
     int rowCount() const;
 
@@ -90,7 +90,7 @@ public slots:
 
 private:
 
-    Ui::FilterableListWidget *ui;
+    Ui::CurveListPanel *ui;
 
     QPoint _drag_start_pos;
 
@@ -120,8 +120,6 @@ signals:
     void refreshMathPlot(const std::string& curve_name);
 
     void deleteCurves(const std::vector<std::string>& curve_names);
-
-
 };
 
 #endif // CURVE_SELECTOR_H
