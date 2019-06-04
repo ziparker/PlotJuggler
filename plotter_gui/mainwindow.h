@@ -35,109 +35,80 @@ public:
     ~MainWindow();
 
     bool loadLayoutFromFile(QString filename);
-
     bool loadDataFromFiles(QStringList filenames );
-
     bool loadDataFromFile(const FileLoadInfo &info, bool remove_previous_data = true);
 
 public slots:
-    void onUndoableChange();
-
-    void onTrackerTimeUpdated(double absolute_time , bool do_replot);
-
-    void onTrackerMovedFromWidget(QPointF pos );
-
-    void onSplitterMoved(int, int);
 
     void resizeEvent(QResizeEvent *) ;
 
-    void onPlotAdded(PlotWidget* plot);
-
-    void onPlotMatrixAdded(PlotMatrix* matrix);
-
-    void onActionSaveLayout();
-
-    void onActionLoadLayout();
-
-    void onActionLoadData();
-
-    void onActionLoadStreamer(QString streamer_name);
-
+    // Undo - Redo
+    void onUndoableChange();
     void onUndoInvoked();
-
     void onRedoInvoked();
+
+    // Actions in UI
+    void on_actionSaveLayout();
+    void on_actionLoadLayout();
+    void on_actionLoadData();
+
+    void on_actionStopStreaming_triggered();
+    void on_actionAbout_triggered();
+    void on_actionExit_triggered();
+
+    void on_actionLoadStreamer(QString streamer_name);
+    void on_toggleStreaming();
+    void on_pushButtonStreaming_toggled(bool streaming);
+    void on_streamingSpinBox_valueChanged(int value);
+
+    void on_splitterMoved(int, int);
+
+    void on_actionReportBug_triggered();
+    void on_actionCheatsheet_triggered();
+    void on_actionSupportPlotJuggler_triggered();
+    void on_actionSaveAllPlotTabs_triggered();
+    void on_actionClearBuffer_triggered();
+
+    void on_pushButtonOptions_toggled(bool checked);
+    void on_pushButtonActivateGrid_toggled(bool checked);
+    void on_pushButtonRatio_toggled(bool checked);
+    void on_pushButtonPlay_toggled(bool checked);
+    void on_pushButtonUseDateTime_toggled(bool checked);
+    void on_pushButtonTimeTracker_pressed();
+    void on_pushButtonRemoveTimeOffset_toggled(bool checked);
+
+    void onTrackerTimeUpdated(double absolute_time , bool do_replot);
+    void onTrackerMovedFromWidget(QPointF pos );
+    void onTimeSlider_valueChanged(double abs_time);
+
+    void on_minimizeView();
+
+    void onPlotAdded(PlotWidget* plot);
+    void onPlotMatrixAdded(PlotMatrix* matrix);
+    void onDeleteLoadedData();
 
     void on_tabbedAreaDestroyed(QObject*object);
 
     void onFloatingWindowDestroyed(QObject*object);
-
     void onCreateFloatingWindow(PlotMatrix* first_tab = nullptr);
 
     void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
-    void on_pushButtonStreaming_toggled(bool streaming);
-
-    void on_ToggleStreaming();
-
     void updateDataAndReplot(bool replot_hidden_tabs);
-
-    void on_streamingSpinBox_valueChanged(int value);
-
-    void onDeleteLoadedData();
-
-    void on_actionAbout_triggered();
-
-    void on_actionStopStreaming_triggered();
-
-    void on_actionExit_triggered();
-
-    void onTimeSlider_valueChanged(double abs_time);
 
     void onUpdateLeftTableValues();
 
-    void deleteDataMultipleCurves(const std::vector<std::string> &curve_names);
-
-    void on_pushButtonRemoveTimeOffset_toggled(bool checked);
-
-    void on_pushButtonOptions_toggled(bool checked);
-
-    void on_pushButtonActivateGrid_toggled(bool checked);
-
-    void on_pushButtonRatio_toggled(bool checked);
-
-    void on_pushButtonPlay_toggled(bool checked);
-
-    void on_actionClearBuffer_triggered();
-
-    void on_pushButtonUseDateTime_toggled(bool checked);
-
-    void on_pushButtonTimeTracker_pressed();
-
-    void on_minimizeView();
+    void onDeleteMultipleCurves(const std::vector<std::string> &curve_names);
 
     void addMathPlot(const std::string &linked_name);
-
     void editMathPlot(const std::string &plot_name);
-
     void onRefreshMathPlot(const std::string &plot_name);
 
     void updateTimeSlider();
-
     void updateTimeOffset();
 
-    void buildDummyData();
-
     void on_actionFunction_editor_triggered();
-
     void publishPeriodically();
-
-    void on_actionReportBug_triggered();
-
-    void on_actionCheatsheet_triggered();
-
-    void on_actionSupportPlotJuggler_triggered();
-
-    void on_actionSaveAllPlotTabs_triggered();
 
 private:
 
@@ -153,40 +124,18 @@ private:
 
     bool _minimized;
 
-    void createActions();
-
     FilterableListWidget* _curvelist_widget;
 
-    void updatedDisplayTime();
-
-    void forEachWidget(std::function<void(PlotWidget*, PlotMatrix*, int, int)> op);
-
-    void forEachWidget(std::function<void(PlotWidget*)> op);
-
     PlotDataMapRef  _mapped_plot_data;
-
     CustomPlotMap _custom_plots;
 
-    void rearrangeGridLayout();
-
-    void loadPlugins(QString subdir_name);
-
     std::map<QString,DataLoader*>      _data_loader;
-
     std::map<QString,StatePublisher*>  _state_publisher;
-
     std::map<QString,DataStreamer*>    _data_streamer;
 
     DataStreamer* _current_streamer;
 
-    QDomDocument xmlSaveState() const;
-
-    bool xmlLoadState(QDomDocument state_document);
-
-    void checkAllCurvesFromLayout(const QDomElement& root);
-
     std::deque<QDomDocument> _undo_states;
-
     std::deque<QDomDocument> _redo_states;
 
     QElapsedTimer _undo_timer;
@@ -201,47 +150,62 @@ private:
 
     std::vector<FileLoadInfo> _loaded_datafiles;
 
+    CurveTracker::Parameter _tracker_param;
+
+    std::map<CurveTracker::Parameter, QIcon> _tracker_button_icons;
+
+    MonitoredValue _time_offset;
+
+    QTimer *_replot_timer;
+    QTimer *_publish_timer;
+
+    QDateTime _prev_publish_time;
+
+    void createActions();
+
+    void updatedDisplayTime();
+
+    void forEachWidget(std::function<void(PlotWidget*, PlotMatrix*, int, int)> op);
+
+    void forEachWidget(std::function<void(PlotWidget*)> op);
+
+    void rearrangeGridLayout();
+
+    void loadPlugins(QString subdir_name);
+
+    QDomDocument xmlSaveState() const;
+
+    bool xmlLoadState(QDomDocument state_document);
+
+    void checkAllCurvesFromLayout(const QDomElement& root);
+
     void createTabbedDialog(QString suggest_win_name, PlotMatrix *first_tab);
 
     void importPlotDataMap(PlotDataMapRef &new_data, bool remove_old);
 
     bool isStreamingActive() const ;
 
-    CurveTracker::Parameter _tracker_param;
-
-    std::map<CurveTracker::Parameter, QIcon> _tracker_button_icons;
-
     void closeEvent(QCloseEvent *event);
 
     void loadPluginState(const QDomElement &root);
-    
+
     QDomElement savePluginState(QDomDocument &doc);
 
     std::tuple<double,double,int> calculateVisibleRangeX();
 
     void addOrEditMathPlot(const std::string &name, bool edit);
-    
+
     void deleteAllDataImpl();
 
     void updateRecentDataMenu(QStringList new_filenames);
 
     void updateRecentLayoutMenu(QStringList new_filenames);
 
-protected:
-
-    MonitoredValue _time_offset;
-
-    QTimer *_replot_timer;
-
-    QTimer *_publish_timer;
-
-    QDateTime _prev_publish_time;
+    void buildDummyData();
 
 signals:
     void requestRemoveCurveByName(const std::string& name);
-
     void activateStreamingMode( bool active);
-
     void activateTracker(bool active);
 
 };

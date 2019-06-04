@@ -87,7 +87,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
              this, &MainWindow::onUpdateLeftTableValues );
 
     connect(_curvelist_widget, &FilterableListWidget::deleteCurves,
-            this, &MainWindow::deleteDataMultipleCurves );
+            this, &MainWindow::onDeleteMultipleCurves );
 
     connect(_curvelist_widget, &FilterableListWidget::createMathPlot,
             this, &MainWindow::addMathPlot);
@@ -119,7 +119,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     ui->splitter->setStretchFactor(0,2);
     ui->splitter->setStretchFactor(1,6);
 
-    connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(onSplitterMoved(int,int)) );
+    connect( ui->splitter, SIGNAL(splitterMoved(int,int)), SLOT(on_splitterMoved(int,int)) );
 
     createActions();
 
@@ -405,7 +405,7 @@ void MainWindow::createActions()
     connect( &_undo_shortcut, &QShortcut::activated, this, &MainWindow::onUndoInvoked );
     connect( &_redo_shortcut, &QShortcut::activated, this, &MainWindow::onRedoInvoked );
     connect( &_minimize_view, &QShortcut::activated, this, &MainWindow::on_minimizeView);
-    connect( &_toggle_streaming, &QShortcut::activated, this, &MainWindow::on_ToggleStreaming );
+    connect( &_toggle_streaming, &QShortcut::activated, this, &MainWindow::on_toggleStreaming );
     connect( &_toggle_playback, &QShortcut::activated, ui->pushButtonPlay, &QPushButton::toggle );
 
     connect( ui->actionMaximizePlots, &QAction::triggered, this, &MainWindow::on_minimizeView);
@@ -463,9 +463,9 @@ void MainWindow::createActions()
 
     //---------------------------------------------
 
-    connect(ui->actionSaveLayout, &QAction::triggered,         this, &MainWindow::onActionSaveLayout );
-    connect(ui->actionLoadLayout, &QAction::triggered,         this, &MainWindow::onActionLoadLayout );
-    connect(ui->actionLoadData, &QAction::triggered,           this, &MainWindow::onActionLoadData );
+    connect(ui->actionSaveLayout, &QAction::triggered,         this, &MainWindow::on_actionSaveLayout );
+    connect(ui->actionLoadLayout, &QAction::triggered,         this, &MainWindow::on_actionLoadLayout );
+    connect(ui->actionLoadData, &QAction::triggered,           this, &MainWindow::on_actionLoadData );
     connect(ui->actionDeleteAllData, &QAction::triggered,      this, &MainWindow::onDeleteLoadedData );
 
     //---------------------------------------------
@@ -582,7 +582,7 @@ void MainWindow::loadPlugins(QString directory_name)
 
                     connect(startStreamer, &QAction::triggered, this, [this, plugin_name]()
                     {
-                        onActionLoadStreamer(plugin_name);
+                        on_actionLoadStreamer(plugin_name);
                     });
 
 
@@ -653,7 +653,7 @@ void MainWindow::buildDummyData()
     importPlotDataMap(datamap, true);
 }
 
-void MainWindow::onSplitterMoved(int , int )
+void MainWindow::on_splitterMoved(int , int )
 {
     QList<int> sizes = ui->splitter->sizes();
     int maxLeftWidth = _curvelist_widget->maximumWidth();
@@ -669,7 +669,7 @@ void MainWindow::onSplitterMoved(int , int )
 
 void MainWindow::resizeEvent(QResizeEvent *)
 {
-    onSplitterMoved( 0, 0 );
+    on_splitterMoved( 0, 0 );
 }
 
 
@@ -857,7 +857,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
 }
 
 
-void MainWindow::deleteDataMultipleCurves(const std::vector<std::string> &curve_names)
+void MainWindow::onDeleteMultipleCurves(const std::vector<std::string> &curve_names)
 {
     for( const auto& curve_name: curve_names )
     {
@@ -927,7 +927,7 @@ void MainWindow::onDeleteLoadedData()
     }
 }
 
-void MainWindow::onActionLoadData()
+void MainWindow::on_actionLoadData()
 {
     if( _data_loader.empty())
     {
@@ -1333,7 +1333,7 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info, bool remove_previous
 }
 
 
-void MainWindow::onActionLoadStreamer(QString streamer_name)
+void MainWindow::on_actionLoadStreamer(QString streamer_name)
 {
     if( _current_streamer )
     {
@@ -1399,7 +1399,7 @@ void MainWindow::onActionLoadStreamer(QString streamer_name)
     }
 }
 
-void MainWindow::onActionLoadLayout()
+void MainWindow::on_actionLoadLayout()
 {
     QSettings settings;
 
@@ -1563,7 +1563,7 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
 
 static const QString LAYOUT_VERSION = "2.2";
 
-void MainWindow::onActionSaveLayout()
+void MainWindow::on_actionSaveLayout()
 {
     QDomDocument doc = xmlSaveState();
 
@@ -1767,7 +1767,7 @@ bool MainWindow::loadLayoutFromFile(QString filename)
         {
             if( _data_streamer.count(streamer_name) != 0 )
             {
-                onActionLoadStreamer( streamer_name );
+                on_actionLoadStreamer( streamer_name );
             }
             else{
                 QMessageBox::warning(this, tr("Error Loading Streamer"),
@@ -2053,7 +2053,7 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
     }
 }
 
-void MainWindow::on_ToggleStreaming()
+void MainWindow::on_toggleStreaming()
 {
     if( ui->pushButtonStreaming->isEnabled() )
     {
