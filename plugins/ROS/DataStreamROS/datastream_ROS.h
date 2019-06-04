@@ -46,7 +46,7 @@ public:
 
 private:
 
-    const PlotDataMapRef* _destination_data;
+    PlotDataMapRef* _destination_data;
 
     void topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg, const std::string &topic_name);
 
@@ -72,8 +72,6 @@ private:
 
     ros::NodeHandlePtr _node;
 
-    ros::Subscriber _clock_subscriber;
-
     std::map<std::string, ros::Subscriber> _subscribers;
 
     RosIntrospection::SubstitutionRuleMap _rules;
@@ -81,8 +79,6 @@ private:
     int _received_msg_count;
 
     QAction* _action_saveIntoRosbag;
-
-    QAction* _action_clearBuffer;
 
     std::map<std::string, int> _msg_index;
 
@@ -94,7 +90,7 @@ private:
 
     bool _roscore_disconnection_already_notified;
 
-    ros::Time _clock_time;
+    double _prev_clock_time;
 
 private:
 

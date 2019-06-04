@@ -29,24 +29,14 @@ DataStreamROS::DataStreamROS():
     _node(nullptr),
     _destination_data(nullptr),
     _action_saveIntoRosbag(nullptr),
-    _clock_time(0)
+    _prev_clock_time(0)
 {
     _running = false;
-    _initial_time = std::numeric_limits<double>::max();
     _periodic_timer = new QTimer();
     connect( _periodic_timer, &QTimer::timeout,
              this, &DataStreamROS::timerCallback);
 
     loadDefaultSettings();
-}
-
-void DataStreamROS::clockCallback(const rosgraph_msgs::Clock::ConstPtr& msg)
-{
-    if( ( msg->clock - _clock_time ) < ros::Duration(-1,0) && _action_clearBuffer->isChecked() )
-    {
-        emit clearBuffers();
-    }
-    _clock_time = msg->clock;
 }
 
 void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg,
@@ -79,6 +69,26 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     msg->write(stream);
 
     double msg_time = ros::Time::now().toSec();
+
+    if( msg_time < _prev_clock_time )
+    {
+        // clean
+        for (auto& it: dataMap().numeric ) {
+            it.second.clear();
+            auto dst = _destination_data->numeric.find(it.first);
+            if( dst != _destination_data->numeric.end()){
+                dst->second.clear();
+            }
+        }
+        for (auto& it: dataMap().user_defined ){
+            it.second.clear();
+            auto dst = _destination_data->user_defined.find(it.first);
+            if( dst != _destination_data->user_defined.end()){
+                dst->second.clear();
+            }
+        }
+    }
+    _prev_clock_time = msg_time;
 
     MessageRef buffer_view( buffer );
     _ros_parser.pushMessageRef( topic_name, buffer_view, msg_time );
@@ -256,17 +266,12 @@ void DataStreamROS::saveIntoRosbag(const PlotDataMapRef& data)
 void DataStreamROS::subscribe()
 {
     _subscribers.clear();
-
     {
         boost::function<void(const rosgraph_msgs::Clock::ConstPtr&) > callback;
         callback = [this](const rosgraph_msgs::Clock::ConstPtr& msg) -> void
         {
             this->clockCallback(msg) ;
         };
-        ros::SubscribeOptions ops;
-        ops.initByFullCallbackType("/clock", 1, callback );
-        ops.transport_hints = ros::TransportHints().tcpNoDelay();
-        _clock_subscriber = _node->subscribe(ops);
     }
 
     for (int i=0; i< _config.selected_topics.size(); i++ )
@@ -303,7 +308,6 @@ bool DataStreamROS::start()
         dataMap().numeric.clear();
         dataMap().user_defined.clear();
     }
-    _initial_time = std::numeric_limits<double>::max();
 
     using namespace RosIntrospection;
 
@@ -361,9 +365,7 @@ bool DataStreamROS::start()
     _ros_parser.setMaxArrayPolicy( _config.max_array_size, _config.discard_large_arrays );
 
     //-------------------------
-
     subscribe();
-
     _running = true;
 
     extractInitialSamples();
@@ -387,7 +389,6 @@ void DataStreamROS::shutdown()
     {
         _spinner->stop();
     }
-    _clock_subscriber.shutdown();
     for(auto& it: _subscribers)
     {
         it.second.shutdown();
@@ -400,9 +401,6 @@ void DataStreamROS::shutdown()
 
 DataStreamROS::~DataStreamROS()
 {
-    QSettings settings;
-    settings.setValue("DataStreamROS/resetAtLoop", _action_clearBuffer->isChecked() );
-
     shutdown();
 }
 
@@ -465,15 +463,6 @@ void DataStreamROS::addActionsToParentMenu(QMenu *menu)
     {
         DataStreamROS::saveIntoRosbag( *_destination_data );
     });
-
-    _action_clearBuffer = new QAction(QString("Clear buffer if Loop restarts"), menu);
-    _action_clearBuffer->setCheckable( true );
-
-    QSettings settings;
-    bool reset_loop = settings.value("DataStreamROS/resetAtLoop", false).toBool();
-    _action_clearBuffer->setChecked( reset_loop );
-
-    menu->addAction( _action_clearBuffer );
 }
 
 void DataStreamROS::saveDefaultSettings()
