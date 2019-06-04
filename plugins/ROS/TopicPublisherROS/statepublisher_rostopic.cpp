@@ -62,11 +62,21 @@ void TopicPublisherROS::setEnabled(bool to_enable)
             _tf_publisher = std::unique_ptr<tf::TransformBroadcaster>( new tf::TransformBroadcaster );
         }
         _previous_play_index = std::numeric_limits<int>::max();
+
+        if( _publish_clock )
+        {
+            _clock_publisher = _node->advertise<rosgraph_msgs::Clock>( "/clock", 10, true);
+        }
+        else{
+            _clock_publisher.shutdown();
+        }
     }
     else{
         _node.reset();
         _publishers.clear();
+        _clock_publisher.shutdown();
     }
+
 
     StatePublisher::setEnabled(_enabled);
 }
@@ -173,14 +183,6 @@ void TopicPublisherROS::filterDialog(bool autoconfirm)
         }
 
         _publish_clock = publish_sim_time->isChecked();
-
-        if( _publish_clock )
-        {
-            _clock_publisher = _node->advertise<rosgraph_msgs::Clock>( "/clock", 10, true);
-        }
-        else{
-            _clock_publisher.shutdown();
-        }
 
         QSettings settings;
         settings.setValue( "TopicPublisherROS/publish_clock", _publish_clock );
