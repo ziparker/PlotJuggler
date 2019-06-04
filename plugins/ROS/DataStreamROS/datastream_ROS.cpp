@@ -84,27 +84,27 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     _ros_parser.pushMessageRef( topic_name, buffer_view, msg_time );
 
     std::lock_guard<std::mutex> lock( mutex() );
-    const std::string full_prefix = _prefix + topic_name;
+    const std::string prefixed_topic_name = _prefix + topic_name;
 
     // adding raw serialized msg for future uses.
     // do this before msg_time normalization
     {
-        auto plot_pair = dataMap().user_defined.find( full_prefix );
+        auto plot_pair = dataMap().user_defined.find( prefixed_topic_name );
         if( plot_pair == dataMap().user_defined.end() )
         {
-            plot_pair = dataMap().addUserDefined( full_prefix );
+            plot_pair = dataMap().addUserDefined( prefixed_topic_name );
         }
         PlotDataAny& user_defined_data = plot_pair->second;
         user_defined_data.pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer)) ));
     }
 
-    _ros_parser.extractData(dataMap(), full_prefix);
+    _ros_parser.extractData(dataMap(), _prefix);
 
     //------------------------------
     {
         int& index = _msg_index[topic_name];
         index++;
-        const std::string key = full_prefix + ("/_MSG_INDEX_") ;
+        const std::string key = prefixed_topic_name + ("/_MSG_INDEX_") ;
         auto index_it = dataMap().numeric.find(key);
         if( index_it == dataMap().numeric.end())
         {
