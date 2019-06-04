@@ -940,6 +940,7 @@ void MainWindow::deleteAllData()
     forEachWidget( [](PlotWidget* plot) {
         plot->detachAllCurves();
     } );
+
     _mapped_plot_data.numeric.clear();
     _mapped_plot_data.user_defined.clear();
     _custom_plots.clear();
@@ -1226,6 +1227,12 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
     }
 
     bool started = false;
+
+    if( _mapped_plot_data.numeric.size() > 0)
+    {
+        on_actionDeleteAllData_triggered();
+    }
+
     try{
         started = _current_streamer && _current_streamer->start();
     }
@@ -1444,33 +1451,36 @@ bool MainWindow::loadLayoutFromFile(QString filename)
     //-------------------------------------------------
     QDomElement previously_loaded_datafile =  root.firstChildElement( "previouslyLoaded_Datafiles" );
 
-    deleteAllData();
+    QDomElement datafile_elem = previously_loaded_datafile.firstChildElement( "fileInfo" );
+    if( !datafile_elem.isNull() )
+    {
+        deleteAllData();
+    }
 
-    for (QDomElement info_elem = previously_loaded_datafile.firstChildElement( "fileInfo" )  ;
-         !info_elem.isNull();
-         info_elem = info_elem.nextSiblingElement( "fileInfo" ) )
+    while( !datafile_elem.isNull() )
     {
         FileLoadInfo info;
-        info.filename = info_elem.attribute("filename");
-        info.prefix   = info_elem.attribute("prefix");
+        info.filename = datafile_elem.attribute("filename");
+        info.prefix   = datafile_elem.attribute("prefix");
 
-        auto plugin_elem = info_elem.firstChildElement( "plugin" );
+        auto plugin_elem = datafile_elem.firstChildElement( "plugin" );
         info.plugin_config.appendChild( info.plugin_config.importNode( plugin_elem, true ) );
 
         loadDataFromFile( info, false );
+        datafile_elem = datafile_elem.nextSiblingElement( "fileInfo" );
     }
 
-    QDomElement previously_loaded_streamer =  root.firstChildElement( "previouslyLoaded_Streamer" );
-    if( previously_loaded_streamer.isNull() == false)
+    QDomElement previousl_streamer =  root.firstChildElement( "previouslyLoaded_Streamer" );
+    if( !previousl_streamer.isNull() )
     {
-        QString streamer_name = previously_loaded_streamer.attribute("name");
+        deleteAllData();
+        QString streamer_name = previousl_streamer.attribute("name");
 
         QMessageBox msgBox(this);
         msgBox.setWindowTitle("Start Streaming?");
-        msgBox.setText(tr("Do you want to start the previously used streaming plugin?\n\n %1 \n\n").arg(streamer_name));
-        QPushButton* yes = msgBox.addButton(tr("Yes (start streaming)"), QMessageBox::YesRole);
-        QPushButton* no  = msgBox.addButton(tr("No (Layout only)"), QMessageBox::RejectRole);
-
+        msgBox.setText(tr("Start the previously used streaming plugin?\n\n %1 \n\n").arg(streamer_name));
+        QPushButton* yes = msgBox.addButton(tr("Yes"), QMessageBox::YesRole);
+        QPushButton* no  = msgBox.addButton(tr("No"), QMessageBox::RejectRole);
         msgBox.setDefaultButton(yes);
         msgBox.exec();
 
@@ -1562,7 +1572,7 @@ bool MainWindow::loadLayoutFromFile(QString filename)
             QMessageBox msgBox(this);
             msgBox.setWindowTitle("Overwrite custom transforms?");
             msgBox.setText("Your layour file contains a set of custom transforms different from "
-                           "the last one you used.\nDo you want to load these transformations?");
+                           "the last one you used.\nant to load these transformations?");
             msgBox.addButton(QMessageBox::No);
             msgBox.addButton(QMessageBox::Yes);
             msgBox.setDefaultButton(QMessageBox::Yes);
@@ -2286,7 +2296,7 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
         if( existing_files.isEmpty() == false)
         {
             QMessageBox msgBox;
-            msgBox.setText("One or more files will be overwritten. Do you want to continue?");
+            msgBox.setText("One or more files will be overwritten. ant to continue?");
             QString all_files;
             for(const auto& str: existing_files)
             {
@@ -2418,7 +2428,7 @@ void MainWindow::on_actionSaveLayout_triggered()
     separator->setFrameStyle(QFrame::HLine | QFrame::Plain);
 
     auto checkbox_datasource = new QCheckBox("Save data source");
-    checkbox_datasource->setToolTip("Do you want the layout to remember the source of your data,\n"
+    checkbox_datasource->setToolTip("ant the layout to remember the source of your data,\n"
                                     "i.e. the Datafile used or the Streaming Plugin loaded ?");
     checkbox_datasource->setFocusPolicy( Qt::NoFocus );
     checkbox_datasource->setChecked( settings.value("MainWindow.saveLayoutDataSource", true).toBool() );
@@ -2587,8 +2597,8 @@ void MainWindow::on_actionClearRecentLayout_triggered()
 void MainWindow::on_actionDeleteAllData_triggered()
 {
     QMessageBox msgBox(this);
-    msgBox.setWindowTitle("Warning");
-    msgBox.setText(tr("Do you really want to REMOVE the loaded data?\n"));
+    msgBox.setWindowTitle("Warning. Can't be undone.");
+    msgBox.setText(tr("Do you want to remove the previously loaded data?\n"));
     msgBox.addButton(QMessageBox::No);
     msgBox.addButton(QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
@@ -2603,7 +2613,6 @@ void MainWindow::on_actionDeleteAllData_triggered()
 //    {
 //        for( auto& it: _mapped_plot_data.numeric )
 //        {
-//            emit requestRemoveCurveByName( it.first );
 //            it.second.clear();
 //        }
 //        for( auto& it: _mapped_plot_data.user_defined )
@@ -2622,3 +2631,7 @@ void MainWindow::on_actionDeleteAllData_triggered()
         deleteAllData();
     }
 }
+
+
+
+

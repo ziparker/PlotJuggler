@@ -64,6 +64,7 @@ public slots:
     void on_tabbedAreaDestroyed(QObject*object);
 
     void onFloatingWindowDestroyed(QObject*object);
+
     void onCreateFloatingWindow(PlotMatrix* first_tab = nullptr);
 
     void onSwapPlots(PlotWidget* source, PlotWidget* destination);
