@@ -67,37 +67,6 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
     return all_topics;
 }
 
-void DataLoadROS::storeMessageInstancesAsUserDefined(PlotDataMapRef& plot_map)
-{
-    using namespace RosIntrospection;
-
-    rosbag::View bag_view ( *_bag, ros::TIME_MIN, ros::TIME_MAX, false );
-
-    RenamedValues renamed_value;
-
-    std::string prefixed_name;
-
-    PlotDataAny& plot_consecutive = plot_map.addUserDefined( "__consecutive_message_instances__" )->second;
-
-    for(const rosbag::MessageInstance& msg_instance: bag_view )
-    {
-        const std::string& topic_name  = msg_instance.getTopic();
-        double msg_time = msg_instance.getTime().toSec();
-        auto data_point = PlotDataAny::Point(msg_time, nonstd::any(msg_instance) );
-        plot_consecutive.pushBack( data_point );
-
-        const std::string* key_ptr = &topic_name ;
-
-        auto plot_pair = plot_map.user_defined.find( *key_ptr );
-
-        if( plot_pair == plot_map.user_defined.end() )
-        {
-            plot_pair = plot_map.addUserDefined( *key_ptr );
-        }
-        PlotDataAny& plot_raw = plot_pair->second;
-        plot_raw.pushBack( data_point );
-    }
-}
 
 bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plot_map)
 {
@@ -159,12 +128,9 @@ bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plo
     progress_dialog.setLabelText("Loading... please wait");
     progress_dialog.setWindowModality( Qt::ApplicationModal );
 
-    rosbag::View bag_view_selected ( true );
-    bag_view_selected.addQuery( *_bag, [topic_selected](rosbag::ConnectionInfo const* connection)
-    {
-        return topic_selected.find( connection->topic ) != topic_selected.end();
-    } );
-    progress_dialog.setRange(0, bag_view_selected.size()-1);
+    rosbag::View bag_view ( *_bag );
+
+    progress_dialog.setRange(0, bag_view.size()-1);
     progress_dialog.show();
 
     std::vector<uint8_t> buffer;
@@ -174,13 +140,27 @@ bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plo
     QElapsedTimer timer;
     timer.start();
 
-    for(const rosbag::MessageInstance& msg_instance: bag_view_selected )
+
+    PlotDataAny& plot_consecutive = plot_map.addUserDefined( "__consecutive_message_instances__" )->second;
+
+    for(const rosbag::MessageInstance& msg_instance: bag_view)
     {
+
         const std::string& topic_name  = msg_instance.getTopic();
-        const size_t msg_size  = msg_instance.size();
+        double msg_time = msg_instance.getTime().toSec();
+        auto data_point = PlotDataAny::Point(msg_time, nonstd::any(msg_instance) );
+        plot_consecutive.pushBack( data_point );
 
-        buffer.resize(msg_size);
+        const std::string* key_ptr = &topic_name ;
 
+        auto plot_pair = plot_map.user_defined.find( *key_ptr );
+        if( plot_pair == plot_map.user_defined.end() )
+        {
+            plot_pair = plot_map.addUserDefined( *key_ptr );
+        }
+        PlotDataAny& plot_raw = plot_pair->second;
+        plot_raw.pushBack( data_point );
+        //------------------------------------------
         if( msg_count++ %100 == 0)
         {
             progress_dialog.setValue( msg_count );
@@ -190,21 +170,24 @@ bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plo
                 return false;
             }
         }
+        //------------------------------------------
+        if( topic_selected.find( topic_name ) == topic_selected.end() )
+        {
+            continue;
+        }
+
+        const size_t msg_size  = msg_instance.size();
+        buffer.resize(msg_size);
 
         ros::serialization::OStream stream(buffer.data(), buffer.size());
         msg_instance.write(stream);
-
-        const double msg_time = msg_instance.getTime().toSec();
-
         MessageRef buffer_view( buffer );
         _ros_parser.pushMessageRef( topic_name, buffer_view, msg_time );
     }
 
     _ros_parser.extractData(plot_map, "");
-    storeMessageInstancesAsUserDefined(plot_map);
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
-
     return true;
 }
 
