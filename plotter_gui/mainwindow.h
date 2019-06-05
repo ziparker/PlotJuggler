@@ -36,7 +36,7 @@ public:
 
     bool loadLayoutFromFile(QString filename);
     bool loadDataFromFiles(QStringList filenames );
-    bool loadDataFromFile(const FileLoadInfo &info, bool remove_previous_data = true);
+    bool loadDataFromFile(const FileLoadInfo &info);
 
 public slots:
 
