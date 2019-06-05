@@ -8,7 +8,6 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <rosbag/view.h>
-#include <sys/sysinfo.h>
 #include <QSettings>
 #include <QElapsedTimer>
 
@@ -20,7 +19,6 @@
 DataLoadROS::DataLoadROS()
 {
     _extensions.push_back( "bag");
-
     loadDefaultSettings();
 }
 
@@ -35,13 +33,6 @@ void StrCat(const std::string& a, const std::string& b,  std::string& out)
 const std::vector<const char*> &DataLoadROS::compatibleFileExtensions() const
 {
     return _extensions;
-}
-
-size_t getAvailableRAM()
-{
-    struct sysinfo info;
-    sysinfo(&info);
-    return info.freeram;
 }
 
 std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
@@ -68,7 +59,7 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
 }
 
 
-bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plot_map)
+bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
 {
     if( _bag ) _bag->close();
 
@@ -76,7 +67,7 @@ bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plo
     _ros_parser.clear();
 
     try{
-        _bag->open( info.filename.toStdString(), rosbag::bagmode::Read );
+        _bag->open( info->filename.toStdString(), rosbag::bagmode::Read );
     }
     catch( rosbag::BagException&  ex)
     {
@@ -90,21 +81,23 @@ bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plo
 
     //----------------------------------
 
-    if( info.plugin_config.hasChildNodes() )
+    if( info->plugin_config.hasChildNodes() )
     {
-        xmlLoadState( info.plugin_config.firstChildElement() );
+        xmlLoadState( info->plugin_config.firstChildElement() );
     }
-    else
+
+    if( ! info->selected_datasources.empty() )
     {
+            _config.selected_topics =   info->selected_datasources;
+    }
+    else{
         DialogSelectRosTopics* dialog = new DialogSelectRosTopics( all_topics, _config );
 
-        if( dialog->exec() == static_cast<int>(QDialog::Accepted) )
+        if( dialog->exec() != static_cast<int>(QDialog::Accepted) )
         {
-            _config = dialog->getResult();
-        }
-        else{
             return false;
         }
+        _config = dialog->getResult();
     }
 
     saveDefaultSettings();
@@ -188,9 +181,10 @@ bool DataLoadROS::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plo
     _ros_parser.extractData(plot_map, "");
 
     qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
+
+    info->selected_datasources = _config.selected_topics;
     return true;
 }
-
 
 DataLoadROS::~DataLoadROS()
 {
@@ -199,11 +193,6 @@ DataLoadROS::~DataLoadROS()
 
 bool DataLoadROS::xmlSaveState(QDomDocument &doc, QDomElement &plugin_elem) const
 {
-    QString topics_list = _config.selected_topics.join(";");
-    QDomElement list_elem = doc.createElement("selected_topics");
-    list_elem.setAttribute("value", topics_list);
-    plugin_elem.appendChild( list_elem );
-
     QDomElement stamp_elem = doc.createElement("use_header_stamp");
     stamp_elem.setAttribute("value", _config.use_header_stamp ? "true" : "false");
     plugin_elem.appendChild( stamp_elem );
@@ -225,10 +214,6 @@ bool DataLoadROS::xmlSaveState(QDomDocument &doc, QDomElement &plugin_elem) cons
 
 bool DataLoadROS::xmlLoadState(const QDomElement &parent_element)
 {
-    QDomElement list_elem = parent_element.firstChildElement( "selected_topics" );
-    QString topics_list = list_elem.attribute("value");
-    _config.selected_topics = topics_list.split(";", QString::SkipEmptyParts);
-
     QDomElement stamp_elem = parent_element.firstChildElement( "use_header_stamp" );
     _config.use_header_stamp = ( stamp_elem.attribute("value") == "true");
 

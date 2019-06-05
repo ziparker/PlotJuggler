@@ -16,7 +16,7 @@ public:
 
     DataStreamSample();
 
-    virtual bool start() override;
+    virtual bool start(QStringList*) override;
 
     virtual void shutdown() override;
 

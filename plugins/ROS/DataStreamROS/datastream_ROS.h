@@ -22,7 +22,7 @@ public:
 
     DataStreamROS();
 
-    virtual bool start() override;
+    virtual bool start(QStringList* selected_datasources) override;
 
     virtual void shutdown() override;
 

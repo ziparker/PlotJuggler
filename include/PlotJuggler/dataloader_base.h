@@ -14,6 +14,7 @@ struct FileLoadInfo
 {
     QString filename;
     QString prefix;
+    QStringList selected_datasources;
     QDomDocument plugin_config;
 };
 
@@ -26,7 +27,7 @@ public:
 
     virtual const std::vector<const char*>& compatibleFileExtensions() const = 0;
 
-    virtual bool readDataFromFile(const FileLoadInfo& fileload_info, PlotDataMapRef& destination) = 0;
+    virtual bool readDataFromFile(FileLoadInfo* fileload_info, PlotDataMapRef& destination) = 0;
 
     virtual ~DataLoader() {}
 

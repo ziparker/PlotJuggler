@@ -1172,7 +1172,7 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
             PlotDataMapRef mapped_data;
             FileLoadInfo new_info = info;
 
-            if( dataloader->readDataFromFile(new_info, mapped_data ) )
+            if( dataloader->readDataFromFile( &new_info, mapped_data ) )
             {
                 AddPrefixToPlotData( info.prefix.toStdString(), mapped_data.numeric );
 
@@ -1238,14 +1238,9 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
     }
 
     bool started = false;
-
-    if( _mapped_plot_data.numeric.size() > 0)
-    {
-        on_actionDeleteAllData_triggered();
-    }
-
     try{
-        started = _current_streamer && _current_streamer->start();
+        // TODO data sources
+        started = _current_streamer && _current_streamer->start( nullptr );
     }
     catch(std::runtime_error& err)
     {
@@ -1256,6 +1251,11 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
     }
     if( started )
     {
+        {
+            std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
+            importPlotDataMap( _current_streamer->dataMap(), true );
+        }
+
         for(auto& action: ui->menuStreaming->actions()) {
             action->setEnabled(false);
         }
@@ -1416,7 +1416,7 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
     return std::tuple<double,double,int>( min_time, max_time, max_steps );
 }
 
-static const QString LAYOUT_VERSION = "2.2";
+static const QString LAYOUT_VERSION = "2.2.1";
 
 bool MainWindow::loadLayoutFromFile(QString filename)
 {
@@ -1467,6 +1467,10 @@ bool MainWindow::loadLayoutFromFile(QString filename)
         FileLoadInfo info;
         info.filename = datafile_elem.attribute("filename");
         info.prefix   = datafile_elem.attribute("prefix");
+
+        QDomElement datasources_elem = datafile_elem.firstChildElement( "selected_datasources" );
+        QString topics_list = datasources_elem.attribute("value");
+        info.selected_datasources = topics_list.split(";", QString::SkipEmptyParts);
 
         auto plugin_elem = datafile_elem.firstChildElement( "plugin" );
         info.plugin_config.appendChild( info.plugin_config.importNode( plugin_elem, true ) );
@@ -2479,6 +2483,8 @@ void MainWindow::on_actionSaveLayout_triggered()
 
     root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
 
+    root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
+
     root.appendChild( savePluginState(doc) );
 
     root.appendChild( doc.createComment(" - - - - - - - - - - - - - - ") );
@@ -2492,6 +2498,11 @@ void MainWindow::on_actionSaveLayout_triggered()
             QDomElement file_elem =  doc.createElement( "fileInfo" );
             file_elem.setAttribute("filename", loaded.filename );
             file_elem.setAttribute("prefix", loaded.prefix );
+
+            QDomElement datasources_elem = doc.createElement( "selected_datasources" );
+            QString topics_list = loaded.selected_datasources.join(";");
+            datasources_elem.setAttribute("value", topics_list);
+            file_elem.appendChild( datasources_elem );
 
             file_elem.appendChild( loaded.plugin_config.firstChild() );
             loaded_list.appendChild( file_elem );

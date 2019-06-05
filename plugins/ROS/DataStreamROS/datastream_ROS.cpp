@@ -291,7 +291,7 @@ void DataStreamROS::subscribe()
     }
 }
 
-bool DataStreamROS::start()
+bool DataStreamROS::start(QStringList* selected_datasources)
 {
     _ros_parser.clear();
     if( !_node )
@@ -406,11 +406,6 @@ DataStreamROS::~DataStreamROS()
 
 bool DataStreamROS::xmlSaveState(QDomDocument &doc, QDomElement &plugin_elem) const
 {
-    QString topics_list = _config.selected_topics.join(";");
-    QDomElement list_elem = doc.createElement("selected_topics");
-    list_elem.setAttribute("value", topics_list);
-    plugin_elem.appendChild( list_elem );
-
     QDomElement stamp_elem = doc.createElement("use_header_stamp");
     stamp_elem.setAttribute("value", _config.use_header_stamp ? "true" : "false");
     plugin_elem.appendChild( stamp_elem );
@@ -432,10 +427,6 @@ bool DataStreamROS::xmlSaveState(QDomDocument &doc, QDomElement &plugin_elem) co
 
 bool DataStreamROS::xmlLoadState(const QDomElement &parent_element)
 {
-    QDomElement list_elem = parent_element.firstChildElement( "selected_topics" );
-    QString topics_list = list_elem.attribute("value");
-    _config.selected_topics = topics_list.split(";", QString::SkipEmptyParts);
-
     QDomElement stamp_elem = parent_element.firstChildElement( "use_header_stamp" );
     _config.use_header_stamp = ( stamp_elem.attribute("value") == "true");
 

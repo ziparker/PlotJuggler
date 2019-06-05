@@ -25,7 +25,7 @@ public:
 
     }
 
-    virtual bool start() = 0;
+    virtual bool start(QStringList*) = 0;
 
     virtual void shutdown() = 0;
 
@@ -42,8 +42,6 @@ public:
 
     virtual std::vector<QString> appendData(PlotDataMapRef& destination);
 
-protected:
-
     PlotDataMapRef& dataMap()
     {
         return _data_map;
@@ -53,7 +51,6 @@ protected:
     {
         return _data_map;
     }
-
 
 signals:
 

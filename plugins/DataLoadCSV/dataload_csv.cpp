@@ -55,21 +55,21 @@ QSize DataLoadCSV::parseHeader(QFile *file, std::vector<std::string>& ordered_na
     return table_size;
 }
 
-bool DataLoadCSV::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plot_data)
+bool DataLoadCSV::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_data)
 {
     bool use_provided_configuration = false;
 
-    if( info.plugin_config.hasChildNodes() )
+    if( info->plugin_config.hasChildNodes() )
     {
         use_provided_configuration = true;
-        xmlLoadState( info.plugin_config.firstChildElement() );
+        xmlLoadState( info->plugin_config.firstChildElement() );
     }
 
     const int TIME_INDEX_NOT_DEFINED = -2;
 
     int time_index = TIME_INDEX_NOT_DEFINED;
 
-    QFile file( info.filename );
+    QFile file( info->filename );
     file.open(QFile::ReadOnly);
 
     std::vector<std::string> column_names;
@@ -136,7 +136,7 @@ bool DataLoadCSV::readDataFromFile(const FileLoadInfo& info, PlotDataMapRef& plo
         const int selected_item = dialog->getSelectedRowNumber().at(0);
         if( selected_item > 0)
         {
-          for (int i=0; i< column_names.size(); i++)
+          for (unsigned i=0; i< column_names.size(); i++)
           {
             if( column_names[i] == valid_field_names[selected_item ] )
             {

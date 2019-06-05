@@ -3,6 +3,7 @@
 
 #include <QtPlugin>
 #include <QMenu>
+#include <QWidget>
 #include <QDomDocument>
 
 class PlotJugglerPlugin: public QObject

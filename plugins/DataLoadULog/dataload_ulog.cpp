@@ -29,9 +29,9 @@ const std::vector<const char*> &DataLoadULog::compatibleFileExtensions() const
     return extensions;
 }
 
-bool DataLoadULog::readDataFromFile(const FileLoadInfo& fileload_info, PlotDataMapRef& plot_data)
+bool DataLoadULog::readDataFromFile(FileLoadInfo* fileload_info, PlotDataMapRef& plot_data)
 {
-    const auto& filename = fileload_info.filename;
+    const auto& filename = fileload_info->filename;
 
     ULogParser parser( filename.toStdString() );
 
@@ -80,3 +80,4 @@ bool DataLoadULog::xmlLoadState(const QDomElement &)
 {
     return true;
 }
+

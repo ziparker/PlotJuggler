@@ -22,7 +22,7 @@ public:
 
     virtual const std::vector<const char*>& compatibleFileExtensions() const override;
 
-    virtual bool readDataFromFile(const FileLoadInfo& fileload_info, PlotDataMapRef& destination) override;
+    virtual bool readDataFromFile(FileLoadInfo* fileload_info, PlotDataMapRef& destination) override;
 
     virtual const char* name() const override { return "DataLoad ROS bags"; }
 

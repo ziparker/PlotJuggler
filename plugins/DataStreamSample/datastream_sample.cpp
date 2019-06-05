@@ -47,7 +47,7 @@ DataStreamSample::DataStreamSample()
     dataMap().addNumeric("empty");
 }
 
-bool DataStreamSample::start()
+bool DataStreamSample::start(QStringList*)
 {
     _running = true;
     pushSingleCycle();
