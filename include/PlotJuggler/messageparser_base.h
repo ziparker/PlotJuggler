@@ -76,7 +76,11 @@ protected:
             PlotData& plot_data = plot_pair->second;
             for(size_t i=0; i < in_data.size(); i++)
             {
-                plot_data.pushBack( in_data[i] );
+                double val = in_data[i].y;
+                if( !std::isnan(val) && !std::isinf(val) )
+                {
+                    plot_data.pushBack( in_data[i] );
+                }
             }
         }
         in_data.clear();

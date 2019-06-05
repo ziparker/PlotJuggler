@@ -202,10 +202,14 @@ void RosMessageParser::pushMessageRef(const std::string &topic_name,
         PlotData& plot_data = plot_pair->second;
         size_t data_size = plot_data.size();
 
-        double val_d = extractRealValue(value , field_name);
-        plot_data.pushBack( PlotData::Point(timestamp, val_d) );
+        try {
+            double val_d = extractRealValue(value , field_name);
+            if( !std::isnan(val_d) && !std::isinf(val_d) )
+            {
+                plot_data.pushBack( PlotData::Point(timestamp, val_d) );
+            }
+        } catch (...) {}
     }
-
 }
 
 void RosMessageParser::showWarnings()
