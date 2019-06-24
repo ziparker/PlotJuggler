@@ -1788,7 +1788,7 @@ bool PlotWidget::canvasEventFilter(QEvent *event)
         if( _dragging.mode == DragInfo::NONE )
         {
             changeBackgroundColor( Qt::white );
-            QApplication::restoreOverrideCursor();
+
             return false;
         }
     }break;
