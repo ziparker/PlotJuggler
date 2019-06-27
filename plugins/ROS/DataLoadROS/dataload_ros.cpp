@@ -2,6 +2,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QDebug>
 #include <QApplication>
 #include <QProgressDialog>
@@ -42,6 +43,8 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
 
     RosIntrospectionFactory::reset();
 
+    bool ignoreAll = false;
+
     for(auto& conn: bag_view.getConnections() )
     {
         const auto&  topic      =  conn->topic;
@@ -50,10 +53,48 @@ std::vector<std::pair<QString,QString>> DataLoadROS::getAndRegisterAllTopics()
         const auto&  definition =  conn->msg_def;
 
         all_topics.push_back( std::make_pair(QString( topic.c_str()), QString( datatype.c_str()) ) );
-        _ros_parser.registerSchema(
+        try {
+            _ros_parser.registerSchema(
                     topic, md5sum, RosIntrospection::ROSType(datatype), definition);
+            RosIntrospectionFactory::registerMessage(topic, md5sum, datatype, definition);
+        }
+        catch(std::exception &ex)
+        {
+            // there was a problem with this topic
+            // a real life problem example can be found here:
+            // https://github.com/rosjava/rosjava_bootstrap/issues/16
+            all_topics.pop_back();
 
-        RosIntrospectionFactory::registerMessage(topic, md5sum, datatype, definition);
+            if (ignoreAll) {
+                // this is not the first error with this load and the
+                // user has accepted to ignore all errors
+                continue;
+            }
+
+            // prompt user to abort or continue
+            QMessageBox msgBox(nullptr);
+            msgBox.setWindowTitle("ROS bag error");
+            msgBox.setText(QString("Topic ") +
+                           QString(topic.c_str()) +
+                           QString(": ") +
+                           QString(ex.what()));
+
+            QPushButton* buttonCancel = msgBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
+            QPushButton* buttonIgnore = msgBox.addButton(tr("Ignore"), QMessageBox::YesRole);
+            QPushButton* buttonIgnoreAll = msgBox.addButton(tr("Ignore all"), QMessageBox::AcceptRole);
+            msgBox.setDefaultButton(buttonIgnoreAll);
+            msgBox.exec();
+            if( msgBox.clickedButton() == buttonCancel)
+            {
+                // abort the file loading
+                throw;
+            }
+            if( msgBox.clickedButton() == buttonIgnoreAll)
+            {
+                // accept this and all future errors for this load
+                ignoreAll = true;
+            }
+        }
     }
     return all_topics;
 }
