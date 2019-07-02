@@ -150,14 +150,18 @@ void AddCustomPlotDialog::on_curvesListWidget_doubleClicked(const QModelIndex &i
             .arg(_v_count++)
             .arg(ui->curvesListWidget->item(index.row())->text());
 
+    QPlainTextEdit* edit = ui->mathEquation;
+
     if(ui->globalVarsTextField->hasFocus())
     {
-        ui->globalVarsTextField->insertPlainText(appendString);
+        edit = ui->globalVarsTextField;
     }
-    else if(ui->mathEquation->hasFocus())
+
+    if( !edit->toPlainText().endsWith("\n") )
     {
-        ui->mathEquation->insertPlainText(appendString);
+        edit->insertPlainText("\n");
     }
+    edit->insertPlainText(appendString);
 }
 
 void AddCustomPlotDialog::importSnippets(const QByteArray& xml_text)
