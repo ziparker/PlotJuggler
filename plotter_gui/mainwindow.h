@@ -206,6 +206,8 @@ public slots:
     void on_pushButtonRemoveTimeOffset_toggled(bool checked);
 
     void on_actionStartStreaming(QString streamer_name);
+private slots:
+    void on_actionLoad_stylesheet_triggered();
 };
 
 

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <numeric>
 
+#include <QApplication>
 #include <QActionGroup>
 #include <QCheckBox>
 #include <QCommandLineParser>
@@ -183,7 +184,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     ui->pushButtonRemoveTimeOffset->setChecked(remove_time_offset);
 
     ui->widgetOptions->setVisible( ui->pushButtonOptions->isChecked() );
-    ui->line->setVisible( ui->pushButtonOptions->isChecked() );
 
     //----------------------------------------------------------
     QIcon trackerIconA, trackerIconB, trackerIconC;
@@ -1955,7 +1955,6 @@ void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool )
 void MainWindow::on_pushButtonOptions_toggled(bool checked)
 {
     ui->widgetOptions->setVisible( checked );
-    ui->line->setVisible( checked );
 }
 
 void MainWindow::updatedDisplayTime()
@@ -2655,3 +2654,16 @@ void MainWindow::on_actionDeleteAllData_triggered()
 
 
 
+
+void MainWindow::on_actionLoad_stylesheet_triggered()
+{
+    auto fileName = QFileDialog::getOpenFileName(this,
+    tr("Load Stylesheet"), QDir::currentPath(), tr("Stylesheet Files (*.qss)"));
+
+    QFile styleFile( fileName );
+    styleFile.open( QFile::ReadOnly );
+
+    // Apply the loaded stylesheet
+    QString style( styleFile.readAll() );
+    dynamic_cast<QApplication*>( QCoreApplication::instance() )->setStyleSheet( style );
+}
