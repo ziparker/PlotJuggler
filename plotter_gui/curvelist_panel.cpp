@@ -257,11 +257,11 @@ bool CurveListPanel::eventFilter(QObject *object, QEvent *event)
             }
             else
             {
-                if(getNonHiddenSelectedRows().size() != 1)
+                if(getNonHiddenSelectedRows().size() != 2)
                 {
                     return false;
                 }
-                mimeData->setData("curveslist/new_X_axis", mdata);
+                mimeData->setData("curveslist/new_XY_axis", mdata);
 
                 QPixmap cursor( QSize(160,30) );
                 cursor.fill(Qt::transparent);
@@ -270,7 +270,7 @@ bool CurveListPanel::eventFilter(QObject *object, QEvent *event)
                 painter.begin( &cursor);
                 painter.setPen(QColor(22, 22, 22));
 
-                QString text("set as new X axis");
+                QString text("Create a XY curve");
                 painter.setFont( QFont("Arial", 14 ) );
 
                 painter.setBackground(Qt::transparent);

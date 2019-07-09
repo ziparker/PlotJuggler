@@ -74,7 +74,7 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     _dragging( { DragInfo::NONE, {}, nullptr } ),
     _curve_style(QwtPlotCurve::Lines),
     _time_offset(0.0),
-    _axisX(nullptr),
+    _xy_mode(false),
     _transform_select_dialog(nullptr),
     _use_date_time_scale(false),
     _zoom_enabled(true),
@@ -312,9 +312,9 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     _action_removeCurve->setEnabled( ! _curve_list.empty() );
     _action_removeAllCurves->setEnabled( ! _curve_list.empty() );
     _action_changeColorsDialog->setEnabled(  ! _curve_list.empty() );
-    _action_phaseXY->setEnabled( _axisX != nullptr );
+    _action_phaseXY->setEnabled( _xy_mode );
 
-    if( !_axisX )
+    if( !_xy_mode )
     {
         menu.setToolTipsVisible(true);
         _action_phaseXY->setToolTip(
@@ -381,7 +381,77 @@ bool PlotWidget::addCurve(const std::string &name)
 
     auto curve = new QwtPlotCurve( qname );
     try {
-        auto plot_qwt = createSeriesData( _default_transform, &data );
+        auto plot_qwt = createTimeSeries( _default_transform, &data );
+        _curves_transform.insert( {name, _default_transform} );
+
+        curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
+        curve->setPaintAttribute( QwtPlotCurve::FilterPointsAggressive, true );
+        curve->setData( plot_qwt );
+    }
+    catch( std::exception& ex)
+    {
+        QMessageBox::warning(this, "Exception!", ex.what());
+        return false;
+    }
+
+    curve->setStyle( _curve_style );
+
+    QColor color = data.getColorHint();
+    if( color == Qt::black)
+    {
+        color = randomColorHint();
+        data.setColorHint(color);
+    }
+    curve->setPen( color,  (_curve_style == QwtPlotCurve::Dots) ? 4 : 0.8 );
+    curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
+
+    curve->attach( this );
+    _curve_list.insert( std::make_pair(name, curve));
+
+    auto marker = new QwtPlotMarker;
+    _point_marker.insert( std::make_pair(name, marker) );
+    marker->attach( this );
+    marker->setVisible( isXYPlot() );
+
+    QwtSymbol *sym = new QwtSymbol(
+                QwtSymbol::Diamond,
+                Qt::red, color,
+                QSize(10,10));
+
+    marker->setSymbol(sym);
+
+    return true;
+}
+
+bool PlotWidget::addCurveXY(const std::string &name_x, const std::string &name_y)
+{
+    auto it = _mapped_data.numeric.find( name_x );
+    if( it == _mapped_data.numeric.end())
+    {
+        throw std::runtime_error("Creation of XY plot failed");
+    }
+    PlotData& data_x = it->second;
+
+    it = _mapped_data.numeric.find( name_y );
+    if( it == _mapped_data.numeric.end())
+    {
+        throw std::runtime_error("Creation of XY plot failed");
+    }
+    PlotData& data_y = it->second;
+
+    std::string name = name_y + "[temp XY]";
+
+    if( _curve_list.find(name) != _curve_list.end())
+    {
+        return false;
+    }
+
+    PlotData& data = it->second;
+    const auto qname = QString::fromStdString( name );
+
+    auto curve = new QwtPlotCurve( qname );
+    try {
+        auto plot_qwt = createCurveXY(&data_x, &data_y );
         _curves_transform.insert( {name, _default_transform} );
 
         curve->setPaintAttribute( QwtPlotCurve::ClipPolygons, true );
@@ -445,29 +515,6 @@ void PlotWidget::removeCurve(const std::string &curve_name)
         emit curveListChanged();
     }
     _curves_transform.erase( curve_name );
-
-    if( isXYPlot() && _axisX && _axisX->name() == curve_name)
-    {
-        // Without the X axis, transform all the curves to noTransform
-        _axisX = nullptr;
-        _default_transform.clear();
-        for(auto& it : _curve_list)
-        {
-            auto& curve = it.second;
-
-            auto data_it = _mapped_data.numeric.find( curve_name );
-            if( data_it != _mapped_data.numeric.end())
-            {
-                const auto& data = data_it->second;
-                auto data_series = createSeriesData( _default_transform, &data);
-                curve->setData( data_series );
-            }
-        }
-        on_changeToBuiltinTransforms( _default_transform );
-
-        _tracker->redraw();
-        emit curveListChanged();
-    }
 }
 
 bool PlotWidget::isEmpty() const
@@ -507,9 +554,9 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
             _dragging.mode = DragInfo::CURVES;
             event->acceptProposedAction();
         }
-        if( format.contains( "curveslist/new_X_axis") && _dragging.curves.size() == 1 )
+        if( format.contains( "curveslist/new_XY_axis") && _dragging.curves.size() == 2 )
         {
-            _dragging.mode = DragInfo::NEW_X;
+            _dragging.mode = DragInfo::NEW_XY;
             event->acceptProposedAction();
         }
         if( format.contains( "plot_area")  )
@@ -547,6 +594,20 @@ void PlotWidget::dropEvent(QDropEvent *)
 
     if( _dragging.mode == DragInfo::CURVES)
     {
+        if( _xy_mode && !_curve_list.empty() )
+        {
+            QMessageBox::warning(this, "Warning",
+                                 tr("This is a XY plot, you can not drop normal time series here.\n"
+                                    "Clear all curves to reset it to normal mode.") );
+            _dragging.mode = DragInfo::NONE;
+            _dragging.curves.clear();
+            return;
+        }
+        else if( _xy_mode && _curve_list.empty() )
+        {
+            _action_noTransform->trigger();
+        }
+
         for( const auto& curve_name : _dragging.curves)
         {
             bool added = addCurve( curve_name.toStdString() );
@@ -554,9 +615,24 @@ void PlotWidget::dropEvent(QDropEvent *)
         }
         emit curvesDropped();
     }
-    else if( _dragging.mode == DragInfo::NEW_X)
+    else if( _dragging.mode == DragInfo::NEW_XY && _dragging.curves.size() == 2)
     {
-        changeAxisX( _dragging.curves.front() );
+        if( !_curve_list.empty() && !_xy_mode )
+        {
+            QMessageBox::warning(this, "Warning",
+                                 tr("To convert this widget into a XY plot, "
+                                    "you must first remove all the time series.") );
+            _dragging.mode = DragInfo::NONE;
+            _dragging.curves.clear();
+            return;
+        }
+        // FIXME?
+        _action_phaseXY->setEnabled(true);
+        _action_phaseXY->trigger();
+
+        addCurveXY(_dragging.curves[0].toStdString(),
+                   _dragging.curves[1].toStdString() );
+
         curves_changed = true;
         emit curvesDropped();
     }
@@ -597,7 +673,6 @@ void PlotWidget::detachAllCurves()
 
     if( isXYPlot() )
     {
-        _axisX = nullptr;
         _action_noTransform->trigger();
     }
     _curve_list.clear();
@@ -661,10 +736,10 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
         transform.setAttribute("value", _default_transform);
     }
 
-    if( _axisX )
-    {
-        transform.setAttribute("axisX", QString::fromStdString( _axisX->name()) );
-    }
+    //    if( _xy_mode ) FIXME
+    //    {
+    //        transform.setAttribute("axisX", QString::fromStdString( _axisX->name()) );
+    //    }
 
     plot_el.appendChild(transform);
 
@@ -763,7 +838,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         }
         else if( trans_value == "XYPlot" )
         {
-            changeAxisX( transform.attribute("axisX") );
+            // FIXME changeAxisX( transform.attribute("axisX") );
             _action_phaseXY->trigger();
         }
         else if( trans_value.startsWith("Custom::" ) )
@@ -904,7 +979,7 @@ void PlotWidget::rescaleEqualAxisScaling()
     }
     if( rect.contains(_max_zoom_rect) )
     {
-       rect = _max_zoom_rect;
+        rect = _max_zoom_rect;
     }
 
     this->setAxisScale( yLeft,
@@ -930,7 +1005,7 @@ void PlotWidget::resizeEvent( QResizeEvent *ev )
 void PlotWidget::updateLayout()
 {
     QwtPlot::updateLayout();
-   // qDebug() << canvasBoundingRect();
+    // qDebug() << canvasBoundingRect();
 }
 
 void PlotWidget::setConstantRatioXY(bool active)
@@ -979,16 +1054,16 @@ void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
 
 void PlotWidget::reloadPlotData()
 {
-    if( isXYPlot() )
-    {
-        auto it = _mapped_data.numeric.find( _axisX->name() );
-        if( it != _mapped_data.numeric.end() ){
-            _axisX = &(it->second);
-        }
-        else{
-            _axisX = nullptr;
-        }
-    }
+    //    if( isXYPlot() ) FIXME?
+    //    {
+    //        auto it = _mapped_data.numeric.find( _axisX->name() );
+    //        if( it != _mapped_data.numeric.end() ){
+    //            _axisX = &(it->second);
+    //        }
+    //        else{
+    //            _axisX = nullptr;
+    //        }
+    //    }
 
     for (auto& curve_it: _curve_list)
     {
@@ -1000,7 +1075,7 @@ void PlotWidget::reloadPlotData()
         {
             const auto& data = data_it->second;
             const auto& transform = _curves_transform.at(curve_name);
-            auto data_series = createSeriesData( transform, &data);
+            auto data_series = createTimeSeries( transform, &data);
             curve->setData( data_series );
         }
     }
@@ -1335,6 +1410,8 @@ void PlotWidget::on_zoomOutVertical_triggered(bool emit_signal)
 
 void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
 {
+    _xy_mode = false;
+
     if( _default_transform == new_transform)
     {
         return;
@@ -1354,7 +1431,7 @@ void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
         if( data_it != _mapped_data.numeric.end())
         {
             const auto& data = data_it->second;
-            auto data_series = createSeriesData( new_transform, &data);
+            auto data_series = createTimeSeries( new_transform, &data);
             curve->setData( data_series );
         }
     }
@@ -1367,56 +1444,20 @@ void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
 
 bool PlotWidget::isXYPlot() const
 {
-    return _axisX && _action_phaseXY->isChecked();
+    return _xy_mode;
 }
 
 
 void PlotWidget::on_convertToXY_triggered(bool)
 {
-    if( !_axisX )
-    {
-        QMessageBox::warning(this, tr("Warning"),
-                             tr("To show a XY plot, you must first provide an alternative X axis.\n"
-                                "You can do this drag'n dropping a curve using the RIGHT mouse button "
-                                "instead of the left mouse button.") );
-        _action_noTransform->trigger();
-        return;
-    }
-
-    std::deque<PointSeriesXY*> xy_timeseries;
-
-    try{
-        for(auto& it: _curve_list)
-        {
-            const auto& curve_name =  it.first;
-            auto& curve =  it.second;
-            auto& data = _mapped_data.numeric.find(curve_name)->second;
-            xy_timeseries.push_back( new PointSeriesXY( &data, _axisX) );
-            _curves_transform[curve_name] = "XYPlot";
-        }
-    }
-    catch(std::exception& ex)
-    {
-        QMessageBox::warning(this, tr("Error"), tr(ex.what()) );
-        _action_noTransform->trigger();
-        return;
-    }
+    _xy_mode = true;
 
     enableTracker(false);
     _default_transform = "XYPlot";
 
-    for(auto& it: _curve_list)
-    {
-        const auto& curve_name =  it.first;
-        auto& curve =  it.second;
-        curve->setData( xy_timeseries.front() );
-        xy_timeseries.pop_front();
-        _point_marker[ curve_name ]->setVisible(true);
-    }
-
     QFont font_footer;
     font_footer.setPointSize(10);
-    QwtText text( QString::fromStdString( _axisX->name()) );
+    QwtText text( "XY Plot" );
     text.setFont(font_footer);
 
     this->setFooter( text );
@@ -1452,7 +1493,7 @@ void PlotWidget::transformCustomCurves()
         {
             auto& data = data_it->second;
             try {
-                auto data_series = createSeriesData( transform, &data);
+                auto data_series = createTimeSeries( transform, &data);
                 curve->setData( data_series );
 
                 if( transform == noTransform || transform.isEmpty())
@@ -1466,7 +1507,7 @@ void PlotWidget::transformCustomCurves()
             catch (...)
             {
                 _curves_transform[curve_name] = noTransform;
-                auto data_series = createSeriesData( noTransform, &data);
+                auto data_series = createTimeSeries( noTransform, &data);
                 curve->setData( data_series );
 
                 error_message += curve_name + (" [") + transform.toStdString() + ("]\n");
@@ -1525,18 +1566,6 @@ void PlotWidget::on_customTransformsDialog()
     replot();
 }
 
-void PlotWidget::changeAxisX(QString curve_name)
-{
-    auto it = _mapped_data.numeric.find( curve_name.toStdString() );
-    if( it != _mapped_data.numeric.end())
-    {
-        _axisX = &(it->second);
-        _action_phaseXY->trigger();
-    }
-    else{
-        //TODO: do nothing (?)
-    }
-}
 
 void PlotWidget::on_savePlotToFile()
 {
@@ -1593,7 +1622,7 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     QwtScaleWidget *leftAxis   = this->axisWidget(yLeft);
 
     if( _magnifier && (obj == bottomAxis || obj == leftAxis)
-         && !(isXYPlot() && _keep_aspect_ratio ) )
+            && !(isXYPlot() && _keep_aspect_ratio ) )
     {
         if( event->type() == QEvent::Wheel)
         {
@@ -1797,11 +1826,36 @@ void PlotWidget::setDefaultRangeX()
                 max = std::max( B, max );
             }
         }
-        this->setAxisScale( xBottom, min - _time_offset, max - _time_offset);
+        setAxisScale( xBottom, min - _time_offset, max - _time_offset);
     }
 }
 
-DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *data)
+DataSeriesBase* PlotWidget::createCurveXY(const PlotData *data_x, const PlotData *data_y)
+{
+    DataSeriesBase *output = nullptr;
+
+    try {
+        output = new PointSeriesXY( data_x, data_y );
+    }
+    catch (std::runtime_error& ex)
+    {
+        if( if_xy_plot_failed_show_dialog )
+        {
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("Warnings");
+            msgBox.setText( tr("The creation of the XY plot failed with the following message:\n %1")
+                            .arg( ex.what()) );
+            msgBox.addButton("Continue", QMessageBox::AcceptRole);
+            msgBox.exec();
+        }
+        throw std::runtime_error("Creation of XY plot failed");
+    }
+
+    output->setTimeOffset( _time_offset );
+    return output;
+}
+
+DataSeriesBase *PlotWidget::createTimeSeries(const QString &ID, const PlotData *data)
 {
     DataSeriesBase *output = nullptr;
 
@@ -1817,33 +1871,7 @@ DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *
     {
         output = new Timeseries_2ndDerivative( data );
     }
-    if( ID == "XYPlot")
-    {
-        try {
-            output = new PointSeriesXY( data, _axisX );
-        }
-        catch (std::runtime_error& ex)
-        {
-            if( if_xy_plot_failed_show_dialog )
-            {
-                QMessageBox msgBox(this);
-                msgBox.setWindowTitle("Warnings");
-                msgBox.setText( tr("The creation of the XY plot failed with the following message:\n %1")
-                                .arg( ex.what()) );
 
-                //                QAbstractButton* buttonDontRepear = msgBox.addButton("Don't show again",
-                //                                                                     QMessageBox::ActionRole);
-                msgBox.addButton("Continue", QMessageBox::AcceptRole);
-                msgBox.exec();
-
-                //                if (msgBox.clickedButton() == buttonDontRepear)
-                //                {
-                //                    if_xy_plot_failed_show_dialog = false;
-                //                }
-            }
-            throw std::runtime_error("Creation of XY plot failed");
-        }
-    }
     auto custom_it = _snippets.find(ID);
     if( custom_it != _snippets.end())
     {
@@ -1852,7 +1880,7 @@ DataSeriesBase *PlotWidget::createSeriesData(const QString &ID, const PlotData *
     }
 
     if( !output ){
-        throw std::runtime_error("Not recognized ID in createSeriesData: ");
+        throw std::runtime_error("Not recognized ID in createTimeSeries: ");
     }
     output->setTimeOffset( _time_offset );
     return output;
@@ -1899,8 +1927,6 @@ bool PlotWidget::isZoomEnabled() const
     return _zoom_enabled;
 }
 
-
-
 void PlotWidget::replot()
 {
     static int replot_count = 0;
@@ -1910,6 +1936,6 @@ void PlotWidget::replot()
     }
 
     QwtPlot::replot();
-  //  qDebug() << replot_count++;
+    //  qDebug() << replot_count++;
 }
 

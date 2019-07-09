@@ -51,8 +51,6 @@ public:
 
     void reloadPlotData( );
 
-    void changeAxisX(QString curve_name);
-
     bool isXYPlot() const;
 
     void changeBackgroundColor(QColor color);
@@ -187,7 +185,7 @@ private:
     std::map<std::string, QString> _curves_transform;
 
     struct DragInfo{
-        enum{ NONE, CURVES, NEW_X, SWAP_PLOTS} mode;
+        enum{ NONE, CURVES, NEW_XY, SWAP_PLOTS} mode;
         std::vector<QString> curves;
         QObject* source;
     };
@@ -195,6 +193,8 @@ private:
     DragInfo _dragging;
 
     bool addCurve(const std::string &name);
+
+    bool addCurveXY(const std::string &name_x, const std::string &name_y);
 
     void buildActions();
 
@@ -205,12 +205,14 @@ private:
     QwtPlotCurve::CurveStyle _curve_style;
 
     void setDefaultRangeX();
+
+    DataSeriesBase* createCurveXY(const PlotData *data_x, const PlotData *data_y);
     
-    DataSeriesBase* createSeriesData(const QString& ID, const PlotData *data);
+    DataSeriesBase* createTimeSeries(const QString& ID, const PlotData *data);
 
     double _time_offset;
 
-    const PlotData* _axisX = nullptr;
+    bool _xy_mode;
 
     PlotData::RangeValue _custom_Y_limits;
 

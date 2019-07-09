@@ -1377,7 +1377,12 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
         {
             const auto& curve_name = it.first;
 
-            const auto& data = _mapped_plot_data.numeric.find(curve_name)->second;
+            auto plot_it = _mapped_plot_data.numeric.find(curve_name);
+            if( plot_it == _mapped_plot_data.numeric.end() )
+            {
+                continue; //FIXME?
+            }
+            const auto& data = plot_it->second;
             if(data.size() >=1)
             {
                 const double t0 = data.front().x;
