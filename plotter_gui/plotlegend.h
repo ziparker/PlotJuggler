@@ -9,12 +9,7 @@ class PlotLegend: public QObject, public QwtPlotLegendItem
 {
     Q_OBJECT
 public:
-    PlotLegend(QwtPlot* parent):
-        _parent_plot(parent),
-        _collapsed(false)
-    {
-        this->attach(parent);
-    }
+    PlotLegend(QwtPlot* parent);
 
     QRectF hideButtonRect() const;
 

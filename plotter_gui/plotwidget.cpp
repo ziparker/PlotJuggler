@@ -143,7 +143,8 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
     //-------------------------
 
     buildActions();
-    buildLegend();
+
+     _legend = new PlotLegend(this);
 
     this->canvas()->setMouseTracking(true);
 
@@ -325,37 +326,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
 
     menu.exec( canvas()->mapToGlobal(pos) );
 }
-
-
-void PlotWidget::buildLegend()
-{
-    _legend = new PlotLegend(this);
-
-    _legend->attach( this );
-
-    _legend->setRenderHint( QwtPlotItem::RenderAntialiased );
-    QColor color( Qt::black );
-    _legend->setTextPen( color );
-    _legend->setBorderPen( color );
-    QColor c( Qt::white );
-    c.setAlpha( 200 );
-    _legend->setBackgroundBrush( c );
-
-    _legend->setMaxColumns( 1 );
-    _legend->setAlignment( Qt::Alignment( Qt::AlignTop | Qt::AlignRight ) );
-    _legend->setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
-
-    _legend->setBorderRadius( 4 );
-    _legend->setMargin( 1 );
-    _legend->setSpacing( 1 );
-    _legend->setItemMargin( 1 );
-
-    QFont font = _legend->font();
-    font.setPointSize( 9 );
-    _legend->setFont( font );
-    _legend->setVisible( true );
-}
-
 
 
 PlotWidget::~PlotWidget()

@@ -198,8 +198,6 @@ private:
 
     void buildActions();
 
-    void buildLegend();
-
     void updateAvailableTransformers();
 
     QwtPlotCurve::CurveStyle _curve_style;
