@@ -388,24 +388,31 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y,
 {
     std::string name = curve_name.toStdString() ;
 
-    while( name.empty() || _curve_list.count( name ) > 0 )
+    auto isValid = [&](const std::string& str) -> bool
+    {
+        return  !str.empty() && _curve_list.count( str ) == 0;
+    };
+
+    while( !isValid(name) )
     {
         SuggestDialog dialog( name_x, name_y, this );
 
         bool ok = (dialog.exec() ==  QDialog::Accepted);
         QString text =  dialog.suggestedName();
+        name = text.toStdString();
+        name_x = dialog.nameX().toStdString();
+        name_y = dialog.nameY().toStdString();
 
-        if ( !ok || text.isEmpty())
+        if ( !ok || !isValid(name) )
         {
-            int ret = QMessageBox::warning(this, "Missing name", "The name is invalid; try again or abort.",
+            int ret = QMessageBox::warning(this, "Missing name",
+                                           "The name is missing or invalid. Try again or abort.",
                                            QMessageBox::Abort | QMessageBox::Retry, QMessageBox::Retry);
             if( ret == QMessageBox::Abort)
             {
                 return false;
             }
-        }
-        else{
-            name = text.toStdString();
+            name.clear();
         }
     }
 

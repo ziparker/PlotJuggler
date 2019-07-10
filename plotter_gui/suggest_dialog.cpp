@@ -19,7 +19,17 @@ SuggestDialog::~SuggestDialog()
     delete ui;
 }
 
-QString SuggestDialog::suggestedName()
+QString SuggestDialog::nameX() const
+{
+    return ui->lineEditX->text();
+}
+
+QString SuggestDialog::nameY() const
+{
+    return ui->lineEditY->text();
+}
+
+QString SuggestDialog::suggestedName() const
 {
     return ui->lineEditName->text();
 }

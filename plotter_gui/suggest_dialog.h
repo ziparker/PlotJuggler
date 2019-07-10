@@ -17,7 +17,9 @@ public:
                            QWidget *parent = nullptr);
     ~SuggestDialog();
 
-    QString suggestedName();
+    QString nameX() const;
+    QString nameY() const;
+    QString suggestedName() const;
 
     void updateSuggestion();
 
