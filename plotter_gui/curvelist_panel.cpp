@@ -204,7 +204,7 @@ bool CurveListPanel::eventFilter(QObject *object, QEvent *event)
         _dragging = false;
         _drag_start_pos = mouse_event->pos();
 
-        if( !shift_modifier_pressed && !ctrl_modifier_pressed )
+        if( !shift_modifier_pressed && !ctrl_modifier_pressed && mouse_event->button() != Qt::RightButton  )
         {
             if( obj == ui->tableView)
             {
