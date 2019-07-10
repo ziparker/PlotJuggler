@@ -14,6 +14,7 @@ QT5_WRAP_UI ( UI_SRC
     support_dialog.ui
     curvelist_panel.ui
     preferences_dialog.ui
+    suggest_dialog.ui
 
     transforms/function_editor.ui
     transforms/transform_selector.ui
@@ -38,6 +39,7 @@ SET( PLOTTER_SRC
     plotzoomer.cpp
     removecurvedialog.cpp
     subwindow.cpp
+    suggest_dialog.cpp
     timeseries_qwt.cpp
     tabbedplotwidget.cpp
     tab_widget.h

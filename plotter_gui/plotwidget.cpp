@@ -31,6 +31,7 @@
 #include "qwt_date_scale_draw.h"
 #include "PlotJuggler/random_color.h"
 #include "point_series_xy.h"
+#include "suggest_dialog.h"
 #include "transforms/custom_function.h"
 #include "transforms/custom_timeseries.h"
 
@@ -243,13 +244,6 @@ void PlotWidget::buildActions()
         this->on_changeToBuiltinTransforms(Derivative2nd);
     } );
 
-    _action_phaseXY = new QAction(tr("&XY plot"), this);
-    _action_phaseXY->setCheckable( true );
-
-    _action_phaseXY->setEnabled(false);
-
-    connect(_action_phaseXY, &QAction::triggered, this, &PlotWidget::on_convertToXY_triggered);
-
     _action_custom_transform = new QAction(tr("&Custom..."), this);
     _action_custom_transform->setCheckable( true );
     connect(_action_custom_transform, &QAction::triggered,
@@ -263,7 +257,6 @@ void PlotWidget::buildActions()
     transform_group->addAction(_action_noTransform);
     transform_group->addAction(_action_1stDerivativeTransform);
     transform_group->addAction(_action_2ndDerivativeTransform);
-    transform_group->addAction(_action_phaseXY);
     transform_group->addAction(_action_custom_transform);
 }
 
@@ -308,7 +301,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     menu.addAction( _action_noTransform );
     menu.addAction( _action_1stDerivativeTransform );
     menu.addAction( _action_2ndDerivativeTransform );
-    menu.addAction( _action_phaseXY );
     menu.addAction( _action_custom_transform );
     menu.addSeparator();
     menu.addAction( _action_saveToFile );
@@ -316,16 +308,11 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     _action_removeCurve->setEnabled( ! _curve_list.empty() );
     _action_removeAllCurves->setEnabled( ! _curve_list.empty() );
     _action_changeColorsDialog->setEnabled(  ! _curve_list.empty() );
-    _action_phaseXY->setEnabled( _xy_mode );
 
-    if( !_xy_mode )
-    {
-        menu.setToolTipsVisible(true);
-        _action_phaseXY->setToolTip(
-                    "To show a XY plot, you must first provide the X axis.\n"
-                    "Drag andn drop a curve using the RIGHT mouse\n"
-                    "button instead of the left one." );
-    }
+    _action_noTransform->setEnabled( !_xy_mode );
+    _action_1stDerivativeTransform->setEnabled( !_xy_mode );
+    _action_2ndDerivativeTransform->setEnabled( !_xy_mode );
+    _action_custom_transform->setEnabled( !_xy_mode );
 
     menu.exec( canvas()->mapToGlobal(pos) );
 }
@@ -396,8 +383,32 @@ bool PlotWidget::addCurve(const std::string &name)
     return true;
 }
 
-bool PlotWidget::addCurveXY(const std::string &name_x, const std::string &name_y)
+bool PlotWidget::addCurveXY(std::string name_x, std::string name_y,
+                            QString curve_name)
 {
+    std::string name = curve_name.toStdString() ;
+
+    while( name.empty() || _curve_list.count( name ) > 0 )
+    {
+        SuggestDialog dialog( name_x, name_y, this );
+
+        bool ok = (dialog.exec() ==  QDialog::Accepted);
+        QString text =  dialog.suggestedName();
+
+        if ( !ok || text.isEmpty())
+        {
+            int ret = QMessageBox::warning(this, "Missing name", "The name is invalid; try again or abort.",
+                                           QMessageBox::Abort | QMessageBox::Retry, QMessageBox::Retry);
+            if( ret == QMessageBox::Abort)
+            {
+                return false;
+            }
+        }
+        else{
+            name = text.toStdString();
+        }
+    }
+
     auto it = _mapped_data.numeric.find( name_x );
     if( it == _mapped_data.numeric.end())
     {
@@ -411,8 +422,6 @@ bool PlotWidget::addCurveXY(const std::string &name_x, const std::string &name_y
         throw std::runtime_error("Creation of XY plot failed");
     }
     PlotData& data_y = it->second;
-
-    std::string name = name_y + "[temp XY]";
 
     if( _curve_list.find(name) != _curve_list.end())
     {
@@ -599,9 +608,7 @@ void PlotWidget::dropEvent(QDropEvent *)
             _dragging.curves.clear();
             return;
         }
-        // FIXME?
-        _action_phaseXY->setEnabled(true);
-        _action_phaseXY->trigger();
+        convertToXY();
 
         addCurveXY(_dragging.curves[0].toStdString(),
                    _dragging.curves[1].toStdString() );
@@ -688,7 +695,7 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
     for(auto& it: _curve_list)
     {
         auto& name = it.first;
-        auto& curve = it.second;
+        QwtPlotCurve* curve = it.second;
         QDomElement curve_el = doc.createElement("curve");
         curve_el.setAttribute( "name", QString::fromStdString( name ));
         curve_el.setAttribute( "R", curve->pen().color().red());
@@ -697,6 +704,13 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
         curve_el.setAttribute( "custom_transform", _curves_transform.at(name) );
 
         plot_el.appendChild(curve_el);
+
+        if( _xy_mode )
+        {
+            PointSeriesXY* curve_xy = dynamic_cast<PointSeriesXY*>(curve->data());
+            curve_el.setAttribute( "curve_x", QString::fromStdString( curve_xy->dataX()->name() ) );
+            curve_el.setAttribute( "curve_y", QString::fromStdString( curve_xy->dataY()->name() ) );
+        }
     }
 
     QDomElement transform  = doc.createElement("transform");
@@ -709,11 +723,6 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
         transform.setAttribute("value", _default_transform);
     }
 
-    //    if( _xy_mode ) FIXME
-    //    {
-    //        transform.setAttribute("axisX", QString::fromStdString( _axisX->name()) );
-    //    }
-
     plot_el.appendChild(transform);
 
     return plot_el;
@@ -724,6 +733,12 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
     std::set<std::string> added_curve_names;
 
     QDomElement transform = plot_widget.firstChildElement( "transform" );
+    QString trans_value = transform.attribute("value");
+
+    if( trans_value == "XYPlot" )
+    {
+        convertToXY();
+    }
 
     QDomElement limitY_el = plot_widget.firstChildElement("limitY");
     if( !limitY_el.isNull() )
@@ -755,20 +770,45 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
          !curve_element.isNull();
          curve_element = curve_element.nextSiblingElement( "curve" ) )
     {
-        std::string curve_name = curve_element.attribute("name").toStdString();
+        QString curve_name = curve_element.attribute("name");
+        std::string curve_name_std = curve_name.toStdString();
         int R = curve_element.attribute("R").toInt();
         int G = curve_element.attribute("G").toInt();
         int B = curve_element.attribute("B").toInt();
         QColor color(R,G,B);
 
-        if(  _mapped_data.numeric.find(curve_name) != _mapped_data.numeric.end() )
+        bool error = false;
+        if( !isXYPlot() )
         {
-            auto added = addCurve( curve_name );
-            curve_added = curve_added || added;
-            _curve_list[curve_name]->setPen( color, 1.0);
-            added_curve_names.insert(curve_name );
+            if( _mapped_data.numeric.find(curve_name_std) == _mapped_data.numeric.end() )
+            {
+                error = true;
+            }
+            else {
+                auto added = addCurve( curve_name_std );
+                curve_added = curve_added || added;
+                _curve_list[curve_name_std]->setPen( color, 1.0);
+                added_curve_names.insert( curve_name_std );
+            }
         }
-        else if( ! warning_message_shown )
+        else{
+            std::string curve_x = curve_element.attribute("curve_x").toStdString();
+            std::string curve_y = curve_element.attribute("curve_y").toStdString();
+
+            if( _mapped_data.numeric.find(curve_x) == _mapped_data.numeric.end() ||
+                _mapped_data.numeric.find(curve_y) == _mapped_data.numeric.end() )
+            {
+                error = true;
+            }
+            else {
+                auto added = addCurveXY(curve_x, curve_y, curve_name );
+                curve_added = curve_added || added;
+                _curve_list[curve_name_std]->setPen( color, 1.0);
+                added_curve_names.insert( curve_name_std );
+            }
+        }
+
+        if( error && ! warning_message_shown )
         {
             QMessageBox::warning(this, "Warning",
                                  tr("Can't find one or more curves.\n"
@@ -794,46 +834,37 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         }
     }
 
-    if( !transform.isNull()  )
+    if( trans_value.isEmpty() || trans_value == "noTransform" )
     {
-        QString trans_value = transform.attribute("value");
-        if( trans_value.isEmpty() || trans_value == "noTransform" )
-        {
-            _action_noTransform->trigger();
-        }
-        else if( trans_value == Derivative1st )
-        {
-            _action_1stDerivativeTransform->trigger();
-        }
-        else if( trans_value == Derivative2nd )
-        {
-            _action_2ndDerivativeTransform->trigger();
-        }
-        else if( trans_value == "XYPlot" )
-        {
-            // FIXME changeAxisX( transform.attribute("axisX") );
-            _action_phaseXY->trigger();
-        }
-        else if( trans_value.startsWith("Custom::" ) )
-        {
-            _default_transform = trans_value.remove(0, 8);
+        _action_noTransform->trigger();
+    }
+    else if( trans_value == Derivative1st )
+    {
+        _action_1stDerivativeTransform->trigger();
+    }
+    else if( trans_value == Derivative2nd )
+    {
+        _action_2ndDerivativeTransform->trigger();
+    }
+    else if( trans_value.startsWith("Custom::" ) )
+    {
+        _default_transform = trans_value.remove(0, 8);
 
-            updateAvailableTransformers();
+        updateAvailableTransformers();
 
-            for (QDomElement  curve_element = plot_widget.firstChildElement( "curve" )  ;
-                 !curve_element.isNull();
-                 curve_element = curve_element.nextSiblingElement( "curve" ) )
+        for (QDomElement  curve_element = plot_widget.firstChildElement( "curve" )  ;
+             !curve_element.isNull();
+             curve_element = curve_element.nextSiblingElement( "curve" ) )
+        {
+            std::string curve_name = curve_element.attribute("name").toStdString();
+            auto custom_attribute = curve_element.attribute("custom_transform");
+            if( !custom_attribute.isNull() )
             {
-                std::string curve_name = curve_element.attribute("name").toStdString();
-                auto custom_attribute = curve_element.attribute("custom_transform");
-                if( !custom_attribute.isNull() )
-                {
-                    _curves_transform[curve_name] = custom_attribute;
-                }
+                _curves_transform[curve_name] = custom_attribute;
             }
-            transformCustomCurves();
-            _action_custom_transform->setChecked(true);
         }
+        transformCustomCurves();
+        _action_custom_transform->setChecked(true);
     }
 
     if( curve_removed || curve_added)
@@ -1027,17 +1058,6 @@ void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
 
 void PlotWidget::reloadPlotData()
 {
-    //    if( isXYPlot() ) FIXME?
-    //    {
-    //        auto it = _mapped_data.numeric.find( _axisX->name() );
-    //        if( it != _mapped_data.numeric.end() ){
-    //            _axisX = &(it->second);
-    //        }
-    //        else{
-    //            _axisX = nullptr;
-    //        }
-    //    }
-
     for (auto& curve_it: _curve_list)
     {
         auto& curve = curve_it.second;
@@ -1421,7 +1441,7 @@ bool PlotWidget::isXYPlot() const
 }
 
 
-void PlotWidget::on_convertToXY_triggered(bool)
+void PlotWidget::convertToXY()
 {
     _xy_mode = true;
 

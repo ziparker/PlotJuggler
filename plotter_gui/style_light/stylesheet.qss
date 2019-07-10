@@ -175,7 +175,7 @@ QRadioButton::indicator {
 }
 
 QRadioButton::indicator:unchecked {
-    image: url(://style/radio_unchecked.svg);
+    image: url(:/style_light/radio_unchecked.svg);
 }
 
 QRadioButton::indicator:unchecked:hover,
@@ -183,13 +183,13 @@ QRadioButton::indicator:unchecked:focus,
 QRadioButton::indicator:unchecked:pressed {
     border: none;
     outline: none;
-    image: url(://style/radio_unchecked_focus.svg);
+    image: url(:/style_light/radio_unchecked_focus.svg);
 }
 
 QRadioButton::indicator:checked {
     border: none;
     outline: none;
-    image: url(://style/radio_checked.svg);
+    image: url(:/style_light/radio_checked.svg);
 }
 
 QRadioButton::indicator:checked:hover,
@@ -197,16 +197,16 @@ QRadioButton::indicator:checked:focus,
 QRadioButton::indicator:checked:pressed {
     border: none;
     outline: none;
-    image: url(://style/radio_checked_focus.svg);
+    image: url(:/style_light/radio_checked_focus.svg);
 }
 
 QRadioButton::indicator:checked:disabled {
     outline: none;
-    image: url(://style/radio_checked_disabled.svg);
+    image: url(:/style_light/radio_checked_disabled.svg);
 }
 
 QRadioButton::indicator:unchecked:disabled {
-    image: url(://style/radio_unchecked_disabled.svg);
+    image: url(:/style_light/radio_unchecked_disabled.svg);
 }
 
 /* QCheckBox -------------------------------------------------------------- */
@@ -223,47 +223,47 @@ QCheckBox::indicator {
 }
 
 QCheckBox::indicator:unchecked {
-    image: url(://style/checkbox_unchecked.svg);
+    image: url(:/style_light/checkbox_unchecked.svg);
 }
 
 QCheckBox::indicator:unchecked:hover,
 QCheckBox::indicator:unchecked:focus,
 QCheckBox::indicator:unchecked:pressed {
     border: none;
-    image: url(://style/checkbox_unchecked_focus.svg);
+    image: url(:/style_light/checkbox_unchecked_focus.svg);
 }
 
 QCheckBox::indicator:unchecked:disabled {
-    image: url(://style/checkbox_unchecked_disabled.svg);
+    image: url(:/style_light/checkbox_unchecked_disabled.svg);
 }
 
 QCheckBox::indicator:checked {
-    image: url(://style/checkbox_checked.svg);
+    image: url(:/style_light/checkbox_checked.svg);
 }
 
 QCheckBox::indicator:checked:hover,
 QCheckBox::indicator:checked:focus,
 QCheckBox::indicator:checked:pressed {
     border: none;
-    image: url(://style/checkbox_checked_focus.svg);
+    image: url(:/style_light/checkbox_checked_focus.svg);
 }
 
 QCheckBox::indicator:checked:disabled{
-    image: url(://style/checkbox_checked_disabled.svg);
+    image: url(:/style_light/checkbox_checked_disabled.svg);
 }
 
 QCheckBox::indicator:indeterminate {
-    image: url(://style/checkbox_indeterminate.svg);
+    image: url(:/style_light/checkbox_indeterminate.svg);
 }
 
 QCheckBox::indicator:indeterminate:disabled {
-    image: url(://style/checkbox_indeterminate_disabled.svg);
+    image: url(:/style_light/checkbox_indeterminate_disabled.svg);
 }
 
 QCheckBox::indicator:indeterminate:focus,
 QCheckBox::indicator:indeterminate:hover,
 QCheckBox::indicator:indeterminate:pressed {
-    image: url(://style/checkbox_indeterminate_focus.svg);
+    image: url(:/style_light/checkbox_indeterminate_focus.svg);
 }
 
 /* QGroupBox -------------------------------------------------------------- */
@@ -282,22 +282,22 @@ QGroupBox::indicator:unchecked:hover,
 QGroupBox::indicator:unchecked:focus,
 QGroupBox::indicator:unchecked:pressed {
     border: none;
-    image: url(://style/checkbox_unchecked_focus.svg);
+    image: url(:/style_light/checkbox_unchecked_focus.svg);
 }
 
 QGroupBox::indicator:checked:hover,
 QGroupBox::indicator:checked:focus,
 QGroupBox::indicator:checked:pressed {
     border: none;
-    image: url(://style/checkbox_checked_focus.svg);
+    image: url(:/style_light/checkbox_checked_focus.svg);
 }
 
 QGroupBox::indicator:checked:disabled {
-    image: url(://style/checkbox_checked_disabled.svg);
+    image: url(:/style_light/checkbox_checked_disabled.svg);
 }
 
 QGroupBox::indicator:unchecked:disabled {
-    image: url(://style/checkbox_unchecked_disabled.svg);
+    image: url(:/style_light/checkbox_unchecked_disabled.svg);
 }
 
 /* QPushButton -------------------------------------------------------------- */

@@ -128,7 +128,7 @@ private slots:
 
     void on_changeToBuiltinTransforms(QString new_transform);
 
-    void on_convertToXY_triggered(bool checked);
+    void convertToXY();
 
     void on_customTransformsDialog();
 
@@ -164,7 +164,6 @@ private:
     QAction *_action_noTransform;
     QAction *_action_1stDerivativeTransform;
     QAction *_action_2ndDerivativeTransform;
-    QAction *_action_phaseXY;
     QAction *_action_custom_transform;
     QAction *_action_saveToFile;
     QAction *_action_editLimits;
@@ -194,7 +193,8 @@ private:
 
     bool addCurve(const std::string &name);
 
-    bool addCurveXY(const std::string &name_x, const std::string &name_y);
+    bool addCurveXY(std::string name_x, std::string name_y,
+                    QString curve_name = "");
 
     void buildActions();
 

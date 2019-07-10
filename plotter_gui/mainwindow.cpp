@@ -715,7 +715,7 @@ QDomDocument MainWindow::xmlSaveState() const
 void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
 {
     std::set<std::string> curves;
-    // ugly code, I am sorry
+
     for ( QDomElement   tw = root.firstChildElement(  "tabbed_widget" )  ;
           !tw.isNull(); tw = tw.nextSiblingElement( "tabbed_widget" ) )
     {
@@ -725,10 +725,21 @@ void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
             for ( QDomElement   pl = pm.firstChildElement(  "plot" )  ;
                   !pl.isNull(); pl = pl.nextSiblingElement( "plot" ) )
             {
+                QDomElement tran_elem = pl.firstChildElement(  "transform" );
+                std::string trans = tran_elem.attribute("value").toStdString();
+                bool is_XY_plot = ( trans == "XYPlot" );
+
                 for ( QDomElement   cv = pl.firstChildElement(  "curve" )  ;
                       !cv.isNull(); cv = cv.nextSiblingElement( "curve" ) )
                 {
-                    curves.insert( cv.attribute("name").toStdString() );
+                    if( is_XY_plot )
+                    {
+                        curves.insert( cv.attribute("curve_x").toStdString() );
+                        curves.insert( cv.attribute("curve_y").toStdString() );
+                    }
+                    else{
+                        curves.insert( cv.attribute("name").toStdString() );
+                    }
                 }
             }
         }
@@ -1459,7 +1470,7 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
     return std::tuple<double,double,int>( min_time, max_time, max_steps );
 }
 
-static const QString LAYOUT_VERSION = "2.2.1";
+static const QString LAYOUT_VERSION = "2.3.0";
 
 bool MainWindow::loadLayoutFromFile(QString filename)
 {
@@ -1491,13 +1502,23 @@ bool MainWindow::loadLayoutFromFile(QString filename)
     // refresh plugins
     QDomElement root = domDocument.namedItem("root").toElement();
 
-    if( !root.hasAttribute("version") && root.attribute("version") != LAYOUT_VERSION )
+    if( !root.hasAttribute("version") || root.attribute("version") != LAYOUT_VERSION )
     {
-        QMessageBox::warning(this, tr("Wrong Layout version"),
-                             tr("This Layout ID is not supported [%1].\nThis version of PlotJuggler use Layout ID [%2]")
-                             .arg(root.attribute("version"))
-                             .arg(LAYOUT_VERSION) );
-        return false;
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Obsolate Layout version");
+        msgBox.setText(tr("This Layout ID is not supported [%1].\nThis version of PlotJuggler use Layout ID [%2]")
+                       .arg(root.attribute("version"))
+                       .arg(LAYOUT_VERSION));
+
+        msgBox.setStandardButtons(QMessageBox::Abort);
+        QPushButton *continueButton = msgBox.addButton(tr("Continue anyway"), QMessageBox::ActionRole);
+        msgBox.setDefaultButton(continueButton);
+
+        int ret = msgBox.exec();
+        if( ret == QMessageBox::Abort)
+        {
+            return false;
+        }
     }
 
     loadPluginState(root);
