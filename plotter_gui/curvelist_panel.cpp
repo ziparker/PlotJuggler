@@ -259,6 +259,13 @@ bool CurveListPanel::eventFilter(QObject *object, QEvent *event)
             {
                 if(getNonHiddenSelectedRows().size() != 2)
                 {
+                    if(getNonHiddenSelectedRows().size() >= 1)
+                    {
+                        QMessageBox::warning(this, "New in version 2.3+",
+                                             "To create a new XY curve, you must select two timeseries and "
+                                             "drag&drop them using the RIGHT mouse button.",
+                                             QMessageBox::Ok);
+                    }
                     return false;
                 }
                 mimeData->setData("curveslist/new_XY_axis", mdata);
