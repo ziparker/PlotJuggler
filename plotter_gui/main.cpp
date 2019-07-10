@@ -54,14 +54,6 @@ int main(int argc, char *argv[])
     app.setOrganizationName("IcarusTechnology");
     app.setApplicationName("PlotJuggler");
 
-    // Load an application style
-    QFile styleFile( "://style/stylesheet.qss" );
-    styleFile.open( QFile::ReadOnly );
-
-    // Apply the loaded stylesheet
-    QString style( styleFile.readAll() );
-    app.setStyleSheet( style );
-
     QString VERSION_STRING = QString("%1.%2.%3").
             arg(PJ_MAJOR_VERSION).
             arg(PJ_MINOR_VERSION).

@@ -213,7 +213,7 @@ public slots:
 
 private slots:
     void on_stylesheetChanged(QString style_name);
-    void on_actionLoad_stylesheet_triggered();
+    void on_actionPreferences_triggered();
 };
 
 

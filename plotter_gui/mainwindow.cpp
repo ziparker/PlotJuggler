@@ -42,6 +42,7 @@
 #include "ui_aboutdialog.h"
 #include "ui_support_dialog.h"
 #include "cheatsheet/video_cheatsheet.h"
+#include "preferences_dialog.h"
 
 MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *parent) :
     QMainWindow(parent),
@@ -215,6 +216,10 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     forEachWidget( [&](PlotWidget* plot) {
         plot->configureTracker(_tracker_param);
     });
+
+
+    _style_directory = settings.value("Preferences::theme", "style_light").toString();
+    emit stylesheetChanged(_style_directory);
 }
 
 MainWindow::~MainWindow()
@@ -1293,6 +1298,10 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
 
 void MainWindow::on_stylesheetChanged(QString style_dir)
 {
+    QFile styleFile( tr("://%1/stylesheet.qss").arg(style_dir) );
+    styleFile.open( QFile::ReadOnly );
+    dynamic_cast<QApplication*>( QCoreApplication::instance() )->setStyleSheet( styleFile.readAll() );
+
     ui->pushButtonOptions->setIcon(QIcon(tr(":/%1/settings_cog.png").arg(style_dir)));
     //ui->pushButtonTimeTracker->setIcon(QIcon(tr(":/%1/line_tracker_1.png").arg(style_dir)));
     ui->playbackLoop->setIcon(QIcon(tr(":/%1/loop.png").arg(style_dir)));
@@ -2680,25 +2689,18 @@ void MainWindow::on_actionDeleteAllData_triggered()
     }
 }
 
-
-void MainWindow::on_actionLoad_stylesheet_triggered()
+void MainWindow::on_actionPreferences_triggered()
 {
-    auto fileName = QFileDialog::getOpenFileName(this,
-    tr("Load Stylesheet"), QDir::currentPath(), tr("Stylesheet Files (*.qss)"));
+    PreferencesDialog dialog;
+    dialog.exec();
 
-    QFile styleFile( fileName );
-    styleFile.open( QFile::ReadOnly );
+    QSettings settings;
+    QString theme = settings.value("Preferences::theme", _style_directory).toString();
 
-    // Apply the loaded stylesheet
-    QString style( styleFile.readAll() );
-    dynamic_cast<QApplication*>( QCoreApplication::instance() )->setStyleSheet( style );
 
-    if( fileName.contains("dark") )
+    if( theme != _style_directory)
     {
-        _style_directory = "style_dark";
+        _style_directory = theme;
+        emit stylesheetChanged(_style_directory);
     }
-    else{
-        _style_directory = "style_light";
-    }
-    emit stylesheetChanged(_style_directory);
 }

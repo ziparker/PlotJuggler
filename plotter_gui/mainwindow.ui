@@ -864,6 +864,7 @@
     <addaction name="menuRecentLayout"/>
     <addaction name="actionSaveLayout"/>
     <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuStreaming">
@@ -908,7 +909,6 @@
     <addaction name="actionFunctionEditor"/>
     <addaction name="actionFullscreen"/>
     <addaction name="actionSaveAllPlotTabs"/>
-    <addaction name="actionLoad_stylesheet"/>
    </widget>
    <widget class="QMenu" name="menuData">
     <property name="title">
@@ -1051,6 +1051,11 @@
   <action name="actionLoad_stylesheet">
    <property name="text">
     <string>Load stylesheet</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>Preferences...</string>
    </property>
   </action>
  </widget>

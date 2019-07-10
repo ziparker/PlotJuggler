@@ -176,7 +176,6 @@
         <file>style_dark/save.png</file>
         <file>style_dark/settings_cog.png</file>
         <file>style_dark/stacks.png</file>
-        <file>style_dark/stylesheet_dark.qss</file>
         <file>style_dark/zoom_horizontal.png</file>
         <file>style_dark/zoom_in.png</file>
         <file>style_dark/zoom_max.png</file>
@@ -190,5 +189,7 @@
         <file>cheatsheet/video/cheatsheet-xy.mp4</file>
         <file>cheatsheet/video/cheatsheet-zoom-area.mp4</file>
         <file>cheatsheet/video/cheatsheet-zoom-in-out.mp4</file>
+        <file>style_dark/stylesheet.qss</file>
+        <file>style_dark/add_row.png</file>
     </qresource>
 </RCC>
