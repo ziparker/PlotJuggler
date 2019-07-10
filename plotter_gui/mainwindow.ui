@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/icons/resources/office_chart_line_stacked.png</normaloff>:/icons/resources/office_chart_line_stacked.png</iconset>
+    <normaloff>:/style_light/office_chart_line_stacked.png</normaloff>:/style_light/office_chart_line_stacked.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -163,7 +163,7 @@
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>:/icons/resources/light/settings_cog.png</normaloff>:/icons/resources/light/settings_cog.png</iconset>
+                 <normaloff>:/style_light/settings_cog.png</normaloff>:/style_light/settings_cog.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -207,7 +207,7 @@
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>:/icons/resources/light/line_tracker_1.png</normaloff>:/icons/resources/light/line_tracker_1.png</iconset>
+                 <normaloff>:/style_light/line_tracker_1.png</normaloff>:/style_light/line_tracker_1.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -286,7 +286,7 @@
                  </property>
                  <property name="icon">
                   <iconset>
-                   <normaloff>:/icons/resources/light/loop.png</normaloff>:/icons/resources/light/loop.png</iconset>
+                   <normaloff>:/style_light/loop.png</normaloff>:/style_light/loop.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -335,8 +335,8 @@
                  </property>
                  <property name="icon">
                   <iconset>
-                   <normaloff>:/icons/resources/light/play_arrow.png</normaloff>
-                   <normalon>:/icons/resources/light/pause.png</normalon>:/icons/resources/light/play_arrow.png</iconset>
+                   <normaloff>:/style_light/play_arrow.png</normaloff>
+                   <normalon>:/style_light/pause.png</normalon>:/style_light/play_arrow.png</iconset>
                  </property>
                  <property name="iconSize">
                   <size>
@@ -682,7 +682,7 @@
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>:/icons/resources/light/datetime.png</normaloff>:/icons/resources/light/datetime.png</iconset>
+                 <normaloff>:/style_light/datetime.png</normaloff>:/style_light/datetime.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -732,7 +732,7 @@
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>:/icons/resources/light/grid.png</normaloff>:/icons/resources/light/grid.png</iconset>
+                 <normaloff>:/style_light/grid.png</normaloff>:/style_light/grid.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -779,7 +779,7 @@
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>:/icons/resources/light/ratio.png</normaloff>:/icons/resources/light/ratio.png</iconset>
+                 <normaloff>:/style_light/ratio.png</normaloff>:/style_light/ratio.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -1025,7 +1025,7 @@
   <action name="actionClearRecentData">
    <property name="icon">
     <iconset>
-     <normaloff>:/icons/resources/light/clean_pane.png</normaloff>:/icons/resources/light/clean_pane.png</iconset>
+     <normaloff>:/style_light/clean_pane.png</normaloff>:/style_light/clean_pane.png</iconset>
    </property>
    <property name="text">
     <string>Clear</string>
@@ -1034,7 +1034,7 @@
   <action name="actionClearRecentLayout">
    <property name="icon">
     <iconset>
-     <normaloff>:/icons/resources/light/clean_pane.png</normaloff>:/icons/resources/light/clean_pane.png</iconset>
+     <normaloff>:/style_light/clean_pane.png</normaloff>:/style_light/clean_pane.png</iconset>
    </property>
    <property name="text">
     <string>Clear</string>

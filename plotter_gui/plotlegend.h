@@ -27,6 +27,8 @@ private:
         const QwtPlotItem *, const QwtLegendData &,
         const QRectF & ) const override;
 
+    virtual void drawBackground( QPainter *painter, const QRectF &rect ) const override;
+
     QwtPlot* _parent_plot;
     bool _collapsed;
 

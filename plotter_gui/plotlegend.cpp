@@ -17,17 +17,17 @@ PlotLegend::PlotLegend(QwtPlot *parent):
     setAlignment( Qt::Alignment( Qt::AlignTop | Qt::AlignRight ) );
     setBackgroundMode( QwtPlotLegendItem::BackgroundMode::LegendBackground   );
 
-    setBorderRadius( 4 );
-    setMargin( 1 );
+    setBorderRadius( 2 );
+    setMargin( 2 );
     setSpacing( 1 );
-    setItemMargin( 1 );
+    setItemMargin( 2 );
 
     QFont font = this->font();
     font.setPointSize( 9 );
     setFont( font );
     setVisible( true );
 
-    setBackgroundBrush(QBrush( QColor(122,122,122,60), Qt::SolidPattern));
+    setBackgroundBrush(QBrush( QColor(122,122,122,40), Qt::SolidPattern));
 
     this->attach(parent);
 }
@@ -108,6 +108,9 @@ void PlotLegend::drawLegendData( QPainter *painter,
         {
             pen.setColor( QColor(122,122,122) );
         }
+        else{
+            pen.setColor( _parent_plot->canvas()->palette().foreground().color() );
+        }
         painter->setPen( pen );
         painter->setFont( font() );
 
@@ -139,6 +142,22 @@ bool PlotLegend::processWheelEvent(QWheelEvent* mouse_event)
     }
     return false;
 }
+
+void PlotLegend::drawBackground( QPainter *painter, const QRectF &rect ) const
+{
+    painter->save();
+
+    auto pen = textPen();
+    pen.setColor( _parent_plot->canvas()->palette().foreground().color() );
+
+    painter->setPen( pen );
+    painter->setBrush( backgroundBrush() );
+    const double radius = borderRadius();
+    painter->drawRoundedRect( rect, radius, radius );
+
+    painter->restore();
+}
+
 
 const QwtPlotItem* PlotLegend::processMousePressEvent(QMouseEvent* mouse_event)
 {

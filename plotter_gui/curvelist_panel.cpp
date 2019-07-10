@@ -274,6 +274,7 @@ bool CurveListPanel::eventFilter(QObject *object, QEvent *event)
                 painter.setFont( QFont("Arial", 14 ) );
 
                 painter.setBackground(Qt::transparent);
+                painter.setPen( palette().foreground().color() );
                 painter.drawText( QRect(0, 0, 160, 30), Qt::AlignHCenter | Qt::AlignVCenter, text );
                 painter.end();
 
@@ -590,4 +591,9 @@ void CurveListPanel::clearSelections()
 {
     ui->tableViewCustom->clearSelection();
     ui->tableView->clearSelection();
+}
+
+void CurveListPanel::on_stylesheetChanged(QString style_dir)
+{
+    ui->pushButtonSettings->setIcon(QIcon(tr(":/%1/settings_cog.png").arg(style_dir)));
 }

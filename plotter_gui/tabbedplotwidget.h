@@ -52,6 +52,8 @@ public slots:
 
     static void saveTabImage(QString fileName, PlotMatrix* matrix);
 
+    void on_stylesheetChanged(QString style_dir);
+
 private slots:
 
     void on_renameCurrentTab();

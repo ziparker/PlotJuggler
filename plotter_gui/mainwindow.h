@@ -37,6 +37,7 @@ public:
     bool loadLayoutFromFile(QString filename);
     bool loadDataFromFiles(QStringList filenames );
     bool loadDataFromFile(const FileLoadInfo &info);
+    QString styleDirectory() const;
 
 public slots:
 
@@ -123,6 +124,8 @@ private:
 
     MonitoredValue _time_offset;
 
+    QString _style_directory;
+
     QTimer *_replot_timer;
     QTimer *_publish_timer;
 
@@ -172,6 +175,7 @@ signals:
     void requestRemoveCurveByName(const std::string& name);
     void activateStreamingMode( bool active);
     void activateTracker(bool active);
+    void stylesheetChanged(QString);
 
 public slots:
     void on_actionLoadData_triggered();
@@ -206,7 +210,9 @@ public slots:
     void on_pushButtonRemoveTimeOffset_toggled(bool checked);
 
     void on_actionStartStreaming(QString streamer_name);
+
 private slots:
+    void on_stylesheetChanged(QString style_name);
     void on_actionLoad_stylesheet_triggered();
 };
 

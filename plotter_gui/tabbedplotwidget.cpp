@@ -265,6 +265,19 @@ void TabbedPlotWidget::saveTabImage(QString fileName, PlotMatrix* matrix)
     }
 }
 
+void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
+{
+    ui->pushButtonZoomMax->setIcon(QIcon(tr(":/%1/zoom_max.png").arg(style_dir)));
+    ui->pushVerticalResize->setIcon(QIcon(tr(":/%1/zoom_vertical.png").arg(style_dir)));
+    ui->pushHorizontalResize->setIcon(QIcon(tr(":/%1/zoom_horizontal.png").arg(style_dir)));
+    ui->pushAddColumn->setIcon(QIcon(tr(":/%1/add_column.png").arg(style_dir)));
+    ui->pushAddRow->setIcon(QIcon(tr(":/%1/add_row.png").arg(style_dir)));
+    ui->addTabButton->setIcon(QIcon(tr(":/%1/add_tab.png").arg(style_dir)));
+    ui->pushRemoveEmpty->setIcon(QIcon(tr(":/%1/clean_pane.png").arg(style_dir)));
+    ui->pushButtonShowLabel->setIcon(QIcon(tr(":/%1/list.png").arg(style_dir)));
+    ui->buttonLinkHorizontalScale->setIcon(QIcon(tr(":/%1/link.png").arg(style_dir)));
+}
+
 void TabbedPlotWidget::on_pushAddRow_pressed()
 {
     currentTab()->addRow();

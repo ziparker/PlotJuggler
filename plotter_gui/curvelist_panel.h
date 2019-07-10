@@ -88,6 +88,8 @@ public slots:
 
     void clearSelections();
 
+    void on_stylesheetChanged(QString style_dir);
+
 private:
 
     Ui::CurveListPanel *ui;

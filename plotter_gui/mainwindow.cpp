@@ -55,7 +55,8 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     _current_streamer(nullptr),
     _disable_undo_logging(false),
     _tracker_time(0),
-    _tracker_param( CurveTracker::VALUE )
+    _tracker_param( CurveTracker::VALUE ),
+    _style_directory("style_light")
 {
     QLocale::setDefault(QLocale::c()); // set as default
 
@@ -80,6 +81,12 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
             QApplication::setWindowIcon(icon);
         }
     }
+
+    connect(this, &MainWindow::stylesheetChanged,
+            this, &MainWindow::on_stylesheetChanged);
+
+    connect(this, &MainWindow::stylesheetChanged,
+            _curvelist_widget, &CurveListPanel::on_stylesheetChanged);
 
     connect( _curvelist_widget->getTableView()->verticalScrollBar(), &QScrollBar::sliderMoved,
              this, &MainWindow::onUpdateLeftTableValues );
@@ -112,6 +119,10 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
 
 
     _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, nullptr, _mapped_plot_data, this);
+
+
+    connect(this, &MainWindow::stylesheetChanged,
+            _main_tabbed_widget, &TabbedPlotWidget::on_stylesheetChanged);
 
     ui->plottingLayout->insertWidget(0, _main_tabbed_widget, 1);
     ui->leftLayout->addWidget( _curvelist_widget );
@@ -1204,6 +1215,11 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
     return true;
 }
 
+QString MainWindow::styleDirectory() const
+{
+    return _style_directory;
+}
+
 
 void MainWindow::on_actionStartStreaming(QString streamer_name)
 {
@@ -1273,6 +1289,19 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
     else{
         qDebug() << "Failed to launch the streamer";
     }
+}
+
+void MainWindow::on_stylesheetChanged(QString style_dir)
+{
+    ui->pushButtonOptions->setIcon(QIcon(tr(":/%1/settings_cog.png").arg(style_dir)));
+    //ui->pushButtonTimeTracker->setIcon(QIcon(tr(":/%1/line_tracker_1.png").arg(style_dir)));
+    ui->playbackLoop->setIcon(QIcon(tr(":/%1/loop.png").arg(style_dir)));
+    ui->pushButtonPlay->setIcon(QIcon(tr(":/%1/play_arrow.png").arg(style_dir)));
+    ui->pushButtonUseDateTime->setIcon(QIcon(tr(":/%1/datetime.png").arg(style_dir)));
+    ui->pushButtonActivateGrid->setIcon(QIcon(tr(":/%1/grid.png").arg(style_dir)));
+    ui->pushButtonRatio->setIcon(QIcon(tr(":/%1/ratio.png").arg(style_dir)));
+    ui->actionClearRecentData->setIcon(QIcon(tr(":/%1/clean_pane.png").arg(style_dir)));
+    ui->actionClearRecentLayout->setIcon(QIcon(tr(":/%1/clean_pane.png").arg(style_dir)));
 }
 
 void MainWindow::loadPluginState(const QDomElement& root)
@@ -2652,9 +2681,6 @@ void MainWindow::on_actionDeleteAllData_triggered()
 }
 
 
-
-
-
 void MainWindow::on_actionLoad_stylesheet_triggered()
 {
     auto fileName = QFileDialog::getOpenFileName(this,
@@ -2666,4 +2692,13 @@ void MainWindow::on_actionLoad_stylesheet_triggered()
     // Apply the loaded stylesheet
     QString style( styleFile.readAll() );
     dynamic_cast<QApplication*>( QCoreApplication::instance() )->setStyleSheet( style );
+
+    if( fileName.contains("dark") )
+    {
+        _style_directory = "style_dark";
+    }
+    else{
+        _style_directory = "style_light";
+    }
+    emit stylesheetChanged(_style_directory);
 }
