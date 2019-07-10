@@ -229,6 +229,7 @@ private:
     void transformCustomCurves();
     void updateMaximumZoomArea();
     void rescaleEqualAxisScaling();
+    void overrideCursonMove();
 };
 
 #endif

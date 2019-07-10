@@ -14,7 +14,7 @@
 std::map<QString,TabbedPlotWidget*> TabbedPlotWidget::_instances;
 
 TabbedPlotWidget::TabbedPlotWidget(QString name,
-                                   QMainWindow *main_window_,
+                                   QMainWindow *mainwindow,
                                    PlotMatrix  *first_tab,
                                    PlotDataMapRef &mapped_data,
                                    QMainWindow *parent ) :
@@ -22,15 +22,15 @@ TabbedPlotWidget::TabbedPlotWidget(QString name,
     _mapped_data(mapped_data),
     ui(new Ui::TabbedPlotWidget),
     _name(name),
+    _main_window(mainwindow),
     _labels_status (LabelStatus::RIGHT)
 {
-    MainWindow* main_window = static_cast<MainWindow*>(main_window_);
+    MainWindow* main_window = dynamic_cast<MainWindow*>(_main_window);
 
     if( main_window == parent){
         _parent_type = "main_window";
     }
-    else
-    {
+    else {
         _parent_type = "floating_window";
     }
 
@@ -50,10 +50,7 @@ TabbedPlotWidget::TabbedPlotWidget(QString name,
     _action_renameTab = new QAction(tr("Rename tab"), this);
     connect( _action_renameTab, &QAction::triggered, this, &TabbedPlotWidget::on_renameCurrentTab);
 
-    QIcon iconSave;
-    iconSave.addFile(QStringLiteral(":/icons/resources/light/save.png"), QSize(26, 26));
     _action_savePlots = new  QAction(tr("&Save plots to file"), this);
-    _action_savePlots->setIcon(iconSave);
     connect(_action_savePlots, &QAction::triggered, this, &TabbedPlotWidget::on_savePlotsToFile);
 
     _tab_menu = new QMenu(this);
@@ -509,13 +506,7 @@ bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
 
                 //-----------------------------------
                 QAction* action_new_window = submenu->addAction( "New Window" );
-
-                QIcon icon;
-                icon.addFile(QStringLiteral(":/icons/resources/light/stacks.png"), QSize(16, 16));
-
-                action_new_window->setIcon( icon);
                 submenu->addSeparator();
-
                 connect( action_new_window, &QAction::triggered, this, &TabbedPlotWidget::on_moveTabIntoNewWindow );
 
                 //-----------------------------------
@@ -534,6 +525,16 @@ bool TabbedPlotWidget::eventFilter(QObject *obj, QEvent *event)
                 connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(on_requestTabMovement(QString)) );
 
                 //-------------------------------
+                QString theme = static_cast<MainWindow*>( _main_window )->styleDirectory();
+                QIcon iconSave;
+                iconSave.addFile( tr(":/%1/save.png").arg(theme),
+                                  QSize(26, 26));
+                _action_savePlots->setIcon(iconSave);
+
+                QIcon iconNewWin;
+                iconNewWin.addFile(  tr(":/%1/stacks.png").arg(theme), QSize(16, 16));
+                action_new_window->setIcon( iconNewWin );
+
                 _tab_menu->exec( mouse_event->globalPos() );
                 //-------------------------------
                 submenu->deleteLater();

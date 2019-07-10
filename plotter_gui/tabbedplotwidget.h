@@ -103,6 +103,8 @@ private:
 
     const QString _name;
 
+    QMainWindow *_main_window;
+
     PlotDataMapRef& _mapped_data;
 
     bool _horizontal_link;

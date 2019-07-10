@@ -75,7 +75,7 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     }
 
     {
-        QIcon icon(":/icons/resources/light/office_chart_line_stacked.png");
+        QIcon icon( tr(":/%1/office_chart_line_stacked.png").arg(_style_directory) );
         if (!icon.isNull())
         {
             this->setWindowIcon(icon);
@@ -200,9 +200,9 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
     //----------------------------------------------------------
     QIcon trackerIconA, trackerIconB, trackerIconC;
 
-    trackerIconA.addFile(QStringLiteral(":/icons/resources/light/line_tracker.png"), QSize(36, 36));
-    trackerIconB.addFile(QStringLiteral(":/icons/resources/light/line_tracker_1.png"), QSize(36, 36));
-    trackerIconC.addFile(QStringLiteral(":/icons/resources/light/line_tracker_a.png"), QSize(36, 36));
+    trackerIconA.addFile(QStringLiteral(":/style_light/line_tracker.png"), QSize(36, 36));
+    trackerIconB.addFile(QStringLiteral(":/style_light/line_tracker_1.png"), QSize(36, 36));
+    trackerIconC.addFile(QStringLiteral(":/style_light/line_tracker_a.png"), QSize(36, 36));
 
     _tracker_button_icons[CurveTracker::LINE_ONLY]  = trackerIconA;
     _tracker_button_icons[CurveTracker::VALUE]      = trackerIconB;

@@ -164,41 +164,28 @@ PlotWidget::PlotWidget(PlotDataMapRef &datamap, QWidget *parent):
 
 void PlotWidget::buildActions()
 {
-
     QIcon iconDeleteList;
 
-    auto getActionAndIcon = [this](const char* text, const char* file)
-    {
-        QIcon icon;
-        icon.addFile( tr(file), QSize(30,30));
-        auto action = new QAction( tr(text), this);
-        action->setIcon(icon);
-        return action;
-    };
 
-    _action_removeCurve = getActionAndIcon("&Remove curves",
-                                           ":/icons/resources/light/remove_list.png" );
+    _action_removeCurve = new QAction("&Remove curves", this);
     _action_removeCurve->setStatusTip(tr("Remove one or more curves from this plot"));
     connect(_action_removeCurve, &QAction::triggered, this, &PlotWidget::launchRemoveCurveDialog);
 
-    _action_removeAllCurves = getActionAndIcon("&Remove ALL curves",
-                                               ":/icons/resources/light/remove.png" );
+    _action_removeAllCurves = new QAction("&Remove ALL curves", this );
     connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::detachAllCurves);
     connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::undoableChange );
 
-    _action_changeColorsDialog = getActionAndIcon("&Change colors",
-                                                  ":/icons/resources/light/colored_charts.png" );
+    _action_changeColorsDialog = new QAction("&Change colors", this);
     _action_changeColorsDialog->setStatusTip(tr("Change the color of the curves"));
     connect(_action_changeColorsDialog, &QAction::triggered, this, &PlotWidget::on_changeColorsDialog_triggered);
 
-    _action_showPoints = getActionAndIcon("&Show lines and/or points",
-                                          ":/icons/resources/light/point_chart.png" );
+    _action_showPoints = new QAction("&Show lines and/or points", this);
     connect(_action_showPoints, &QAction::triggered, this, &PlotWidget::on_showPoints_triggered);
 
     _action_editLimits = new  QAction(tr("&Edit Axis Limits"), this);
     connect(_action_editLimits, &QAction::triggered, this, &PlotWidget::on_editAxisLimits_triggered);
 
-    _action_zoomOutMaximum = getActionAndIcon("&Zoom Out", ":/icons/resources/light/zoom_max.png" );
+    _action_zoomOutMaximum = new QAction("&Zoom Out", this);
     connect(_action_zoomOutMaximum, &QAction::triggered, this, [this]()
     {
         zoomOut(true);
@@ -206,8 +193,7 @@ void PlotWidget::buildActions()
         emit undoableChange();
     });
 
-    _action_zoomOutHorizontally = getActionAndIcon("&Zoom Out Horizontally",
-                                                   ":/icons/resources/light/zoom_horizontal.png" );
+    _action_zoomOutHorizontally = new QAction("&Zoom Out Horizontally", this );
     connect(_action_zoomOutHorizontally, &QAction::triggered, this, [this]()
     {
         on_zoomOutHorizontal_triggered(true);
@@ -215,8 +201,7 @@ void PlotWidget::buildActions()
         emit undoableChange();
     });
 
-    _action_zoomOutVertically = getActionAndIcon("&Zoom Out Vertically",
-                                                 ":/icons/resources/light/zoom_vertical.png" );
+    _action_zoomOutVertically = new QAction("&Zoom Out Vertically", this );
     connect(_action_zoomOutVertically, &QAction::triggered, this, [this]()
     {
         on_zoomOutVertical_triggered(true);
@@ -270,8 +255,7 @@ void PlotWidget::buildActions()
     connect(_action_custom_transform, &QAction::triggered,
             this, &PlotWidget::on_customTransformsDialog);
 
-    _action_saveToFile = getActionAndIcon("&Save plot to file",
-                                          ":/icons/resources/light/save.png" );
+    _action_saveToFile = new QAction("&Save plot to file", this);
     connect(_action_saveToFile, &QAction::triggered, this, &PlotWidget::on_savePlotToFile);
 
     auto transform_group = new QActionGroup(this);
@@ -289,6 +273,25 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     QString edit("&Edit Axis Limits ");
     edit.append( _axis_limits_dialog->limitsEnabled() ? tr("(ENABLED)") : tr("(disabled)") ) ;
     _action_editLimits->setText( edit );
+
+    QSettings settings;
+    QString theme = settings.value("Preferences::theme", "style_light").toString();
+
+    auto setIcon = [&](QAction* action, QString file)
+    {
+        QIcon icon;
+        icon.addFile( tr(":/%1/%2").arg(theme).arg(file), QSize(24,24));
+        action->setIcon(icon);
+    };
+
+    setIcon( _action_removeCurve, "remove_list.png" );
+    setIcon( _action_removeAllCurves, "remove.png" );
+    setIcon( _action_changeColorsDialog, "colored_charts.png" );
+    setIcon( _action_showPoints, "point_chart.png" );
+    setIcon( _action_zoomOutMaximum, "zoom_max.png" );
+    setIcon( _action_zoomOutHorizontally, "zoom_horizontal.png" );
+    setIcon( _action_zoomOutVertically, "zoom_vertical.png" );
+    setIcon( _action_saveToFile, "save.png" );
 
     QMenu menu(this);
     menu.addAction(_action_removeCurve);
@@ -1618,6 +1621,14 @@ bool PlotWidget::eventFilter(QObject *obj, QEvent *event)
     return false;
 }
 
+void PlotWidget::overrideCursonMove()
+{
+    QSettings settings;
+    QString theme = settings.value("Preferences::theme", "style_light").toString();
+    QPixmap pixmap( tr(":/%1/move.png").arg(theme) );
+    QApplication::setOverrideCursor(QCursor( pixmap.scaled(24,24) ));
+}
+
 bool PlotWidget::canvasEventFilter(QEvent *event)
 {
     switch( event->type() )
@@ -1671,7 +1682,7 @@ bool PlotWidget::canvasEventFilter(QEvent *event)
             }
             else if( mouse_event->modifiers() == Qt::ControlModifier) // panner
             {
-                QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resources/light/move.png")));
+                overrideCursonMove();
             }
             else{
                 auto clicked_item = _legend->processMousePressEvent(mouse_event);
@@ -1695,7 +1706,7 @@ bool PlotWidget::canvasEventFilter(QEvent *event)
         else if ( mouse_event->buttons() == Qt::MidButton &&
                   mouse_event->modifiers() == Qt::NoModifier )
         {
-            QApplication::setOverrideCursor(QCursor(QPixmap(":/icons/resource/lights/move.png")));
+            overrideCursonMove();
             return false;
         }
         else if( mouse_event->button() == Qt::RightButton )

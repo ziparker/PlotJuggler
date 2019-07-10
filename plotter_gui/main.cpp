@@ -117,9 +117,9 @@ int main(int argc, char *argv[])
     if( !parser.isSet(nosplash_option) && !( parser.isSet(loadfile_option) || parser.isSet(layout_option) ) )
     // if(false) // if you uncomment this line, a kitten will die somewhere in the world.
     {
-        QPixmap main_pixmap(":/splash/resources/splash_2.2.jpg");
+        QPixmap main_pixmap(":/resources/splash_2.2.jpg");
 
-        int font_id = QFontDatabase::addApplicationFont("://resources/DejaVuSans-ExtraLight.ttf");
+        int font_id = QFontDatabase::addApplicationFont(":/resources/DejaVuSans-ExtraLight.ttf");
         QString family = QFontDatabase::applicationFontFamilies(font_id).at(0);
         QFont font(family);
         font.setStyleStrategy(QFont::PreferAntialias);
