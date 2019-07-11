@@ -1,3 +1,4 @@
+#include <QSettings>
 #include "suggest_dialog.h"
 #include "ui_suggest_dialog.h"
 
@@ -9,6 +10,9 @@ SuggestDialog::SuggestDialog(const std::string& name_x,
 {
     ui->setupUi(this);
 
+    QSettings settings;
+    restoreGeometry(settings.value("SuggestDialog.geometry").toByteArray());
+
     ui->lineEditX->setText( QString::fromStdString(name_x) );
     ui->lineEditY->setText( QString::fromStdString(name_y) );
     updateSuggestion();
@@ -16,6 +20,8 @@ SuggestDialog::SuggestDialog(const std::string& name_x,
 
 SuggestDialog::~SuggestDialog()
 {
+    QSettings settings;
+    settings.setValue("SuggestDialog.geometry", saveGeometry());
     delete ui;
 }
 
