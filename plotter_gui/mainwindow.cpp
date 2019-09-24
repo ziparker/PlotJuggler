@@ -74,15 +74,6 @@ MainWindow::MainWindow(const QCommandLineParser &commandline_parser, QWidget *pa
         ui->streamingSpinBox->setMaximum(buffer_size);
     }
 
-    {
-        QIcon icon( tr(":/%1/office_chart_line_stacked.png").arg(_style_directory) );
-        if (!icon.isNull())
-        {
-            this->setWindowIcon(icon);
-            QApplication::setWindowIcon(icon);
-        }
-    }
-
     connect(this, &MainWindow::stylesheetChanged,
             this, &MainWindow::on_stylesheetChanged);
 
