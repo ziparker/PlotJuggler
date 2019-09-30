@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.3.2 (2019-09-30)
+------------------
 * always use random color in addCurveXY
 * Fix issue #204
 * Fix issue #203
