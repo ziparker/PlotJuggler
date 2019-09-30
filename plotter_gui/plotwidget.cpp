@@ -484,26 +484,42 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y,
 
 void PlotWidget::removeCurve(const std::string &curve_name)
 {
-    auto it = _curve_list.find(curve_name);
-    if( it != _curve_list.end() )
-    {
-        auto& curve = it->second;
-        curve->detach();
-        _curve_list.erase( it );
+    bool deleted = false;
 
-        auto marker_it = _point_marker.find(curve_name);
-        if( marker_it != _point_marker.end() )
+    for(auto it = _curve_list.begin(); it != _curve_list.end(); )
+    {
+        PointSeriesXY* curve_xy = dynamic_cast<PointSeriesXY*>(it->second->data());
+        bool remove_curve_xy = curve_xy && (curve_xy->dataX()->name() == curve_name ||
+                                            curve_xy->dataY()->name() == curve_name);
+
+        if( it->first == curve_name || remove_curve_xy )
         {
-            auto marker = marker_it->second;
-            if( marker ){
-                marker->detach();
+            deleted = true;
+            auto& curve = it->second;
+            curve->detach();
+            it = _curve_list.erase( it );
+
+            auto marker_it = _point_marker.find(curve_name);
+            if( marker_it != _point_marker.end() )
+            {
+                auto marker = marker_it->second;
+                if( marker ){
+                    marker->detach();
+                }
+                _point_marker.erase(marker_it);
             }
-            _point_marker.erase(marker_it);
+            _curves_transform.erase( it->first );
         }
+        else{
+            it++;
+        }
+    }
+
+    if( deleted)
+    {
         _tracker->redraw();
         emit curveListChanged();
     }
-    _curves_transform.erase( curve_name );
 }
 
 bool PlotWidget::isEmpty() const
