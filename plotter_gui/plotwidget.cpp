@@ -497,9 +497,8 @@ void PlotWidget::removeCurve(const std::string &curve_name)
             deleted = true;
             auto& curve = it->second;
             curve->detach();
-            it = _curve_list.erase( it );
 
-            auto marker_it = _point_marker.find(curve_name);
+            auto marker_it = _point_marker.find( it->first );
             if( marker_it != _point_marker.end() )
             {
                 auto marker = marker_it->second;
@@ -508,7 +507,9 @@ void PlotWidget::removeCurve(const std::string &curve_name)
                 }
                 _point_marker.erase(marker_it);
             }
+
             _curves_transform.erase( it->first );
+            it = _curve_list.erase( it );
         }
         else{
             it++;
