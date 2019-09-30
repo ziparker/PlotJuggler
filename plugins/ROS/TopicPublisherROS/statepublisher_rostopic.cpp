@@ -1,7 +1,7 @@
 #include "statepublisher_rostopic.h"
 #include "PlotJuggler/any.hpp"
 #include "../qnodedialog.h"
-#include <absl/types/span.h>
+
 #include "ros_type_introspection/ros_introspection.hpp"
 #include <QDialog>
 #include <QFormLayout>
@@ -318,7 +318,7 @@ void TopicPublisherROS::publishAnyMsg(const rosbag::MessageInstance& msg_instanc
             const auto& first_field = msg_info->message_tree.croot()->child(0)->value();
             if(first_field->type().baseName() == "std_msgs/Header")
             {
-                absl::Span<uint8_t> buffer(raw_buffer);
+                Span<uint8_t> buffer(raw_buffer);
                 std_msgs::Header msg;
                 ros::serialization::IStream is( buffer.data(), buffer.size() );
                 ros::serialization::deserialize(is, msg);

@@ -13,6 +13,8 @@ add_definitions(
     -DPJ_MINOR_VERSION=3
     -DPJ_PATCH_VERSION=2 )
 
+add_subdirectory( fmt )
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTOUIC ON)
@@ -73,7 +75,6 @@ if(COMPILING_WITH_CATKIN)
     message(STATUS "---------------------------------------------------------------------")
 
     set(ROS_DEPENDENCIES
-        abseil_cpp
         rosbag
         rosbag_storage
         roscpp
@@ -118,6 +119,7 @@ include_directories(
     ./qwt/src
     ./include
     ./color_widgets/include
+    ./fmt/include
 )
 
 #########################  INSTALL ####################################
@@ -150,6 +152,7 @@ else()
 endif()
 
 #############################################################
+
 
 add_subdirectory( backward-cpp )
 add_subdirectory( color_widgets )
