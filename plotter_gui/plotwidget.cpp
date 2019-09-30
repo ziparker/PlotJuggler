@@ -450,12 +450,8 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y,
 
     curve->setStyle( _curve_style );
 
-    QColor color = data.getColorHint();
-    if( color == Qt::black)
-    {
-        color = randomColorHint();
-        data.setColorHint(color);
-    }
+    QColor color =  randomColorHint();
+
     curve->setPen( color,  (_curve_style == QwtPlotCurve::Dots) ? 4 : 0.8 );
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
