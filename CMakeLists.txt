@@ -73,6 +73,7 @@ if(COMPILING_WITH_CATKIN)
     message(STATUS "---------------------------------------------------------------------")
 
     set(ROS_DEPENDENCIES
+        abseil_cpp
         rosbag
         rosbag_storage
         roscpp
