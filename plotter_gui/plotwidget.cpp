@@ -388,12 +388,7 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y,
 {
     std::string name = curve_name.toStdString() ;
 
-    auto isValid = [&](const std::string& str) -> bool
-    {
-        return  !str.empty() && _curve_list.count( str ) == 0;
-    };
-
-    while( !isValid(name) )
+    while( name.empty() )
     {
         SuggestDialog dialog( name_x, name_y, this );
 
@@ -403,7 +398,7 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y,
         name_x = dialog.nameX().toStdString();
         name_y = dialog.nameY().toStdString();
 
-        if ( !ok || !isValid(name) )
+        if ( !ok || name.empty() || _curve_list.count( name ) != 0 )
         {
             int ret = QMessageBox::warning(this, "Missing name",
                                            "The name is missing or invalid. Try again or abort.",
