@@ -117,9 +117,9 @@ To run the application, use the command:
 PlotJuggler required a lot of work to be developed; my goal is to build the most
 intuitive and powerfull tool to visualize data and timeseries.
 
-If you find PlotJuggler useful, consider making a donation on any of these platforms: 
+If you find PlotJuggler useful, consider making a donation on 
 [PayPal](https://www.paypal.me/facontidavide) or 
-[LiveraPay](https://en.liberapay.com/facontidavide/).
+
 
 If you use PlotJuggler at work, your company can become a __sponsor__ and support 
 the development of those specific features they need.
