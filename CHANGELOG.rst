@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.3.3 (2019-10-01)
+------------------
 * removed explicit reference to Span
 * remove abseil dependency (to be tested)
 * Contributors: Davide Faconti
