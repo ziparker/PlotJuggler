@@ -2,6 +2,18 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* prepare "meme edition"
+* Merge branch 'master' of https://github.com/facontidavide/PlotJuggler
+* RosMsgParsers: add cast to be clang compatible (#208)
+* Update README.md
+* Update FUNDING.yml
+* Correct "Github" to "GitHub" (#206)
+* 2.3.3
+* fix issue with FMT
+* Contributors: Dan Katzuv, Davide Faconti, Timon Engelke
+
 2.3.3 (2019-10-01)
 ------------------
 * removed explicit reference to Span
