@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.3.4 (2019-10-03)
+------------------
 * prepare "meme edition"
 * Merge branch 'master' of https://github.com/facontidavide/PlotJuggler
 * RosMsgParsers: add cast to be clang compatible (#208)
