@@ -12,7 +12,7 @@ QPixmap getFunnySplashscreen(){
 
     qsrand(time(nullptr));
     int n = qrand() % 44;
-    if ( n >= 44 ){ n = 0; }
+    if ( n >= 41 ){ n = 0; }
     return QPixmap(QString("://resources/memes/meme_%1.jpg").arg(n, 2, 10, QChar('0')));
 }
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
         app.processEvents();
         splash.raise();
 
-        const auto deadline = QDateTime::currentDateTime().addMSecs( 3000 );
+        const auto deadline = QDateTime::currentDateTime().addMSecs( 3500 );
 
         MainWindow w( parser );
         while( QDateTime::currentDateTime() < deadline && !splash.isHidden() )
