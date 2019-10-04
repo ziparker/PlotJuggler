@@ -10,10 +10,22 @@
 
 QPixmap getFunnySplashscreen(){
 
+    QSettings settings;
     qsrand(time(nullptr));
-    int n = qrand() % 44;
-    if ( n >= 41 ){ n = 0; }
-    return QPixmap(QString("://resources/memes/meme_%1.jpg").arg(n, 2, 10, QChar('0')));
+
+    auto getNum = [](){
+        int n = qrand() % 44;
+        if ( n >= 41 ){ n = 0; }
+        return n;
+    };
+    int n = getNum();
+    int prev_n = settings.value("previousFunnySubtitle").toInt();
+    while( n == prev_n ){
+        n = getNum();
+    }
+    settings.setValue("previousFunnySubtitle", n);
+    auto filename = QString("://resources/memes/meme_%1.jpg").arg(n, 2, 10, QChar('0'));
+    return QPixmap(filename);
 }
 
 int main(int argc, char *argv[])
