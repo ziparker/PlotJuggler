@@ -15,7 +15,7 @@ QPixmap getFunnySplashscreen(){
 
     auto getNum = [](){
         int n = qrand() % 44;
-        if ( n >= 41 ){ n = 0; }
+        if ( n > 42 ){ n = 0; }
         return n;
     };
     int n = getNum();
