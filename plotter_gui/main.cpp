@@ -13,9 +13,11 @@ QPixmap getFunnySplashscreen(){
     QSettings settings;
     qsrand(time(nullptr));
 
+    const int last_image_num = 43;
+
     auto getNum = [](){
-        int n = qrand() % 44;
-        if ( n > 42 ){ n = 0; }
+        int n = qrand() % (last_image_num+3);
+        if ( n > last_image_num ){ n = 0; }
         return n;
     };
     int n = getNum();
@@ -25,6 +27,7 @@ QPixmap getFunnySplashscreen(){
     }
     settings.setValue("previousFunnySubtitle", n);
     auto filename = QString("://resources/memes/meme_%1.jpg").arg(n, 2, 10, QChar('0'));
+    //qDebug() << filename;
     return QPixmap(filename);
 }
 
