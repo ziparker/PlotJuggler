@@ -2,6 +2,18 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remember the size of the splitter
+* fix inveted XY
+* Contributors: Davide Faconti
+* remember last splashscreen
+* Update README.md
+* Update appimage_howto.md
+* fix warning
+* meme fixed
+* Contributors: Davide Faconti
+
 2.3.4 (2019-10-03)
 ------------------
 * prepare "meme edition"
