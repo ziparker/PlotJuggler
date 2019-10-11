@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.3.5 (2019-10-11)
+------------------
 * remember the size of the splitter
 * fix inveted XY
 * Contributors: Davide Faconti
