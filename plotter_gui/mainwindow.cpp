@@ -1133,7 +1133,7 @@ bool MainWindow::loadDataFromFiles( QStringList filenames )
     {
         updateRecentDataMenu(loaded_filenames);
         return true;
-    }
+    }    
     return false;
 }
 
@@ -1218,7 +1218,22 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
                 QDomElement plugin_elem = dataloader->xmlSaveState(new_info.plugin_config);
                 new_info.plugin_config.appendChild( plugin_elem );
 
-                _loaded_datafiles.push_back(new_info);
+                bool duplicate = false;
+
+                // substitute an old item of _loaded_datafiles or push_back another item.
+                for( auto& prev_loaded: _loaded_datafiles)
+                {
+                  if( prev_loaded.filename == new_info.filename &&  prev_loaded.prefix == new_info.prefix)
+                  {
+                    prev_loaded = new_info;
+                    duplicate = true;
+                    break;
+                  }
+                }
+
+                if( ! duplicate ){
+                  _loaded_datafiles.push_back(new_info);
+                }
             }
         }
         catch(std::exception &ex)
