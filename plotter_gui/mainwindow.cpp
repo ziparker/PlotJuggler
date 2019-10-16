@@ -1114,10 +1114,10 @@ bool MainWindow::loadDataFromFiles( QStringList filenames )
     char prefix_ch = 'A';
     QStringList loaded_filenames;
 
-    for( const auto& filename: filenames)
+    for( int i=0; i<filenames.size(); i++)
     {
         FileLoadInfo info;
-        info.filename = filename;
+        info.filename = filenames[i];
         if( filenames.size() > 1 )
         {
             info.prefix = prefix_ch;
@@ -1125,7 +1125,7 @@ bool MainWindow::loadDataFromFiles( QStringList filenames )
 
         if( loadDataFromFile(info) )
         {
-            loaded_filenames.push_back(filename);
+            loaded_filenames.push_back(filenames[i]);
             prefix_ch++;
         }
     }
@@ -2283,6 +2283,12 @@ void MainWindow::on_actionReportBug_triggered()
     QDesktopServices::openUrl( QUrl( "https://github.com/facontidavide/PlotJuggler/issues" ));
 }
 
+void MainWindow::on_actionShare_the_love_triggered()
+{
+    QDesktopServices::openUrl( QUrl( "https://twitter.com/intent/tweet?hashtags=PlotJuggler" ));
+}
+
+
 void MainWindow::on_actionAbout_triggered()
 {
     QDialog* dialog = new QDialog(this);
@@ -2726,3 +2732,4 @@ void MainWindow::on_actionPreferences_triggered()
         emit stylesheetChanged(_style_directory);
     }
 }
+
