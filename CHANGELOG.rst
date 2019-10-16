@@ -2,6 +2,11 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix issue `#215 <https://github.com/facontidavide/PlotJuggler/issues/215>`_
+* Contributors: Davide Faconti
+
 2.3.5 (2019-10-11)
 ------------------
 * remember the size of the splitter
