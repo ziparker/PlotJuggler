@@ -58,10 +58,6 @@ Do not forget to make it executable with the command
 
     chmod +x ./PlotJuggler-2.3.6-x86_64.AppImage
 
-**IMPORTANT / KNOWN ISSUE**. You must install this package:
-
-    sudo apt install ros-$ROS_DISTRO-ros-type-introspection
-
 ## How to build (without ROS plugins)
 
 Clone the repository as usual:
