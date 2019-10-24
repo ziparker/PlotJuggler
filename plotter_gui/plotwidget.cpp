@@ -6,12 +6,15 @@
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QMenu>
 #include <QMimeData>
+#include <QPainter>
 #include <QPushButton>
 #include <QWheelEvent>
 #include <QSettings>
+#include <QSvgGenerator>
 #include <iostream>
 #include <limits>
 #include <set>
@@ -20,6 +23,7 @@
 #include "qwt_scale_widget.h"
 #include "qwt_plot_canvas.h"
 #include "qwt_scale_engine.h"
+#include "qwt_scale_map.h"
 #include "qwt_plot_layout.h"
 #include "qwt_scale_draw.h"
 #include "qwt_text.h"
@@ -1114,7 +1118,12 @@ void PlotWidget::configureTracker(CurveTracker::Parameter val)
 
 void PlotWidget::enableTracker(bool enable)
 {
-    _tracker->setEnabled( enable && !isXYPlot() );
+  _tracker->setEnabled( enable && !isXYPlot() );
+}
+
+bool PlotWidget::isTrackerEnabled() const
+{
+  return _tracker->isEnabled();
 }
 
 void PlotWidget::setTrackerPosition(double abs_time)
@@ -1579,11 +1588,16 @@ void PlotWidget::on_savePlotToFile()
 {
     QString fileName;
 
-    QFileDialog saveDialog;
+    QFileDialog saveDialog(this);
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.setDefaultSuffix("png");
 
-    saveDialog.setNameFilter("Compatible formats (*.jpg *.jpeg *.png)");
+    QStringList filters;
+    filters << "png (*.png)"
+            << "jpg (*.jpg *.jpeg)"
+            << "svg (*.svg)";
+
+    saveDialog.setNameFilters(filters);
 
     saveDialog.exec();
 
@@ -1591,14 +1605,39 @@ void PlotWidget::on_savePlotToFile()
     {
         fileName = saveDialog.selectedFiles().first();
 
-        QPixmap pixmap (1200,900);
-        QPainter * painter = new QPainter(&pixmap);
-
-        if ( !fileName.isEmpty() )
+        if ( fileName.isEmpty() )
         {
-            QwtPlotRenderer rend;
-            rend.render(this, painter, QRect(0, 0, pixmap.width(), pixmap.height()));
+          return;
+        }
+
+        bool tracker_enabled =  _tracker->isEnabled();
+        if( tracker_enabled ){
+          this->enableTracker(false);
+          replot();
+        }
+
+        QRect documentRect(0,0,1200, 900);
+        QwtPlotRenderer rend;
+
+        if( QFileInfo(fileName).suffix().toLower() == "svg")
+        {
+          QSvgGenerator generator;
+          generator.setFileName( fileName );
+          generator.setResolution( 80 );
+          generator.setViewBox( documentRect );
+          QPainter painter( &generator );
+          rend.render( this, &painter, documentRect );
+        }
+        else {
+            QPixmap pixmap (1200,900);
+            QPainter painter(&pixmap);
+            rend.render(this, &painter, documentRect);
             pixmap.save(fileName);
+        }
+
+        if( tracker_enabled ){
+          this->enableTracker(true);
+          replot();
         }
     }
 }
@@ -1926,7 +1965,7 @@ bool PlotWidget::isLegendVisible() const
 
 void PlotWidget::setLegendAlignment(Qt::Alignment alignment)
 {
-    _legend->setAlignment( Qt::Alignment( Qt::AlignTop | alignment ) );
+    _legend->setAlignmentInCanvas( Qt::Alignment( Qt::AlignTop | alignment ) );
 }
 
 void PlotWidget::setZoomEnabled(bool enabled)

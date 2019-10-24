@@ -2349,7 +2349,7 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
     QString directory_path  = settings.value("MainWindow.saveAllPlotTabs",
                                              QDir::currentPath() ).toString();
     // Get destination folder
-    QFileDialog saveDialog;
+    QFileDialog saveDialog(this);
     saveDialog.setDirectory(directory_path);
     saveDialog.setFileMode(QFileDialog::FileMode::Directory);
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -2451,7 +2451,7 @@ void MainWindow::on_actionLoadData_triggered()
 
     QString directory_path = settings.value("MainWindow.lastDatafileDirectory", QDir::currentPath() ).toString();
 
-    QFileDialog loadDialog( this );
+    QFileDialog loadDialog(this);
     loadDialog.setFileMode(QFileDialog::ExistingFiles);
     loadDialog.setViewMode(QFileDialog::Detail);
     loadDialog.setNameFilter(file_extension_filter);
@@ -2506,7 +2506,7 @@ void MainWindow::on_actionSaveLayout_triggered()
     QString directory_path  = settings.value("MainWindow.lastLayoutDirectory",
                                              QDir::currentPath() ).toString();
 
-    QFileDialog saveDialog;
+    QFileDialog saveDialog(this);
     saveDialog.setOption(QFileDialog::DontUseNativeDialog, true);
 
     QGridLayout *save_layout = static_cast<QGridLayout*>(saveDialog.layout());
