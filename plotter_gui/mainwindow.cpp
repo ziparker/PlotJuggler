@@ -2096,6 +2096,11 @@ void MainWindow::on_actionClearBuffer_triggered()
         it.second.clear();
     }
 
+    for (auto& it: _custom_plots )
+    {
+        it.second->clear();
+    }
+
     forEachWidget( [](PlotWidget* plot) {
         plot->reloadPlotData();
         plot->replot();
