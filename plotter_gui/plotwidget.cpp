@@ -366,7 +366,7 @@ bool PlotWidget::addCurve(const std::string &name)
         color = randomColorHint();
         data.setColorHint(color);
     }
-    curve->setPen( color,  (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.2 );
+    curve->setPen( color,  (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0 );
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
     curve->attach( this );
@@ -456,7 +456,7 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y,
 
     QColor color =  randomColorHint();
 
-    curve->setPen( color,  (_curve_style == QwtPlotCurve::Dots) ? 4 : 0.8 );
+    curve->setPen( color,  (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0 );
     curve->setRenderHint( QwtPlotItem::RenderAntialiased, true );
 
     curve->attach( this );
@@ -1367,7 +1367,7 @@ void PlotWidget::on_showPoints_triggered()
     for(auto& it: _curve_list)
     {
         auto& curve = it.second;
-        curve->setPen( curve->pen().color(),  (_curve_style == QwtPlotCurve::Dots) ? 4 : 0.8 );
+        curve->setPen( curve->pen().color(),  (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0 );
         curve->setStyle( _curve_style );
     }
     replot();
