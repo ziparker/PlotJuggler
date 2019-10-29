@@ -1139,6 +1139,8 @@ bool MainWindow::loadDataFromFiles( QStringList filenames )
 
 bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
 {
+    ui->pushButtonPlay->setChecked(false);
+
     const QString extension = QFileInfo(info.filename).suffix().toLower();
 
     typedef std::map<QString,DataLoader*>::iterator MapIterator;
