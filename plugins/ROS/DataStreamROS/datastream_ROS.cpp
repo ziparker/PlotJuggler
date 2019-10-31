@@ -69,6 +69,11 @@ void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg
     msg->write(stream);
 
     double msg_time = ros::Time::now().toSec();
+    if( msg_time == 0)
+    {
+      // corner case: use_sim_time == true but topic /clock is not published
+      msg_time = ros::WallTime::now().toSec();
+    }
 
     if( msg_time < _prev_clock_time )
     {
