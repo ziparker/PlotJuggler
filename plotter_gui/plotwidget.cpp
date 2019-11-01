@@ -220,8 +220,9 @@ void PlotWidget::buildActions()
     _action_noTransform = new QAction(tr("&NO Transform"), this);
     _action_noTransform->setCheckable( true );
     _action_noTransform->setChecked( true );
-    connect(_action_noTransform, &QAction::triggered, this, [this, font]()
+    connect(_action_noTransform, &QAction::changed, this, [this, font]()
     {
+        if( !_action_noTransform->isChecked() ){ return; }
         QwtText text("");
         text.setFont(font);
         this->setFooter(text);
@@ -230,8 +231,9 @@ void PlotWidget::buildActions()
 
     _action_1stDerivativeTransform = new QAction(tr("&1st Derivative"), this);
     _action_1stDerivativeTransform->setCheckable( true );
-    connect(_action_1stDerivativeTransform, &QAction::triggered, this, [this, font]()
+    connect(_action_1stDerivativeTransform, &QAction::changed, this, [this, font]()
     {
+        if( !_action_1stDerivativeTransform->isChecked() ){ return; }
         QwtText text("1st Derivative");
         text.setFont(font);
         this->setFooter(text);
@@ -240,8 +242,9 @@ void PlotWidget::buildActions()
 
     _action_2ndDerivativeTransform = new QAction(tr("&2nd Derivative"), this);
     _action_2ndDerivativeTransform->setCheckable( true );
-    connect(_action_2ndDerivativeTransform, &QAction::triggered, this, [this, font]()
+    connect(_action_2ndDerivativeTransform, &QAction::changed, this, [this, font]()
     {
+        if( !_action_2ndDerivativeTransform->isChecked() ){ return; }
         QwtText text("2nd Derivative");
         text.setFont(font);
         this->setFooter(text);
@@ -1439,10 +1442,6 @@ void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
 {
     _xy_mode = false;
 
-    if( _default_transform == new_transform)
-    {
-        return;
-    }
     enableTracker(true);
 
     for(auto& it : _curve_list)
