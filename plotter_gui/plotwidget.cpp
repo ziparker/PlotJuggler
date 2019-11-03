@@ -892,7 +892,7 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
     if( curve_removed || curve_added)
     {
         _tracker->redraw();
-        replot();
+        //replot();
         emit curveListChanged();
     }
 
@@ -1176,17 +1176,18 @@ void PlotWidget::on_changeTimeOffset(double offset)
 
 void PlotWidget::on_changeDateTimeScale(bool enable)
 {
-    if( enable != _use_date_time_scale)
-    {
-        _use_date_time_scale = enable;
-        if( enable  )
-        {
-            setAxisScaleDraw(QwtPlot::xBottom, new TimeScaleDraw());
-        }
-        else{
-            setAxisScaleDraw(QwtPlot::xBottom, new QwtScaleDraw);
-        }
+  _use_date_time_scale = enable;
+  bool is_timescale = dynamic_cast<TimeScaleDraw*>(axisScaleDraw(QwtPlot::xBottom)) != nullptr;
+
+  if (enable && !isXYPlot()) {
+    if( !is_timescale ){
+      setAxisScaleDraw(QwtPlot::xBottom, new TimeScaleDraw());
     }
+  } else {
+    if( is_timescale ){
+      setAxisScaleDraw(QwtPlot::xBottom, new QwtScaleDraw);
+    }
+  }
 }
 
 
@@ -1464,6 +1465,7 @@ void PlotWidget::on_changeToBuiltinTransforms(QString new_transform )
 
     _default_transform = new_transform;
     zoomOut(true);
+    on_changeDateTimeScale(_use_date_time_scale);
     replot();
 }
 
@@ -1489,6 +1491,7 @@ void PlotWidget::convertToXY()
     this->setFooter( text );
 
     zoomOut(true);
+    on_changeDateTimeScale(_use_date_time_scale);
     replot();
 }
 
@@ -1994,8 +1997,6 @@ bool PlotWidget::isZoomEnabled() const
 
 void PlotWidget::replot()
 {
-    static int replot_count = 0;
-
     if( _zoomer ){
         _zoomer->setZoomBase( false );
     }
