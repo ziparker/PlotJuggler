@@ -472,7 +472,6 @@ void MainWindow::initializePlugins(QString directory_name)
             if( loader )    plugin_name = loader->name();
             if( publisher ) plugin_name = publisher->name();
             if( streamer )  plugin_name = streamer->name();
-            plugin_name.replace(" ", "_");
 
             if( loaded_plugins.find(plugin_name) == loaded_plugins.end())
             {
@@ -1364,7 +1363,7 @@ void MainWindow::loadPluginState(const QDomElement& root)
         if( plugin_elem.nodeName() != "plugin" || plugin_name.isEmpty() )
         {
             QMessageBox::warning(this, tr("Error loading Plugin State from Layout"),
-                                 tr("The method xmlSaveState() must return a node line this <plugin ID=\"PluginName\" ") );
+                                 tr("The method xmlSaveState() must return a node like this <plugin ID=\"PluginName\" ") );
         }
 
         if( _data_loader.find(plugin_name) != _data_loader.end() )
@@ -1397,7 +1396,7 @@ QDomElement MainWindow::savePluginState(QDomDocument& doc)
         if( elem.nodeName() != "plugin" || elem.attribute("ID") !=  expected_name )
         {
             QMessageBox::warning(this, tr("Error saving Plugin State to Layout"),
-                                 tr("[%1] The method xmlSaveState() must return a node line this <plugin ID=\"PluginName\">")
+                                 tr("[%1] The method xmlSaveState() must return a node like this <plugin ID=\"PluginName\">")
                                  .arg(expected_name) );
         }
     };
@@ -1497,7 +1496,7 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
     return std::tuple<double,double,int>( min_time, max_time, max_steps );
 }
 
-static const QString LAYOUT_VERSION = "2.3.0";
+static const QString LAYOUT_VERSION = "2.3.7";
 
 bool MainWindow::loadLayoutFromFile(QString filename)
 {
@@ -2605,7 +2604,6 @@ void MainWindow::on_actionSaveLayout_triggered()
         {
             QDomElement loaded_streamer =  doc.createElement( "previouslyLoaded_Streamer" );
             QString streamer_name = _current_streamer->name();
-            streamer_name.replace(" ", "_");
             loaded_streamer.setAttribute("name", streamer_name );
             root.appendChild( loaded_streamer );
         }
