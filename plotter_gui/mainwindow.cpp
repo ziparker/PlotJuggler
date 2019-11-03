@@ -1496,7 +1496,7 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
     return std::tuple<double,double,int>( min_time, max_time, max_steps );
 }
 
-static const QString LAYOUT_VERSION = "2.3.7";
+static const QString LAYOUT_VERSION = "2.3.8";
 
 bool MainWindow::loadLayoutFromFile(QString filename)
 {
