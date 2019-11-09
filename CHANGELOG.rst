@@ -2,6 +2,18 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Tree view  (`#226 <https://github.com/facontidavide/PlotJuggler/issues/226>`_)
+* fix issue `#225 <https://github.com/facontidavide/PlotJuggler/issues/225>`_
+* add version number of the layout syntax
+* fix issue `#222 <https://github.com/facontidavide/PlotJuggler/issues/222>`_
+* more readable plugin names
+* fix issue `#221 <https://github.com/facontidavide/PlotJuggler/issues/221>`_
+* Merge branch 'master' of github.com:facontidavide/PlotJuggler
+* minor bug fix
+* Contributors: Davide Faconti
+
 2.3.7 (2019-10-30)
 ------------------
 * Dont take invisible curve into account for axis limit computation (`#185 <https://github.com/facontidavide/PlotJuggler/issues/185>`_)
