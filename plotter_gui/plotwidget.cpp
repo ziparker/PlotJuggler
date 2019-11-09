@@ -541,18 +541,6 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
     _dragging.source = event->source();
     for(const QString& format: mimeFormats)
     {
-        QByteArray encoded = mimeData->data( format );
-        QDataStream stream(&encoded, QIODevice::ReadOnly);
-
-        while (!stream.atEnd())
-        {
-            QString curve_name;
-            stream >> curve_name;
-            if(!curve_name.isEmpty()) {
-                _dragging.curves.push_back(curve_name);
-            }
-        }
-
         if( format.contains( "curveslist/add_curve") )
         {
             _dragging.mode = DragInfo::CURVES;
@@ -570,6 +558,18 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
             {
                 _dragging.mode = DragInfo::SWAP_PLOTS;
                 event->acceptProposedAction();
+            }
+        }
+
+        QByteArray encoded = mimeData->data( format );
+        QDataStream stream(&encoded, QIODevice::ReadOnly);
+
+        while (!stream.atEnd())
+        {
+            QString curve_name;
+            stream >> curve_name;
+            if(!curve_name.isEmpty()) {
+                _dragging.curves.push_back(curve_name);
             }
         }
     }
