@@ -52,11 +52,11 @@ Watch this video to learn how to use it.
 
 For those of you that can't wait and want to get their hands dirty, just download this AppImage:
 
-[PlotJuggler-2.3.6-x86_64.AppImage](https://github.com/facontidavide/PlotJuggler/releases/download/2.3.6/PlotJuggler-2.3.6-x86_64.AppImage).
+[PlotJuggler-2.4.0-x86_64.AppImage](https://github.com/facontidavide/PlotJuggler/releases/download/2.4.0/PlotJuggler-2.4.0-x86_64.AppImage).
    
 Do not forget to make it executable with the command 
 
-    chmod +x ./PlotJuggler-2.3.6-x86_64.AppImage
+    chmod +x ./PlotJuggler-*-x86_64.AppImage
 
 ## How to build (without ROS plugins)
 
