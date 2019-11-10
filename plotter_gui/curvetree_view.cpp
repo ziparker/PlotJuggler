@@ -226,6 +226,10 @@ void CurveTreeView::removeCurve(const QString &to_be_deleted)
         {
             _leaf_count --;
             auto parent_item = item->parent();
+            if(!parent_item)
+            {
+                parent_item = invisibleRootItem();
+            }
             parent_item->removeChild(item);
 
             while (parent_item->childCount() == 0 &&
