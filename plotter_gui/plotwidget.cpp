@@ -259,12 +259,17 @@ void PlotWidget::buildActions()
     _action_saveToFile = new QAction("&Save plot to file", this);
     connect(_action_saveToFile, &QAction::triggered, this, &PlotWidget::on_savePlotToFile);
 
+    _action_XY_transform = new QAction(tr("&XY Plot"), this);
+    _action_XY_transform->setCheckable( true );
+    _action_XY_transform->setEnabled(false);
+
     auto transform_group = new QActionGroup(this);
 
     transform_group->addAction(_action_noTransform);
     transform_group->addAction(_action_1stDerivativeTransform);
     transform_group->addAction(_action_2ndDerivativeTransform);
     transform_group->addAction(_action_custom_transform);
+    transform_group->addAction(_action_XY_transform);
 }
 
 
@@ -306,6 +311,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     menu.addAction(_action_zoomOutVertically);
     menu.addSeparator();
     menu.addAction( _action_noTransform );
+    menu.addAction( _action_XY_transform );
     menu.addAction( _action_1stDerivativeTransform );
     menu.addAction( _action_2ndDerivativeTransform );
     menu.addAction( _action_custom_transform );
@@ -321,7 +327,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     _action_2ndDerivativeTransform->setEnabled( !_xy_mode );
     _action_custom_transform->setEnabled( !_xy_mode );
 
-    menu.exec( canvas()->mapToGlobal(pos) );
+     menu.exec(canvas()->mapToGlobal(pos));
 }
 
 
@@ -1047,12 +1053,12 @@ void PlotWidget::setConstantRatioXY(bool active)
     _keep_aspect_ratio = active;
     if( isXYPlot() && active)
     {
-        // TODo rescaler
         _zoomer->keepAspectratio( true );
     }
     else{
         _zoomer->keepAspectratio( false );
     }
+    zoomOut(false);
 }
 
 void PlotWidget::setZoomRectangle(QRectF rect, bool emit_signal)
@@ -1487,6 +1493,7 @@ bool PlotWidget::isXYPlot() const
 void PlotWidget::convertToXY()
 {
     _xy_mode = true;
+    _action_XY_transform->setChecked(true);
 
     enableTracker(false);
     _default_transform = "XYPlot";
