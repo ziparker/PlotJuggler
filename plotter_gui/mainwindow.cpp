@@ -1330,8 +1330,8 @@ QDomElement MainWindow::savePluginState(QDomDocument& doc)
         if( elem.nodeName() != "plugin" || elem.attribute("ID") !=  expected_name )
         {
             QMessageBox::warning(this, tr("Error saving Plugin State to Layout"),
-                                 tr("[%1] The method xmlSaveState() must return a node like this <plugin ID=\"PluginName\">")
-                                 .arg(expected_name) );
+                                 tr("The method xmlSaveState() returned\n<plugin ID=\"%1\">\ninstead of\n<plugin ID=\"%2\">")
+                                     .arg(elem.attribute("ID")).arg(expected_name) );
         }
     };
 
