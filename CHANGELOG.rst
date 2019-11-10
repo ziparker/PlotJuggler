@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.4.0 (2019-11-10)
+------------------
 * Tree view  (`#226 <https://github.com/facontidavide/PlotJuggler/issues/226>`_)
 * fix issue `#225 <https://github.com/facontidavide/PlotJuggler/issues/225>`_
 * add version number of the layout syntax
