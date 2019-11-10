@@ -539,28 +539,10 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
     QStringList mimeFormats = mimeData->formats();
     _dragging.curves.clear();
     _dragging.source = event->source();
+
+
     for(const QString& format: mimeFormats)
     {
-        if( format.contains( "curveslist/add_curve") )
-        {
-            _dragging.mode = DragInfo::CURVES;
-            event->acceptProposedAction();
-        }
-        if( format.contains( "curveslist/new_XY_axis") && _dragging.curves.size() == 2 )
-        {
-            _dragging.mode = DragInfo::NEW_XY;
-            event->acceptProposedAction();
-        }
-        if( format.contains( "plot_area")  )
-        {
-            if(_dragging.curves.size() == 1 &&
-                    windowTitle() != _dragging.curves.front() )
-            {
-                _dragging.mode = DragInfo::SWAP_PLOTS;
-                event->acceptProposedAction();
-            }
-        }
-
         QByteArray encoded = mimeData->data( format );
         QDataStream stream(&encoded, QIODevice::ReadOnly);
 
@@ -570,6 +552,32 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent *event)
             stream >> curve_name;
             if(!curve_name.isEmpty()) {
                 _dragging.curves.push_back(curve_name);
+            }
+        }
+
+        if( format == "curveslist/add_curve" )
+        {
+            _dragging.mode = DragInfo::CURVES;
+            event->acceptProposedAction();
+        }
+        if( format == "curveslist/new_XY_axis" )
+        {
+            if( _dragging.curves.size() != 2)
+            {
+                qDebug() << "FATAL: Dragging " << _dragging.curves.size() <<" curves";
+                return;
+            }
+
+            _dragging.mode = DragInfo::NEW_XY;
+            event->acceptProposedAction();
+        }
+        if( format == "plot_area" )
+        {
+            if(_dragging.curves.size() == 1 &&
+                    windowTitle() != _dragging.curves.front() )
+            {
+                _dragging.mode = DragInfo::SWAP_PLOTS;
+                event->acceptProposedAction();
             }
         }
     }
