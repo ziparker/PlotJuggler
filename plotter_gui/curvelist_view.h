@@ -57,6 +57,8 @@ class CurvesView
 
     virtual void hideValuesColumn(bool hide) = 0;
 
+    virtual void setViewResizeEnabled(bool enable) = 0;
+
     bool eventFilterBase(QObject* object, QEvent* event);
 
     virtual std::pair<int,int> hiddenItemsCount() = 0;
@@ -110,6 +112,8 @@ class CurveTableView : public QTableWidget, public CurvesView
             return true;
         }
     }
+
+    void setViewResizeEnabled(bool enable) override;
 
     virtual std::pair<int,int> hiddenItemsCount()
     {

@@ -20,13 +20,11 @@ CurveTableView::CurveTableView(CurveListPanel* parent)
     viewport()->installEventFilter(this);
 
     verticalHeader()->setVisible(false);
-    verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     horizontalHeader()->setVisible(false);
     horizontalHeader()->setStretchLastSection(true);
 
-    horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    setViewResizeEnabled(true);
 
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setShowGrid(false);
@@ -82,10 +80,7 @@ void CurveTableView::refreshFontSize()
     {
         return;
     }
-    horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-
-    verticalHeader()->setSectionResizeMode( QHeaderView::Fixed);
+    setViewResizeEnabled(false);
 
     for (int row = 0; row < rowCount(); row++)
     {
@@ -99,10 +94,7 @@ void CurveTableView::refreshFontSize()
             cell->setFont(font);
         }
     }
-
-    horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    setViewResizeEnabled(true);
 }
 
 void CurveTableView::removeCurve(const QString &name)
@@ -119,6 +111,8 @@ void CurveTableView::removeCurve(const QString &name)
 
 bool CurveTableView::applyVisibilityFilter(CurvesView::FilterType type, const QString &search_string)
 {
+    setViewResizeEnabled(false);
+
     bool updated = false;
     _hidden_count = 0;
     QRegExp regexp( search_string, Qt::CaseInsensitive, QRegExp::Wildcard );
@@ -159,7 +153,24 @@ bool CurveTableView::applyVisibilityFilter(CurvesView::FilterType type, const QS
 
         setRowHidden(row, toHide );
     }
+
+    setViewResizeEnabled(true);
     return updated;
+}
+
+void CurveTableView::setViewResizeEnabled(bool enable)
+{
+    if( enable )
+    {
+        horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    }
+    else{
+        horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+        horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+        verticalHeader()->setSectionResizeMode( QHeaderView::Fixed);
+    }
 }
 
 void CurveTableView::hideValuesColumn(bool hide)
