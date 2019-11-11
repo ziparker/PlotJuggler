@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.4.1 (2019-11-11)
+------------------
 * considerable speed improvement when MANY timeseries are loaded
 * bug fix: slow update of left curve table
 * AppImage update
