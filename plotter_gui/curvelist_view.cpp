@@ -32,7 +32,7 @@ CurveTableView::CurveTableView(CurveListPanel* parent)
 
 void CurveTableView::addItem(const QString &item_name)
 {
-    if (findItems(item_name, Qt::MatchExactly).size() > 0)
+    if ( _inserted_curves.contains(item_name) )
     {
         return;
     }
@@ -54,6 +54,8 @@ void CurveTableView::addItem(const QString &item_name)
     val_cell->setFlags(Qt::NoItemFlags);
 
     QTableWidget::setItem(row, 1, val_cell);
+
+    _inserted_curves.insert( {item_name} );
 }
 
 void CurveTableView::refreshColumns()
@@ -107,6 +109,7 @@ void CurveTableView::removeCurve(const QString &name)
             break;
         }
     }
+    _inserted_curves.remove( name );
 }
 
 bool CurveTableView::applyVisibilityFilter(CurvesView::FilterType type, const QString &search_string)

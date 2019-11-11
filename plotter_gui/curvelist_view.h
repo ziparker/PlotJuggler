@@ -12,6 +12,7 @@
 #include <QStandardItemModel>
 #include <QTableWidget>
 #include <vector>
+#include <QSet>
 
 #include "PlotJuggler/alphanum.hpp"
 
@@ -87,6 +88,7 @@ class CurveTableView : public QTableWidget, public CurvesView
     void clear() override
     {
         setRowCount(0);
+        _inserted_curves.clear();
     }
 
     void addItem(const QString& item_name);
@@ -123,6 +125,7 @@ class CurveTableView : public QTableWidget, public CurvesView
     virtual void hideValuesColumn(bool hide) override;
    private:
     int _hidden_count = 0;
+    QSet<QString> _inserted_curves;
 };
 
 #endif  // CURVELIST_VIEW_H
