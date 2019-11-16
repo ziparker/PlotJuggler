@@ -115,6 +115,18 @@ class CurveTableView : public QTableWidget, public CurvesView
         }
     }
 
+    void resizeEvent(QResizeEvent *event) override {
+      if( columnWidth(1) < 150)
+      {
+        setColumnWidth(1, 150);
+      }
+      if( columnWidth(0) < 200)
+      {
+        setColumnWidth(0, 200);
+      }
+      QTableWidget::resizeEvent(event);
+    }
+
     void setViewResizeEnabled(bool enable) override;
 
     virtual std::pair<int,int> hiddenItemsCount()

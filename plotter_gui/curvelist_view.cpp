@@ -20,11 +20,12 @@ CurveTableView::CurveTableView(CurveListPanel* parent)
     viewport()->installEventFilter(this);
 
     verticalHeader()->setVisible(false);
+    horizontalHeader()->setVisible(true);
 
-    horizontalHeader()->setVisible(false);
     horizontalHeader()->setStretchLastSection(true);
 
-    setViewResizeEnabled(true);
+    setHorizontalHeaderItem(0, new QTableWidgetItem("Time series"));
+    setHorizontalHeaderItem(1, new QTableWidgetItem("Current value"));
 
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     setShowGrid(false);
@@ -49,7 +50,7 @@ void CurveTableView::addItem(const QString &item_name)
     val_cell->setTextAlignment(Qt::AlignRight);
     val_cell->setFlags(Qt::NoItemFlags | Qt::ItemIsEnabled);
     font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    font.setPointSize(_point_size);
+    font.setPointSize(_point_size-1);
     val_cell->setFont(font);
     val_cell->setFlags(Qt::NoItemFlags);
 
@@ -89,10 +90,8 @@ void CurveTableView::refreshFontSize()
         for (int col = 0; col < 2; col++)
         {
             auto cell = item(row, col);
-          //  qDebug() << "item: " << cell->text();
             QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
-            font.setPointSize(_point_size);
-          //  qDebug() << font;
+            font.setPointSize(_point_size - col);
             cell->setFont(font);
         }
     }
@@ -165,9 +164,9 @@ void CurveTableView::setViewResizeEnabled(bool enable)
 {
     if( enable )
     {
-        horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
         horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-        verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+        verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     }
     else{
         horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
