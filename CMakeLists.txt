@@ -159,6 +159,7 @@ endif()
 
 add_subdirectory( 3rdparty/backward-cpp )
 add_subdirectory( 3rdparty/color_widgets )
+add_subdirectory( 3rdparty/marl )
 add_subdirectory( qwt/src )
 add_subdirectory( plotter_gui )
 
