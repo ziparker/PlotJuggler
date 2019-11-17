@@ -200,7 +200,6 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     defer(scheduler.unbind());  // unbind before destructing the scheduler.
 
     marl::WaitGroup wg;
-    marl::Ticket::Queue queue;
 
     for(const rosbag::MessageInstance& msg_instance: bag_view)
     {
@@ -249,7 +248,6 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     }
 
     wg.wait();
-    queue.take().wait();
 
     for(auto& it: ros_parsers){
       it.second.extractData(plot_map, "");
