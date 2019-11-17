@@ -13,7 +13,7 @@ add_definitions(
     -DPJ_MINOR_VERSION=4
     -DPJ_PATCH_VERSION=1 )
 
-add_subdirectory( fmt )
+add_subdirectory( 3rdparty/fmt )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -130,8 +130,9 @@ include_directories(
     ${Qt5Svg_INCLUDE_DIRS}
     ./qwt/src
     ./include
-    ./color_widgets/include
-    ./fmt/include
+    ./3rdparty/color_widgets/include
+    ./3rdparty/fmt/include
+    ./3rdparty/marl/include
 )
 
 #########################  INSTALL ####################################
@@ -156,8 +157,8 @@ endif()
 #############################################################
 
 
-add_subdirectory( backward-cpp )
-add_subdirectory( color_widgets )
+add_subdirectory( 3rdparty/backward-cpp )
+add_subdirectory( 3rdparty/color_widgets )
 add_subdirectory( qwt/src )
 add_subdirectory( plotter_gui )
 

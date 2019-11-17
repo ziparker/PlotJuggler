@@ -64,7 +64,8 @@ SET( PLOTTER_SRC
     ../include/PlotJuggler/datastreamer_base.h
     )
 
-add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC} ${BACKWARD_SRC})
+add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC}
+    ../3rdparty/backward-cpp/backward.cpp)
 
 target_link_libraries(PlotJuggler
     ${QT_LINK_LIBRARIES}
