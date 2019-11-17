@@ -20,9 +20,11 @@ CurveTableView::CurveTableView(CurveListPanel* parent)
     viewport()->installEventFilter(this);
 
     verticalHeader()->setVisible(false);
-    horizontalHeader()->setVisible(true);
+    horizontalHeader()->setVisible(false);
 
     horizontalHeader()->setStretchLastSection(true);
+
+    setColumnWidth(1, 120);
 
     setHorizontalHeaderItem(0, new QTableWidgetItem("Time series"));
     setHorizontalHeaderItem(1, new QTableWidgetItem("Current value"));
@@ -63,6 +65,8 @@ void CurveTableView::refreshColumns()
 {
     sortByColumn(0, Qt::AscendingOrder);
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+    setColumnWidth(1, 120);
     // TODO emit updateFilter();
 }
 
@@ -126,13 +130,13 @@ bool CurveTableView::applyVisibilityFilter(CurvesView::FilterType type, const QS
     {
         auto cell = item(row,0);
         QString name = cell->text();
-        int pos = 0;
         bool toHide = false;
 
         if( search_string.isEmpty() == false )
         {
             if( type == REGEX)
             {
+                int pos = 0;
                 toHide = v.validate( name, pos ) != QValidator::Acceptable;
             }
             else if( type == CONTAINS)
@@ -164,8 +168,9 @@ void CurveTableView::setViewResizeEnabled(bool enable)
 {
     if( enable )
     {
-        horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
-        horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+        setColumnWidth(1, 120);
         verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     }
     else{
