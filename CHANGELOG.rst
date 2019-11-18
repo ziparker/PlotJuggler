@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.4.2 (2019-11-18)
+------------------
 * multithread ROS DataLoader
 * directories moved
 * manually resizable columns of table view
