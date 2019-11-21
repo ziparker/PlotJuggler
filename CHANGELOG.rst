@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.4.3 (2019-11-21)
+------------------
 * less dark theme
 * bug fix
 * Contributors: Davide Faconti
