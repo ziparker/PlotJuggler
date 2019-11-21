@@ -2,6 +2,12 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* less dark theme
+* bug fix
+* Contributors: Davide Faconti
+
 2.4.2 (2019-11-18)
 ------------------
 * multithread ROS DataLoader
