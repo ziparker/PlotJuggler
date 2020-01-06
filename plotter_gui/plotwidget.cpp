@@ -1916,7 +1916,10 @@ bool PlotWidget::canvasEventFilter(QEvent *event)
         // If you think that this code doesn't make sense, you are right.
         // This is the workaround I have eventually found to avoid the problem with spurious
         // QEvent::DragLeave (I have never found the origin of the bug).
-        dropEvent(nullptr);
+        if( _dragging.mode != DragInfo::NONE)
+        {
+           dropEvent(nullptr);
+        }
         return true;
     }break;
 
