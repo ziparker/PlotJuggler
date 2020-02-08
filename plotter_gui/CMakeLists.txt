@@ -20,7 +20,7 @@ QT5_WRAP_UI ( UI_SRC
     transforms/function_editor.ui
     transforms/transform_selector.ui
 
-    ../common/selectlistdialog.ui
+    ../include/PlotJuggler/selectlistdialog.ui
     )
 
 SET( PLOTTER_SRC
@@ -61,7 +61,7 @@ SET( PLOTTER_SRC
     mainwindow.h
     realslider.h
     utils.h
-    ../common/selectlistdialog.h
+    ../include/PlotJuggler/selectlistdialog.h
     ../include/PlotJuggler/plotdata.h
     ../include/PlotJuggler/datastreamer_base.h
     )

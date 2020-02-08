@@ -128,8 +128,8 @@ include_directories(
     ${Qt5Multimedia_INCLUDE_DIRS}
     ${Qt5MultimediaWidgets_INCLUDE_DIRS}
     ${Qt5Svg_INCLUDE_DIRS}
-    ./qwt/src
     ./include
+    ./3rdparty/qwt/src
     ./3rdparty/color_widgets/include
     ./3rdparty/fmt/include
     ./3rdparty/marl/include
@@ -160,7 +160,7 @@ endif()
 add_subdirectory( 3rdparty/backward-cpp )
 add_subdirectory( 3rdparty/color_widgets )
 add_subdirectory( 3rdparty/marl )
-add_subdirectory( qwt/src )
+add_subdirectory( 3rdparty/qwt/src )
 add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )
