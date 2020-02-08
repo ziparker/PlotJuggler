@@ -152,7 +152,22 @@ PlotData::Point CustomFunction::calculatePoint(QJSValue& calcFct,
     {
         throw std::runtime_error("JS Engine : " + jsData.toString().toStdString());
     }
-    new_point.y = jsData.toNumber();
+
+    if( jsData.isArray() )
+    {
+      const int length = jsData.property("length").toInt();
+      if( length == 2 )
+      {
+        new_point.x = jsData.property(0).toNumber();
+        new_point.y = jsData.property(1).toNumber();
+      }
+      else{
+        throw std::runtime_error("JS Engine : if you return an array, the size must be 2 (time/value pair)");
+      }
+    }
+    else{
+      new_point.y = jsData.toNumber();
+    }
 
     return new_point;
 }
