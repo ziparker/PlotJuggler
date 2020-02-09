@@ -20,10 +20,10 @@ set(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTOUIC ON)
 
 if(NOT CMAKE_VERSION VERSION_LESS 3.1)
-    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 14)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 endif()
 
 if (NOT WIN32)
@@ -47,8 +47,8 @@ find_package(Qt5 REQUIRED COMPONENTS
     MultimediaWidgets
     PrintSupport
     Concurrent
-    Xml
     Qml
+    Xml
     Svg)
 
 find_package(Qt5 QUIET COMPONENTS WebSockets)
@@ -59,9 +59,9 @@ set( QT_LINK_LIBRARIES
     Qt5::PrintSupport
     Qt5::Xml
     Qt5::Concurrent
-    Qt5::Qml
     Qt5::Multimedia
     Qt5::MultimediaWidgets
+    Qt5::Qml
     Qt5::Svg
     )
 
@@ -133,6 +133,8 @@ include_directories(
     ./3rdparty/color_widgets/include
     ./3rdparty/fmt/include
     ./3rdparty/marl/include
+    ./3rdparty/sol
+    ./3rdparty/lua-5.3.4/src
 )
 
 #########################  INSTALL ####################################
@@ -161,6 +163,7 @@ add_subdirectory( 3rdparty/backward-cpp )
 add_subdirectory( 3rdparty/color_widgets )
 add_subdirectory( 3rdparty/marl )
 add_subdirectory( 3rdparty/qwt/src )
+add_subdirectory( 3rdparty/lua-5.3.4 )
 add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )

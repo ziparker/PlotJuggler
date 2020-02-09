@@ -28,8 +28,17 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
 {
     ui->setupUi(this);
 
+    QSettings settings;
+    bool is_qml = settings.value("CustomFunction/language", "qml").toString() == "qml";
+    if( is_qml )
+    {
+      ui->labelLanguage->setText("Used language: Javascript");
+    }
+    else{
+      ui->labelLanguage->setText("Used language: Lua");
+    }
+
     this->setWindowTitle("Create a custom timeseries");
-    ui->mathEquation->setPlainText("return value*2");
 
     const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     ui->globalVarsTextField->setFont(fixedFont);
@@ -49,7 +58,6 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
         ui->curvesListWidget->addItem(name);
     }
 
-    QSettings settings;
     QByteArray saved_xml = settings.value("AddCustomPlotDialog.savedXML", QByteArray() ).toByteArray();
     restoreGeometry(settings.value("AddCustomPlotDialog.geometry").toByteArray());
 
@@ -77,6 +85,12 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
 
     ui->splitter->setStretchFactor(0,3);
     ui->splitter->setStretchFactor(1,2);
+
+    ui->globalVarsTextField->setPlainText(
+      settings.value("AddCustomPlotDialog.previousGlobals","").toString());
+
+    ui->mathEquation->setPlainText(
+      settings.value("AddCustomPlotDialog.previousFunction","return value").toString());
 }
 
 AddCustomPlotDialog::~AddCustomPlotDialog()
@@ -84,6 +98,10 @@ AddCustomPlotDialog::~AddCustomPlotDialog()
     QSettings settings;
     settings.setValue("AddCustomPlotDialog.savedXML", exportSnippets() );
     settings.setValue("AddCustomPlotDialog.geometry", saveGeometry());
+    settings.setValue("AddCustomPlotDialog.previousGlobals",
+                      ui->globalVarsTextField->toPlainText() );
+    settings.setValue("AddCustomPlotDialog.previousFunction",
+                      ui->mathEquation->toPlainText());
     delete ui;
 }
 
@@ -460,10 +478,10 @@ void AddCustomPlotDialog::on_pushButtonCreate_clicked()
             throw std::runtime_error("plot name already exists and can't be modified");
         }
 
-        _plot = std::make_shared<CustomFunction>(getLinkedData().toStdString(),
-                                           plotName,
-                                           getGlobalVars(),
-                                           getEquation());
+        _plot = CustomFunctionFactory(getLinkedData().toStdString(),
+                                      plotName,
+                                      getGlobalVars(),
+                                      getEquation());
         QDialog::accept();
     }
     catch (const std::runtime_error &e) {

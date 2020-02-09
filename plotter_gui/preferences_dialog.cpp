@@ -23,6 +23,14 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->checkBoxRememberColor->setChecked(remember_color);
     ui->radioLocalColorIndex->setChecked(use_plot_color_index);
     ui->radioGlobalColorIndex->setChecked(!use_plot_color_index);
+
+    bool is_qml = settings.value("CustomFunction/language", "qml").toString() == "qml";
+    if( is_qml ){
+      ui->radioButtonJS->setChecked(true);
+    }
+    else{
+      ui->radioButtonLua->setChecked(true);
+    }
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -42,4 +50,12 @@ void PreferencesDialog::on_buttonBox_accepted()
     settings.setValue("Preferences::use_plot_color_index",
                       ui->radioLocalColorIndex->isChecked());
 
+    if( ui->radioButtonJS->isChecked() )
+    {
+      settings.setValue("CustomFunction/next_language", "qml");
+    }
+    if( ui->radioButtonLua->isChecked() )
+    {
+      settings.setValue("CustomFunction/next_language", "lua");
+    }
 }

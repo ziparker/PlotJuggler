@@ -6,11 +6,10 @@
 #include <QString>
 #include <QDomDocument>
 #include <QString>
-#include <QJSEngine>
 #include "PlotJuggler/plotdata.h"
 
 class CustomFunction;
-class QJSEngine;
+
 typedef std::shared_ptr<CustomFunction> CustomPlotPtr;
 typedef std::unordered_map<std::string, CustomPlotPtr> CustomPlotMap;
 
@@ -40,14 +39,9 @@ public:
     CustomFunction(const std::string &linkedPlot,
                    const SnippetData &snippet);
 
-    void clear()
-    {
-      initJsEngine();
-    }
+    void clear();
 
     void calculateAndAdd(PlotDataMapRef &plotData);
-
-    void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
 
     const std::string& name() const;
 
@@ -63,14 +57,17 @@ public:
 
     static QStringList getChannelsFromFuntion(const QString& function);
 
-private:
-    void initJsEngine();
+    void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
 
-    PlotData::Point  calculatePoint(QJSValue &calcFct,
-                                    const PlotData &src_data,
-                                    const std::vector<const PlotData *> &channels_data,
-                                    QJSValue &chan_values,
-                                    size_t point_index);
+    virtual void initEngine() = 0;
+
+    virtual PlotData::Point calculatePoint(
+        const PlotData & src_data,
+        const std::vector<const PlotData *> & channels_data,
+        std::vector<double> & chan_values,
+        size_t point_index) = 0;
+
+  protected:
 
     const std::string _linked_plot_name;
     const std::string _plot_name;
@@ -78,10 +75,17 @@ private:
     const QString _function;
     QString _function_replaced;
     std::vector<std::string> _used_channels;
-
-    std::unique_ptr<QJSEngine> _jsEngine;
-
 };
+
+std::unique_ptr<CustomFunction>
+CustomFunctionFactory(const std::string &linkedPlot,
+                      const std::string &plotName,
+                      const QString &globalVars,
+                      const QString &function);
+
+std::unique_ptr<CustomFunction>
+CustomFunctionFactory(const std::string &linkedPlot,
+                      const SnippetData &snippet);
 
 
 
