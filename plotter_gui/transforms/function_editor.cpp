@@ -460,10 +460,10 @@ void AddCustomPlotDialog::on_pushButtonCreate_clicked()
             throw std::runtime_error("plot name already exists and can't be modified");
         }
 
-        _plot = std::make_shared<CustomFunction>(getLinkedData().toStdString(),
-                                           plotName,
-                                           getGlobalVars(),
-                                           getEquation());
+        _plot = CustomFunctionFactory(getLinkedData().toStdString(),
+                                      plotName,
+                                      getGlobalVars(),
+                                      getEquation());
         QDialog::accept();
     }
     catch (const std::runtime_error &e) {

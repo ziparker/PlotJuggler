@@ -47,6 +47,7 @@ find_package(Qt5 REQUIRED COMPONENTS
     MultimediaWidgets
     PrintSupport
     Concurrent
+    Qml
     Xml
     Svg)
 
@@ -60,6 +61,7 @@ set( QT_LINK_LIBRARIES
     Qt5::Concurrent
     Qt5::Multimedia
     Qt5::MultimediaWidgets
+    Qt5::Qml
     Qt5::Svg
     )
 

@@ -6,7 +6,6 @@
 #include <QString>
 #include <QDomDocument>
 #include <QString>
-#include "sol.hpp"
 #include "PlotJuggler/plotdata.h"
 
 class CustomFunction;
@@ -58,16 +57,17 @@ public:
 
     static QStringList getChannelsFromFuntion(const QString& function);
 
-    virtual void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
+    void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
 
-    virtual void initEngine();
+    virtual void initEngine() = 0;
 
-private:
+    virtual PlotData::Point calculatePoint(
+        const PlotData & src_data,
+        const std::vector<const PlotData *> & channels_data,
+        std::vector<double> & chan_values,
+        size_t point_index) = 0;
 
-    PlotData::Point  calculatePoint(const PlotData &src_data,
-                                    const std::vector<const PlotData *> &channels_data,
-                                    std::vector<double> &chan_values,
-                                    size_t point_index);
+  protected:
 
     const std::string _linked_plot_name;
     const std::string _plot_name;
@@ -75,10 +75,6 @@ private:
     const QString _function;
     QString _function_replaced;
     std::vector<std::string> _used_channels;
-
-    std::unique_ptr<sol::state> _lua_engine;
-    sol::function _lua_function;
-
 };
 
 
