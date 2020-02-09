@@ -143,8 +143,6 @@ void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_dat
         channel_data.push_back(chan_data);
     }
 
-    std::vector<double> chan_values(_used_channels.size());
-
     double last_updated_stamp = -std::numeric_limits<double>::max();
     if (dst_data->size() != 0)
     {
@@ -155,7 +153,7 @@ void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_dat
     {
         if( src_data.at(i).x > last_updated_stamp)
         {
-            dst_data->pushBack( calculatePoint( src_data, channel_data, chan_values, i ) );
+            dst_data->pushBack( calculatePoint( src_data, channel_data, i ) );
         }
     }
 }

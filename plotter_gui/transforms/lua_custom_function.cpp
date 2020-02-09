@@ -24,9 +24,10 @@ void LuaCustomFunction::initEngine()
 PlotData::Point LuaCustomFunction::calculatePoint(
   const PlotData& src_data,
   const std::vector<const PlotData*>& channels_data,
-  std::vector<double> &chan_values,
   size_t point_index)
 {
+  _chan_values.resize(channels_data.size());
+
   const PlotData::Point &old_point = src_data.at(point_index);
 
   for(int chan_index = 0; chan_index < channels_data.size(); chan_index++)
@@ -40,7 +41,7 @@ PlotData::Point LuaCustomFunction::calculatePoint(
     else{
       value = std::numeric_limits<double>::quiet_NaN();
     }
-    chan_values[chan_index] = value;
+    _chan_values[chan_index] = value;
   }
 
   PlotData::Point new_point;
@@ -48,7 +49,7 @@ PlotData::Point LuaCustomFunction::calculatePoint(
 
   sol::function_result result = _lua_function( old_point.x,
                                               old_point.y,
-                                              chan_values );
+                                              _chan_values );
 
   if( result.return_count() == 2 )
   {

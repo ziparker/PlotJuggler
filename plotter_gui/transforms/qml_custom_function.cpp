@@ -34,7 +34,6 @@ void QmlCustomFunction::initEngine()
 PlotData::Point QmlCustomFunction::calculatePoint(
   const PlotData& src_data,
   const std::vector<const PlotData*>& channels_data,
-  std::vector<double> &chan_values,
   size_t point_index)
 {
   const PlotData::Point &old_point = src_data.at(point_index);
@@ -50,7 +49,6 @@ PlotData::Point QmlCustomFunction::calculatePoint(
     else{
       value = std::numeric_limits<double>::quiet_NaN();
     }
-    chan_values[chan_index] = value;
     _chan_values_qml.setProperty(static_cast<quint32>(chan_index), QJSValue(value));
   }
 

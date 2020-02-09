@@ -14,12 +14,12 @@ public:
 
   virtual PlotData::Point calculatePoint(const PlotData & src_data,
                                          const std::vector<const PlotData *> & channels_data,
-                                         std::vector<double> & chan_values,
                                          size_t point_index) override;
 private:
 
   std::unique_ptr<sol::state> _lua_engine;
   sol::function _lua_function;
+  std::vector<double> _chan_values;
 };
 
 #endif // LUA_CUSTOM_FUNCTION_H

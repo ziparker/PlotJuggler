@@ -14,7 +14,6 @@ public:
 
   virtual PlotData::Point calculatePoint(const PlotData & src_data,
                                          const std::vector<const PlotData *> & channels_data,
-                                         std::vector<double> & chan_values,
                                          size_t point_index) override;
 private:
 
