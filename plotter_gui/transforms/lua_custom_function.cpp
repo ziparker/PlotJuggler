@@ -46,7 +46,9 @@ PlotData::Point LuaCustomFunction::calculatePoint(
   PlotData::Point new_point;
   new_point.x = old_point.x;
 
-  sol::function_result result = _lua_function( old_point.x, old_point.y, chan_values );
+  sol::function_result result = _lua_function( old_point.x,
+                                              old_point.y,
+                                              chan_values );
 
   if( result.return_count() == 2 )
   {
@@ -59,7 +61,8 @@ PlotData::Point LuaCustomFunction::calculatePoint(
   }
   else {
     throw std::runtime_error(
-      "JS Engine : if you return an array, the size must be 2 (time/value pair)");
+      "Lua Engine : if you return an array, the size must be "
+      "2 (time/value pair) or 1 (value only)");
   }
   return new_point;
 }

@@ -77,5 +77,15 @@ public:
     std::vector<std::string> _used_channels;
 };
 
+std::unique_ptr<CustomFunction>
+CustomFunctionFactory(const std::string &linkedPlot,
+                      const std::string &plotName,
+                      const QString &globalVars,
+                      const QString &function);
+
+std::unique_ptr<CustomFunction>
+CustomFunctionFactory(const std::string &linkedPlot,
+                      const SnippetData &snippet);
+
 
 

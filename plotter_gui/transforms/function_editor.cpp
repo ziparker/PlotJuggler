@@ -28,6 +28,16 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
 {
     ui->setupUi(this);
 
+    QSettings settings;
+    bool is_qml = settings.value("CustomFunction/language", "qml").toString() == "qml";
+    if( is_qml )
+    {
+      ui->labelLanguage->setText("Used language: Javascript");
+    }
+    else{
+      ui->labelLanguage->setText("Used language: Lua");
+    }
+
     this->setWindowTitle("Create a custom timeseries");
     ui->mathEquation->setPlainText("return value*2");
 
@@ -49,7 +59,6 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef &plotMapData,
         ui->curvesListWidget->addItem(name);
     }
 
-    QSettings settings;
     QByteArray saved_xml = settings.value("AddCustomPlotDialog.savedXML", QByteArray() ).toByteArray();
     restoreGeometry(settings.value("AddCustomPlotDialog.geometry").toByteArray());
 

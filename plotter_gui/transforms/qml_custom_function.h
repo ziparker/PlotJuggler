@@ -20,5 +20,6 @@ private:
 
   std::unique_ptr<QJSEngine> _qml_engine;
   QJSValue _qml_function;
+  QJSValue _chan_values_qml;
 };
 #endif // QML_CUSTOM_FUNCTION_H
