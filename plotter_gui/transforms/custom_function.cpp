@@ -14,6 +14,11 @@ CustomFunction::CustomFunction(const std::string &linkedPlot,
 {
 }
 
+void CustomFunction::clear()
+{
+  initEngine();
+}
+
 QStringList CustomFunction::getChannelsFromFuntion(const QString& function)
 {
     QStringList output;
@@ -79,7 +84,7 @@ CustomFunction::CustomFunction(const std::string &linkedPlot,
     _function_replaced = replaced_equation;
 
     //qDebug() << "final equation string : " << replaced_equation;
-    initJsEngine();
+    initEngine();
 }
 
 void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
@@ -109,31 +114,30 @@ void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)
     }
 }
 
-void CustomFunction::initJsEngine()
+void CustomFunction::initEngine()
 {
-    _jsEngine = std::unique_ptr<QJSEngine>( new QJSEngine() );
+    _lua_engine = std::unique_ptr<sol::state>( new sol::state() );
+    _lua_engine->open_libraries();
+    _lua_engine->script(_global_vars.toStdString());
 
-    QJSValue globalVarResult = _jsEngine->evaluate(_global_vars);
-    if(globalVarResult.isError())
-    {
-        throw std::runtime_error("JS Engine : " + globalVarResult.toString().toStdString());
-    }
-    QString calcMethodStr = QString("function calc(time, value, CHANNEL_VALUES){with (Math){\n%1\n}}").arg(_function_replaced);
-    _jsEngine->evaluate(calcMethodStr);
+    QString calcMethodStr = QString("function calc(time, value, CHANNEL_VALUES) %1 end").arg(_function_replaced);
+    _lua_engine->script(calcMethodStr.toStdString());
+
+    _lua_function = (*_lua_engine)["calc"];
 }
 
-PlotData::Point CustomFunction::calculatePoint(QJSValue& calcFct,
+PlotData::Point CustomFunction::calculatePoint(
                                 const PlotData& src_data,
                                 const std::vector<const PlotData*>& channels_data,
-                                QJSValue& chan_values,
+                                std::vector<double> &chan_values,
                                 size_t point_index)
 {
     const PlotData::Point &old_point = src_data.at(point_index);
 
-    int chan_index = 0;
-    for(const PlotData* chan_data: channels_data)
+    for(int chan_index = 0; chan_index < channels_data.size(); chan_index++)
     {
         double value;
+        const auto& chan_data = channels_data[chan_index];
         int index = chan_data->getIndexFromX(old_point.x);
         if(index != -1){
             value = chan_data->at(index).y;
@@ -141,46 +145,32 @@ PlotData::Point CustomFunction::calculatePoint(QJSValue& calcFct,
         else{
             value = std::numeric_limits<double>::quiet_NaN();
         }
-        chan_values.setProperty(static_cast<quint32>(chan_index++), QJSValue(value));
+        chan_values[chan_index] = value;
     }
 
     PlotData::Point new_point;
     new_point.x = old_point.x;
 
-    QJSValue jsData = calcFct.call({QJSValue(old_point.x), QJSValue(old_point.y), chan_values});
-    if(jsData.isError())
-    {
-        throw std::runtime_error("JS Engine : " + jsData.toString().toStdString());
-    }
+    sol::function_result result = _lua_function( old_point.x, old_point.y, chan_values );
 
-    if( jsData.isArray() )
+    if( result.return_count() == 2 )
     {
-      const int length = jsData.property("length").toInt();
-      if( length == 2 )
-      {
-        new_point.x = jsData.property(0).toNumber();
-        new_point.y = jsData.property(1).toNumber();
-      }
-      else{
-        throw std::runtime_error("JS Engine : if you return an array, the size must be 2 (time/value pair)");
-      }
+      new_point.x = result.get<double>(0);
+      new_point.y = result.get<double>(1);
     }
-    else{
-      new_point.y = jsData.toNumber();
+    else if( result.return_count() == 1 )
+    {
+      new_point.y = result.get<double>(0);
     }
-
+    else {
+      throw std::runtime_error(
+        "JS Engine : if you return an array, the size must be 2 (time/value pair)");
+    }
     return new_point;
 }
 
 void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_data)
 {
-    QJSValue calcFct = _jsEngine->evaluate("calc");
-
-    if(calcFct.isError())
-    {
-        throw std::runtime_error("JS Engine : " + calcFct.toString().toStdString());
-    }
-
     auto src_data_it = plotData.numeric.find(_linked_plot_name);
     if(src_data_it == plotData.numeric.end())
     {
@@ -211,7 +201,7 @@ void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_dat
         channel_data.push_back(chan_data);
     }
 
-    QJSValue chan_values = _jsEngine->newArray(static_cast<quint32>(_used_channels.size()));
+    std::vector<double> chan_values(_used_channels.size());
 
     double last_updated_stamp = -std::numeric_limits<double>::max();
     if (dst_data->size() != 0)
@@ -223,7 +213,7 @@ void CustomFunction::calculate(const PlotDataMapRef &plotData, PlotData* dst_dat
     {
         if( src_data.at(i).x > last_updated_stamp)
         {
-            dst_data->pushBack( calculatePoint(calcFct, src_data, channel_data, chan_values, i ) );
+            dst_data->pushBack( calculatePoint( src_data, channel_data, chan_values, i ) );
         }
     }
 }
@@ -247,8 +237,6 @@ const QString &CustomFunction::function() const
 {
     return _function;
 }
-
-
 
 QDomElement CustomFunction::xmlSaveState(QDomDocument &doc) const
 {

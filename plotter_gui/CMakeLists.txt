@@ -1,5 +1,5 @@
 
-include_directories( ./ ../  ../include  ../common)
+include_directories( ./ ../  ../include)
 
 QT5_ADD_RESOURCES (RES_SRC  resource.qrc )
 
@@ -73,6 +73,7 @@ target_link_libraries(PlotJuggler
     ${QT_LINK_LIBRARIES}
     colorwidgets
     qwt_static
+    lua_static
     ${BACKWARD_LIBS} )
 
 if(COMPILING_WITH_CATKIN)

@@ -20,10 +20,10 @@ set(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTOUIC ON)
 
 if(NOT CMAKE_VERSION VERSION_LESS 3.1)
-    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD 14)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 endif()
 
 if (NOT WIN32)
@@ -48,7 +48,6 @@ find_package(Qt5 REQUIRED COMPONENTS
     PrintSupport
     Concurrent
     Xml
-    Qml
     Svg)
 
 find_package(Qt5 QUIET COMPONENTS WebSockets)
@@ -59,7 +58,6 @@ set( QT_LINK_LIBRARIES
     Qt5::PrintSupport
     Qt5::Xml
     Qt5::Concurrent
-    Qt5::Qml
     Qt5::Multimedia
     Qt5::MultimediaWidgets
     Qt5::Svg
@@ -133,6 +131,8 @@ include_directories(
     ./3rdparty/color_widgets/include
     ./3rdparty/fmt/include
     ./3rdparty/marl/include
+    ./3rdparty/sol
+    ./3rdparty/lua-5.3.4/src
 )
 
 #########################  INSTALL ####################################
