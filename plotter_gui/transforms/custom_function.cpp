@@ -41,6 +41,41 @@ QStringList CustomFunction::getChannelsFromFuntion(const QString& function)
     return output;
 }
 
+void CustomFunction::createReplacedFunction(int index_offset)
+{
+  QString qLinkedPlot = QString::fromStdString(_linked_plot_name);
+
+  QString replaced_equation = _function;
+  while(true)
+  {
+      int pos1=replaced_equation.indexOf("$$");
+      if(pos1 == -1){
+          break;
+      }
+
+      int pos2 = replaced_equation.indexOf("$$", pos1+2);
+      if(pos2 == -1)
+      {
+          throw std::runtime_error("syntax error : invalid use of $$ macro");
+      }
+
+      QString channel_name = replaced_equation.mid(pos1+2, pos2-pos1-2);
+
+      if(channel_name == qLinkedPlot)
+      {
+          // special case : user entered linkedPlot ; no need to add another channel
+          replaced_equation.replace(QStringLiteral("$$%1$$").arg(channel_name), QStringLiteral("value"));
+      }
+      else
+      {
+          QString jsExpression = QString("CHANNEL_VALUES[%1]").arg(_used_channels.size()+index_offset);
+          replaced_equation.replace(QStringLiteral("$$%1$$").arg(channel_name), jsExpression);
+          _used_channels.push_back(channel_name.toStdString());
+      }
+  }
+  _function_replaced = replaced_equation;
+}
+
 CustomFunction::CustomFunction(const std::string &linkedPlot,
                                const std::string &plotName,
                                const QString &globalVars,
@@ -50,38 +85,6 @@ CustomFunction::CustomFunction(const std::string &linkedPlot,
     _global_vars(globalVars),
     _function(function)
 {
-
-    QString qLinkedPlot = QString::fromStdString(_linked_plot_name);
-
-    QString replaced_equation = _function;
-    while(true)
-    {
-        int pos1=replaced_equation.indexOf("$$");
-        if(pos1 == -1){
-            break;
-        }
-
-        int pos2 = replaced_equation.indexOf("$$", pos1+2);
-        if(pos2 == -1)
-        {
-            throw std::runtime_error("syntax error : invalid use of $$ macro");
-        }
-
-        QString channel_name = replaced_equation.mid(pos1+2, pos2-pos1-2);
-
-        if(channel_name == qLinkedPlot)
-        {
-            // special case : user entered linkedPlot ; no need to add another channel
-            replaced_equation.replace(QStringLiteral("$$%1$$").arg(channel_name), QStringLiteral("value"));
-        }
-        else
-        {
-            QString jsExpression = QString("CHANNEL_VALUES[%1]").arg(_used_channels.size());
-            replaced_equation.replace(QStringLiteral("$$%1$$").arg(channel_name), jsExpression);
-            _used_channels.push_back(channel_name.toStdString());
-        }
-    }
-    _function_replaced = replaced_equation;
 }
 
 void CustomFunction::calculateAndAdd(PlotDataMapRef &plotData)

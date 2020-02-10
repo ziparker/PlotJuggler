@@ -4,6 +4,7 @@ QmlCustomFunction::QmlCustomFunction(const std::string &linkedPlot,
                                      const SnippetData &snippet):
   CustomFunction(linkedPlot,snippet)
 {
+  createReplacedFunction(0);
   initEngine();
 }
 

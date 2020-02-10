@@ -5,6 +5,7 @@ LuaCustomFunction::LuaCustomFunction(const std::__cxx11::string &linkedPlot,
                                      const SnippetData &snippet):
 CustomFunction(linkedPlot,snippet)
 {
+  createReplacedFunction(1);
   initEngine();
 }
 

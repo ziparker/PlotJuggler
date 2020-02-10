@@ -74,6 +74,7 @@ public:
     const QString _function;
     QString _function_replaced;
     std::vector<std::string> _used_channels;
+    void createReplacedFunction(int index_offset);
 };
 
 std::unique_ptr<CustomFunction>
