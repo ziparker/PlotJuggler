@@ -1,9 +1,11 @@
 project(plotjuggler)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 # http://answers.ros.org/question/230877/optionally-build-a-package-with-catkin/
 if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
     set(COMPILING_WITH_CATKIN 1)
+elseif( DEFINED ENV{AMENT_PREFIX_PATH})
+    set(COMPILING_WITH_AMENT 1)
 endif()
 
 cmake_policy (SET CMP0020 NEW)
@@ -67,7 +69,6 @@ set( QT_LINK_LIBRARIES
 
 add_definitions( -DQWT_NO_SVG )
 
-
 if( NOT Qt5WebSockets_FOUND)
     message(STATUS "Can't find Qt5WebSockets in your system. Have you tried [sudo apt-get install libqt5websockets5-dev] ?")
     add_definitions( -DQWT_NO_SVG )
@@ -101,11 +102,21 @@ if(COMPILING_WITH_CATKIN)
 
     catkin_package(
         INCLUDE_DIRS include
-        CATKIN_DEPENDS ${ROS_DEPENDENCIES}
-        DEPENDS
-        )
+        CATKIN_DEPENDS ${ROS_DEPENDENCIES}  )
 
     INCLUDE_DIRECTORIES( ${catkin_INCLUDE_DIRS} )
+
+elseif(COMPILING_WITH_AMENT)
+
+    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "PlotJuggler is being built using AMENT. ROS2 plugins will be compiled")
+    message(STATUS "---------------------------------------------------------------------")
+
+    find_package(ament_cmake REQUIRED)
+    find_package(rclcpp REQUIRED)
+    find_package(rosbag2 REQUIRED)
+    find_package(rosidl_typesupport_cpp REQUIRED)
+    find_package(rosidl_typesupport_introspection_cpp REQUIRED)
 
 endif()
 
@@ -141,6 +152,16 @@ if(COMPILING_WITH_CATKIN)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
 
+elseif(COMPILING_WITH_AMENT)
+    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "PlotJuggler is being built using AMENT. ROS2 plugins will be compiled")
+    message(STATUS "---------------------------------------------------------------------")
+
+    find_package(ament_cmake REQUIRED)
+    find_package(rclcpp REQUIRED)
+    find_package(rosbag2 REQUIRED)
+    find_package(rosidl_typesupport_cpp REQUIRED)
+    find_package(rosidl_typesupport_introspection_cpp REQUIRED)
 else()
     set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
