@@ -160,6 +160,7 @@ elseif(COMPILING_WITH_AMENT)
     find_package(ament_cmake REQUIRED)
     find_package(rclcpp REQUIRED)
     find_package(rosbag2 REQUIRED)
+    find_package(rosbag2_transport REQUIRED)
     find_package(rosidl_typesupport_cpp REQUIRED)
     find_package(rosidl_typesupport_introspection_cpp REQUIRED)
 else()
@@ -195,6 +196,8 @@ endif()
 
 if(COMPILING_WITH_CATKIN)
     add_subdirectory( plugins/ROS )
+elseif(COMPILING_WITH_AMENT)
+    add_subdirectory( plugins/ROS2 )
 endif()
 
 #############################################################
