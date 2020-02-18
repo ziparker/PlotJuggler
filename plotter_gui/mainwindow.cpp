@@ -350,7 +350,7 @@ void MainWindow::initializeActions()
     connect( &_redo_shortcut, &QShortcut::activated, this, &MainWindow::onRedoInvoked );
     connect( &_streaming_shortcut, &QShortcut::activated, this, &MainWindow::on_streamingToggled );
     connect( &_playback_shotcut, &QShortcut::activated, ui->pushButtonPlay, &QPushButton::toggle );
-    connect( &_fullscreen_shortcut, &QShortcut::activated, this, &MainWindow::on_actionFullscreen_triggered);
+    connect( &_fullscreen_shortcut, &QShortcut::activated, this, &MainWindow::onActionFullscreenTriggered);
 
     QShortcut* open_menu_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_F), this);
     connect( open_menu_shortcut, &QShortcut::activated, [this](){
@@ -2569,7 +2569,7 @@ void MainWindow::on_actionSaveLayout_triggered()
     }
 }
 
-void MainWindow::on_actionFullscreen_triggered()
+void MainWindow::onActionFullscreenTriggered()
 {
     static bool first_call = true;
     if( first_call && !_minimized )
