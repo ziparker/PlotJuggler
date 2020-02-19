@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.0 (2020-02-19)
+------------------
 * bug fix
 * fix splashscreen delay
 * GUI refinement
