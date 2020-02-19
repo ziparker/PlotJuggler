@@ -65,19 +65,19 @@
     <widget class="QWidget" name="widgetControls" native="true">
      <layout class="QHBoxLayout" name="controlsLayout">
       <property name="spacing">
-       <number>4</number>
+       <number>2</number>
       </property>
       <property name="sizeConstraint">
        <enum>QLayout::SetMinimumSize</enum>
       </property>
       <property name="leftMargin">
-       <number>8</number>
+       <number>6</number>
       </property>
       <property name="topMargin">
        <number>0</number>
       </property>
       <property name="rightMargin">
-       <number>8</number>
+       <number>6</number>
       </property>
       <property name="bottomMargin">
        <number>2</number>
@@ -225,16 +225,6 @@
        </widget>
       </item>
       <item>
-       <widget class="Line" name="line_2">
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="pushAddColumn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -361,7 +351,7 @@
          <enum>Qt::NoFocus</enum>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a new plot matrix in a new tab&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a new tab&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="styleSheet">
          <string notr="true"/>
@@ -434,25 +424,6 @@
        </widget>
       </item>
       <item>
-       <widget class="Line" name="line">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="lineWidth">
-         <number>1</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="pushButtonShowLabel">
         <property name="minimumSize">
          <size>
@@ -520,7 +491,7 @@
          <enum>Qt::NoFocus</enum>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Link the horizontal between plots&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Link the horizontal zoom between plots&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="whatsThis">
          <string/>
