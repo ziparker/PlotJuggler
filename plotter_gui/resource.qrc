@@ -246,5 +246,7 @@
         <file>resources/memes/meme_49.jpg</file>
         <file>resources/memes/meme_50.jpg</file>
         <file>resources/memes/meme_51.jpg</file>
+        <file>style_light/tree_view.png</file>
+        <file>style_light/list_view.png</file>
     </qresource>
 </RCC>
