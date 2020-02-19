@@ -238,6 +238,7 @@ void CurveTreeView::removeCurve(const QString &to_be_deleted)
 
 void CurveTreeView::hideValuesColumn(bool hide)
 {
+    setViewResizeEnabled(true);
     if(hide){
         hideColumn(1);
     }
