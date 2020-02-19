@@ -246,7 +246,7 @@ void CurveListPanel::on_lineEdit_textChanged(const QString &search_string)
 
     CurvesView* active_view = _view_type == LIST ? (CurvesView*)_table_view : (CurvesView*)_tree_view;
 
-    updated = active_view->applyVisibilityFilter(CurvesView::CONTAINS, search_string);
+    updated = active_view->applyVisibilityFilter(search_string);
 
     auto h_c = active_view->hiddenItemsCount();
     int item_count = h_c.second;

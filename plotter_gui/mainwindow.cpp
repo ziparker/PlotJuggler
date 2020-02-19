@@ -516,7 +516,7 @@ void MainWindow::buildDummyData()
                << "fly/high/mai" << "fly/high/nessun" << "fly/low/ci" << "fly/low/dividera"
                << "data_1" << "data_2" << "data_3" << "data_10";
 
-    for( int i=0; i<10; i++)
+    for( int i=0; i<100; i++)
     {
         words_list.append(QString("data_vect/%1").arg(count++));
     }
