@@ -128,7 +128,7 @@
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show/Hide the second column with the current value of the time series.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string>Show Values</string>
+            <string>Values</string>
            </property>
            <property name="checked">
             <bool>true</bool>
@@ -177,14 +177,27 @@
         <number>8</number>
        </property>
        <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Custom (User defined) Timeseries:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1,0,0">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Custom time series:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
          <item>
           <widget class="QPushButton" name="buttonAddCustom">
            <property name="sizePolicy">
@@ -195,13 +208,13 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>25</width>
+             <width>0</width>
              <height>0</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>60</width>
+             <width>50</width>
              <height>16777215</height>
             </size>
            </property>
@@ -212,7 +225,7 @@
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Create a new timeseries&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string>New...</string>
+            <string>Add</string>
            </property>
           </widget>
          </item>
@@ -229,7 +242,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>60</width>
+             <width>50</width>
              <height>16777215</height>
             </size>
            </property>
@@ -243,19 +256,6 @@
             <string>Edit</string>
            </property>
           </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </item>
