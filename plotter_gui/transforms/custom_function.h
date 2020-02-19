@@ -14,6 +14,7 @@ typedef std::shared_ptr<CustomFunction> CustomPlotPtr;
 typedef std::unordered_map<std::string, CustomPlotPtr> CustomPlotMap;
 
 struct SnippetData{
+    QString language;
     QString name;
     QString globalVars;
     QString equation;
@@ -59,6 +60,8 @@ public:
 
     void calculate(const PlotDataMapRef &plotData, PlotData *dst_data);
 
+    virtual QString language() const = 0;
+
     virtual void initEngine() = 0;
 
     virtual PlotData::Point calculatePoint(
@@ -76,16 +79,6 @@ public:
     std::vector<std::string> _used_channels;
     void createReplacedFunction(int index_offset);
 };
-
-std::unique_ptr<CustomFunction>
-CustomFunctionFactory(const std::string &linkedPlot,
-                      const std::string &plotName,
-                      const QString &globalVars,
-                      const QString &function);
-
-std::unique_ptr<CustomFunction>
-CustomFunctionFactory(const std::string &linkedPlot,
-                      const SnippetData &snippet);
 
 
 

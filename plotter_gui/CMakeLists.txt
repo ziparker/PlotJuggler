@@ -51,7 +51,6 @@ SET( PLOTTER_SRC
 
     transforms/custom_function.cpp
     transforms/custom_timeseries.cpp
-    transforms/custom_factory.cpp
     transforms/function_editor.cpp
     transforms/transform_selector.cpp
     transforms/lua_custom_function.cpp

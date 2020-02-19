@@ -4,17 +4,20 @@
 #include "custom_function.h"
 #include <QJSEngine>
 
-class QmlCustomFunction: public CustomFunction
+class JsCustomFunction: public CustomFunction
 {
 public:
-  QmlCustomFunction(const std::string &linkedPlot,
+  JsCustomFunction(const std::string &linkedPlot,
                     const SnippetData &snippet);
 
   void initEngine() override;
 
-  virtual PlotData::Point calculatePoint(const PlotData & src_data,
-                                         const std::vector<const PlotData *> & channels_data,
-                                         size_t point_index) override;
+  PlotData::Point calculatePoint(const PlotData & src_data,
+                                 const std::vector<const PlotData *> & channels_data,
+                                 size_t point_index) override;
+
+  QString language() const override { return "JS"; }
+
 private:
 
   std::unique_ptr<QJSEngine> _qml_engine;

@@ -4,6 +4,8 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QElapsedTimer>
+#include "lua_custom_function.h"
+#include "qml_custom_function.h"
 
 CustomFunction::CustomFunction(const std::string &linkedPlot,
                                const SnippetData &snippet):
@@ -185,6 +187,7 @@ QDomElement CustomFunction::xmlSaveState(QDomDocument &doc) const
 {
     QDomElement snippet = doc.createElement("snippet");
     snippet.setAttribute("name", QString::fromStdString(_plot_name) );
+    snippet.setAttribute("language", language() );
 
     QDomElement linked = doc.createElement("linkedPlot");
     linked.appendChild( doc.createTextNode( QString::fromStdString(_linked_plot_name)) );
@@ -203,12 +206,23 @@ QDomElement CustomFunction::xmlSaveState(QDomDocument &doc) const
 
 CustomPlotPtr CustomFunction::createFromXML(QDomElement &element)
 {
-    auto name   = element.attribute("name").toStdString();
+    SnippetData snippet;
     auto linkedPlot = element.firstChildElement("linkedPlot").text().trimmed().toStdString();
-    auto globalVars = element.firstChildElement("global").text().trimmed();
-    auto calcEquation = element.firstChildElement("equation").text().trimmed();
+    snippet.name   = element.attribute("name");
+    snippet.globalVars = element.firstChildElement("global").text().trimmed();
+    snippet.equation = element.firstChildElement("equation").text().trimmed();
 
-    return CustomFunctionFactory(linkedPlot, name, globalVars, calcEquation );
+    snippet.language = element.attribute("language", "JS");
+
+    if( snippet.language == "LUA"){
+      return std::make_unique<LuaCustomFunction>(linkedPlot, snippet);
+    }
+    else if( snippet.language == "JS"){
+      return std::make_unique<JsCustomFunction>(linkedPlot, snippet);
+    }
+    else{
+      throw std::runtime_error("Snippet language not recognized");
+    }
 }
 
 SnippetsMap GetSnippetsFromXML(const QString& xml_text)
@@ -242,6 +256,7 @@ SnippetsMap GetSnippetsFromXML(const QDomElement &snippets_element)
     {
         SnippetData snippet;
         snippet.name = elem.attribute("name");
+        snippet.language = elem.attribute("language", "JS");
         snippet.globalVars = elem.firstChildElement("global").text().trimmed();
         snippet.equation = elem.firstChildElement("equation").text().trimmed();
         snippets.insert( {snippet.name, snippet } );
@@ -259,6 +274,7 @@ QDomElement ExportSnippets(const SnippetsMap &snippets, QDomDocument &doc)
 
         auto element = doc.createElement("snippet");
         element.setAttribute("name", it.first);
+        element.setAttribute("language", snippet.language);
 
         auto global_el = doc.createElement("global");
         global_el.appendChild( doc.createTextNode( snippet.globalVars ) );

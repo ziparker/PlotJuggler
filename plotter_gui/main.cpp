@@ -122,13 +122,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    QSettings settings;
-    if( settings.contains("CustomFunction/next_language" ))
-    {
-      auto language = settings.value("CustomFunction/next_language");
-      settings.setValue("CustomFunction/language", language);
-    }
-
     QIcon app_icon( ":/resources/office_chart_line_stacked.ico" );
     QApplication::setWindowIcon(app_icon);
 

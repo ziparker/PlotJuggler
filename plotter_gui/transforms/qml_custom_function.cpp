@@ -1,6 +1,6 @@
 #include "qml_custom_function.h"
 
-QmlCustomFunction::QmlCustomFunction(const std::string &linkedPlot,
+JsCustomFunction::JsCustomFunction(const std::string &linkedPlot,
                                      const SnippetData &snippet):
   CustomFunction(linkedPlot,snippet)
 {
@@ -8,7 +8,7 @@ QmlCustomFunction::QmlCustomFunction(const std::string &linkedPlot,
   initEngine();
 }
 
-void QmlCustomFunction::initEngine()
+void JsCustomFunction::initEngine()
 {
   _qml_engine = std::make_unique<QJSEngine>();
   QJSValue globalVarResult = _qml_engine->evaluate(_global_vars);
@@ -32,7 +32,7 @@ void QmlCustomFunction::initEngine()
 }
 
 
-PlotData::Point QmlCustomFunction::calculatePoint(
+PlotData::Point JsCustomFunction::calculatePoint(
   const PlotData& src_data,
   const std::vector<const PlotData*>& channels_data,
   size_t point_index)

@@ -2146,17 +2146,18 @@ void MainWindow::addOrEditMathPlot(const std::string &name, bool modifying)
             return;
         }
 
-        // clear already existing data first
-        auto data_it = _mapped_plot_data.numeric.find( name );
-        if( data_it != _mapped_plot_data.numeric.end())
-        {
-            data_it->second.clear();
-        }
         dialog.editExistingPlot(custom_it->second);
     }
 
     if(dialog.exec() == QDialog::Accepted)
     {
+      // clear already existing data first
+        auto data_it = _mapped_plot_data.numeric.find( name );
+        if( data_it != _mapped_plot_data.numeric.end())
+        {
+            data_it->second.clear();
+        }
+
         const QString& qplot_name = dialog.getName();
         std::string plot_name = qplot_name.toStdString();
         CustomPlotPtr eq = dialog.getCustomPlotData();
