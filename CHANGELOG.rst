@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.1 (2020-02-21)
+------------------
 * fix issue `#253 <https://github.com/facontidavide/PlotJuggler/issues/253>`_ and some cleanup
 * fix issue `#254 <https://github.com/facontidavide/PlotJuggler/issues/254>`_
 * Fix `#251 <https://github.com/facontidavide/PlotJuggler/issues/251>`_
