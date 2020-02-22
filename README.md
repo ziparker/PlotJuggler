@@ -110,6 +110,10 @@ Both the executable and the plugins will be created in __ws_plotjuggler/devel/li
 To run the application, use the command:
 
     rosrun plotjuggler PlotJuggler 
+    
+# Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/facontidavide/PlotJuggler.svg)](https://starchart.cc/facontidavide/PlotJuggler)    
 
 # If you like PlotJuggler...
 
