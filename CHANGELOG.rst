@@ -2,6 +2,14 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* bug fix in IMU parser
+* added step size for the time tracker
+* fis issue `#256 <https://github.com/facontidavide/PlotJuggler/issues/256>`_ (new release dialog)
+* Update README.md
+* Contributors: Davide Faconti
+
 2.6.1 (2020-02-21)
 ------------------
 * fix issue `#253 <https://github.com/facontidavide/PlotJuggler/issues/253>`_ and some cleanup
