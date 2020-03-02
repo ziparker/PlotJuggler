@@ -1651,7 +1651,6 @@ void PlotWidget::on_savePlotToFile()
 
     QFileDialog saveDialog(this);
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-    saveDialog.setDefaultSuffix("png");
 
     QStringList filters;
     filters << "png (*.png)"
@@ -1659,7 +1658,6 @@ void PlotWidget::on_savePlotToFile()
             << "svg (*.svg)";
 
     saveDialog.setNameFilters(filters);
-
     saveDialog.exec();
 
     if(saveDialog.result() == QDialog::Accepted && !saveDialog.selectedFiles().empty())
@@ -1671,6 +1669,26 @@ void PlotWidget::on_savePlotToFile()
           return;
         }
 
+        bool is_svg = false;
+        QFileInfo fileinfo(fileName);
+        if( fileinfo.suffix().isEmpty() )
+        {
+          auto filter = saveDialog.selectedNameFilter();
+          if( filter == filters[0] )
+          {
+            fileName.append(".png");
+          }
+          else if( filter == filters[1] )
+          {
+            fileName.append(".jpg");
+          }
+          else if( filter == filters[2] )
+          {
+            fileName.append(".svg");
+            is_svg = true;
+          }
+        }
+
         bool tracker_enabled =  _tracker->isEnabled();
         if( tracker_enabled ){
           this->enableTracker(false);
@@ -1680,7 +1698,7 @@ void PlotWidget::on_savePlotToFile()
         QRect documentRect(0,0,1200, 900);
         QwtPlotRenderer rend;
 
-        if( QFileInfo(fileName).suffix().toLower() == "svg")
+        if( is_svg )
         {
           QSvgGenerator generator;
           generator.setFileName( fileName );
