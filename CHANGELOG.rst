@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.3 (2020-04-07)
+------------------
 * Fix issue `#271 <https://github.com/facontidavide/PlotJuggler/issues/271>`_
 * @veimox added
 * Bugfix/executable (`#264 <https://github.com/facontidavide/PlotJuggler/issues/264>`_)
