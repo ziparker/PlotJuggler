@@ -1582,13 +1582,14 @@ void PlotWidget::transformCustomCurves()
                     curve->setTitle( QString::fromStdString(curve_name) + tr(" [") + transform +  tr("]") );
                 }
             }
-            catch (...)
+            catch (std::runtime_error& err)
             {
                 _curves_transform[curve_name] = noTransform;
                 auto data_series = createTimeSeries( noTransform, &data);
                 curve->setData( data_series );
 
-                error_message += curve_name + (" [") + transform.toStdString() + ("]\n");
+                error_message += curve_name + (" [") + transform.toStdString() + ("]: ");
+                error_message += err.what(); + "\n";
 
                 curve->setTitle( QString::fromStdString(curve_name) );
             }
@@ -1598,7 +1599,7 @@ void PlotWidget::transformCustomCurves()
     {
         QMessageBox msgBox(this);
         msgBox.setWindowTitle("Warnings");
-        msgBox.setText(tr("Something went wront while creating the following curves. "
+        msgBox.setText(tr("Something wrong happened while creating the following curves. "
                           "Please check that the transform equation is correct.\n\n") +
                        QString::fromStdString(error_message) );
         msgBox.exec();
