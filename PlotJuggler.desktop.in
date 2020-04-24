@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PlotJuggler
+Exec=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/PlotJuggler
+Icon=${DESKTOP_ICON_DIR}/plotjuggler-icon.svg
+Comment=Visualize timeseries like a pro
+Terminal=false
+Categories=Development;
+Name[en_US]=PlotJuggler
