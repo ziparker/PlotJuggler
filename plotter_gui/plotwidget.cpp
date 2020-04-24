@@ -762,6 +762,16 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
     }
     plot_el.appendChild(limitY_el);
 
+    if( _curve_style == QwtPlotCurve::Lines ) {
+      plot_el.setAttribute("style", "Lines");
+    }
+    else if( _curve_style == QwtPlotCurve::LinesAndDots ) {
+      plot_el.setAttribute("style", "LinesAndDots");
+    }
+    else if( _curve_style == QwtPlotCurve::Dots ) {
+      plot_el.setAttribute("style", "Dots");
+    }
+
     for(auto& it: _curve_list)
     {
         auto& name = it.first;
@@ -771,6 +781,7 @@ QDomElement PlotWidget::xmlSaveState( QDomDocument &doc) const
         curve_el.setAttribute( "R", curve->pen().color().red());
         curve_el.setAttribute( "G", curve->pen().color().green());
         curve_el.setAttribute( "B", curve->pen().color().blue());
+        curve_el.setAttribute( "custom_transform", _curves_transform.at(name) );
         curve_el.setAttribute( "custom_transform", _curves_transform.at(name) );
 
         plot_el.appendChild(curve_el);
@@ -960,6 +971,25 @@ bool PlotWidget::xmlLoadState(QDomElement &plot_widget)
         rect.setLeft( rectangle.attribute("left").toDouble());
         rect.setRight( rectangle.attribute("right").toDouble());
         this->setZoomRectangle( rect, false);
+    }
+
+    if( plot_widget.hasAttribute("style"))
+    {
+      QString style = plot_widget.attribute("style");
+      if( style == "Lines") {
+        _curve_style = QwtPlotCurve::Lines;
+      }
+      else if( style == "LinesAndDots") {
+        _curve_style = QwtPlotCurve::LinesAndDots;
+      }
+      else if( style == "Dots") {
+        _curve_style = QwtPlotCurve::Dots;
+      }
+
+      for(auto& it: _curve_list){
+        auto& curve = it.second;
+        curve->setStyle( _curve_style );
+      }
     }
 
     replot();
