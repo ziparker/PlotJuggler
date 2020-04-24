@@ -15,6 +15,7 @@
 #include <QWheelEvent>
 #include <QSettings>
 #include <QSvgGenerator>
+#include <QClipboard>
 #include <iostream>
 #include <limits>
 #include <set>
@@ -298,6 +299,9 @@ void PlotWidget::buildActions()
     _action_saveToFile = new QAction("&Save plot to file", this);
     connect(_action_saveToFile, &QAction::triggered, this, &PlotWidget::on_savePlotToFile);
 
+    _action_clipboard = new QAction("&Copy to clipboard", this);
+    connect(_action_clipboard, &QAction::triggered, this, &PlotWidget::on_copyToClipboard);
+
     _action_XY_transform = new QAction(tr("&XY Plot"), this);
     _action_XY_transform->setCheckable( true );
     _action_XY_transform->setEnabled(false);
@@ -335,6 +339,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     setIcon( _action_zoomOutMaximum, "zoom_max.png" );
     setIcon( _action_zoomOutHorizontally, "zoom_horizontal.png" );
     setIcon( _action_zoomOutVertically, "zoom_vertical.png" );
+    setIcon( _action_clipboard, "copy_clipboard.png" );
     setIcon( _action_saveToFile, "save.png" );
 
     QMenu menu(this);
@@ -355,6 +360,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint &pos)
     menu.addAction( _action_2ndDerivativeTransform );
     menu.addAction( _action_custom_transform );
     menu.addSeparator();
+    menu.addAction( _action_clipboard );
     menu.addAction( _action_saveToFile );
 
     _action_removeCurve->setEnabled( ! _curve_list.empty() );
@@ -1770,6 +1776,31 @@ void PlotWidget::on_editAxisLimits_triggered()
     on_zoomOutVertical_triggered(false);
     replot();
     emit undoableChange();
+}
+
+void PlotWidget::on_copyToClipboard()
+{
+  bool tracker_enabled =  _tracker->isEnabled();
+  if( tracker_enabled ){
+    this->enableTracker(false);
+    replot();
+  }
+
+  auto documentRect = this->canvas()->rect();
+  qDebug() << documentRect;
+
+  QwtPlotRenderer rend;
+  QPixmap pixmap ( documentRect.width(), documentRect.height() );
+  QPainter painter(&pixmap);
+  rend.render(this, &painter, documentRect);
+
+  QClipboard *clipboard = QGuiApplication::clipboard();
+  clipboard->setPixmap(pixmap);
+
+  if( tracker_enabled ){
+    this->enableTracker(true);
+    replot();
+  }
 }
 
 

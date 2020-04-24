@@ -250,5 +250,7 @@
         <file>style_light/list_view.png</file>
         <file>style_dark/list_view.png</file>
         <file>style_dark/tree_view.png</file>
+        <file>style_dark/copy_clipboard.png</file>
+        <file>style_light/copy_clipboard.png</file>
     </qresource>
 </RCC>
