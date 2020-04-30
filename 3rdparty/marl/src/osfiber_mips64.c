@@ -1,4 +1,4 @@
-// Copyright 2019 The Marl Authors.
+// Copyright 2020 The Marl Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if defined(__i386__)
+#if defined(__mips__) && _MIPS_SIM == _ABI64
 
-#include "osfiber_asm_x86.h"
+#include "osfiber_asm_mips64.h"
 
 void marl_fiber_trampoline(void (*target)(void*), void* arg) {
   target(arg);
@@ -25,19 +25,11 @@ void marl_fiber_set_target(struct marl_fiber_context* ctx,
                            uint32_t stack_size,
                            void (*target)(void*),
                            void* arg) {
-  // The stack pointer needs to be 16-byte aligned when making a 'call'.
-  // The 'call' instruction automatically pushes the return instruction to the
-  // stack (4-bytes), before making the jump.
-  // The marl_fiber_swap() assembly function does not use 'call', instead it
-  // uses 'jmp', so we need to offset the ESP pointer by 4 bytes so that the
-  // stack is still 16-byte aligned when the return target is stack-popped by
-  // the callee.
   uintptr_t* stack_top = (uintptr_t*)((uint8_t*)(stack) + stack_size);
-  ctx->EIP = (uintptr_t)&marl_fiber_trampoline;
-  ctx->ESP = (uintptr_t)&stack_top[-5];
-  stack_top[-3] = (uintptr_t)arg;
-  stack_top[-4] = (uintptr_t)target;
-  stack_top[-5] = 0;  // No return target.
+  ctx->ra = (uintptr_t)&marl_fiber_trampoline;
+  ctx->a0 = (uintptr_t)target;
+  ctx->a1 = (uintptr_t)arg;
+  ctx->sp = ((uintptr_t)stack_top) & ~(uintptr_t)15;
 }
 
-#endif  // defined(__i386__)
+#endif // defined(__mips__) && _MIPS_SIM == _ABI64

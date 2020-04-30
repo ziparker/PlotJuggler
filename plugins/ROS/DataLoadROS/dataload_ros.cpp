@@ -30,6 +30,13 @@ DataLoadROS::DataLoadROS()
 {
     _extensions.push_back( "bag");
     loadDefaultSettings();
+
+    scheduler_.bind();
+}
+
+DataLoadROS::~DataLoadROS()
+{
+  scheduler_.unbind();
 }
 
 void StrCat(const std::string& a, const std::string& b,  std::string& out)
@@ -242,7 +249,7 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
       wg.add();
       auto ticket = ros_parser_ptr->ticket_queue.take();
 
-      scheduler.enqueue([=, &abort_marl, &thrown_error]
+      marl::schedule([=, &abort_marl, &thrown_error]
       {
         try{
           ticket.wait();
@@ -275,11 +282,6 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
 
     info->selected_datasources = _config.selected_topics;
     return true;
-}
-
-DataLoadROS::~DataLoadROS()
-{
-
 }
 
 bool DataLoadROS::xmlSaveState(QDomDocument &doc, QDomElement &plugin_elem) const
