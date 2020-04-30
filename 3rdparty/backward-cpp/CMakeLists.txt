@@ -129,11 +129,3 @@ if(BACKWARD_TESTS)
 	endforeach()
 endif()
 
-install(
-    FILES "backward.hpp"
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
-install(
-    FILES "BackwardConfig.cmake"
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/backward
-)

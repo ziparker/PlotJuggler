@@ -178,27 +178,20 @@ endif()
 
 #############################################################
 
-
 if("${CMAKE_INSTALL_PREFIX}" MATCHES "^/opt/")
-  # Handle release case
-  set(DESKTOP_APP_DIR "/usr/share/applications")
-  set(DESKTOP_ICON_DIR "/usr/share/icons")
+    set(DESKTOP_ICON_DIR "$ENV{HOME}/.local/share/icons")
+
+    install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop.ros
+             RENAME PlotJuggler.desktop
+             DESTINATION  "$ENV{HOME}/.local/share/applications"  )
 else()
-  set(DESKTOP_APP_DIR "$ENV{HOME}/.local/share/applications")
-  set(DESKTOP_ICON_DIR ${DESKTOP_APP_DIR})
+    set(DESKTOP_ICON_DIR "${CMAKE_INSTALL_PREFIX}/share/icons")
+
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop
+            DESTINATION  "${CMAKE_INSTALL_PREFIX}/share/applications"  )
 endif()
 
-install(DIRECTORY DESTINATION ${DESKTOP_APP_DIR})
-install(DIRECTORY DESTINATION ${DESKTOP_ICON_DIR})
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop.in
-               ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop )
-
-install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop
-         DESTINATION  ${DESKTOP_APP_DIR}  )
-
-install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/plotjuggler-icon.svg
-         DESTINATION ${DESKTOP_ICON_DIR}  )
-
-
+install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/plotjuggler.svg
+    DESTINATION ${DESKTOP_ICON_DIR}  )
 

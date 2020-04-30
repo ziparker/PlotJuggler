@@ -253,13 +253,10 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
       {
         try{
           ticket.wait();
-          if( !abort_marl ) {
-            ros_parser_ptr->pushMessageRef( topic_name, MessageRef(buffer), msg_time );
-          }
+          ros_parser_ptr->pushMessageRef( topic_name, MessageRef(buffer), msg_time );
         }
-        catch(std::runtime_error& err)
+        catch(std::exception&)
         {
-          std::cout << err.what() << std::endl;
           abort_marl = true;
           thrown_error = std::current_exception();
         }
