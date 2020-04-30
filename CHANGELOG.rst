@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.4 (2020-04-30)
+------------------
 * Fix the damn icons
 * marl updated
 * fix issue `#281 <https://github.com/facontidavide/PlotJuggler/issues/281>`_
