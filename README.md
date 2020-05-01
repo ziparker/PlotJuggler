@@ -1,3 +1,5 @@
+![PlotJuggler](docs/images/plotjuggler_banner.svg)
+
 | Platform  | Build Status  |
 |---------------------|-----------|
 | Windows (Appveyor)  | [![Build status](https://ci.appveyor.com/api/projects/status/mqdmxpt0kf1cf2h3?svg=true)](https://ci.appveyor.com/project/facontidavide59577/plotjuggler)  |
