@@ -32,10 +32,10 @@ To understand what PlotJuggler can do for you, take a look to the following vide
 - ULog (PX4)
 - Your custom format... [contact me to know more](https://www.plotjuggler.io/support).
 
-## New in version 2.X
+## Compute calculations and transform your data
 
 It is now possible to create custom timeseries! Simply write your own
-JavaScript function and apply it to one of more existing timeseries.
+JavaScript or Lua function and apply it to one of more existing timeseries.
 
 Many thanks to [@1r0b1n0](https://github.com/1r0b1n0), who developed the
 initial version of this feature, and to our first __sponsor__, 
@@ -45,9 +45,6 @@ Watch this video to learn how to use it.
 
 [![Custom timeseries](docs/images/custom_functions.png)](https://vimeo.com/311245098)
 
-## Windows Installer (experimental)
-
-[PlotJugglerInstaller-2.1.5.exe](https://github.com/facontidavide/PlotJuggler/releases/download/2.1.5/PlotJugglerInstaller-2.1.5.exe)
 
 ## "Download and Run" (Ubuntu 16.04 Xenial or later)
 
@@ -85,11 +82,9 @@ Then compile using cmake (qmake is NOT supported):
 
 ## How to build (ROS users)
 
- The following instructions are for __ROS Kinetic__. Adapt them accordingly if you are using a different version of ROS.
- 
  The easiest way to install PlotJuggler is through the command:
  
-    sudo apt-get install ros-kinetic-plotjuggler 
+    sudo apt-get install ros-${ROS_DISTRO}-plotjuggler 
 
 Nevertheless, if you want to compile it from source, for instance to try the very latest version on the master branch, 
 you __must__ build PlotJuggler using __catkin__, otherwise the ROS related plugins will not be included.
@@ -130,7 +125,4 @@ If you use PlotJuggler at work, your company can become a __sponsor__ and suppor
 the development of those specific features they need.
 
 [Contact me](https://www.plotjuggler.io/support) for more details.
- 
 
-# Credits
-* [Icon ](https://www.svgrepo.com/svg/283627/line-chart-line-graphic)
