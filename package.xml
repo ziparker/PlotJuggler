@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="3">
 <name>plotjuggler</name>
 <version>2.5.1</version>
 <description>PlotJuggler: juggle with data</description>
