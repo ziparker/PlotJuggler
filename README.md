@@ -2,7 +2,6 @@
 
 | Platform  | Build Status  |
 |---------------------|-----------|
-| Windows (Appveyor)  | [![Build status](https://ci.appveyor.com/api/projects/status/mqdmxpt0kf1cf2h3?svg=true)](https://ci.appveyor.com/project/facontidavide59577/plotjuggler)  |
 | Ubuntu ROS (Travis) | [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler) |
 
 
