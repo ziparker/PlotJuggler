@@ -8,7 +8,7 @@
 #include <rosbag2/readers/sequential_reader.hpp>
 #include "PlotJuggler/optional.hpp"
 #include "PlotJuggler/dataloader_base.h"
-#include "ros2_introspection/ros2_introspection.hpp"
+#include "../ros2_parser.h"
 #include "../dialog_select_ros_topics.h"
 
 
@@ -34,14 +34,6 @@ class  DataLoadROS2: public DataLoader
     virtual bool xmlLoadState(const QDomElement &parent_element ) override;
 
   private:
-
-    struct TopicInfo{
-        bool has_header_stamp;
-        std::shared_ptr<rosbag2_introspection_message_t> buffer;
-        const rosidl_message_type_support_t *type_support;
-        Ros2Introspection::FlatMessage flat_msg;
-        Ros2Introspection::RenamedValues renamed;
-    };
 
     std::unordered_map<std::string,TopicInfo> _topic_info;
 

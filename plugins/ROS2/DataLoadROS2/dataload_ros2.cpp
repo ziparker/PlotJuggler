@@ -38,8 +38,6 @@ const std::vector<const char*> &DataLoadROS2::compatibleFileExtensions() const
 
 bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
 {
-    auto allocator = rcutils_get_default_allocator();
-
     if(!_bagReader){
       _bagReader = std::make_shared<rosbag2::readers::SequentialReader>();
     }
@@ -106,14 +104,10 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
 
         _parser.registerMessageType(topic_name, topic_type);
 
-        auto type_support =  _parser.getIntrospectionSupport(topic_name);
-
-        TopicInfo ti;
-        ti.has_header_stamp = Ros2Introspection::TypeHasHeader( type_support );
-        ti.buffer = rosbag2::allocate_introspection_message(type_support, &allocator);
-        ti.type_support = rosbag2::get_typesupport(topic_type, rosidl_typesupport_cpp::typesupport_identifier);
-
-        _topic_info.insert( {topic_name, std::move(ti)} );
+        if( _topic_info.count(topic_name) == 0 )
+        {
+            _topic_info.insert( {topic_name, TopicInfo(topic_type)} );
+        }
     }
 
     if( _config.discard_large_arrays ){

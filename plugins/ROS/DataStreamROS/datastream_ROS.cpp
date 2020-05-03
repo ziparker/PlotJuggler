@@ -330,17 +330,14 @@ bool DataStreamROS::start(QStringList* selected_datasources)
         ros::master::getTopics(topic_infos);
         for (ros::master::TopicInfo topic_info: topic_infos)
         {
-            all_topics.push_back(
-                        std::make_pair(QString(topic_info.name.c_str()),
-                                       QString(topic_info.datatype.c_str()) ) );
+            all_topics.push_back( {QString::fromStdString(topic_info.name),
+                                   QString::fromStdString(topic_info.datatype) } );
         }
         dialog.updateTopicList(all_topics);
     });
 
     int res = dialog.exec();
-
     _config = dialog.getResult();
-
     timer.stop();
 
     if( res != QDialog::Accepted || _config.selected_topics.empty() )

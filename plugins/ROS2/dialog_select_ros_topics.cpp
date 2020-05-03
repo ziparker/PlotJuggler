@@ -73,7 +73,7 @@ DialogSelectRosTopics::DialogSelectRosTopics(const std::vector<std::pair<QString
 
 }
 
-void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QString> > topic_list )
+void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QString>> topic_list )
 {
     std::set<QString> newly_added;
 
@@ -105,10 +105,12 @@ void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QStri
         }
     }
 
-    ui->listRosTopics->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->listRosTopics->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    ui->listRosTopics->sortByColumn(0, Qt::AscendingOrder);
-    //----------------------------------------------
+    if( newly_added.size() > 1 )
+    {
+        ui->listRosTopics->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+        ui->listRosTopics->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+        ui->listRosTopics->sortByColumn(0, Qt::AscendingOrder);
+    }
 
     QModelIndexList selection = ui->listRosTopics->selectionModel()->selectedRows();
 
@@ -117,7 +119,7 @@ void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QStri
         const QTableWidgetItem *item = ui->listRosTopics->item(row,0);
         QString topic_name = item->text();
 
-        if(newly_added.count(topic_name) &&  _default_selected_topics.contains( topic_name ) )
+        if(newly_added.count(topic_name) && _default_selected_topics.contains( topic_name ) )
         {
             bool selected = false;
             for (const auto& selected_item: selection)
