@@ -20,6 +20,7 @@
 #include <rosbag2/typesupport_helpers.hpp>
 #include <rosbag2/types/introspection_message.hpp>
 #include <unordered_map>
+#include <rclcpp/rclcpp.hpp>
 #include <rmw/rmw.h>
 
 #include "../dialog_select_ros_topics.h"
@@ -28,14 +29,6 @@ DataLoadROS2::DataLoadROS2()
 {
     _extensions.push_back( "yaml");
     loadDefaultSettings();
-}
-
-void StrCat(const std::string& a, const std::string& b,  std::string& out)
-{
-    out.clear();
-    out.reserve(a.size() + b.size());
-    out.assign(a);
-    out.append(b);
 }
 
 const std::vector<const char*> &DataLoadROS2::compatibleFileExtensions() const
@@ -47,8 +40,9 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
 {
     auto allocator = rcutils_get_default_allocator();
 
-    if(!_bagReader)
-        _bagReader = std::make_shared<rosbag2::SequentialReader>();
+    if(!_bagReader){
+      _bagReader = std::make_shared<rosbag2::readers::SequentialReader>();
+    }
 
     QString bagDir;
     {
@@ -103,154 +97,80 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
 
     saveDefaultSettings();
 
-    //std::unordered_map<std::string, const rosidl_message_type_support_t*> topicsIntrospectionData; // topic and type
-    std::unordered_map<std::string, TopicData> topicsMembersData;
-
     std::set<std::string> topic_selected;
-    for(const auto& topic: _config.selected_topics)
+    for(const auto& topic_qt: _config.selected_topics)
     {
-        const std::string topicStd = topic.toStdString();
-        const std::string& topicType = topicTypesByName.at(topicStd);
-        topic_selected.insert( topic.toStdString() );
+        const std::string topic_name = topic_qt.toStdString();
+        const std::string& topic_type = topicTypesByName.at(topic_name);
+        topic_selected.insert( topic_name );
 
-        // load type introspection
-        const rosidl_message_type_support_t * introspection_typesupport = rosbag2::get_typesupport(topicType, rosidl_typesupport_introspection_cpp::typesupport_identifier);
-        const rosidl_message_type_support_t * typesupport = rosbag2::get_typesupport(topicType, rosidl_typesupport_cpp::typesupport_identifier);
+        _parser.registerMessageType(topic_name, topic_type);
 
-        TopicData td;
-        td.msg_buffer = rosbag2::allocate_introspection_message(introspection_typesupport, &allocator);
-        td.introspection_typesupport = introspection_typesupport;
-        td.typesupport = typesupport;
-        td.type = topicType;
-        generateMessageTypesVec(td.members, topic, introspection_typesupport, 0);
+        auto type_support =  _parser.getIntrospectionSupport(topic_name);
 
-        // check for stamp
-        if(_config.use_header_stamp)
-        {
-            for(const auto& member : td.members)
-            {
-                if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32 &&
-                        (member.path == topic + "/header/stamp/sec" || member.path == topic + "/stamp/sec"))
-                {
-                    td.stampSecOffset = member.offset;
-                }
+        TopicInfo ti;
+        ti.has_header_stamp = Ros2Introspection::TypeHasHeader( type_support );
+        ti.buffer = rosbag2::allocate_introspection_message(type_support, &allocator);
+        ti.type_support = rosbag2::get_typesupport(topic_type, rosidl_typesupport_cpp::typesupport_identifier);
 
-                if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT32 &&
-                        (member.path == topic + "/header/stamp/nanosec" || member.path == topic + "/stamp/nanosec"))
-                {
-                    td.stampNanosecOffset = member.offset;
-                }
-            }
-        }
-
-        topicsMembersData.emplace(topicStd, td);
+        _topic_info.insert( {topic_name, std::move(ti)} );
     }
 
-    // add topics in plot_ref
-    for(auto &p : topicsMembersData)
-    {
-        //const std::string &topic = p.first;
-        for(TopicMemberInfo &memberInfo : p.second.members)
-        {
-            // addNumeric may invalidate the iterator, but the reference to its data will still be valid
-            memberInfo.plot_map_iterator = plot_map.addNumeric(memberInfo.path.toStdString());
-        }
+    if( _config.discard_large_arrays ){
+        _parser.setMaxArrayPolicy( Ros2Introspection::Parser::DISCARD_LARGE_ARRAYS );
+    }
+    else{
+        _parser.setMaxArrayPolicy( Ros2Introspection::Parser::KEEP_LARGE_ARRAYS );
     }
 
+    auto time_prev = std::chrono::high_resolution_clock::now();
     while(_bagReader->has_next())
     {
         std::shared_ptr<rosbag2::SerializedBagMessage> msg = _bagReader->read_next();
 
-        auto itToTopicMembersData = topicsMembersData.find(msg->topic_name);
-        if(itToTopicMembersData != topicsMembersData.end())
+        auto topic_info_it = _topic_info.find(msg->topic_name);
+        if( topic_info_it == _topic_info.end() )
         {
-            TopicData &td = itToTopicMembersData->second;
-            auto deserializedMsgData = td.msg_buffer->message;
-            auto deserialize_ret = rmw_deserialize(msg->serialized_data.get(), td.typesupport, deserializedMsgData);
-            if(deserialize_ret != RMW_RET_OK)
-            {
-                throw std::runtime_error("Failed to deserialize topic " + itToTopicMembersData->first + " error : " + std::to_string(deserialize_ret));
-            }
-            // cast void* to uint8_t*, to avoid compiler warnings
-            uint8_t* deserializedMsgDataAsUInt8 = static_cast<uint8_t*>(deserializedMsgData);
-
-            double stamp;
-            if(_config.use_header_stamp && td.stampSecOffset && td.stampNanosecOffset)
-            {
-                int32_t stamp_sec = *reinterpret_cast<int32_t*>(deserializedMsgDataAsUInt8 + td.stampSecOffset.value());
-                uint32_t stamp_nanosec = *reinterpret_cast<uint32_t*>(deserializedMsgDataAsUInt8 + td.stampNanosecOffset.value());
-
-                int64_t stamp_total_nanosec = static_cast<int64_t>(stamp_sec)*1000000000 + static_cast<int64_t>(stamp_nanosec);
-                stamp = stamp_total_nanosec / 1e9;
-            }
-            else
-            {
-                rcutils_time_point_value_t timestamp_ns = msg->time_stamp;
-                stamp = timestamp_ns / 1e9;
-            }
-
-            for(const TopicMemberInfo& member : itToTopicMembersData->second.members)
-            {
-                double numericData = 0.;
-
-                if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT)
-                {
-                    numericData = static_cast<double>(*reinterpret_cast<float*>(deserializedMsgDataAsUInt8 + member.offset));
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE)
-                {
-                    numericData = *reinterpret_cast<double*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT8)
-                {
-                    numericData = *reinterpret_cast<int8_t*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT16)
-                {
-                    numericData = *reinterpret_cast<int16_t*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32)
-                {
-                    numericData = *reinterpret_cast<int32_t*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT64)
-                {
-                    numericData = *reinterpret_cast<int64_t*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT8)
-                {
-                    numericData = *reinterpret_cast<uint8_t*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT16)
-                {
-                    numericData = *reinterpret_cast<uint16_t*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT32)
-                {
-                    numericData = *reinterpret_cast<uint32_t*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT64)
-                {
-                    numericData = *reinterpret_cast<uint64_t*>(deserializedMsgDataAsUInt8 + member.offset);
-                }
-                else if(member.ros_type == rosidl_typesupport_introspection_cpp::ROS_TYPE_BOOLEAN)
-                {
-                    // force boolean data to be converted to 0 or 1
-                    numericData = (*reinterpret_cast<bool*>(deserializedMsgDataAsUInt8 + member.offset)) ? 1 : 0;
-                }
-
-                member.plot_map_iterator->second.pushBack(PlotData::Point(stamp, numericData));
-            }
+            continue;
         }
-    }
+
+        auto& tp = topic_info_it->second;
+
+        _parser.deserializeIntoFlatMessage(msg->topic_name, msg->serialized_data.get(), &tp.flat_msg, _config.max_array_size);
+
+        double timestamp = 1e-9 * double( msg->time_stamp ); // nanoseconds to seconds
+
+        if(tp.has_header_stamp && _config.use_header_stamp)
+        {
+            double sec  = tp.flat_msg.values[0].second;
+            double nsec = tp.flat_msg.values[1].second;
+            timestamp = sec + (nsec*1e-9);
+        }
+
+        Ros2Introspection::ConvertFlatMessageToRenamedValues(tp.flat_msg, tp.renamed);
+
+        for(const auto& it: tp.renamed)
+        {
+            const auto& key = it.first;
+            double value = it.second;
+
+            auto plot_pair = plot_map.numeric.find( key );
+            if( plot_pair == plot_map.numeric.end() )
+            {
+                plot_pair = plot_map.addNumeric( key );
+            }
+            auto& series = plot_pair->second;
+            series.pushBack( {timestamp, value} );
+        }
+    } // end while
+
+    auto now = std::chrono::high_resolution_clock::now();
+    double diff = std::chrono::duration_cast< std::chrono::milliseconds >( now - time_prev).count();
+
+    qDebug() << "The rosbag loaded the data in " << diff <<" milliseconds";
 
     info->selected_datasources = _config.selected_topics;
     return true;
-}
-
-DataLoadROS2::~DataLoadROS2()
-{
-
 }
 
 bool DataLoadROS2::xmlSaveState(QDomDocument &doc, QDomElement &plugin_elem) const
@@ -284,62 +204,6 @@ bool DataLoadROS2::xmlLoadState(const QDomElement &parent_element)
     return true;
 }
 
-void DataLoadROS2::generateMessageTypesVec(std::vector<TopicMemberInfo> &membersVec,
-                                           const QString &path,
-                                           const rosidl_message_type_support_t *typeData,
-                                           uint32_t offset)
-{
-    const auto* members = static_cast<const rosidl_typesupport_introspection_cpp::MessageMembers*>(typeData->data);
-
-    for(size_t i = 0; i < members->member_count_; i++)
-    {
-        const rosidl_typesupport_introspection_cpp::MessageMember& member = members->members_[i];
-        if(member.is_array_)
-            continue; // unsupported
-
-        if(     member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_FLOAT ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_DOUBLE ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_BOOLEAN ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT8 ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT16 ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT32 ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_INT64 ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT8 ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT16 ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT32 ||
-                member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_UINT64
-           )
-        {
-            TopicMemberInfo topicMemberInfo;
-            topicMemberInfo.name = std::string(member.name_);
-            topicMemberInfo.path = path + "/" + QString::fromUtf8(member.name_);
-            topicMemberInfo.offset = offset + member.offset_;
-            topicMemberInfo.ros_type = member.type_id_;
-
-            membersVec.push_back(topicMemberInfo);
-            //qDebug() << "adding member : " << topicMemberInfo.path << " with offset : " << topicMemberInfo.offset;
-        }
-        else if(member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_MESSAGE)
-        {
-            generateMessageTypesVec(membersVec,
-                               path + "/" + QString::fromUtf8(member.name_),
-                               member.members_,
-                               offset + member.offset_
-                               );
-        }
-        else if(member.type_id_ == rosidl_typesupport_introspection_cpp::ROS_TYPE_STRING)
-        {
-            // TODO
-            /*
-            TopicMemberInfo topicMemberInfo;
-            topicMemberInfo.path = path + "/" + QString::fromUtf8(member.name_);
-            topicMemberInfo.offset = offset + member.offset_;
-            topicMemberInfo.ros_type = member.type_id_;
-            */
-        }
-    }
-}
-
 void DataLoadROS2::saveDefaultSettings()
 {
     QSettings settings;
@@ -348,7 +212,6 @@ void DataLoadROS2::saveDefaultSettings()
     settings.setValue("DataLoadROS2/max_array_size", (int)_config.max_array_size);
     settings.setValue("DataLoadROS2/discard_large_arrays", _config.discard_large_arrays);
 }
-
 
 void DataLoadROS2::loadDefaultSettings()
 {

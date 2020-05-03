@@ -1,0 +1,36 @@
+rosbag2_bagfile_information:
+  version: 2
+  storage_identifier: sqlite3
+  relative_file_paths:
+    - rosbag2_test/rosbag2_2020_05_03-09_38_43_0.db3
+  duration:
+    nanoseconds: 35600123331
+  starting_time:
+    nanoseconds_since_epoch: 1588491523403846382
+  message_count: 1071
+  topics_with_message_count:
+    - topic_metadata:
+        name: /battery
+        type: sensor_msgs/msg/BatteryState
+        serialization_format: cdr
+      message_count: 357
+    - topic_metadata:
+        name: /imu
+        type: sensor_msgs/msg/Imu
+        serialization_format: cdr
+      message_count: 357
+    - topic_metadata:
+        name: /pose
+        type: geometry_msgs/msg/PoseStamped
+        serialization_format: cdr
+      message_count: 357
+    - topic_metadata:
+        name: /rosout
+        type: rcl_interfaces/msg/Log
+        serialization_format: cdr
+      message_count: 0
+    - topic_metadata:
+        name: /parameter_events
+        type: rcl_interfaces/msg/ParameterEvent
+        serialization_format: cdr
+      message_count: 0

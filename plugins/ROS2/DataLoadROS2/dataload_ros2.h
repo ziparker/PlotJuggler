@@ -5,10 +5,10 @@
 #include <QtPlugin>
 #include <QSettings>
 
+#include <rosbag2/readers/sequential_reader.hpp>
 #include "PlotJuggler/optional.hpp"
-#include <rosbag2/sequential_reader.hpp>
-
 #include "PlotJuggler/dataloader_base.h"
+#include "ros2_introspection/ros2_introspection.hpp"
 #include "../dialog_select_ros_topics.h"
 
 
@@ -18,28 +18,7 @@ class  DataLoadROS2: public DataLoader
     Q_PLUGIN_METADATA(IID "com.robopec.PlotJuggler.ROS2DataLoader" "../dataloader.json")
     Q_INTERFACES(DataLoader)
 
-    struct TopicMemberInfo
-    {
-        QString path;
-        std::string name;
-        uint32_t offset;
-        uint8_t ros_type;
-        std::unordered_map<std::string, PlotData>::iterator plot_map_iterator;
-    };
-
-    struct TopicData
-    {
-        std::vector<TopicMemberInfo> members;
-        std::string type;
-        std::shared_ptr<rosbag2_introspection_message_t> msg_buffer;
-        const rosidl_message_type_support_t* typesupport;
-        const rosidl_message_type_support_t* introspection_typesupport;
-
-        nonstd::optional<uint32_t> stampSecOffset;
-        nonstd::optional<uint32_t> stampNanosecOffset;
-    };
-
-public:
+  public:
     DataLoadROS2();
 
     virtual const std::vector<const char*>& compatibleFileExtensions() const override;
@@ -48,20 +27,27 @@ public:
 
     virtual const char* name() const override { return "DataLoad ROS2 bags"; }
 
-    virtual ~DataLoadROS2() override;
+    virtual ~DataLoadROS2() override = default;
 
     virtual bool xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const override;
 
     virtual bool xmlLoadState(const QDomElement &parent_element ) override;
 
-protected:
-    std::shared_ptr<rosbag2::SequentialReader> _bagReader;
+  private:
 
-private:
-    void generateMessageTypesVec(std::vector<TopicMemberInfo> &membersVec,
-                             const QString& path,
-                             const rosidl_message_type_support_t* typeData,
-                             uint32_t offset);
+    struct TopicInfo{
+        bool has_header_stamp;
+        std::shared_ptr<rosbag2_introspection_message_t> buffer;
+        const rosidl_message_type_support_t *type_support;
+        Ros2Introspection::FlatMessage flat_msg;
+        Ros2Introspection::RenamedValues renamed;
+    };
+
+    std::unordered_map<std::string,TopicInfo> _topic_info;
+
+    std::shared_ptr<rosbag2::readers::SequentialReader> _bagReader;
+
+    Ros2Introspection::Parser _parser;
 
     std::vector<const char*> _extensions;
 
@@ -72,6 +58,7 @@ private:
     void saveDefaultSettings();
 
     void loadDefaultSettings();
+
 };
 
 #endif // DATALOAD_ROS2_H
