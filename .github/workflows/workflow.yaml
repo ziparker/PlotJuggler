@@ -1,0 +1,21 @@
+name: PlotJuggler Eloquent
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+      fail-fast: false
+    steps:
+    - name: Setup ROS 2
+      uses: ros-tooling/setup-ros@0.0.15
+    with:
+        required-ros-distributions: eloquent
+
