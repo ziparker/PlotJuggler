@@ -2,7 +2,9 @@
 
 | Platform  | Build Status  |
 |---------------------|-----------|
-| Ubuntu ROS (Travis) | [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler) |
+| Ubuntu ROS Kinetic   | [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler) |
+| Ubuntu ROS Melodic   | [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler) |
+| Ubuntu ROS2 Eloquent | [![Build Status](https://travis-ci.org/facontidavide/PlotJuggler.svg?branch=master)](https://travis-ci.org/facontidavide/PlotJuggler) |
 
 
 [![Join the chat at https://gitter.im/PlotJuggler/Lobby](https://badges.gitter.im/PlotJuggler/Lobby.svg)](https://gitter.im/PlotJuggler/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -27,14 +29,14 @@ To understand what PlotJuggler can do for you, take a look to the following vide
 ## Supported formats
 
 - CSV
-- Rosbags / ROS topics
+- Rosbags / ROS topics (both ROS1 and ROS2)
 - ULog (PX4)
 - Your custom format... [contact me to know more](https://www.plotjuggler.io/support).
 
 ## Compute calculations and transform your data
 
 It is now possible to create custom timeseries! Simply write your own
-JavaScript or Lua function and apply it to one of more existing timeseries.
+**JavaScript** or **Lua** function and apply it to one of more existing timeseries.
 
 Many thanks to [@1r0b1n0](https://github.com/1r0b1n0), who developed the
 initial version of this feature, and to our first __sponsor__, 
@@ -79,22 +81,22 @@ Then compile using cmake (qmake is NOT supported):
  
  Note: the plugins need to be installed in the same folder of the executable or in __/usr/local/lib/PlotJuggler/__.
 
-## How to build (ROS users)
+## How to build (ROS/ROS2 users)
 
  The easiest way to install PlotJuggler is through the command:
  
     sudo apt-get install ros-${ROS_DISTRO}-plotjuggler 
 
 Nevertheless, if you want to compile it from source, for instance to try the very latest version on the master branch, 
-you __must__ build PlotJuggler using __catkin__, otherwise the ROS related plugins will not be included.
+you **must** build PlotJuggler using either **catkin** or **colcon**, otherwise the ROS related plugins will **not** be included.
 
-Follow these instructions:
+Compiling with catkin_tools:
 
-    sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5multimedia ros-$ROS_DISTRO-ros-type-introspection
     mkdir -p ws_plotjuggler/src; cd ws_plotjuggler/src
     git clone https://github.com/facontidavide/PlotJuggler.git
     cd ..
-    catkin_make
+    rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
+    catkin build
     source devel/setup.bash
     
 You should see the following message at the beginning of the compilation step:
@@ -105,11 +107,7 @@ Both the executable and the plugins will be created in __ws_plotjuggler/devel/li
 
 To run the application, use the command:
 
-    rosrun plotjuggler PlotJuggler 
-    
-# Stargazers over time
-
-[![Stargazers over time](https://starchart.cc/facontidavide/PlotJuggler.svg)](https://starchart.cc/facontidavide/PlotJuggler)    
+    rosrun plotjuggler PlotJuggler  
 
 # If you like PlotJuggler...
 
@@ -125,3 +123,7 @@ the development of those specific features they need.
 
 [Contact me](https://www.plotjuggler.io/support) for more details.
 
+
+# Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/facontidavide/PlotJuggler.svg)](https://starchart.cc/facontidavide/PlotJuggler)

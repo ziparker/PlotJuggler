@@ -83,9 +83,11 @@ elseif(COMPILING_WITH_AMENT)
     find_package(rosbag2 REQUIRED)
     find_package(rosbag2_transport REQUIRED)
     find_package(fastcdr REQUIRED)
+    find_package(Boost REQUIRED)
 
     include_directories(
         ./
+        ${Boost_INCLUDE_DIRS}
         ros2_introspection/include
         ros2_parsers)
 
