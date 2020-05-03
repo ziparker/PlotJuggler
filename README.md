@@ -1,6 +1,6 @@
 ![PlotJuggler](docs/images/plotjuggler_banner.svg)
 
-| ROS (Kinetic/Melodic)  | ROS2 (Eloquent) | Windowsn (Mingw)  |
+| ROS (Kinetic / Melodic)  | ROS2 (Eloquent) | Windows (Mingw)  |
 |---------------------|-----------|-----------|
 | ![CI](https://github.com/facontidavide/PlotJuggler/workflows/ros1/badge.svg) | ![CI](https://github.com/facontidavide/PlotJuggler/workflows/ros2/badge.svg) | ![CI](https://github.com/facontidavide/PlotJuggler/workflows/win/badge.svg) |
 
