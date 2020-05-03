@@ -79,10 +79,11 @@ elseif(COMPILING_WITH_AMENT)
 
     find_package(ament_cmake REQUIRED)
     find_package(rclcpp REQUIRED)
-    find_package(rosbag2 REQUIRED)
     find_package(rcpputils REQUIRED)
-    find_package(fastcdr REQUIRED)
+    find_package(rosbag2 REQUIRED)
     find_package(rosbag2_transport REQUIRED)
+    find_package(fastcdr REQUIRED)
+    find_package(rmw_fastrtps_cpp REQUIRED)
 
     include_directories(
         ./
