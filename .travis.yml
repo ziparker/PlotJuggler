@@ -1,7 +1,10 @@
 sudo: required
 dist: trusty
 
-language: generic 
+language: generic
+services:
+  - docker
+
 compiler:
   - gcc
 
@@ -24,7 +27,7 @@ before_install:
  - sudo apt-get update -qq
 
 install:
-  - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci -b legacy
+  - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci -b master
   
 script:
   - .industrial_ci/travis.sh
