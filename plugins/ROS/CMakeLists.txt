@@ -7,12 +7,17 @@ add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 
-SET( COMMON_SRC
-    dialog_select_ros_topics.h
-    dialog_select_ros_topics.cpp
+QT5_WRAP_UI ( COMMON_UI_SRC
     qnodedialog.ui
     rule_editing.ui
     dialog_select_ros_topics.ui
+    dialog_with_itemlist.ui
+    )
+
+SET( COMMON_SRC
+    dialog_select_ros_topics.h
+    dialog_select_ros_topics.cpp
+    dialog_with_itemlist.h
    )
 
 set(PLUGIN_BASE_DIR ${PROJECT_SOURCE_DIR}/include/PlotJuggler)
@@ -20,29 +25,9 @@ set(PLUGIN_BASE_DIR ${PROJECT_SOURCE_DIR}/include/PlotJuggler)
 #############
 
 if(COMPILING_WITH_CATKIN)
-    message(STATUS "---------------------------------------------------------------------")
-    message(STATUS "PlotJuggler is being built using CATKIN. ROS plugins will be compiled")
-    message(STATUS "---------------------------------------------------------------------")
-
-    set(ROS_DEPENDENCIES
-        rosbag
-        rosbag_storage
-        roscpp
-        roscpp_serialization
-        rostime
-        topic_tools
-        tf
-        diagnostic_msgs
-        nav_msgs  )
-
-    find_package(catkin REQUIRED COMPONENTS ${ROS_DEPENDENCIES} )
-
-    catkin_package(
-        INCLUDE_DIRS
-        CATKIN_DEPENDS ${ROS_DEPENDENCIES}  )
 
     include_directories(
-        ./
+        ./ ../
         ${PROJECT_SOURCE_DIR}/include/
         ros1_introspection/include
         ${catkin_INCLUDE_DIRS}  )
@@ -55,7 +40,7 @@ if(COMPILING_WITH_CATKIN)
         ros1_parsers/ros_parser.cpp
         )
 
-    add_library( commonROS STATIC ${COMMON_SRC} )
+    add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC} )
     target_link_libraries( commonROS PRIVATE
         ${Qt5Widgets_LIBRARIES}
         ${Qt5Xml_LIBRARIES}
@@ -92,10 +77,6 @@ if(COMPILING_WITH_CATKIN)
 #######################################################################
 elseif(COMPILING_WITH_AMENT)
 
-    message(STATUS "---------------------------------------------------------------------")
-    message(STATUS "PlotJuggler is being built using AMENT. ROS2 plugins will be compiled")
-    message(STATUS "---------------------------------------------------------------------")
-
     find_package(ament_cmake REQUIRED)
     find_package(rclcpp REQUIRED)
     find_package(rosbag2 REQUIRED)
@@ -120,7 +101,7 @@ elseif(COMPILING_WITH_AMENT)
         fastcdr
         rosbag2_transport )
 
-    add_library( commonROS STATIC ${COMMON_SRC} )
+    add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC})
     target_compile_definitions(commonROS PUBLIC DISABLE_RULE_EDITING)
     target_link_libraries( commonROS
         ${Qt5Widgets_LIBRARIES}

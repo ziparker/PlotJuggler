@@ -10,7 +10,7 @@
 #include "PlotJuggler/optional.hpp"
 
 #ifndef DISABLE_RULE_EDITING
-#include <ros_type_introspection/ros_introspection.hpp>
+#include "rule_editing.h"
 #endif
 
 namespace Ui {

@@ -4,8 +4,38 @@ cmake_minimum_required(VERSION 3.5)
 # http://answers.ros.org/question/230877/optionally-build-a-package-with-catkin/
 if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
     set(COMPILING_WITH_CATKIN 1)
+
+    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "PlotJuggler is being built using CATKIN. ROS plugins will be compiled")
+    message(STATUS "---------------------------------------------------------------------")
+
+    set(ROS_DEPENDENCIES
+        rosbag
+        rosbag_storage
+        roscpp
+        roscpp_serialization
+        rostime
+        topic_tools
+        tf
+        diagnostic_msgs
+        nav_msgs  )
+
+    find_package(catkin REQUIRED COMPONENTS ${ROS_DEPENDENCIES} )
+
+    catkin_package(
+        INCLUDE_DIRS
+        CATKIN_DEPENDS ${ROS_DEPENDENCIES}  )
+
 elseif( DEFINED ENV{AMENT_PREFIX_PATH})
     set(COMPILING_WITH_AMENT 1)
+
+    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "PlotJuggler is being built using AMENT. ROS2 plugins will be compiled")
+    message(STATUS "---------------------------------------------------------------------")
+else()
+    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "PlotJuggler is being WITHOUT any ROS support")
+    message(STATUS "---------------------------------------------------------------------")
 endif()
 
 cmake_policy (SET CMP0020 NEW)
