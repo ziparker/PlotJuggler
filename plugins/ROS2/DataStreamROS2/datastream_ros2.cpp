@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QTimer>
 #include <QSettings>
+#include <QApplication>
+#include <QProgressDialog>
 #include "../generic_subscription.hpp"
 
 DataStreamROS2::DataStreamROS2() :
@@ -28,6 +30,35 @@ DataStreamROS2::DataStreamROS2() :
     auto exec_args = rclcpp::executor::ExecutorArgs();
     exec_args.context = _context;
     _executor = std::make_unique<rclcpp::executors::MultiThreadedExecutor>(exec_args,2);
+}
+
+void DataStreamROS2::waitOneSecond()
+{
+    using namespace std::chrono;
+    milliseconds wait_time_ms(1000);
+
+    QProgressDialog progress_dialog;
+    progress_dialog.setLabelText( "Collecting ROS topic samples to understand data layout.");
+    progress_dialog.setRange(0, wait_time_ms.count());
+    progress_dialog.setAutoClose(true);
+    progress_dialog.setAutoReset(true);
+    progress_dialog.show();
+
+    auto start_time = system_clock::now();
+
+    while ( system_clock::now() - start_time < (wait_time_ms) )
+    {
+        int msec = duration_cast<milliseconds>(system_clock::now() - start_time).count() ;
+        progress_dialog.setValue( msec );
+        QApplication::processEvents();
+        if( progress_dialog.wasCanceled() ) {
+            break;
+        }
+    }
+
+    if( progress_dialog.wasCanceled() == false ) {
+        progress_dialog.cancel();
+    }
 }
 
 bool DataStreamROS2::start(QStringList* selected_datasources)
@@ -106,6 +137,8 @@ bool DataStreamROS2::start(QStringList* selected_datasources)
     _spin_timer.setInterval(10);
     _spin_timer.start();
 
+    //-----------------------------
+    waitOneSecond();
     return true;
 }
 
@@ -180,6 +213,8 @@ void DataStreamROS2::messageCallback(const std::string &topic_name,
     }
 
     Ros2Introspection::ConvertFlatMessageToRenamedValues(tp.flat_msg, tp.renamed);
+
+    std::lock_guard<std::mutex> lock( mutex() );
 
     for(const auto& it: tp.renamed)
     {

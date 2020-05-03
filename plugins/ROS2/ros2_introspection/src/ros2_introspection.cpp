@@ -58,8 +58,8 @@ void Parser::registerMessageType(
     }
   };
 
-  info.field_tree.root()->children().reserve(1);
-  auto starting_node =  info.field_tree.root()->addChild(message_identifier);
+  info.field_tree.root()->setValue(message_identifier);
+  auto starting_node =  info.field_tree.root();
 
   // start building recursively
   recursivelyCreateTree( starting_node, info.type_support );
@@ -230,7 +230,7 @@ bool Parser::deserializeIntoFlatMessage(
   flat_container->tree = &message_info.field_tree;
 
   StringTreeLeaf rootnode;
-  rootnode.node_ptr = message_info.field_tree.root()->child(0);
+  rootnode.node_ptr = message_info.field_tree.root();
   recursiveParser( message_info.type_support, rootnode, false);
 
   return true;

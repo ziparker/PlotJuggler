@@ -74,6 +74,7 @@ private:
     std::unordered_map<std::string, rosbag2_transport::GenericSubscription::Ptr> _subscriptions;
 
     void subscribeToTopic(const std::string& topic_name, const std::string& topic_type);
+    void waitOneSecond();
 };
 
 #endif
