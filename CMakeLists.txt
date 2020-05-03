@@ -13,8 +13,6 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
         rosbag_storage
         roscpp
         roscpp_serialization
-        rostime
-        topic_tools
         tf
         diagnostic_msgs
         nav_msgs  )

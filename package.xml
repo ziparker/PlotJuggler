@@ -12,17 +12,15 @@
 <author email="davide.faconti@gmail.com">Davide Faconti</author>
 
 <!-- ROS1 dependencies -->
-<buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+<buildtool_depend >catkin</buildtool_depend>
 
-<depend condition="$ROS_VERSION == 1">rosbag_storage</depend>
-<depend condition="$ROS_VERSION == 1">roscpp</depend>
-<depend condition="$ROS_VERSION == 1">roscpp_serialization</depend>
-<depend condition="$ROS_VERSION == 1">rostime</depend>
-<depend condition="$ROS_VERSION == 1">topic_tools</depend>
-<depend condition="$ROS_VERSION == 1">tf</depend>
-<depend condition="$ROS_VERSION == 1">ros_type_introspection</depend>
-<depend condition="$ROS_VERSION == 1">diagnostic_msgs</depend>
-<depend condition="$ROS_VERSION == 1">nav_msgs</depend>
+<depend >rosbag_storage</depend>
+<depend >roscpp</depend>
+<depend >roscpp_serialization</depend>
+<depend >rostime</depend>
+<depend >tf</depend>
+<depend >diagnostic_msgs</depend>
+<depend >nav_msgs</depend>
 
 <!-- ROS2 dependencies -->
 <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
