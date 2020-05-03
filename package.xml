@@ -30,7 +30,7 @@
 <depend condition="$ROS_VERSION == 2">rosbag2</depend>
 <depend condition="$ROS_VERSION == 2">rosbag2_transport</depend>
 <depend condition="$ROS_VERSION == 2">fastcdr</depend>
-<depend condition="$ROS_VERSION == 2">rmw_fastrtps_cpp</depend>
+
 
 <!-- common dependancies -->
 <depend>qtbase5-dev</depend>

@@ -83,7 +83,6 @@ elseif(COMPILING_WITH_AMENT)
     find_package(rosbag2 REQUIRED)
     find_package(rosbag2_transport REQUIRED)
     find_package(fastcdr REQUIRED)
-    find_package(rmw_fastrtps_cpp REQUIRED)
 
     include_directories(
         ./
