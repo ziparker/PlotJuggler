@@ -16,7 +16,7 @@
 #include <QFileDialog>
 #include <ros/callback_queue.h>
 #include <rosbag/bag.h>
-#include <topic_tools/shape_shifter.h>
+#include <ros_type_introspection/utils/shape_shifter.hpp>
 #include <ros/transport_hints.h>
 
 #include "dialog_select_ros_topics.h"
@@ -39,7 +39,7 @@ DataStreamROS::DataStreamROS():
     loadDefaultSettings();
 }
 
-void DataStreamROS::topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg,
+void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr& msg,
                                   const std::string &topic_name)
 {
     if( !_running ){
@@ -272,8 +272,8 @@ void DataStreamROS::subscribe()
     for (int i=0; i< _config.selected_topics.size(); i++ )
     {
         const std::string topic_name = _config.selected_topics[i].toStdString();
-        boost::function<void(const topic_tools::ShapeShifter::ConstPtr&) > callback;
-        callback = [this, topic_name](const topic_tools::ShapeShifter::ConstPtr& msg) -> void
+        boost::function<void(const RosIntrospection::ShapeShifter::ConstPtr&) > callback;
+        callback = [this, topic_name](const RosIntrospection::ShapeShifter::ConstPtr& msg) -> void
         {
             this->topicCallback(msg, topic_name) ;
         };
