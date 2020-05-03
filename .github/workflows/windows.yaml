@@ -1,0 +1,12 @@
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.9.5'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2017_64'
+        dir: '${{ github.workspace }}/example/'
+        install-deps: 'true'
+        modules: 'widgets xml concurrent multimedia multimediawidgets qml svg printsupport'
+        mirror: 'http://mirrors.ocf.berkeley.edu/qt/'
+        cached: 'false'
