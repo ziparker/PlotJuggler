@@ -1,21 +1,16 @@
-name: PlotJuggler Eloquent
+name: CI
 
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+on: [push, pull_request]
 
 jobs:
-  build-and-test:
-    runs-on: ${{ matrix.os }}
+  industrial_ci:
     strategy:
       matrix:
-        os: [ubuntu-latest]
-      fail-fast: false
+        env:
+          - {ROS_DISTRO: melodic, ROS_REPO: main}
+          - {ROS_DISTRO: kinetic, ROS_REPO: main}
+    runs-on: ubuntu-latest
     steps:
-    - name: Setup ROS 2
-      uses: ros-tooling/setup-ros@0.0.15
-    with:
-        required-ros-distributions: eloquent
-
+      - uses: actions/checkout@v1
+      - uses: 'ros-industrial/industrial_ci@master'
+        env: ${{matrix.env}}
