@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.7.0 (2020-05-03)
+------------------
 * Merge branch 'ros2' of https://github.com/facontidavide/PlotJuggler into ros2
 * added github actions for ros2
 * last fixes to DataStreamROS2
