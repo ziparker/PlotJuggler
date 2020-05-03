@@ -8,8 +8,8 @@
 #include <rosbag2/readers/sequential_reader.hpp>
 #include "PlotJuggler/optional.hpp"
 #include "PlotJuggler/dataloader_base.h"
-#include "../ros2_parser.h"
-#include "../dialog_select_ros_topics.h"
+#include "ros2_parsers/ros2_parser.h"
+#include "dialog_select_ros_topics.h"
 
 
 class  DataLoadROS2: public DataLoader

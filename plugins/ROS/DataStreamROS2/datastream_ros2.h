@@ -6,9 +6,9 @@
 
 #include "PlotJuggler/datastreamer_base.h"
 
-#include "../dialog_select_ros_topics.h"
-#include "../ros2_parser.h"
-#include "../generic_subscription.hpp"
+#include "dialog_select_ros_topics.h"
+#include "ros2_parsers/ros2_parser.h"
+#include "ros2_parsers/generic_subscription.hpp"
 
 class DataStreamROS2 : public DataStreamer
 {

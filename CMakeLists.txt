@@ -81,45 +81,6 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
-if(COMPILING_WITH_CATKIN)
-    message(STATUS "---------------------------------------------------------------------")
-    message(STATUS "PlotJuggler is being built using CATKIN. ROS plugins will be compiled")
-    message(STATUS "---------------------------------------------------------------------")
-
-    set(ROS_DEPENDENCIES
-        rosbag
-        rosbag_storage
-        roscpp
-        roscpp_serialization
-        rostime
-        topic_tools
-        tf
-        diagnostic_msgs
-        nav_msgs
-    )
-
-    find_package(catkin REQUIRED COMPONENTS ${ROS_DEPENDENCIES} )
-
-    catkin_package(
-        INCLUDE_DIRS include
-        CATKIN_DEPENDS ${ROS_DEPENDENCIES}  )
-
-    INCLUDE_DIRECTORIES( ${catkin_INCLUDE_DIRS} )
-
-elseif(COMPILING_WITH_AMENT)
-
-    message(STATUS "---------------------------------------------------------------------")
-    message(STATUS "PlotJuggler is being built using AMENT. ROS2 plugins will be compiled")
-    message(STATUS "---------------------------------------------------------------------")
-
-    find_package(ament_cmake REQUIRED)
-    find_package(rclcpp REQUIRED)
-    find_package(rosbag2 REQUIRED)
-    find_package(rcpputils REQUIRED)
-    find_package(fastcdr REQUIRED)
-
-endif()
-
 IF (NOT WIN32)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fPIC")
 ENDIF()
@@ -188,7 +149,7 @@ endif()
 if(COMPILING_WITH_CATKIN)
     add_subdirectory( plugins/ROS )
 elseif(COMPILING_WITH_AMENT)
-    add_subdirectory( plugins/ROS2 )
+    add_subdirectory( plugins/ROS )
 endif()
 
 #############################################################

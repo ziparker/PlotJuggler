@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QApplication>
 #include <QProgressDialog>
-#include "../generic_subscription.hpp"
+#include "ros2_parsers/generic_subscription.hpp"
 
 DataStreamROS2::DataStreamROS2() :
     DataStreamer(),
