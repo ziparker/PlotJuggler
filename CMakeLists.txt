@@ -10,7 +10,6 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
     message(STATUS "---------------------------------------------------------------------")
 
     set(ROS_DEPENDENCIES
-        rosbag
         rosbag_storage
         roscpp
         roscpp_serialization
