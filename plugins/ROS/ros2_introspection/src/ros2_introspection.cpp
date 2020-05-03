@@ -7,7 +7,6 @@
 #include <rcutils/time.h>
 #include <functional>
 #include <cmath>
-#include  <sensor_msgs/msg/imu__rosidl_typesupport_fastrtps_c.h>
 #include  <fastcdr/Cdr.h>
 
 namespace Ros2Introspection
