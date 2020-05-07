@@ -264,8 +264,15 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
         wg.done();
       });
 
+      //---------------
       if( abort_marl ){
         std::rethrow_exception(thrown_error);
+      }
+
+      //periodically flush marl
+      if( msg_count++ %1000 == 999)
+      {
+        wg.wait();
       }
     }
 
