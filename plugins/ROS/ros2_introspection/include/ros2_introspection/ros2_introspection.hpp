@@ -79,7 +79,7 @@ public:
     KEEP_LARGE_ARRAYS = false
   };
 
-  enum{ MAX_ARRAY_SIZE = 999 };
+  enum{ MAX_ARRAY_SIZE = 9999 };
 
   void setMaxArrayPolicy( MaxArrayPolicy discard_entire_array )
   {

@@ -77,7 +77,7 @@ int StringTreeLeaf::toStr(std::string& buffer_str) const
   }
 
   boost::container::static_vector<const std::string*, 16> strings_chain;
-  size_t num_bytes = 0;
+  size_t num_bytes = 2;
 
   while(leaf_node)
   {
@@ -85,7 +85,7 @@ int StringTreeLeaf::toStr(std::string& buffer_str) const
     const size_t S = str.size();
     if( S == 1 && str[0] == NUM_PLACEHOLDER )
     {
-      num_bytes += 4; // space for up to 999
+      num_bytes += 5; // space for up to 9999
     }
     else{
       num_bytes += S+1;
