@@ -51,9 +51,10 @@ ROSMessage::ROSMessage(const std::string &msg_def)
   {
     std::string::const_iterator begin = line.begin(), end = line.end();
 
+    static const boost::regex regex("(^\\s*$|^\\s*#)");
+
     // Skip empty line or one that is a comment
-    if (boost::regex_search( begin, end, what,
-                             boost::regex("(^\\s*$|^\\s*#)")))
+    if (boost::regex_search( begin, end, what, regex))
     {
       continue;
     }

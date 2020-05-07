@@ -50,6 +50,10 @@ ROSField::ROSField(const std::string &definition):
 
   static const boost::regex array_regex("(.+)(\\[([0-9]*)\\])");
 
+  static const boost::regex regex_A("\\S");
+
+  static const boost::regex regex_B("\\s*#");
+
   using boost::regex;
   std::string::const_iterator begin = definition.begin();
   std::string::const_iterator end   = definition.end();
@@ -99,7 +103,8 @@ ROSField::ROSField(const std::string &definition):
 
   // Determine next character
   // if '=' -> constant, if '#' -> done, if nothing -> done, otherwise error
-  if (regex_search(begin, end, what, boost::regex("\\S")))
+
+  if (regex_search(begin, end, what, regex_A))
   {
     if (what[0] == "=")
     {
@@ -109,7 +114,7 @@ ROSField::ROSField(const std::string &definition):
         value.assign(begin, end);
       }
       else {
-        if (regex_search(begin, end, what, boost::regex("\\s*#")))
+        if (regex_search(begin, end, what, regex_B))
         {
           value.assign(begin, what[0].first);
         }
