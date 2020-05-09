@@ -86,6 +86,7 @@ elseif(COMPILING_WITH_AMENT)
     find_package(geometry_msgs REQUIRED)
     find_package(fastcdr REQUIRED)
     find_package(Boost REQUIRED)
+    find_package(pj_msgs QUIET)
 
     include_directories(
         ./
@@ -109,6 +110,12 @@ elseif(COMPILING_WITH_AMENT)
         )
 
     add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC})
+
+    if( pj_msgs_FOUND )
+        list(APPEND AMENT_DEPENDECIES pj_msgs)
+        target_compile_definitions(commonROS PUBLIC FOUND_PJ_MSGS)
+    endif()
+
     target_compile_definitions(commonROS PUBLIC DISABLE_RULE_EDITING)
     target_link_libraries( commonROS
         ${Qt5Widgets_LIBRARIES}

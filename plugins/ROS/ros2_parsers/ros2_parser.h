@@ -132,7 +132,7 @@ public:
   const rosidl_message_type_support_t* typeSupport(const std::string& topic_name) const;
 
 private:
-  std::unordered_map<std::string, std::shared_ptr<MessageParserBase>> _builtin_parsers;
+  std::unordered_map<std::string, std::shared_ptr<MessageParserBase>> _parsers;
 
   MaxArrayPolicy _discard_policy;
 

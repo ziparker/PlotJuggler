@@ -1,5 +1,8 @@
 #include "ros2_parser.h"
 #include "jointstates_msg.h"
+#ifdef FOUND_PJ_MSGS
+  #include "plotjuggler_msgs.h"
+#endif
 
 namespace Ros2Introspection {
 
@@ -74,7 +77,7 @@ CompositeParser::CompositeParser():
 void CompositeParser::setUseHeaderStamp(bool use)
 {
   _use_header_stamp = use;
-  for( auto it: _builtin_parsers )
+  for( auto it: _parsers )
   {
     it.second->setUseHeaderStamp(use);
   }
@@ -84,7 +87,7 @@ void CompositeParser::setMaxArrayPolicy(MaxArrayPolicy discard_policy, size_t ma
 {
   _discard_policy = discard_policy;
   _max_array_size = max_size;
-  for( auto it: _builtin_parsers )
+  for( auto it: _parsers )
   {
     it.second->setMaxArrayPolicy(discard_policy, max_size);
   }
@@ -94,7 +97,7 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
                                           const std::string &topic_type)
 {
   std::shared_ptr<MessageParserBase> parser;
-  if(_builtin_parsers.count(topic_name) > 0)
+  if(_parsers.count(topic_name) > 0)
   {
     return;
   }
@@ -111,13 +114,19 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
   if( type == "sensor_msgs/JointState"){
     parser.reset( new JointStateMsgParser );
   }
+  else if( type == "pj_msgs/Dictionary"){
+    parser.reset( new PlotJugglerDictionaryParser );
+  }
+  else if( type == "pj_msgs/DataPoints"){
+    parser.reset( new PlotJugglerDataPointsParser );
+  }
   else{
     parser.reset( new IntrospectionParser(topic_name, type) );
   }
 
   parser->setMaxArrayPolicy(_discard_policy, _max_array_size);
   parser->setUseHeaderStamp(_use_header_stamp);
-  _builtin_parsers.insert( { topic_name, parser} );
+  _parsers.insert( { topic_name, parser} );
 }
 
 bool CompositeParser::parseMessage(const std::string &topic_name,
@@ -125,8 +134,8 @@ bool CompositeParser::parseMessage(const std::string &topic_name,
                                    const rcutils_uint8_array_t *serialized_msg,
                                    double timestamp)
 {
-  auto it = _builtin_parsers.find(topic_name);
-  if( it == _builtin_parsers.end() )
+  auto it = _parsers.find(topic_name);
+  if( it == _parsers.end() )
   {
     return false;
   }
@@ -136,8 +145,8 @@ bool CompositeParser::parseMessage(const std::string &topic_name,
 
 const rosidl_message_type_support_t *CompositeParser::typeSupport(const std::string &topic_name) const
 {
-  auto it = _builtin_parsers.find(topic_name);
-  if( it == _builtin_parsers.end() )
+  auto it = _parsers.find(topic_name);
+  if( it == _parsers.end() )
   {
     return nullptr;
   }

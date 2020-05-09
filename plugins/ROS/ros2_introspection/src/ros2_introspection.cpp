@@ -35,7 +35,7 @@ bool TypeHasHeader(const rosidl_message_type_support_t* type_support)
     using namespace rosidl_typesupport_introspection_cpp;
     const auto* members = static_cast<const MessageMembers*>(type_support->data);
 
-    if( members->member_count_>=1 )
+    if( members->member_count_>=1 && members->members_)
     {
         const MessageMember& first_field = members->members_[0];
         const auto* header_members = static_cast<const MessageMembers*>(first_field.members_->data);
