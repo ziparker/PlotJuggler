@@ -158,7 +158,6 @@ void DataStreamROS2::shutdown()
         _executor->remove_node(_node);
         _node.reset();
     }
-
 }
 
 DataStreamROS2::~DataStreamROS2()

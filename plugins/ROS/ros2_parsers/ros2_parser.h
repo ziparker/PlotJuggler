@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 
-#include "std_msgs/msg/header.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rmw/rmw.h"
 #include "rmw/types.h"
