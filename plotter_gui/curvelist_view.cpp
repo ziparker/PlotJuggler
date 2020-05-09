@@ -64,8 +64,8 @@ void CurveTableView::addItem(const QString &item_name)
 void CurveTableView::refreshColumns()
 {
     sortByColumn(0, Qt::AscendingOrder);
- //   horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-  //  horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+    horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
     setColumnWidth(1, 120);
 }
 
@@ -155,7 +155,7 @@ void CurveTableView::setViewResizeEnabled(bool enable)
 {
     if( enable )
     {
-   //     horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
         setColumnWidth(1, 120);
         verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);

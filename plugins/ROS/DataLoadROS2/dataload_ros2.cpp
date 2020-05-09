@@ -103,60 +103,25 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
         topic_selected.insert( topic_name );
 
         _parser.registerMessageType(topic_name, topic_type);
-
-        if( _topic_info.count(topic_name) == 0 )
-        {
-            _topic_info.insert( {topic_name, TopicInfo(topic_type)} );
-        }
     }
 
     if( _config.discard_large_arrays ){
-        _parser.setMaxArrayPolicy( Ros2Introspection::Parser::DISCARD_LARGE_ARRAYS );
+      _parser.setMaxArrayPolicy( Ros2Introspection::DISCARD_LARGE_ARRAYS,
+                                 _config.max_array_size );
     }
     else{
-        _parser.setMaxArrayPolicy( Ros2Introspection::Parser::KEEP_LARGE_ARRAYS );
+      _parser.setMaxArrayPolicy( Ros2Introspection::KEEP_LARGE_ARRAYS,
+                                 _config.max_array_size );
     }
+    _parser.setUseHeaderStamp( _config.use_header_stamp );
 
     auto time_prev = std::chrono::high_resolution_clock::now();
     while(_bagReader->has_next())
     {
         std::shared_ptr<rosbag2::SerializedBagMessage> msg = _bagReader->read_next();
-
-        auto topic_info_it = _topic_info.find(msg->topic_name);
-        if( topic_info_it == _topic_info.end() )
-        {
-            continue;
-        }
-
-        auto& tp = topic_info_it->second;
-
-        _parser.deserializeIntoFlatMessage(msg->topic_name, msg->serialized_data.get(), &tp.flat_msg, _config.max_array_size);
-
         double timestamp = 1e-9 * double( msg->time_stamp ); // nanoseconds to seconds
-
-        if(tp.has_header_stamp && _config.use_header_stamp)
-        {
-            double sec  = tp.flat_msg.values[0].second;
-            double nsec = tp.flat_msg.values[1].second;
-            timestamp = sec + (nsec*1e-9);
-        }
-
-        Ros2Introspection::ConvertFlatMessageToRenamedValues(tp.flat_msg, tp.renamed);
-
-        for(const auto& it: tp.renamed)
-        {
-            const auto& key = it.first;
-            double value = it.second;
-
-            auto plot_pair = plot_map.numeric.find( key );
-            if( plot_pair == plot_map.numeric.end() )
-            {
-                plot_pair = plot_map.addNumeric( key );
-            }
-            auto& series = plot_pair->second;
-            series.pushBack( {timestamp, value} );
-        }
-    } // end while
+        _parser.parseMessage( msg->topic_name,plot_map, msg->serialized_data.get(), timestamp);
+    }
 
     auto now = std::chrono::high_resolution_clock::now();
     double diff = std::chrono::duration_cast< std::chrono::milliseconds >( now - time_prev).count();

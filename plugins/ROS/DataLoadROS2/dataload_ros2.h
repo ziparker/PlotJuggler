@@ -35,11 +35,9 @@ class  DataLoadROS2: public DataLoader
 
   private:
 
-    std::unordered_map<std::string,TopicInfo> _topic_info;
-
     std::shared_ptr<rosbag2::readers::SequentialReader> _bagReader;
 
-    Ros2Introspection::Parser _parser;
+    Ros2Introspection::CompositeParser _parser;
 
     std::vector<const char*> _extensions;
 

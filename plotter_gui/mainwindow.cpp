@@ -1826,9 +1826,11 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
 {
     if( _current_streamer )
     {
-        std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
-
-        auto curvelist_added = _current_streamer->appendData( _mapped_plot_data );
+        std::vector<QString> curvelist_added;
+        {
+          std::lock_guard<std::mutex> lock( _current_streamer->mutex() );
+          curvelist_added = _current_streamer->appendData( _mapped_plot_data );
+        }
 
         for(const auto& str: curvelist_added)
         {

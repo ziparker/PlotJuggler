@@ -12,16 +12,8 @@ DataStreamROS2::DataStreamROS2() :
     _destination_data(nullptr),
     _node(nullptr),
     _running(false),
-    _spin_timer(this),
     _config()
 {
-    connect(&_spin_timer,&QTimer::timeout, this, [this](){
-        if(_executor)
-        {
-            _executor->spin_once(std::chrono::milliseconds(1));
-        }
-    });
-
     loadDefaultSettings();
 
     _context = std::make_shared<rclcpp::Context>();
@@ -112,13 +104,16 @@ bool DataStreamROS2::start(QStringList* selected_datasources)
     }
 
     saveDefaultSettings();
-
     if( _config.discard_large_arrays ){
-        _parser.setMaxArrayPolicy( Ros2Introspection::Parser::DISCARD_LARGE_ARRAYS );
+      _parser.setMaxArrayPolicy( Ros2Introspection::DISCARD_LARGE_ARRAYS,
+                                 _config.max_array_size );
     }
     else{
-        _parser.setMaxArrayPolicy( Ros2Introspection::Parser::KEEP_LARGE_ARRAYS );
+      _parser.setMaxArrayPolicy( Ros2Introspection::KEEP_LARGE_ARRAYS,
+                                 _config.max_array_size );
     }
+    _parser.setUseHeaderStamp( _config.use_header_stamp );
+
 
     //--------- subscribe ---------
     for (const auto& topic : dialog_topics) {
@@ -133,9 +128,15 @@ bool DataStreamROS2::start(QStringList* selected_datasources)
     _start_time = _clock.now().nanoseconds();
     _running = true;
 
-    _spin_timer.setSingleShot(false);
-    _spin_timer.setInterval(10);
-    _spin_timer.start();
+    _spinner = std::thread([this]()
+    {
+        while(_running)
+        {
+          if(_executor){
+            _executor->spin_once(std::chrono::milliseconds(5));
+          }
+        }
+    });
 
     //-----------------------------
     waitOneSecond();
@@ -146,14 +147,18 @@ bool DataStreamROS2::isRunning() const { return _running; }
 
 void DataStreamROS2::shutdown()
 {
-    _spin_timer.stop();
+    _running = false;
+    if( _spinner.joinable() ){
+      _spinner.join();
+    }
+
     _subscriptions.clear();
     if(_node)
     {
         _executor->remove_node(_node);
         _node.reset();
     }
-    _running = false;
+
 }
 
 DataStreamROS2::~DataStreamROS2()
@@ -173,23 +178,17 @@ void DataStreamROS2::subscribeToTopic(const std::string &topic_name,
     {
         return;
     }
+
     _parser.registerMessageType(topic_name, topic_type);
 
-    auto topic_info_it = _topic_info.find( topic_name );
-    if( topic_info_it == _topic_info.end() )
+     auto bound_callback = [=](std::shared_ptr<rmw_serialized_message_t> msg)
     {
-        topic_info_it = _topic_info.insert( {topic_name, TopicInfo(topic_type)} ).first;
-    }
-    TopicInfo* topic_info = &(topic_info_it->second);
-
-    auto bound_callback = [=](std::shared_ptr<rmw_serialized_message_t> msg)
-    {
-        messageCallback(topic_name, *topic_info, msg);
+        messageCallback(topic_name, msg);
     };
 
     auto subscription = std::make_shared<rosbag2_transport::GenericSubscription>(
       _node->get_node_base_interface().get(),
-      *(topic_info->type_support),
+      *_parser.typeSupport(topic_name),
       topic_name,
       bound_callback );
     _subscriptions[topic_name] = subscription;
@@ -198,37 +197,12 @@ void DataStreamROS2::subscribeToTopic(const std::string &topic_name,
 
 
 void DataStreamROS2::messageCallback(const std::string &topic_name,
-                                     TopicInfo &tp,
                                      std::shared_ptr<rmw_serialized_message_t> msg)
 {
-    _parser.deserializeIntoFlatMessage(topic_name, msg.get(), &tp.flat_msg, _config.max_array_size);
-
     double timestamp = _node->get_clock()->now().seconds();
 
-    if(tp.has_header_stamp && _config.use_header_stamp)
-    {
-        double sec  = tp.flat_msg.values[0].second;
-        double nsec = tp.flat_msg.values[1].second;
-        timestamp = sec + (nsec*1e-9);
-    }
-
-    Ros2Introspection::ConvertFlatMessageToRenamedValues(tp.flat_msg, tp.renamed);
-
-    std::lock_guard<std::mutex> lock( mutex() );
-
-    for(const auto& it: tp.renamed)
-    {
-        const auto& key = it.first;
-        double value = it.second;
-
-        auto plot_pair = dataMap().numeric.find( key );
-        if( plot_pair == dataMap().numeric.end() )
-        {
-            plot_pair = dataMap().addNumeric( key );
-        }
-        auto& series = plot_pair->second;
-        series.pushBack( {timestamp, value} );
-    }
+    std::unique_lock<std::mutex> lock( mutex() );
+    _parser.parseMessage(topic_name, dataMap(), msg.get(), timestamp);
 }
 
 void DataStreamROS2::saveDefaultSettings()

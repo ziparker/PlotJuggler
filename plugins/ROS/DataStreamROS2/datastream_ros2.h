@@ -43,7 +43,7 @@ public:
     }
 
   private:
-    void messageCallback(const std::string& topic_name, TopicInfo &ti,
+    void messageCallback(const std::string& topic_name,
                          std::shared_ptr<rmw_serialized_message_t> msg);
 
 private:
@@ -54,13 +54,11 @@ private:
     std::unique_ptr<rclcpp::executors::MultiThreadedExecutor> _executor;
     std::shared_ptr<rclcpp::Node> _node;
 
-    Ros2Introspection::Parser _parser;
+    Ros2Introspection::CompositeParser _parser;
 
     bool _running;
 
-    QTimer _spin_timer;
-
-    std::unordered_map<std::string,TopicInfo> _topic_info;
+    std::thread _spinner;
 
     DialogSelectRosTopics::Configuration _config;
 

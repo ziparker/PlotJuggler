@@ -11,23 +11,49 @@
 
 namespace Ros2Introspection
 {
+rcutils_allocator_t TopicInfo::allocator = rcutils_get_default_allocator();
 
-void Parser::registerMessageType(
-  const std::string &message_identifier,
-  const std::string &type_name)
+TopicInfo::TopicInfo(const std::string& type)
 {
-  if( _registered_messages.count(message_identifier) != 0)
-  {
-    return;
-  }
+    topic_type = type;
+    introspection_support = rosbag2::get_typesupport(
+          type, rosidl_typesupport_introspection_cpp::typesupport_identifier);
+    type_support = rosbag2::get_typesupport(
+          type, rosidl_typesupport_cpp::typesupport_identifier);
+    has_header_stamp = Ros2Introspection::TypeHasHeader( introspection_support );
+}
 
-  Ros2MessageInfo info;
+template <typename T> inline T CastFromBuffer(eprosima::fastcdr::Cdr& cdr)
+{
+  T tmp;
+  cdr.deserialize(tmp);
+  return tmp;
+}
 
-  using TypeSupport = rosidl_message_type_support_t;
+bool TypeHasHeader(const rosidl_message_type_support_t* type_support)
+{
+    using namespace rosidl_typesupport_introspection_cpp;
+    const auto* members = static_cast<const MessageMembers*>(type_support->data);
 
-  info.type_support =
-    rosbag2::get_typesupport(type_name, rosidl_typesupport_introspection_cpp::typesupport_identifier);
+    if( members->member_count_>=1 )
+    {
+        const MessageMember& first_field = members->members_[0];
+        const auto* header_members = static_cast<const MessageMembers*>(first_field.members_->data);
+        if( strcmp( header_members->message_name_, "Header") == 0 &&
+            strcmp( header_members->message_namespace_, "std_msgs::msg") == 0)
+        {
+          return true;
+        }
+    }
+    return false;
+}
 
+Parser::Parser(const std::string &topic_name, const std::string &type_name):
+  _discard_policy(DISCARD_LARGE_ARRAYS),
+  _max_array_size(MAX_ARRAY_SIZE),
+  _topic_info(type_name)
+{
+   using TypeSupport = rosidl_message_type_support_t;
   //------- create StringTree --------
   using rosidl_typesupport_introspection_cpp::MessageMember;
   using rosidl_typesupport_introspection_cpp::MessageMembers;
@@ -57,62 +83,36 @@ void Parser::registerMessageType(
     }
   };
 
-  info.field_tree.root()->setValue(message_identifier);
-  auto starting_node =  info.field_tree.root();
+  _field_tree.root()->setValue(topic_name);
+  auto starting_node =  _field_tree.root();
 
   // start building recursively
-  recursivelyCreateTree( starting_node, info.type_support );
-
-  std::pair<std::string,Ros2MessageInfo> pair;
-  pair.first = message_identifier;
-  pair.second = std::move(info);
-  _registered_messages.insert( std::move(pair) );
+  recursivelyCreateTree( starting_node, _topic_info.introspection_support );
 }
 
-
-template <typename T> inline T CastFromBuffer(eprosima::fastcdr::Cdr& cdr)
+void Parser::setMaxArrayPolicy(MaxArrayPolicy discard_policy, size_t max_size)
 {
-  T tmp;
-  cdr.deserialize(tmp);
-  return tmp;
+  _discard_policy = discard_policy;
+  _max_array_size = max_size;
 }
 
-bool TypeHasHeader(const rosidl_message_type_support_t* type_support)
+MaxArrayPolicy Parser::maxArrayPolicy() const
 {
-    using namespace rosidl_typesupport_introspection_cpp;
-    const auto* members = static_cast<const MessageMembers*>(type_support->data);
-
-    if( members->member_count_>=1 )
-    {
-        const MessageMember& first_field = members->members_[0];
-        const auto* header_members = static_cast<const MessageMembers*>(first_field.members_->data);
-        if( strcmp( header_members->message_name_, "Header") == 0 &&
-            strcmp( header_members->message_namespace_, "std_msgs::msg") == 0)
-        {
-          return true;
-        }
-    }
-    return false;
+  return _discard_policy;
 }
 
-bool Parser::deserializeIntoFlatMessage(
-  const std::string &msg_identifier,
-  const rcutils_uint8_array_t* msg,
-  FlatMessage *flat_container,
-  const uint32_t max_array_size) const
+size_t Parser::maxArraySize() const
 {
-  const auto message_info_it = _registered_messages.find(msg_identifier);
-  if(message_info_it == _registered_messages.end())
-  {
-    throw std::runtime_error("Message identifier not registered");
-  }
+  return _max_array_size;
+}
 
+bool Parser::deserializeIntoFlatMessage(const rcutils_uint8_array_t* msg,
+                                        FlatMessage *flat_container) const
+{
   eprosima::fastcdr::FastBuffer buffer( reinterpret_cast<char*>(msg->buffer), msg->buffer_length);
   eprosima::fastcdr::Cdr cdr(buffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
                              eprosima::fastcdr::Cdr::DDS_CDR);
   cdr.read_encapsulation();
-
-  auto& message_info = message_info_it->second;
 
   using TypeSupport = rosidl_message_type_support_t;
 
@@ -171,8 +171,8 @@ bool Parser::deserializeIntoFlatMessage(
           new_tree_leaf.index_array.back() = a;
         }
 
-        if((_discard_large_array == DISCARD_LARGE_ARRAYS &&  array_size >= max_array_size) ||
-           (_discard_large_array == KEEP_LARGE_ARRAYS &&  a >= max_array_size))
+        if((_discard_policy == DISCARD_LARGE_ARRAYS &&  array_size >= _max_array_size) ||
+           (_discard_policy == KEEP_LARGE_ARRAYS &&  a >= _max_array_size))
         {
           skip_save = true;
         }
@@ -222,23 +222,27 @@ bool Parser::deserializeIntoFlatMessage(
     } // end for members
   };
   //---------- END recursive function -------------
-
   flat_container->blobs.clear();
   flat_container->strings.clear();
   flat_container->values.clear();
-  flat_container->tree = &message_info.field_tree;
+  flat_container->tree = &_field_tree;
 
   StringTreeLeaf rootnode;
-  rootnode.node_ptr = message_info.field_tree.root();
-  recursiveParser( message_info.type_support, rootnode, false);
+  rootnode.node_ptr = _field_tree.root();
+  recursiveParser( _topic_info.introspection_support, rootnode, false);
 
   return true;
 }
 
+const TopicInfo &Parser::topicInfo() const
+{
+  return _topic_info;
+}
+
 
 void ConvertFlatMessageToRenamedValues(
-  const FlatMessage &flat,
-  RenamedValues &renamed)
+    const FlatMessage &flat,
+    RenamedValues &renamed)
 {
   const auto& values = flat.values;
   renamed.resize(values.size());

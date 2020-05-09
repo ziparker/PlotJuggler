@@ -58,33 +58,33 @@ public:
 
 protected:
 
-    static void appendData(PlotDataMapRef& destination_plot_map,
-                           const std::string& field_name,
-                           PlotData& in_data)
-    {
-        if( in_data.size() == 0 )
-        {
-            return;
-        }
-        auto plot_pair = destination_plot_map.numeric.find( field_name );
-        if( (plot_pair == destination_plot_map.numeric.end()) )
-        {
-            plot_pair = destination_plot_map.addNumeric( field_name );
-            plot_pair->second.swapData( in_data );
-        }
-        else{
-            PlotData& plot_data = plot_pair->second;
-            for(size_t i=0; i < in_data.size(); i++)
-            {
-                double val = in_data[i].y;
-                if( !std::isnan(val) && !std::isinf(val) )
-                {
-                    plot_data.pushBack( in_data[i] );
-                }
-            }
-        }
-        in_data.clear();
-    }
+  static void appendData(PlotDataMapRef& destination_plot_map,
+                         const std::string& field_name,
+                         PlotData& in_data)
+  {
+      if( in_data.size() == 0 )
+      {
+          return;
+      }
+      auto plot_pair = destination_plot_map.numeric.find( field_name );
+      if( (plot_pair == destination_plot_map.numeric.end()) )
+      {
+          plot_pair = destination_plot_map.addNumeric( field_name );
+          plot_pair->second.swapData( in_data );
+      }
+      else{
+          PlotData& plot_data = plot_pair->second;
+          for(size_t i=0; i < in_data.size(); i++)
+          {
+              double val = in_data[i].y;
+              if( !std::isnan(val) && !std::isinf(val) )
+              {
+                  plot_data.pushBack( in_data[i] );
+              }
+          }
+      }
+      in_data.clear();
+  }
 };
 
 QT_BEGIN_NAMESPACE

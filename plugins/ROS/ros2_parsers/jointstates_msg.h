@@ -3,52 +3,61 @@
 #include <sensor_msgs/msg/joint_state.hpp>
 #include "ros2_parser.h"
 
-class JointStateMsgParser: public Ros2MessageParser<sensor_msgs::msg::JointState>
+using Ros2Introspection::BuiltinMessageParser;
+
+class JointStateMsgParser: public BuiltinMessageParser<sensor_msgs::msg::JointState>
 {
 public:
 
-    JointStateMsgParser()
+    JointStateMsgParser():
+      BuiltinMessageParser<sensor_msgs::msg::JointState>()
     { }
 
-    void parseMessage(const sensor_msgs::msg::JointState& msg, double timestamp) override
+    virtual void setMaxArrayPolicy(Ros2Introspection::MaxArrayPolicy, size_t)
     {
+      // not implemented
+    }
+
+    void parseMessageImpl(const std::string& topic_name,
+                          PlotDataMapRef& plot_data,
+                          const sensor_msgs::msg::JointState& msg,
+                          double timestamp) override
+    {
+      if( _use_header_stamp )
+      {
+        timestamp = static_cast<double>(msg.header.stamp.sec) +
+                    static_cast<double>(msg.header.stamp.nanosec)*1e-9;
+      }
+
+      auto& stamp_sec_series = getSeries(plot_data, topic_name + "/header/stamp/sec");
+      stamp_sec_series.pushBack( {timestamp, msg.header.stamp.sec} );
+
+      auto& stamp_nsec_series = getSeries(plot_data, topic_name + "/header/stamp/nanosec");
+      stamp_nsec_series.pushBack( {timestamp, msg.header.stamp.nanosec} );
+
       for(int i=0; i < msg.name.size(); i++)
       {
-        const auto& joint_name = msg.name[i];
-        auto data_it = _data.find( joint_name );
-        if( data_it == _data.end() ){
-          data_it = _data.insert( {joint_name, joint_name} ).first;
-        }
-        data_it->second.position.pushBack( {timestamp, msg.position[i]} );
-        data_it->second.velocity.pushBack( {timestamp, msg.velocity[i]} );
-        data_it->second.effort.pushBack(   {timestamp, msg.effort[i]} );
-      }
-    }
+        const std::string prefix = topic_name + "/" +  msg.name[i];
 
-    void extractData(PlotDataMapRef& plot_map, const std::string& prefix) override
-    {
-        for (auto& it: _data)
+        if( msg.name.size() == msg.position.size())
         {
-          auto& data_joint = it.second;
-          appendData(plot_map, prefix + data_joint.position.name(), data_joint.position);
-          appendData(plot_map, prefix + data_joint.velocity.name(), data_joint.velocity);
-          appendData(plot_map, prefix + data_joint.effort.name(),   data_joint.effort);
+          auto& series = getSeries(plot_data, prefix + "/position" );
+          series.pushBack( {timestamp, msg.position[i]} );
         }
+
+        if( msg.name.size() == msg.velocity.size())
+        {
+          auto& series = getSeries(plot_data, prefix + "/velocity" );
+          series.pushBack( {timestamp, msg.velocity[i]} );
+        }
+
+        if( msg.name.size() == msg.effort.size())
+        {
+          auto& series = getSeries(plot_data, prefix + "/effort" );
+          series.pushBack( {timestamp, msg.effort[i]} );
+        }
+      }
     }
 
-private:
-    struct PlotDataJoint{
-      PlotDataJoint( const std::string& joint_name):
-        position(joint_name + "/position" ),
-        velocity(joint_name + "/velocity" ),
-        effort(joint_name + "/effort" )
-      {
-
-      }
-      PlotData position;
-      PlotData velocity;
-      PlotData effort;
-    };
-    std::unordered_map<std::string, PlotDataJoint> _data;
 };
 

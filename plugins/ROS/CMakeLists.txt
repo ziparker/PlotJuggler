@@ -82,6 +82,8 @@ elseif(COMPILING_WITH_AMENT)
     find_package(rcpputils REQUIRED)
     find_package(rosbag2 REQUIRED)
     find_package(rosbag2_transport REQUIRED)
+    find_package(sensor_msgs REQUIRED)
+    find_package(geometry_msgs REQUIRED)
     find_package(fastcdr REQUIRED)
     find_package(Boost REQUIRED)
 
@@ -101,7 +103,10 @@ elseif(COMPILING_WITH_AMENT)
         rosbag2
         rcpputils
         fastcdr
-        rosbag2_transport )
+        rosbag2_transport
+        sensor_msgs
+        geometry_msgs
+        )
 
     add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC})
     target_compile_definitions(commonROS PUBLIC DISABLE_RULE_EDITING)
@@ -126,7 +131,6 @@ elseif(COMPILING_WITH_AMENT)
 endif()
 
 #######################################################################
-
 
 if(COMPILING_WITH_CATKIN)
     install(TARGETS
