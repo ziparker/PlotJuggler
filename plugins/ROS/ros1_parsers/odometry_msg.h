@@ -1,6 +1,4 @@
-#ifndef ODOMETRY_MSG_H
-#define ODOMETRY_MSG_H
-
+#pramga once
 
 #include <nav_msgs/Odometry.h>
 #include "ros_parser_base.h"
