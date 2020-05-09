@@ -33,7 +33,6 @@
 <depend condition="$ROS_VERSION == 2">fastcdr</depend>
 <depend condition="$ROS_VERSION == 2">sensor_msgs</depend>
 <depend condition="$ROS_VERSION == 2">geometry_msgs</depend>
-<depend condition="$ROS_VERSION == 2">pj_msgs</depend>
 
 <!-- common dependancies -->
 <depend>qtbase5-dev</depend>
