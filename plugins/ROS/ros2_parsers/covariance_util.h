@@ -5,54 +5,34 @@
 
 using namespace Ros2Introspection;
 
-inline void ParseCovariance(const std::string &prefix,
-                            PlotDataMapRef &plot_data,
-                            const std::array<double,9>& covariance,
-                            double timestamp)
+template <size_t N>
+class CovarianceParser
 {
-    static std::array<std::string,9> suffix = []()
+public:
+    CovarianceParser(const std::string& prefix)
     {
-        std::array<std::string,9> out;
-        int index = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = i; j < 3; j++) {
-                out[index++] = fmt::format( "[{},{}]", i, j );
-            }
+      int index = 0;
+      for (int i = 0; i < N; i++) {
+        for (int j = i; j < N; j++) {
+          _key.push_back( fmt::format( "{}[{},{}]", prefix, i, j ) );
         }
-        return out;
-    }();
-
-    size_t s = 0;
-    for (int i = 0; i < 3; i++) {
-        for (int j = i; j < 3; j++) {
-            auto& series = MessageParserBase::getSeries(plot_data, prefix + suffix[s++] );
-            series.pushBack({timestamp, covariance[i*3 + j]});
-        }
+      }
     }
-}
 
-inline void ParseCovariance(const std::string &prefix,
-                            PlotDataMapRef &plot_data,
-                            const std::array<double,36>& covariance,
-                            double timestamp)
-{
-    static std::array<std::string,36> suffix = []()
+    void parse(PlotDataMapRef &plot_data,
+               const std::array<double,N*N>& covariance,
+               double timestamp)
     {
-        std::array<std::string,36> out;
-        int index = 0;
-        for (int i = 0; i < 6; i++) {
-            for (int j = i; j < 6; j++) {
-                out[index++] = fmt::format( "[{},{}]", i, j );
-            }
+      size_t s = 0;
+      for (int i = 0; i < N; i++) {
+        for (int j = i; j < N; j++) {
+          auto& series = MessageParserBase::getSeries(plot_data, _key[s++] );
+          series.pushBack({timestamp, covariance[i*N + j]});
         }
-        return out;
-    }();
-
-    size_t s = 0;
-    for (int i = 0; i < 6; i++) {
-        for (int j = i; j < 6; j++) {
-            auto& series = MessageParserBase::getSeries(plot_data, prefix + suffix[s++] );
-            series.pushBack({timestamp, covariance[i*6 + j]});
-        }
+      }
     }
-}
+
+private:
+    std::vector<std::string> _key;
+};
+

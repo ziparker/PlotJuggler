@@ -90,7 +90,8 @@ public:
 
     TwistCovarianceMsgParser(const std::string& topic_name):
         BuiltinMessageParser<geometry_msgs::msg::TwistWithCovariance>(topic_name),
-        _twist_parser(topic_name)
+        _twist_parser(topic_name),
+        _covariance(topic_name + "/covariance")
     { }
 
     void parseMessageImpl(PlotDataMapRef& plot_data,
@@ -98,9 +99,10 @@ public:
                           double timestamp) override
     {
         _twist_parser.parseMessageImpl(plot_data, msg.twist, timestamp);
-        ParseCovariance(_topic_name, plot_data, msg.covariance, timestamp);
+        _covariance.parse(plot_data, msg.covariance, timestamp);
     }
 private:
     TwistMsgParser _twist_parser;
+    CovarianceParser<6> _covariance;
 };
 

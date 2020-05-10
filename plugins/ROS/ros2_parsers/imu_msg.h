@@ -13,7 +13,10 @@ class ImuMsgParser : public BuiltinMessageParser<sensor_msgs::msg::Imu>
 public:
     ImuMsgParser(const std::string& topic_name)
         : BuiltinMessageParser<sensor_msgs::msg::Imu>(topic_name),
-        _quat_parser(topic_name + "/orientation")
+        _quat_parser(topic_name + "/orientation"),
+        _orientation_covariance(topic_name + "/orientation_covariance"),
+        _lin_acc_covariance(topic_name + "/linear_acceleration_covariance"),
+        _ang_vel_covariance(topic_name + "/angular_velocity_covariance")
     {
       _key.push_back(topic_name + "/header/stamp/sec");
       _key.push_back(topic_name + "/header/stamp/nanosec");
@@ -65,16 +68,16 @@ public:
         //--------------------
         _quat_parser.parseMessageImpl(plot_data, msg.orientation, timestamp);
 
-        ParseCovariance(_topic_name + "/orientation_covariance",
-                        plot_data,msg.orientation_covariance, timestamp);
+        _orientation_covariance.parse(plot_data,msg.orientation_covariance, timestamp);
 
-        ParseCovariance(_topic_name + "/linear_acceleration_covariance",
-                        plot_data, msg.linear_acceleration_covariance, timestamp);
+        _lin_acc_covariance.parse(plot_data, msg.linear_acceleration_covariance, timestamp);
 
-        ParseCovariance(_topic_name + "/angular_velocity_covariance",
-                        plot_data, msg.angular_velocity_covariance, timestamp);
+        _ang_vel_covariance.parse(plot_data, msg.angular_velocity_covariance, timestamp);
     }
 private:
     QuaternionMsgParser _quat_parser;
+    CovarianceParser<3> _orientation_covariance;
+    CovarianceParser<3> _lin_acc_covariance;
+    CovarianceParser<3> _ang_vel_covariance;
     std::vector<std::string> _key;
 };

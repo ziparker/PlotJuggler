@@ -86,7 +86,8 @@ public:
 
     PoseCovarianceMsgParser(const std::string& topic_name):
         BuiltinMessageParser<geometry_msgs::msg::PoseWithCovariance>(topic_name),
-        _pose_parser(topic_name)
+        _pose_parser(topic_name),
+        _covariance(topic_name + "/covariance")
     { }
 
     void parseMessageImpl(PlotDataMapRef& plot_data,
@@ -94,9 +95,10 @@ public:
                           double timestamp) override
     {
         _pose_parser.parseMessageImpl(plot_data, msg.pose, timestamp);
-        ParseCovariance(_topic_name, plot_data, msg.covariance, timestamp);
+        _covariance.parse(plot_data, msg.covariance, timestamp);
     }
 private:
     PoseMsgParser _pose_parser;
+    CovarianceParser<6> _covariance;
 };
 
