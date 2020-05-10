@@ -139,4 +139,3 @@ private:
     std::vector<PlotData> _data;
 };
 
-#endif // SENSOR_IMU_MSG_H
