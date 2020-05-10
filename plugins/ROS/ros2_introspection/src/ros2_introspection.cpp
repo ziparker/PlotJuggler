@@ -38,6 +38,10 @@ bool TypeHasHeader(const rosidl_message_type_support_t* type_support)
     if( members->member_count_>=1 && members->members_)
     {
         const MessageMember& first_field = members->members_[0];
+        if( first_field.members_ == nullptr )
+        {
+            return false;
+        }
         const auto* header_members = static_cast<const MessageMembers*>(first_field.members_->data);
         if( strcmp( header_members->message_name_, "Header") == 0 &&
             strcmp( header_members->message_namespace_, "std_msgs::msg") == 0)
