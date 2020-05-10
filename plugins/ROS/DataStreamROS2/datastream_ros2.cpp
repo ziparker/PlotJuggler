@@ -80,18 +80,21 @@ bool DataStreamROS2::start(QStringList* selected_datasources)
     update_list_timer.setInterval( 1000);
     update_list_timer.start();
 
-    connect( &update_list_timer, &QTimer::timeout, [&]()
-    {
-       dialog_topics.clear();
-       auto topic_list = _node->get_topic_names_and_types();
-       for (const auto& topic : topic_list) {
-          // TODO: Handle topics with multiple types
-          auto topic_name = QString::fromStdString(topic.first);
-          auto type_name = QString::fromStdString(topic.second[0]);
-          dialog_topics.push_back( {topic_name, type_name} );
-          dialog.updateTopicList(dialog_topics);
-       }
-    });
+    auto getTopicsFromNode = [&](){
+        dialog_topics.clear();
+        auto topic_list = _node->get_topic_names_and_types();
+        for (const auto& topic : topic_list) {
+            // TODO: Handle topics with multiple types
+            auto topic_name = QString::fromStdString(topic.first);
+            auto type_name = QString::fromStdString(topic.second[0]);
+            dialog_topics.push_back( {topic_name, type_name} );
+            dialog.updateTopicList(dialog_topics);
+        }
+    };
+
+    getTopicsFromNode();
+
+    connect( &update_list_timer, &QTimer::timeout, getTopicsFromNode);
 
     int res = dialog.exec();
     _config = dialog.getResult();

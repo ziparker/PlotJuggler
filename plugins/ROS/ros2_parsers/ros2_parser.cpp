@@ -114,12 +114,14 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
   if( type == "sensor_msgs/JointState"){
     parser.reset( new JointStateMsgParser );
   }
+#ifdef FOUND_PJ_MSGS
   else if( type == "pj_msgs/Dictionary"){
     parser.reset( new PlotJugglerDictionaryParser );
   }
   else if( type == "pj_msgs/DataPoints"){
     parser.reset( new PlotJugglerDataPointsParser );
   }
+#endif
   else {
     parser.reset( new IntrospectionParser(topic_name, type) );
   }
