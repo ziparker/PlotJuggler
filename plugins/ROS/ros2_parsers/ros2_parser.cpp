@@ -37,7 +37,7 @@ bool IntrospectionParser::parseMessage(const std::string& topic_name,
 {
   _intropection_parser.deserializeIntoFlatMessage(serialized_msg, &_flat_msg);
 
-  if(_use_header_stamp)
+  if(_use_header_stamp && _intropection_parser.topicInfo().has_header_stamp)
   {
     double sec  = _flat_msg.values[0].second;
     double nsec = _flat_msg.values[1].second;
@@ -120,7 +120,7 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
   else if( type == "pj_msgs/DataPoints"){
     parser.reset( new PlotJugglerDataPointsParser );
   }
-  else{
+  else {
     parser.reset( new IntrospectionParser(topic_name, type) );
   }
 
