@@ -9,34 +9,26 @@ class QuaternionMsgParser: public BuiltinMessageParser<geometry_msgs::msg::Quate
 {
 public:
 
-    QuaternionMsgParser(const std::string& topic_name):
-        BuiltinMessageParser<geometry_msgs::msg::Quaternion>(topic_name)
+    QuaternionMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data):
+        BuiltinMessageParser<geometry_msgs::msg::Quaternion>(topic_name, plot_data)
     {
-      _key.push_back(topic_name + "/x");
-      _key.push_back(topic_name + "/y");
-      _key.push_back(topic_name + "/z");
-      _key.push_back(topic_name + "/w");
+      _data.push_back( &getSeries(plot_data, topic_name + "/x"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/y"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/z"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/w"));
 
-      _key.push_back(topic_name + "/roll_deg");
-      _key.push_back(topic_name + "/pitch_deg");
-      _key.push_back(topic_name + "/yaw_deg");
+      _data.push_back( &getSeries(plot_data, topic_name + "/roll_deg"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/pitch_deg"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/yaw_deg"));
     }
 
-    void parseMessageImpl(PlotDataMapRef& plot_data,
-                          const geometry_msgs::msg::Quaternion& msg,
+    void parseMessageImpl(const geometry_msgs::msg::Quaternion& msg,
                           double timestamp) override
     {
-        auto* series = &getSeries(plot_data, _key[0]);
-        series->pushBack( {timestamp, msg.x} );
-
-        series = &getSeries(plot_data, _key[1]);
-        series->pushBack( {timestamp, msg.y} );
-
-        series = &getSeries(plot_data, _key[2]);
-        series->pushBack( {timestamp, msg.z} );
-
-        series = &getSeries(plot_data, _key[3]);
-        series->pushBack( {timestamp, msg.w} );
+        _data[0]->pushBack( {timestamp, msg.x} );
+        _data[1]->pushBack( {timestamp, msg.y} );
+        _data[2]->pushBack( {timestamp, msg.z} );
+        _data[3]->pushBack( {timestamp, msg.w} );
 
         //-----------------------------
         auto q = msg;
@@ -71,16 +63,11 @@ public:
 
         const double RAD_TO_DEG = 180.0 / M_PI;
 
-        series = &getSeries(plot_data, _key[4]);
-        series->pushBack({timestamp, RAD_TO_DEG * roll});
-
-        series = &getSeries(plot_data, _key[5]);
-        series->pushBack({timestamp, RAD_TO_DEG * pitch});
-
-        series = &getSeries(plot_data, _key[6]);
-        series->pushBack({timestamp, RAD_TO_DEG * yaw});
+        _data[4]->pushBack({timestamp, RAD_TO_DEG * roll});
+        _data[5]->pushBack({timestamp, RAD_TO_DEG * pitch});
+        _data[6]->pushBack({timestamp, RAD_TO_DEG * yaw});
     }
 private:
-    std::vector<std::string> _key;
+     std::vector<PlotData*> _data;
 };
 

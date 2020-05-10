@@ -9,8 +9,8 @@
 
 DataStreamROS2::DataStreamROS2() :
     DataStreamer(),
-    _destination_data(nullptr),
     _node(nullptr),
+    _parser(dataMap()),
     _running(false),
     _config()
 {
@@ -208,7 +208,7 @@ void DataStreamROS2::messageCallback(const std::string &topic_name,
     double timestamp = _node->get_clock()->now().seconds();
 
     std::unique_lock<std::mutex> lock( mutex() );
-    _parser.parseMessage(topic_name, dataMap(), msg.get(), timestamp);
+    _parser.parseMessage(topic_name, msg.get(), timestamp);
 }
 
 void DataStreamROS2::saveDefaultSettings()

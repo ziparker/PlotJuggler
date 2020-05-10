@@ -9,30 +9,29 @@ template <size_t N>
 class CovarianceParser
 {
 public:
-    CovarianceParser(const std::string& prefix)
+    CovarianceParser(const std::string& prefix, PlotDataMapRef& plot_data)
     {
       int index = 0;
       for (int i = 0; i < N; i++) {
         for (int j = i; j < N; j++) {
-          _key.push_back( fmt::format( "{}[{},{}]", prefix, i, j ) );
+          auto str = fmt::format( "{}[{},{}]", prefix, i, j );
+          _data.push_back( &MessageParserBase::getSeries( plot_data, str ) );
         }
       }
     }
 
-    void parse(PlotDataMapRef &plot_data,
-               const std::array<double,N*N>& covariance,
+    void parse(const std::array<double,N*N>& covariance,
                double timestamp)
     {
-      size_t s = 0;
+      size_t i = 0;
       for (int i = 0; i < N; i++) {
         for (int j = i; j < N; j++) {
-          auto& series = MessageParserBase::getSeries(plot_data, _key[s++] );
-          series.pushBack({timestamp, covariance[i*N + j]});
+          _data[i++]->pushBack( {timestamp, covariance[i*N + j]} );
         }
       }
     }
 
 private:
-    std::vector<std::string> _key;
+     std::vector<PlotData*> _data;
 };
 

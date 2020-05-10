@@ -9,15 +9,14 @@ class JointStateMsgParser: public BuiltinMessageParser<sensor_msgs::msg::JointSt
 {
 public:
 
-    JointStateMsgParser(const std::string& topic_name):
-      BuiltinMessageParser<sensor_msgs::msg::JointState>(topic_name)
+    JointStateMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data):
+      BuiltinMessageParser<sensor_msgs::msg::JointState>(topic_name, plot_data)
     {
-      _key.push_back(topic_name + "/header/stamp/sec");
-      _key.push_back(topic_name + "/header/stamp/nanosec");
+      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/sec") );
+      _data.push_back( &getSeries(plot_data,topic_name + "/header/stamp/nanosec") );
     }
 
-    void parseMessageImpl(PlotDataMapRef& plot_data,
-                          const sensor_msgs::msg::JointState& msg,
+    void parseMessageImpl(const sensor_msgs::msg::JointState& msg,
                           double timestamp) override
     {
       if( _use_header_stamp )
@@ -26,11 +25,8 @@ public:
                     static_cast<double>(msg.header.stamp.nanosec)*1e-9;
       }
 
-      auto& stamp_sec_series = getSeries(plot_data, _key[0]);
-      stamp_sec_series.pushBack( {timestamp, msg.header.stamp.sec} );
-
-      auto& stamp_nsec_series = getSeries(plot_data, _key[1]);
-      stamp_nsec_series.pushBack( {timestamp, msg.header.stamp.nanosec} );
+      _data[0]->pushBack( {timestamp, msg.header.stamp.sec} );
+      _data[1]->pushBack( {timestamp, msg.header.stamp.nanosec} );
 
       for(int i=0; i < msg.name.size(); i++)
       {
@@ -38,24 +34,24 @@ public:
 
         if( msg.name.size() == msg.position.size())
         {
-          auto& series = getSeries(plot_data, prefix + "/position" );
+          auto& series = getSeries(_plot_data, prefix + "/position" );
           series.pushBack( {timestamp, msg.position[i]} );
         }
 
         if( msg.name.size() == msg.velocity.size())
         {
-          auto& series = getSeries(plot_data, prefix + "/velocity" );
+          auto& series = getSeries(_plot_data, prefix + "/velocity" );
           series.pushBack( {timestamp, msg.velocity[i]} );
         }
 
         if( msg.name.size() == msg.effort.size())
         {
-          auto& series = getSeries(plot_data, prefix + "/effort" );
+          auto& series = getSeries(_plot_data, prefix + "/effort" );
           series.pushBack( {timestamp, msg.effort[i]} );
         }
       }
     }
 private:
-    std::vector<std::string> _key;
+    std::vector<PlotData*> _data;
 };
 

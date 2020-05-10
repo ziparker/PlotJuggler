@@ -31,9 +31,7 @@ void IntrospectionParser::setMaxArrayPolicy(MaxArrayPolicy discard_policy, size_
 }
 
 
-bool IntrospectionParser::parseMessage(const std::string &,
-                                       PlotDataMapRef& plot_data,
-                                       const rcutils_uint8_array_t *serialized_msg,
+bool IntrospectionParser::parseMessage(const rcutils_uint8_array_t *serialized_msg,
                                        double timestamp)
 {
   _intropection_parser.deserializeIntoFlatMessage(serialized_msg, &_flat_msg);
@@ -52,12 +50,7 @@ bool IntrospectionParser::parseMessage(const std::string &,
       const auto& key = it.first;
       double value = it.second;
 
-      auto plot_pair = plot_data.numeric.find( key );
-      if( plot_pair == plot_data.numeric.end() )
-      {
-          plot_pair = plot_data.addNumeric( key );
-      }
-      auto& series = plot_pair->second;
+      auto& series = getSeries(_plot_data, key );
 
       if( !std::isnan(value) && !std::isinf(value) ){
         series.pushBack( {timestamp, value} );
@@ -68,12 +61,12 @@ bool IntrospectionParser::parseMessage(const std::string &,
 
 //-----------------------------------------
 
-CompositeParser::CompositeParser():
-  _discard_policy( MaxArrayPolicy::DISCARD_LARGE_ARRAYS ),
-  _max_array_size(999)
-{
-
-}
+CompositeParser::CompositeParser(PlotDataMapRef &plot_data)
+    : _discard_policy(MaxArrayPolicy::DISCARD_LARGE_ARRAYS)
+    , _max_array_size(999)
+    , _use_header_stamp(false)
+    , _plot_data(plot_data)
+{}
 
 void CompositeParser::setUseHeaderStamp(bool use)
 {
@@ -113,45 +106,45 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
   }
 
   if( type == "sensor_msgs/JointState"){
-      parser.reset(new JointStateMsgParser(topic_name));
+      parser.reset(new JointStateMsgParser(topic_name, _plot_data));
   }
   else if (type == "geometry_msgs/Quaternion") {
-      parser.reset(new QuaternionMsgParser(topic_name));
+      parser.reset(new QuaternionMsgParser(topic_name, _plot_data));
   }
   else if (type == "sensor_msgs/Imu") {
-      parser.reset(new ImuMsgParser(topic_name));
+      parser.reset(new ImuMsgParser(topic_name, _plot_data));
   }
   else if (type == "nav_msgs/Odometry") {
-      parser.reset(new OdometryMsgParser(topic_name));
+      parser.reset(new OdometryMsgParser(topic_name, _plot_data));
   }
   else if (type == "geometry_msgs/Pose") {
-      parser.reset(new PoseMsgParser(topic_name));
+      parser.reset(new PoseMsgParser(topic_name, _plot_data));
   }
   else if (type == "geometry_msgs/PoseStamped") {
-      parser.reset(new PoseStampedMsgParser(topic_name));
+      parser.reset(new PoseStampedMsgParser(topic_name, _plot_data));
   }
   else if (type == "geometry_msgs/PoseWithCovariance") {
-      parser.reset(new PoseCovarianceMsgParser(topic_name));
+      parser.reset(new PoseCovarianceMsgParser(topic_name, _plot_data));
   }
   else if (type == "geometry_msgs/Twist") {
-      parser.reset(new TwistMsgParser(topic_name));
+      parser.reset(new TwistMsgParser(topic_name, _plot_data));
   }
   else if (type == "geometry_msgs/TwistStamped") {
-      parser.reset(new TwistStampedMsgParser(topic_name));
+      parser.reset(new TwistStampedMsgParser(topic_name, _plot_data));
   }
   else if (type == "geometry_msgs/TwistWithCovariance") {
-      parser.reset(new TwistCovarianceMsgParser(topic_name));
+      parser.reset(new TwistCovarianceMsgParser(topic_name, _plot_data));
   }
 #ifdef FOUND_PJ_MSGS
   else if (type == "pj_msgs/Dictionary") {
-      parser.reset(new PlotJugglerDictionaryParser(topic_name));
+      parser.reset(new PlotJugglerDictionaryParser(topic_name, _plot_data));
   }
   else if( type == "pj_msgs/DataPoints"){
-      parser.reset( new PlotJugglerDataPointsParser(topic_name));
+      parser.reset( new PlotJugglerDataPointsParser(topic_name, _plot_data));
   }
 #endif
   else {
-    parser.reset( new IntrospectionParser(topic_name, type) );
+    parser.reset( new IntrospectionParser(topic_name, type, _plot_data) );
   }
 
   parser->setMaxArrayPolicy(_discard_policy, _max_array_size);
@@ -159,8 +152,7 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
   _parsers.insert( { topic_name, parser} );
 }
 
-bool CompositeParser::parseMessage(const std::string& topic_name,
-                                   PlotDataMapRef &plot_data,
+bool CompositeParser::parseMessage(const std::string &topic_name,
                                    const rcutils_uint8_array_t *serialized_msg,
                                    double timestamp)
 {
@@ -169,7 +161,7 @@ bool CompositeParser::parseMessage(const std::string& topic_name,
   {
     return false;
   }
-  it->second->parseMessage(topic_name, plot_data, serialized_msg, timestamp);
+  it->second->parseMessage(serialized_msg, timestamp);
   return false;
 }
 

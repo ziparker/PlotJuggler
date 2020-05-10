@@ -38,15 +38,7 @@ public:
 
     virtual void addActionsToParentMenu( QMenu* menu ) override;
 
-    virtual std::vector<QString> appendData(PlotDataMapRef& destination) override
-    {
-        _destination_data = &destination;
-        return DataStreamer::appendData(destination);
-    }
-
 private:
-
-    PlotDataMapRef* _destination_data;
 
     void topicCallback(const RosIntrospection::ShapeShifter::ConstPtr& msg, const std::string &topic_name);
 

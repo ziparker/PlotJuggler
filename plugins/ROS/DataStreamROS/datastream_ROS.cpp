@@ -27,7 +27,6 @@
 DataStreamROS::DataStreamROS():
     DataStreamer(),
     _node(nullptr),
-    _destination_data(nullptr),
     _action_saveIntoRosbag(nullptr),
     _prev_clock_time(0)
 {
@@ -438,13 +437,7 @@ void DataStreamROS::addActionsToParentMenu(QMenu *menu)
     menu->addAction( _action_saveIntoRosbag );
 
     connect(_action_saveIntoRosbag, &QAction::triggered, this, [this]() {
-      if (_destination_data) {
-        DataStreamROS::saveIntoRosbag(*_destination_data);
-      }
-      else{
-        QMessageBox::warning(nullptr, tr("Warning"), tr("Your buffer is empty. Nothing to save.\n") );
-        return;
-      }
+        DataStreamROS::saveIntoRosbag(dataMap());
     });
 }
 

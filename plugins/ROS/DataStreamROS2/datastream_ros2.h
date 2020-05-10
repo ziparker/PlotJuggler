@@ -36,19 +36,11 @@ public:
 
     virtual void addActionsToParentMenu(QMenu* menu) override;
 
-    virtual std::vector<QString> appendData(PlotDataMapRef& destination) override
-    {
-        _destination_data = &destination;
-        return DataStreamer::appendData(destination);
-    }
-
   private:
     void messageCallback(const std::string& topic_name,
                          std::shared_ptr<rmw_serialized_message_t> msg);
 
 private:
-
-    PlotDataMapRef* _destination_data;
 
     std::shared_ptr<rclcpp::Context> _context;
     std::unique_ptr<rclcpp::executors::MultiThreadedExecutor> _executor;

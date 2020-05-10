@@ -37,6 +37,8 @@ class  DataLoadROS2: public DataLoader
 
     std::shared_ptr<rosbag2::readers::SequentialReader> _bagReader;
 
+    PlotDataMapRef _temp_plot_map;
+
     Ros2Introspection::CompositeParser _parser;
 
     std::vector<const char*> _extensions;

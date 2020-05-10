@@ -12,58 +12,46 @@ class TwistMsgParser: public BuiltinMessageParser<geometry_msgs::msg::Twist>
 {
 public:
 
-    TwistMsgParser(const std::string& topic_name):
-        BuiltinMessageParser<geometry_msgs::msg::Twist>(topic_name)
+    TwistMsgParser(const std::string& topic_name, PlotDataMapRef &plot_data):
+        BuiltinMessageParser<geometry_msgs::msg::Twist>(topic_name, plot_data)
     {
-      _key.push_back(topic_name + "/linear/x");
-      _key.push_back(topic_name + "/linear/y");
-      _key.push_back(topic_name + "/linear/z");
+      _data.push_back( &getSeries(plot_data, topic_name + "/linear/x") );
+      _data.push_back( &getSeries(plot_data, topic_name + "/linear/y") );
+      _data.push_back( &getSeries(plot_data, topic_name + "/linear/z") );
 
-      _key.push_back(topic_name + "/angular/x");
-      _key.push_back(topic_name + "/angular/y");
-      _key.push_back(topic_name + "/angular/z");
+      _data.push_back( &getSeries(plot_data, topic_name + "/angular/x") );
+      _data.push_back( &getSeries(plot_data, topic_name + "/angular/y") );
+      _data.push_back( &getSeries(plot_data, topic_name + "/angular/z") );
     }
 
-    void parseMessageImpl(PlotDataMapRef& plot_data,
-                          const geometry_msgs::msg::Twist& msg,
+    void parseMessageImpl(const geometry_msgs::msg::Twist& msg,
                           double timestamp) override
     {
-        auto* series = &getSeries(plot_data, _key[0]);
-        series->pushBack( {timestamp, msg.linear.x} );
+        _data[0]->pushBack( {timestamp, msg.linear.x} );
+        _data[1]->pushBack( {timestamp, msg.linear.y} );
+        _data[2]->pushBack( {timestamp, msg.linear.z} );
 
-        series = &getSeries(plot_data, _key[1]);
-        series->pushBack( {timestamp, msg.linear.y} );
-
-        series = &getSeries(plot_data, _key[2]);
-        series->pushBack( {timestamp, msg.linear.z} );
-
-        series = &getSeries(plot_data, _key[3]);
-        series->pushBack( {timestamp, msg.angular.x} );
-
-        series = &getSeries(plot_data, _key[4]);
-        series->pushBack( {timestamp, msg.angular.y} );
-
-        series = &getSeries(plot_data, _key[5]);
-        series->pushBack( {timestamp, msg.angular.z} );
+        _data[3]->pushBack( {timestamp, msg.angular.x} );
+        _data[4]->pushBack( {timestamp, msg.angular.y} );
+        _data[5]->pushBack( {timestamp, msg.angular.z} );
     }
 private:
-    std::vector<std::string> _key;
+     std::vector<PlotData*> _data;
 };
 
 class TwistStampedMsgParser: public BuiltinMessageParser<geometry_msgs::msg::TwistStamped>
 {
 public:
 
-    TwistStampedMsgParser(const std::string& topic_name):
-        BuiltinMessageParser<geometry_msgs::msg::TwistStamped>(topic_name),
-        _twist_parser(topic_name)
+    TwistStampedMsgParser(const std::string& topic_name, PlotDataMapRef &plot_data):
+        BuiltinMessageParser<geometry_msgs::msg::TwistStamped>(topic_name, plot_data),
+        _twist_parser(topic_name, plot_data)
     {
-      _key.push_back(topic_name + "/header/stamp/sec");
-      _key.push_back(topic_name + "/header/stamp/nanosec");
+      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/sec") );
+      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/nanosec") );
     }
 
-    void parseMessageImpl(PlotDataMapRef& plot_data,
-                          const geometry_msgs::msg::TwistStamped& msg,
+    void parseMessageImpl(const geometry_msgs::msg::TwistStamped& msg,
                           double timestamp) override
     {
         if( _use_header_stamp )
@@ -71,35 +59,32 @@ public:
             timestamp = static_cast<double>(msg.header.stamp.sec) +
                         static_cast<double>(msg.header.stamp.nanosec)*1e-9;
         }
-        auto& stamp_sec_series = getSeries(plot_data, _key[0]);
-        stamp_sec_series.pushBack( {timestamp, msg.header.stamp.sec} );
 
-        auto& stamp_nsec_series = getSeries(plot_data, _key[1]);
-        stamp_nsec_series.pushBack( {timestamp, msg.header.stamp.nanosec} );
+        _data[0]->pushBack( {timestamp, msg.header.stamp.sec} );
+        _data[1]->pushBack( {timestamp, msg.header.stamp.nanosec} );
 
-        _twist_parser.parseMessageImpl(plot_data, msg.twist, timestamp);
+        _twist_parser.parseMessageImpl(msg.twist, timestamp);
     }
 private:
     TwistMsgParser _twist_parser;
-    std::vector<std::string> _key;
+     std::vector<PlotData*> _data;
 };
 
 class TwistCovarianceMsgParser: public BuiltinMessageParser<geometry_msgs::msg::TwistWithCovariance>
 {
 public:
 
-    TwistCovarianceMsgParser(const std::string& topic_name):
-        BuiltinMessageParser<geometry_msgs::msg::TwistWithCovariance>(topic_name),
-        _twist_parser(topic_name),
-        _covariance(topic_name + "/covariance")
+    TwistCovarianceMsgParser(const std::string& topic_name, PlotDataMapRef &plot_data):
+        BuiltinMessageParser<geometry_msgs::msg::TwistWithCovariance>(topic_name, plot_data),
+        _twist_parser(topic_name, plot_data),
+        _covariance(topic_name + "/covariance", plot_data)
     { }
 
-    void parseMessageImpl(PlotDataMapRef& plot_data,
-                          const geometry_msgs::msg::TwistWithCovariance& msg,
+    void parseMessageImpl(const geometry_msgs::msg::TwistWithCovariance& msg,
                           double timestamp) override
     {
-        _twist_parser.parseMessageImpl(plot_data, msg.twist, timestamp);
-        _covariance.parse(plot_data, msg.covariance, timestamp);
+        _twist_parser.parseMessageImpl(msg.twist, timestamp);
+        _covariance.parse(msg.covariance, timestamp);
     }
 private:
     TwistMsgParser _twist_parser;

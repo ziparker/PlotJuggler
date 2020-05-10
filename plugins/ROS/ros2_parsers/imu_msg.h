@@ -11,73 +11,53 @@ using Ros2Introspection::BuiltinMessageParser;
 class ImuMsgParser : public BuiltinMessageParser<sensor_msgs::msg::Imu>
 {
 public:
-    ImuMsgParser(const std::string& topic_name)
-        : BuiltinMessageParser<sensor_msgs::msg::Imu>(topic_name),
-        _quat_parser(topic_name + "/orientation"),
-        _orientation_covariance(topic_name + "/orientation_covariance"),
-        _lin_acc_covariance(topic_name + "/linear_acceleration_covariance"),
-        _ang_vel_covariance(topic_name + "/angular_velocity_covariance")
+    ImuMsgParser(const std::string& topic_name, PlotDataMapRef &plot_data)
+        : BuiltinMessageParser<sensor_msgs::msg::Imu>(topic_name, plot_data),
+        _quat_parser(topic_name + "/orientation", plot_data),
+        _orientation_covariance(topic_name + "/orientation_covariance", plot_data),
+        _lin_acc_covariance(topic_name + "/linear_acceleration_covariance", plot_data),
+        _ang_vel_covariance(topic_name + "/angular_velocity_covariance", plot_data)
     {
-      _key.push_back(topic_name + "/header/stamp/sec");
-      _key.push_back(topic_name + "/header/stamp/nanosec");
+      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/sec"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/nanosec"));
 
-      _key.push_back(topic_name + "/angular_velocity/x");
-      _key.push_back(topic_name + "/angular_velocity/y");
-      _key.push_back(topic_name + "/angular_velocity/z");
+      _data.push_back( &getSeries(plot_data, topic_name + "/angular_velocity/x"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/angular_velocity/y"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/angular_velocity/z"));
 
-      _key.push_back(topic_name + "/linear_acceleration/x");
-      _key.push_back(topic_name + "/linear_acceleration/y");
-      _key.push_back(topic_name + "/linear_acceleration/z");
+      _data.push_back( &getSeries(plot_data, topic_name + "/linear_acceleration/x"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/linear_acceleration/y"));
+      _data.push_back( &getSeries(plot_data, topic_name + "/linear_acceleration/z"));
     }
 
-    void parseMessageImpl(PlotDataMapRef &plot_data,
-                          const sensor_msgs::msg::Imu &msg,
+    void parseMessageImpl(const sensor_msgs::msg::Imu &msg,
                           double timestamp) override
     {
         if (_use_header_stamp) {
             timestamp = static_cast<double>(msg.header.stamp.sec)
                         + static_cast<double>(msg.header.stamp.nanosec) * 1e-9;
         }
+        _data[0]->pushBack({timestamp, msg.header.stamp.sec});
+        _data[1]->pushBack({timestamp, msg.header.stamp.sec});
 
-        auto *series = &getSeries(plot_data, _key[0]);
-        series->pushBack({timestamp, msg.header.stamp.sec});
+        _data[2]->pushBack({timestamp, msg.angular_velocity.x});
+        _data[3]->pushBack({timestamp, msg.angular_velocity.y});
+        _data[4]->pushBack({timestamp, msg.angular_velocity.z});
 
-        series = &getSeries(plot_data, _key[1]);
-        series->pushBack({timestamp, msg.header.stamp.sec});
+        _data[5]->pushBack({timestamp, msg.linear_acceleration.x});
+        _data[6]->pushBack({timestamp, msg.linear_acceleration.y});
+        _data[7]->pushBack({timestamp, msg.linear_acceleration.z});
 
-        //--------------------
-        series = &getSeries(plot_data, _key[2]);
-        series->pushBack({timestamp, msg.angular_velocity.x});
+        _quat_parser.parseMessageImpl(msg.orientation, timestamp);
 
-        series = &getSeries(plot_data, _key[3]);
-        series->pushBack({timestamp, msg.angular_velocity.y});
-
-        series = &getSeries(plot_data, _key[4]);
-        series->pushBack({timestamp, msg.angular_velocity.z});
-
-        //--------------------
-        series = &getSeries(plot_data, _key[5]);
-        series->pushBack({timestamp, msg.linear_acceleration.x});
-
-        series = &getSeries(plot_data, _key[6]);
-        series->pushBack({timestamp, msg.linear_acceleration.y});
-
-        series = &getSeries(plot_data, _key[7]);
-        series->pushBack({timestamp, msg.linear_acceleration.z});
-
-        //--------------------
-        _quat_parser.parseMessageImpl(plot_data, msg.orientation, timestamp);
-
-        _orientation_covariance.parse(plot_data,msg.orientation_covariance, timestamp);
-
-        _lin_acc_covariance.parse(plot_data, msg.linear_acceleration_covariance, timestamp);
-
-        _ang_vel_covariance.parse(plot_data, msg.angular_velocity_covariance, timestamp);
+        _orientation_covariance.parse(msg.orientation_covariance, timestamp);
+        _lin_acc_covariance.parse(msg.linear_acceleration_covariance, timestamp);
+        _ang_vel_covariance.parse(msg.angular_velocity_covariance, timestamp);
     }
 private:
     QuaternionMsgParser _quat_parser;
     CovarianceParser<3> _orientation_covariance;
     CovarianceParser<3> _lin_acc_covariance;
     CovarianceParser<3> _ang_vel_covariance;
-    std::vector<std::string> _key;
+    std::vector<PlotData*> _data;
 };

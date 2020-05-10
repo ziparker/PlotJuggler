@@ -13,52 +13,42 @@ class PoseMsgParser: public BuiltinMessageParser<geometry_msgs::msg::Pose>
 {
 public:
 
-    PoseMsgParser(const std::string& topic_name):
-        BuiltinMessageParser<geometry_msgs::msg::Pose>(topic_name),
-        _quat_parser(topic_name + "/orientation")
+    PoseMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data):
+        BuiltinMessageParser<geometry_msgs::msg::Pose>(topic_name, plot_data),
+        _quat_parser(topic_name + "/orientation", plot_data)
     {
-      _key.push_back(topic_name + "/position/x");
-      _key.push_back(topic_name + "/position/y");
-      _key.push_back(topic_name + "/position/z");
+      _data.push_back( &getSeries(plot_data, topic_name + "/position/x") );
+      _data.push_back( &getSeries(plot_data, topic_name + "/position/y") );
+      _data.push_back( &getSeries(plot_data, topic_name + "/position/z") );
     }
 
-    void parseMessageImpl(PlotDataMapRef& plot_data,
-                          const geometry_msgs::msg::Pose& msg,
+    void parseMessageImpl(const geometry_msgs::msg::Pose& msg,
                           double timestamp) override
     {
-        auto* series = &getSeries(plot_data, _key[0]);
-        series->pushBack( {timestamp, msg.position.x} );
+        _data[0]->pushBack( {timestamp, msg.position.x} );
+        _data[1]->pushBack( {timestamp, msg.position.y} );
+        _data[2]->pushBack( {timestamp, msg.position.z} );
 
-        series = &getSeries(plot_data, _key[1]);
-        series->pushBack( {timestamp, msg.position.y} );
-
-        series = &getSeries(plot_data, _key[2]);
-        series->pushBack( {timestamp, msg.position.z} );
-
-        //-----------------------
-        _quat_parser.parseMessageImpl(plot_data,
-                                      msg.orientation,
-                                      timestamp);
+        _quat_parser.parseMessageImpl( msg.orientation, timestamp);
     }
 private:
     QuaternionMsgParser _quat_parser;
-    std::vector<std::string> _key;
+    std::vector<PlotData*> _data;
 };
 
 class PoseStampedMsgParser: public BuiltinMessageParser<geometry_msgs::msg::PoseStamped>
 {
 public:
 
-    PoseStampedMsgParser(const std::string& topic_name):
-        BuiltinMessageParser<geometry_msgs::msg::PoseStamped>(topic_name),
-        _pose_parser(topic_name)
+    PoseStampedMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data):
+        BuiltinMessageParser<geometry_msgs::msg::PoseStamped>(topic_name, plot_data),
+        _pose_parser(topic_name, plot_data)
     {
-      _key.push_back(topic_name + "/header/stamp/sec");
-      _key.push_back(topic_name + "/header/stamp/nanosec");
+      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/sec") );
+      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/nanosec") );
     }
 
-    void parseMessageImpl(PlotDataMapRef& plot_data,
-                          const geometry_msgs::msg::PoseStamped& msg,
+    void parseMessageImpl(const geometry_msgs::msg::PoseStamped& msg,
                           double timestamp) override
     {
         if( _use_header_stamp )
@@ -66,17 +56,14 @@ public:
             timestamp = static_cast<double>(msg.header.stamp.sec) +
                         static_cast<double>(msg.header.stamp.nanosec)*1e-9;
         }
-        auto& stamp_sec_series = getSeries(plot_data, _key[0]);
-        stamp_sec_series.pushBack( {timestamp, msg.header.stamp.sec} );
+        _data[0]->pushBack( {timestamp, msg.header.stamp.sec} );
+        _data[1]->pushBack({timestamp, msg.header.stamp.nanosec});
 
-        auto& stamp_nsec_series = getSeries(plot_data, _key[1]);
-        stamp_nsec_series.pushBack( {timestamp, msg.header.stamp.nanosec} );
-
-        _pose_parser.parseMessageImpl(plot_data, msg.pose, timestamp);
+        _pose_parser.parseMessageImpl(msg.pose, timestamp);
     }
 private:
     PoseMsgParser _pose_parser;
-    std::vector<std::string> _key;
+    std::vector<PlotData*> _data;
 };
 
 
@@ -84,18 +71,17 @@ class PoseCovarianceMsgParser: public BuiltinMessageParser<geometry_msgs::msg::P
 {
 public:
 
-    PoseCovarianceMsgParser(const std::string& topic_name):
-        BuiltinMessageParser<geometry_msgs::msg::PoseWithCovariance>(topic_name),
-        _pose_parser(topic_name),
-        _covariance(topic_name + "/covariance")
+    PoseCovarianceMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data):
+        BuiltinMessageParser<geometry_msgs::msg::PoseWithCovariance>(topic_name, plot_data),
+        _pose_parser(topic_name, plot_data),
+        _covariance(topic_name + "/covariance", plot_data)
     { }
 
-    void parseMessageImpl(PlotDataMapRef& plot_data,
-                          const geometry_msgs::msg::PoseWithCovariance& msg,
+    void parseMessageImpl(const geometry_msgs::msg::PoseWithCovariance& msg,
                           double timestamp) override
     {
-        _pose_parser.parseMessageImpl(plot_data, msg.pose, timestamp);
-        _covariance.parse(plot_data, msg.covariance, timestamp);
+        _pose_parser.parseMessageImpl(msg.pose, timestamp);
+        _covariance.parse(msg.covariance, timestamp);
     }
 private:
     PoseMsgParser _pose_parser;

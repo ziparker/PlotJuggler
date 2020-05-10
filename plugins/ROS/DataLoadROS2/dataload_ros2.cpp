@@ -25,7 +25,8 @@
 
 #include "../dialog_select_ros_topics.h"
 
-DataLoadROS2::DataLoadROS2()
+DataLoadROS2::DataLoadROS2():
+    _parser(_temp_plot_map)
 {
     _extensions.push_back( "yaml");
     loadDefaultSettings();
@@ -69,7 +70,6 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
     {
         all_topics.push_back(std::make_pair(QString::fromStdString(topic.name), QString::fromStdString(topic.type)));
         topicTypesByName.emplace(topic.name, topic.type);
-        //qDebug() << QString::fromStdString(topic.name) << " : " << QString::fromStdString(topic.type);
     }
 
     if( info->plugin_config.hasChildNodes() )
@@ -120,8 +120,11 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
     {
         std::shared_ptr<rosbag2::SerializedBagMessage> msg = _bagReader->read_next();
         double timestamp = 1e-9 * double( msg->time_stamp ); // nanoseconds to seconds
-        _parser.parseMessage( msg->topic_name,plot_map, msg->serialized_data.get(), timestamp);
+        _parser.parseMessage( msg->topic_name, msg->serialized_data.get(), timestamp);
     }
+
+    // move data from _temp_plot_map to plot_map
+    MoveData( _temp_plot_map, plot_map );
 
     auto now = std::chrono::high_resolution_clock::now();
     double diff = std::chrono::duration_cast< std::chrono::milliseconds >( now - time_prev).count();
