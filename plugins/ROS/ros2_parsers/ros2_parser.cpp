@@ -1,5 +1,7 @@
 #include "ros2_parser.h"
 #include "jointstates_msg.h"
+#include "imu_msg.h"
+#include "odometry_msg.h"
 #ifdef FOUND_PJ_MSGS
   #include "plotjuggler_msgs.h"
 #endif
@@ -27,7 +29,6 @@ void IntrospectionParser::setMaxArrayPolicy(MaxArrayPolicy discard_policy, size_
 {
   _intropection_parser.setMaxArrayPolicy(discard_policy, max_size);
 }
-
 
 
 bool IntrospectionParser::parseMessage(const std::string& topic_name,
@@ -111,20 +112,25 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
     type.erase(str_index, 4);
   }
 
-  if( type == "sensor_msgs/JointState"){
-    parser.reset( new JointStateMsgParser );
-  }
+  // clang-format off
+  if( type == "sensor_msgs/JointState"){ parser.reset(new JointStateMsgParser); }
+  else if( type == "geometry_msgs/Quaternion"){ parser.reset( new QuaternionMsgParser ); }
+  else if( type == "sensor_msgs/Imu"){ parser.reset( new ImuMsgParser ); }
+  else if( type == "nav_msgs/Odometry"){ parser.reset( new OdometryMsgParser ); }
+  else if( type == "geometry_msgs/Pose"){ parser.reset( new PoseMsgParser ); }
+  else if( type == "geometry_msgs/PoseStamped"){ parser.reset( new PoseStampedMsgParser ); }
+  else if( type == "geometry_msgs/PoseWithCovariance"){ parser.reset( new PoseCovarianceMsgParser ); }
+  else if( type == "geometry_msgs/Twist"){ parser.reset( new TwistMsgParser ); }
+  else if( type == "geometry_msgs/TwistStamped"){ parser.reset( new TwistStampedMsgParser ); }
+  else if( type == "geometry_msgs/TwistWithCovariance"){ parser.reset( new TwistCovarianceMsgParser ); }
 #ifdef FOUND_PJ_MSGS
-  else if( type == "pj_msgs/Dictionary"){
-    parser.reset( new PlotJugglerDictionaryParser );
-  }
-  else if( type == "pj_msgs/DataPoints"){
-    parser.reset( new PlotJugglerDataPointsParser );
-  }
+  else if( type == "pj_msgs/Dictionary"){ parser.reset(new PlotJugglerDictionaryParser); }
+  else if( type == "pj_msgs/DataPoints"){ parser.reset( new PlotJugglerDataPointsParser); }
 #endif
   else {
     parser.reset( new IntrospectionParser(topic_name, type) );
   }
+// clang-format on
 
   parser->setMaxArrayPolicy(_discard_policy, _max_array_size);
   parser->setUseHeaderStamp(_use_header_stamp);

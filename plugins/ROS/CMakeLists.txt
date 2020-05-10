@@ -84,6 +84,7 @@ elseif(COMPILING_WITH_AMENT)
     find_package(rosbag2_transport REQUIRED)
     find_package(sensor_msgs REQUIRED)
     find_package(geometry_msgs REQUIRED)
+    find_package(nav_msgs REQUIRED)
     find_package(fastcdr REQUIRED)
     find_package(Boost REQUIRED)
     find_package(pj_msgs QUIET)
@@ -107,6 +108,7 @@ elseif(COMPILING_WITH_AMENT)
         rosbag2_transport
         sensor_msgs
         geometry_msgs
+        nav_msgs
         )
 
     add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC})
@@ -120,7 +122,8 @@ elseif(COMPILING_WITH_AMENT)
     target_link_libraries( commonROS
         ${Qt5Widgets_LIBRARIES}
         ${Qt5Xml_LIBRARIES}
-        fastcdr)
+        fastcdr
+        fmt::fmt-header-only )
     ament_target_dependencies( commonROS ${AMENT_DEPENDECIES})
 
     #############

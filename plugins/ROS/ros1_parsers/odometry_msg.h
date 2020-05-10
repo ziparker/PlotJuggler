@@ -133,5 +133,3 @@ private:
     std::vector<PlotData> _data;
     double _yaw_warp;
 };
-
-#endif // ODOMETRY_MSG_H

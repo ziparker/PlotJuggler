@@ -1,6 +1,4 @@
-#ifndef SENSOR_IMU_MSG_H
-#define SENSOR_IMU_MSG_H
-
+#pragma once
 
 #include <sensor_msgs/Imu.h>
 #include "ros_parser_base.h"

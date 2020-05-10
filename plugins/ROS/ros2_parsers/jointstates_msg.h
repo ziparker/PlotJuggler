@@ -13,11 +13,6 @@ public:
       BuiltinMessageParser<sensor_msgs::msg::JointState>()
     { }
 
-    virtual void setMaxArrayPolicy(Ros2Introspection::MaxArrayPolicy, size_t)
-    {
-      // not implemented
-    }
-
     void parseMessageImpl(const std::string& topic_name,
                           PlotDataMapRef& plot_data,
                           const sensor_msgs::msg::JointState& msg,

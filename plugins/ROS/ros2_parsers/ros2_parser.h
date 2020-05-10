@@ -30,7 +30,7 @@ public:
   virtual void setUseHeaderStamp(bool use);
 
   virtual void setMaxArrayPolicy(MaxArrayPolicy discard_policy,
-                                 size_t max_size) = 0;
+                                 size_t max_size) {}
 
   virtual bool parseMessage(const std::string& topic_name,
                             PlotDataMapRef& plot_data,
