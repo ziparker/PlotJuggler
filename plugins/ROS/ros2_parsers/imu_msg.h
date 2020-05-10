@@ -11,12 +11,23 @@ using Ros2Introspection::BuiltinMessageParser;
 class ImuMsgParser : public BuiltinMessageParser<sensor_msgs::msg::Imu>
 {
 public:
-    ImuMsgParser()
-        : BuiltinMessageParser<sensor_msgs::msg::Imu>()
-    {}
+    ImuMsgParser(const std::string& topic_name)
+        : BuiltinMessageParser<sensor_msgs::msg::Imu>(topic_name),
+        _quat_parser(topic_name + "/orientation")
+    {
+      _key.push_back(topic_name + "/header/stamp/sec");
+      _key.push_back(topic_name + "/header/stamp/nanosec");
 
-    void parseMessageImpl(const std::string &topic_name,
-                          PlotDataMapRef &plot_data,
+      _key.push_back(topic_name + "/angular_velocity/x");
+      _key.push_back(topic_name + "/angular_velocity/y");
+      _key.push_back(topic_name + "/angular_velocity/z");
+
+      _key.push_back(topic_name + "/linear_acceleration/x");
+      _key.push_back(topic_name + "/linear_acceleration/y");
+      _key.push_back(topic_name + "/linear_acceleration/z");
+    }
+
+    void parseMessageImpl(PlotDataMapRef &plot_data,
                           const sensor_msgs::msg::Imu &msg,
                           double timestamp) override
     {
@@ -25,45 +36,45 @@ public:
                         + static_cast<double>(msg.header.stamp.nanosec) * 1e-9;
         }
 
-        auto *series = &getSeries(plot_data, topic_name + "/header/stamp/sec");
+        auto *series = &getSeries(plot_data, _key[0]);
         series->pushBack({timestamp, msg.header.stamp.sec});
 
-        series = &getSeries(plot_data, topic_name + "/header/stamp/sec");
+        series = &getSeries(plot_data, _key[1]);
         series->pushBack({timestamp, msg.header.stamp.sec});
 
         //--------------------
-        series = &getSeries(plot_data, topic_name + "/angular_velocity/x");
+        series = &getSeries(plot_data, _key[2]);
         series->pushBack({timestamp, msg.angular_velocity.x});
 
-        series = &getSeries(plot_data, topic_name + "/angular_velocity/y");
+        series = &getSeries(plot_data, _key[3]);
         series->pushBack({timestamp, msg.angular_velocity.y});
 
-        series = &getSeries(plot_data, topic_name + "/angular_velocity/z");
+        series = &getSeries(plot_data, _key[4]);
         series->pushBack({timestamp, msg.angular_velocity.z});
 
         //--------------------
-        series = &getSeries(plot_data, topic_name + "/linear_acceleration/x");
+        series = &getSeries(plot_data, _key[5]);
         series->pushBack({timestamp, msg.linear_acceleration.x});
 
-        series = &getSeries(plot_data, topic_name + "/linear_acceleration/y");
+        series = &getSeries(plot_data, _key[6]);
         series->pushBack({timestamp, msg.linear_acceleration.y});
 
-        series = &getSeries(plot_data, topic_name + "/linear_acceleration/z");
+        series = &getSeries(plot_data, _key[7]);
         series->pushBack({timestamp, msg.linear_acceleration.z});
 
         //--------------------
-        _quat_parser.parseMessageImpl(topic_name + "/orientation",
-                                      plot_data, msg.orientation, timestamp);
+        _quat_parser.parseMessageImpl(plot_data, msg.orientation, timestamp);
 
-        ParseCovariance( topic_name + "/orientation_covariance",
+        ParseCovariance(_topic_name + "/orientation_covariance",
                         plot_data,msg.orientation_covariance, timestamp);
 
-        ParseCovariance( topic_name + "/linear_acceleration_covariance",
+        ParseCovariance(_topic_name + "/linear_acceleration_covariance",
                         plot_data, msg.linear_acceleration_covariance, timestamp);
 
-        ParseCovariance( topic_name + "/angular_velocity_covariance",
+        ParseCovariance(_topic_name + "/angular_velocity_covariance",
                         plot_data, msg.angular_velocity_covariance, timestamp);
     }
 private:
     QuaternionMsgParser _quat_parser;
+    std::vector<std::string> _key;
 };

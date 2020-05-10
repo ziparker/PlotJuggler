@@ -9,12 +9,14 @@ class JointStateMsgParser: public BuiltinMessageParser<sensor_msgs::msg::JointSt
 {
 public:
 
-    JointStateMsgParser():
-      BuiltinMessageParser<sensor_msgs::msg::JointState>()
-    { }
+    JointStateMsgParser(const std::string& topic_name):
+      BuiltinMessageParser<sensor_msgs::msg::JointState>(topic_name)
+    {
+      _key.push_back(topic_name + "/header/stamp/sec");
+      _key.push_back(topic_name + "/header/stamp/nanosec");
+    }
 
-    void parseMessageImpl(const std::string& topic_name,
-                          PlotDataMapRef& plot_data,
+    void parseMessageImpl(PlotDataMapRef& plot_data,
                           const sensor_msgs::msg::JointState& msg,
                           double timestamp) override
     {
@@ -24,15 +26,15 @@ public:
                     static_cast<double>(msg.header.stamp.nanosec)*1e-9;
       }
 
-      auto& stamp_sec_series = getSeries(plot_data, topic_name + "/header/stamp/sec");
+      auto& stamp_sec_series = getSeries(plot_data, _key[0]);
       stamp_sec_series.pushBack( {timestamp, msg.header.stamp.sec} );
 
-      auto& stamp_nsec_series = getSeries(plot_data, topic_name + "/header/stamp/nanosec");
+      auto& stamp_nsec_series = getSeries(plot_data, _key[1]);
       stamp_nsec_series.pushBack( {timestamp, msg.header.stamp.nanosec} );
 
       for(int i=0; i < msg.name.size(); i++)
       {
-        const std::string prefix = topic_name + "/" +  msg.name[i];
+        const std::string prefix = _topic_name + "/" +  msg.name[i];
 
         if( msg.name.size() == msg.position.size())
         {
@@ -53,6 +55,7 @@ public:
         }
       }
     }
-
+private:
+    std::vector<std::string> _key;
 };
 

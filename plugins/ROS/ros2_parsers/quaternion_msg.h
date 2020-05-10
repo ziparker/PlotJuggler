@@ -9,24 +9,33 @@ class QuaternionMsgParser: public BuiltinMessageParser<geometry_msgs::msg::Quate
 {
 public:
 
-    QuaternionMsgParser(): BuiltinMessageParser<geometry_msgs::msg::Quaternion>()
-    { }
+    QuaternionMsgParser(const std::string& topic_name):
+        BuiltinMessageParser<geometry_msgs::msg::Quaternion>(topic_name)
+    {
+      _key.push_back(topic_name + "/x");
+      _key.push_back(topic_name + "/y");
+      _key.push_back(topic_name + "/z");
+      _key.push_back(topic_name + "/w");
 
-    void parseMessageImpl(const std::string& topic_name,
-                          PlotDataMapRef& plot_data,
+      _key.push_back(topic_name + "/roll_deg");
+      _key.push_back(topic_name + "/pitch_deg");
+      _key.push_back(topic_name + "/yaw_deg");
+    }
+
+    void parseMessageImpl(PlotDataMapRef& plot_data,
                           const geometry_msgs::msg::Quaternion& msg,
                           double timestamp) override
     {
-        auto* series = &getSeries(plot_data, topic_name + "/x");
+        auto* series = &getSeries(plot_data, _key[0]);
         series->pushBack( {timestamp, msg.x} );
 
-        series = &getSeries(plot_data, topic_name + "/y");
+        series = &getSeries(plot_data, _key[1]);
         series->pushBack( {timestamp, msg.y} );
 
-        series = &getSeries(plot_data, topic_name + "/z");
+        series = &getSeries(plot_data, _key[2]);
         series->pushBack( {timestamp, msg.z} );
 
-        series = &getSeries(plot_data, topic_name + "/w");
+        series = &getSeries(plot_data, _key[3]);
         series->pushBack( {timestamp, msg.w} );
 
         //-----------------------------
@@ -62,14 +71,16 @@ public:
 
         const double RAD_TO_DEG = 180.0 / M_PI;
 
-        series = &getSeries(plot_data, topic_name + "/roll_deg");
+        series = &getSeries(plot_data, _key[4]);
         series->pushBack({timestamp, RAD_TO_DEG * roll});
 
-        series = &getSeries(plot_data, topic_name + "/pitch_deg");
+        series = &getSeries(plot_data, _key[5]);
         series->pushBack({timestamp, RAD_TO_DEG * pitch});
 
-        series = &getSeries(plot_data, topic_name + "/yaw_deg");
+        series = &getSeries(plot_data, _key[6]);
         series->pushBack({timestamp, RAD_TO_DEG * yaw});
     }
+private:
+    std::vector<std::string> _key;
 };
 

@@ -50,12 +50,12 @@ class BuiltinMessageParser : public MessageParserBase
 {
 public:
 
-  BuiltinMessageParser()
+  BuiltinMessageParser(const std::string& topic_name): _topic_name(topic_name)
   {
     _type_support = rosidl_typesupport_cpp::get_message_type_support_handle<T>();
   }
 
-  virtual bool parseMessage(const std::string& topic_name,
+  virtual bool parseMessage(const std::string&,
                             PlotDataMapRef& plot_data,
                             const rcutils_uint8_array_t *serialized_msg,
                             double timestamp) override
@@ -65,12 +65,11 @@ public:
     {
       throw std::runtime_error("failed to deserialize message");
     }
-    parseMessageImpl(topic_name, plot_data, msg, timestamp);
+    parseMessageImpl(plot_data, msg, timestamp);
     return true;
   }
 
-  virtual void parseMessageImpl(const std::string& topic_name,
-                                PlotDataMapRef& plot_data,
+  virtual void parseMessageImpl(PlotDataMapRef& plot_data,
                                 const T& msg,
                                 double timestamp) = 0;
 
@@ -78,8 +77,10 @@ public:
   {
     return _type_support;
   }
-private:
+
+protected:
   const rosidl_message_type_support_t* _type_support;
+  const std::string _topic_name;
 };
 
 
@@ -92,7 +93,7 @@ public:
 
   void setMaxArrayPolicy(MaxArrayPolicy discard_policy, size_t max_size) override;
 
-  virtual bool parseMessage(const std::string& topic_name,
+  virtual bool parseMessage(const std::string&,
                             PlotDataMapRef& plot_data,
                             const rcutils_uint8_array_t *serialized_msg,
                             double timestamp) override;

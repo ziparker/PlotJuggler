@@ -12,14 +12,13 @@ class PlotJugglerDictionaryParser: public BuiltinMessageParser<pj_msgs::msg::Dic
 {
 public:
 
-    PlotJugglerDictionaryParser():
-      BuiltinMessageParser<pj_msgs::msg::Dictionary>()
+    PlotJugglerDictionaryParser(const std::string& topic_name):
+      BuiltinMessageParser<pj_msgs::msg::Dictionary>(topic_name)
     { }
 
     virtual void setMaxArrayPolicy(Ros2Introspection::MaxArrayPolicy, size_t) {}
 
-    void parseMessageImpl(const std::string& topic_name,
-                          PlotDataMapRef& plot_data,
+    void parseMessageImpl(PlotDataMapRef& plot_data,
                           const pj_msgs::msg::Dictionary& msg,
                           double timestamp) override
     {
@@ -32,14 +31,15 @@ class PlotJugglerDataPointsParser: public BuiltinMessageParser<pj_msgs::msg::Dat
 {
 public:
 
-    PlotJugglerDataPointsParser():
-      BuiltinMessageParser<pj_msgs::msg::DataPoints>()
-    { }
+    PlotJugglerDataPointsParser(const std::string& topic_name):
+      BuiltinMessageParser<pj_msgs::msg::DataPoints>(topic_name)
+    {
+      _prefix = topic_name + "/";
+    }
 
     virtual void setMaxArrayPolicy(Ros2Introspection::MaxArrayPolicy, size_t) {}
 
-    void parseMessageImpl(const std::string& topic_name,
-                          PlotDataMapRef& plot_data,
+    void parseMessageImpl(PlotDataMapRef& plot_data,
                           const pj_msgs::msg::DataPoints& msg,
                           double timestamp) override
     {
@@ -49,7 +49,7 @@ public:
         const auto& names = it->second;
         for( const auto& sample: msg.samples)
         {
-          auto& series = getSeries(plot_data, topic_name + "/" + std::to_string(sample.name_index));
+          auto& series = getSeries(plot_data, _prefix + std::to_string(sample.name_index));
           series.pushBack( {sample.stamp, sample.value} );
         }
       }
@@ -57,9 +57,11 @@ public:
         const auto& names = it->second;
         for( const auto& sample: msg.samples)
         {
-          auto& series = getSeries(plot_data, topic_name + "/" + names[sample.name_index]);
+          auto& series = getSeries(plot_data, _prefix + names[sample.name_index]);
           series.pushBack( {sample.stamp, sample.value} );
         }
       }
     }
+private:
+    std::string _prefix;
 };

@@ -31,7 +31,7 @@ void IntrospectionParser::setMaxArrayPolicy(MaxArrayPolicy discard_policy, size_
 }
 
 
-bool IntrospectionParser::parseMessage(const std::string& topic_name,
+bool IntrospectionParser::parseMessage(const std::string &,
                                        PlotDataMapRef& plot_data,
                                        const rcutils_uint8_array_t *serialized_msg,
                                        double timestamp)
@@ -109,35 +109,57 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
   size_t str_index = type.find("/msg/", 0);
   if (str_index != std::string::npos)
   {
-    type.erase(str_index, 4);
+      type.erase(str_index, 4);
   }
 
-  // clang-format off
-  if( type == "sensor_msgs/JointState"){ parser.reset(new JointStateMsgParser); }
-  else if( type == "geometry_msgs/Quaternion"){ parser.reset( new QuaternionMsgParser ); }
-  else if( type == "sensor_msgs/Imu"){ parser.reset( new ImuMsgParser ); }
-  else if( type == "nav_msgs/Odometry"){ parser.reset( new OdometryMsgParser ); }
-  else if( type == "geometry_msgs/Pose"){ parser.reset( new PoseMsgParser ); }
-  else if( type == "geometry_msgs/PoseStamped"){ parser.reset( new PoseStampedMsgParser ); }
-  else if( type == "geometry_msgs/PoseWithCovariance"){ parser.reset( new PoseCovarianceMsgParser ); }
-  else if( type == "geometry_msgs/Twist"){ parser.reset( new TwistMsgParser ); }
-  else if( type == "geometry_msgs/TwistStamped"){ parser.reset( new TwistStampedMsgParser ); }
-  else if( type == "geometry_msgs/TwistWithCovariance"){ parser.reset( new TwistCovarianceMsgParser ); }
+  if( type == "sensor_msgs/JointState"){
+      parser.reset(new JointStateMsgParser(topic_name));
+  }
+  else if (type == "geometry_msgs/Quaternion") {
+      parser.reset(new QuaternionMsgParser(topic_name));
+  }
+  else if (type == "sensor_msgs/Imu") {
+      parser.reset(new ImuMsgParser(topic_name));
+  }
+  else if (type == "nav_msgs/Odometry") {
+      parser.reset(new OdometryMsgParser(topic_name));
+  }
+  else if (type == "geometry_msgs/Pose") {
+      parser.reset(new PoseMsgParser(topic_name));
+  }
+  else if (type == "geometry_msgs/PoseStamped") {
+      parser.reset(new PoseStampedMsgParser(topic_name));
+  }
+  else if (type == "geometry_msgs/PoseWithCovariance") {
+      parser.reset(new PoseCovarianceMsgParser(topic_name));
+  }
+  else if (type == "geometry_msgs/Twist") {
+      parser.reset(new TwistMsgParser(topic_name));
+  }
+  else if (type == "geometry_msgs/TwistStamped") {
+      parser.reset(new TwistStampedMsgParser(topic_name));
+  }
+  else if (type == "geometry_msgs/TwistWithCovariance") {
+      parser.reset(new TwistCovarianceMsgParser(topic_name));
+  }
 #ifdef FOUND_PJ_MSGS
-  else if( type == "pj_msgs/Dictionary"){ parser.reset(new PlotJugglerDictionaryParser); }
-  else if( type == "pj_msgs/DataPoints"){ parser.reset( new PlotJugglerDataPointsParser); }
+  else if (type == "pj_msgs/Dictionary") {
+      parser.reset(new PlotJugglerDictionaryParser(topic_name));
+  }
+  else if( type == "pj_msgs/DataPoints"){
+      parser.reset( new PlotJugglerDataPointsParser(topic_name));
+  }
 #endif
   else {
     parser.reset( new IntrospectionParser(topic_name, type) );
   }
-// clang-format on
 
   parser->setMaxArrayPolicy(_discard_policy, _max_array_size);
   parser->setUseHeaderStamp(_use_header_stamp);
   _parsers.insert( { topic_name, parser} );
 }
 
-bool CompositeParser::parseMessage(const std::string &topic_name,
+bool CompositeParser::parseMessage(const std::string& topic_name,
                                    PlotDataMapRef &plot_data,
                                    const rcutils_uint8_array_t *serialized_msg,
                                    double timestamp)
