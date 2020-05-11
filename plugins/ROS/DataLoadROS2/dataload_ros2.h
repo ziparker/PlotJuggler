@@ -39,7 +39,7 @@ class  DataLoadROS2: public DataLoader
 
     PlotDataMapRef _temp_plot_map;
 
-    Ros2Introspection::CompositeParser _parser;
+    CompositeParser _parser;
 
     std::vector<const char*> _extensions;
 

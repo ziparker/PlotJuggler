@@ -6,7 +6,6 @@
   #include "plotjuggler_msgs.h"
 #endif
 
-namespace Ros2Introspection {
 
 
 void MessageParserBase::setUseHeaderStamp(bool use)
@@ -25,9 +24,10 @@ PlotData &MessageParserBase::getSeries(PlotDataMapRef &plot_data, const std::str
 }
 
 //-------------------------------------
-void IntrospectionParser::setMaxArrayPolicy(MaxArrayPolicy discard_policy, size_t max_size)
+void IntrospectionParser::setMaxArrayPolicy(LargeArrayPolicy discard_policy, size_t max_size)
 {
-  _intropection_parser.setMaxArrayPolicy(discard_policy, max_size);
+  _intropection_parser.setMaxArrayPolicy(
+      static_cast<Ros2Introspection::MaxArrayPolicy>(discard_policy), max_size);
 }
 
 
@@ -62,7 +62,7 @@ bool IntrospectionParser::parseMessage(const rcutils_uint8_array_t *serialized_m
 //-----------------------------------------
 
 CompositeParser::CompositeParser(PlotDataMapRef &plot_data)
-    : _discard_policy(MaxArrayPolicy::DISCARD_LARGE_ARRAYS)
+    : _discard_policy(LargeArrayPolicy::DISCARD_LARGE_ARRAYS)
     , _max_array_size(999)
     , _use_header_stamp(false)
     , _plot_data(plot_data)
@@ -77,13 +77,13 @@ void CompositeParser::setUseHeaderStamp(bool use)
   }
 }
 
-void CompositeParser::setMaxArrayPolicy(MaxArrayPolicy discard_policy, size_t max_size)
+void CompositeParser::setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size)
 {
-  _discard_policy = discard_policy;
+  _discard_policy = policy;
   _max_array_size = max_size;
   for( auto it: _parsers )
   {
-    it.second->setMaxArrayPolicy(discard_policy, max_size);
+    it.second->setMaxArrayPolicy(policy, max_size);
   }
 }
 
@@ -153,7 +153,7 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
 }
 
 bool CompositeParser::parseMessage(const std::string &topic_name,
-                                   const rcutils_uint8_array_t *serialized_msg,
+                                   const SerializedMessage *serialized_msg,
                                    double timestamp)
 {
   auto it = _parsers.find(topic_name);
@@ -165,14 +165,13 @@ bool CompositeParser::parseMessage(const std::string &topic_name,
   return false;
 }
 
-const rosidl_message_type_support_t *CompositeParser::typeSupport(const std::string &topic_name) const
+const rosidl_message_type_support_t*
+CompositeParser::typeSupport(const std::string& topic_name) const
 {
   auto it = _parsers.find(topic_name);
-  if( it == _parsers.end() )
+  if (it == _parsers.end())
   {
     return nullptr;
   }
   return it->second->typeSupport();
-}
-
 }

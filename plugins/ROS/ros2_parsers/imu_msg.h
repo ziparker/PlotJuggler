@@ -6,7 +6,7 @@
 #include "covariance_util.h"
 #include "quaternion_msg.h"
 
-using Ros2Introspection::BuiltinMessageParser;
+
 
 class ImuMsgParser : public BuiltinMessageParser<sensor_msgs::msg::Imu>
 {
@@ -34,11 +34,11 @@ public:
                           double timestamp) override
     {
         if (_use_header_stamp) {
-            timestamp = static_cast<double>(msg.header.stamp.sec)
-                        + static_cast<double>(msg.header.stamp.nanosec) * 1e-9;
+            timestamp = double(msg.header.stamp.sec) +
+                        double(msg.header.stamp.nanosec) * 1e-9;
         }
-        _data[0]->pushBack({timestamp, msg.header.stamp.sec});
-        _data[1]->pushBack({timestamp, msg.header.stamp.sec});
+        _data[0]->pushBack({timestamp, double(msg.header.stamp.sec)});
+        _data[1]->pushBack({timestamp, double(msg.header.stamp.sec)});
 
         _data[2]->pushBack({timestamp, msg.angular_velocity.x});
         _data[3]->pushBack({timestamp, msg.angular_velocity.y});

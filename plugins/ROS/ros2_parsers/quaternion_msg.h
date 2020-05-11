@@ -3,7 +3,7 @@
 #include <geometry_msgs/msg/quaternion.hpp>
 #include "ros2_parser.h"
 
-using Ros2Introspection::BuiltinMessageParser;
+
 
 class QuaternionMsgParser: public BuiltinMessageParser<geometry_msgs::msg::Quaternion>
 {

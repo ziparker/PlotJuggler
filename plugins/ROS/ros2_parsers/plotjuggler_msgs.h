@@ -4,7 +4,7 @@
 #include "pj_msgs/msg/data_points.hpp"
 #include "ros2_parser.h"
 
-using Ros2Introspection::BuiltinMessageParser;
+
 
 static std::unordered_map<unsigned, std::vector<std::string>> _pj_msgs_dictionaries;
 

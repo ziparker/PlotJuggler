@@ -46,7 +46,7 @@ private:
     std::unique_ptr<rclcpp::executors::MultiThreadedExecutor> _executor;
     std::shared_ptr<rclcpp::Node> _node;
 
-    Ros2Introspection::CompositeParser _parser;
+    CompositeParser _parser;
 
     bool _running;
 

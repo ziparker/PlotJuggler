@@ -108,12 +108,10 @@ bool DataStreamROS2::start(QStringList* selected_datasources)
 
     saveDefaultSettings();
     if( _config.discard_large_arrays ){
-      _parser.setMaxArrayPolicy( Ros2Introspection::DISCARD_LARGE_ARRAYS,
-                                 _config.max_array_size );
+      _parser.setMaxArrayPolicy( DISCARD_LARGE_ARRAYS, _config.max_array_size );
     }
     else{
-      _parser.setMaxArrayPolicy( Ros2Introspection::KEEP_LARGE_ARRAYS,
-                                 _config.max_array_size );
+      _parser.setMaxArrayPolicy( KEEP_LARGE_ARRAYS, _config.max_array_size );
     }
     _parser.setUseHeaderStamp( _config.use_header_stamp );
 

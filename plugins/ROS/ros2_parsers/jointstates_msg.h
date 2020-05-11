@@ -3,7 +3,7 @@
 #include <sensor_msgs/msg/joint_state.hpp>
 #include "ros2_parser.h"
 
-using Ros2Introspection::BuiltinMessageParser;
+
 
 class JointStateMsgParser: public BuiltinMessageParser<sensor_msgs::msg::JointState>
 {
@@ -21,12 +21,12 @@ public:
     {
       if( _use_header_stamp )
       {
-        timestamp = static_cast<double>(msg.header.stamp.sec) +
-                    static_cast<double>(msg.header.stamp.nanosec)*1e-9;
+        timestamp = double(msg.header.stamp.sec) +
+                    double(msg.header.stamp.nanosec)*1e-9;
       }
 
-      _data[0]->pushBack( {timestamp, msg.header.stamp.sec} );
-      _data[1]->pushBack( {timestamp, msg.header.stamp.nanosec} );
+      _data[0]->pushBack( {timestamp, double(msg.header.stamp.sec)} );
+      _data[1]->pushBack( {timestamp, double(msg.header.stamp.nanosec)} );
 
       for(int i=0; i < msg.name.size(); i++)
       {

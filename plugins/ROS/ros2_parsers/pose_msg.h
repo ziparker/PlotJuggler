@@ -7,7 +7,7 @@
 #include "quaternion_msg.h"
 #include "ros2_parser.h"
 
-using Ros2Introspection::BuiltinMessageParser;
+
 
 class PoseMsgParser: public BuiltinMessageParser<geometry_msgs::msg::Pose>
 {
@@ -53,11 +53,11 @@ public:
     {
         if( _use_header_stamp )
         {
-            timestamp = static_cast<double>(msg.header.stamp.sec) +
-                        static_cast<double>(msg.header.stamp.nanosec)*1e-9;
+            timestamp = double(msg.header.stamp.sec) +
+                        double(msg.header.stamp.nanosec)*1e-9;
         }
-        _data[0]->pushBack( {timestamp, msg.header.stamp.sec} );
-        _data[1]->pushBack({timestamp, msg.header.stamp.nanosec});
+        _data[0]->pushBack( {timestamp, double(msg.header.stamp.sec)} );
+        _data[1]->pushBack({timestamp,  double(msg.header.stamp.nanosec)});
 
         _pose_parser.parseMessageImpl(msg.pose, timestamp);
     }
