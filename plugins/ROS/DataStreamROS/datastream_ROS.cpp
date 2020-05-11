@@ -51,9 +51,7 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
     const auto&  definition =  msg->getMessageDefinition() ;
 
     // register the message type
-    _ros_parser.registerSchema( topic_name, md5sum,
-                                RosIntrospection::ROSType(datatype),
-                                definition);
+    _parser.registerSchema(topic_name, datatype, definition);
 
     RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition );
 
@@ -67,14 +65,14 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
     ros::serialization::OStream stream(buffer.data(), buffer.size());
     msg->write(stream);
 
-    _ros_parser.setUseHeaderStamp( _config.use_header_stamp );
+    _parser.setUseHeaderStamp( _config.use_header_stamp );
 
     double msg_time = ros::Time::now().toSec();
     if( msg_time == 0)
     {
       // corner case: use_sim_time == true but topic /clock is not published
       msg_time = ros::WallTime::now().toSec();
-      _ros_parser.setUseHeaderStamp( false );
+      _parser.setUseHeaderStamp( false );
     }
 
     // time wrapping may happen using use_sim_time = true and
@@ -93,7 +91,7 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
     _prev_clock_time = msg_time;
 
     MessageRef buffer_view( buffer );
-    _ros_parser.pushMessageRef( topic_name, buffer_view, msg_time );
+    _parser.pushMessageRef( topic_name, buffer_view, msg_time );
 
     std::lock_guard<std::mutex> lock( mutex() );
     const std::string prefixed_topic_name = _prefix + topic_name;
@@ -110,7 +108,7 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
         user_defined_data.pushBack( PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer)) ));
     }
 
-    _ros_parser.extractData(dataMap(), _prefix);
+    _parser.extractData(dataMap(), _prefix);
 
     //------------------------------
     {
@@ -287,7 +285,7 @@ void DataStreamROS::subscribe()
 
 bool DataStreamROS::start(QStringList* selected_datasources)
 {
-    _ros_parser.clear();
+    _parser.clear();
     if( !_node )
     {
         _node =  RosManager::getNode();
@@ -348,10 +346,10 @@ bool DataStreamROS::start(QStringList* selected_datasources)
 
     if( _config.use_renaming_rules )
     {
-        _ros_parser.addRules( RuleEditing::getRenamingRules() );
+        _parser.addRules( RuleEditing::getRenamingRules() );
     }
 
-    _ros_parser.setMaxArrayPolicy( _config.max_array_size, _config.discard_large_arrays );
+    _parser.setMaxArrayPolicy( _config.max_array_size, _config.discard_large_arrays );
 
     //-------------------------
     subscribe();

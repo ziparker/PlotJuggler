@@ -37,7 +37,7 @@ if(COMPILING_WITH_CATKIN)
     list( APPEND COMMON_SRC
         qnodedialog.cpp
         rule_editing.cpp
-        ros1_parsers/ros_parser.cpp
+        ros1_parsers/ros1_parser.cpp
         )
 
     add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC} )
@@ -55,10 +55,10 @@ if(COMPILING_WITH_CATKIN)
         ${PLUGIN_BASE_DIR}/dataloader_base.h )
     target_link_libraries( DataLoadROS  commonROS)
     #############
-    add_library( DataStreamROS SHARED
-        DataStreamROS/datastream_ROS.cpp
-        ${PLUGIN_BASE_DIR}/datastreamer_base.h )
-    target_link_libraries( DataStreamROS  commonROS )
+#    add_library( DataStreamROS SHARED
+#        DataStreamROS/datastream_ROS.cpp
+#        ${PLUGIN_BASE_DIR}/datastreamer_base.h )
+#    target_link_libraries( DataStreamROS  commonROS )
     #############
     add_library( RosTopicPublisher SHARED
         TopicPublisherROS/statepublisher_rostopic.cpp
@@ -145,7 +145,7 @@ endif()
 if(COMPILING_WITH_CATKIN)
     install(TARGETS
         DataLoadROS
-        DataStreamROS
+#        DataStreamROS
         RosTopicPublisher
         RosoutPublisher
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

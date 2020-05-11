@@ -10,7 +10,7 @@
 #include <ros_type_introspection/ros_introspection.hpp>
 #include <rosgraph_msgs/Clock.h>
 #include "dialog_select_ros_topics.h"
-#include "ros1_parsers/ros_parser.h"
+#include "ros1_parsers/ros1_parser.h"
 
 class  DataStreamROS: public DataStreamer
 {
@@ -74,7 +74,7 @@ private:
 
     DialogSelectRosTopics::Configuration _config;
 
-    RosMessageParser _ros_parser;
+    CompositeParser _parser;
 
     QTimer* _periodic_timer;
 
