@@ -140,11 +140,11 @@ void CompositeParser::registerMessageType(const std::string& topic_name, const s
   {
     parser.reset(new TwistCovarianceMsgParser(topic_name, _plot_data));
   }
-  else if (type == "pj_msgs/Dictionary")
+  else if (type == "plotjuggler_msgs/Dictionary")
   {
     parser.reset(new PlotJugglerDictionaryParser(topic_name, _plot_data));
   }
-  else if (type == "pj_msgs/DataPoints")
+  else if (type == "plotjuggler_msgs/DataPoints")
   {
     parser.reset(new PlotJugglerDataPointsParser(topic_name, _plot_data));
   }

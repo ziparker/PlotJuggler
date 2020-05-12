@@ -1,16 +1,16 @@
 #pragma once
 
-#include "pj_msgs/msg/dictionary.hpp"
-#include "pj_msgs/msg/data_points.hpp"
+#include "plotjuggler_msgs/msg/dictionary.hpp"
+#include "plotjuggler_msgs/msg/data_points.hpp"
 #include "ros2_parser.h"
 
-static std::unordered_map<unsigned, std::vector<std::string>> _pj_msgs_dictionaries;
+static std::unordered_map<unsigned, std::vector<std::string>> _plotjuggler_msgs_dictionaries;
 
-class PlotJugglerDictionaryParser : public BuiltinMessageParser<pj_msgs::msg::Dictionary>
+class PlotJugglerDictionaryParser : public BuiltinMessageParser<plotjuggler_msgs::msg::Dictionary>
 {
 public:
   PlotJugglerDictionaryParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : BuiltinMessageParser<pj_msgs::msg::Dictionary>(topic_name, plot_data)
+    : BuiltinMessageParser<plotjuggler_msgs::msg::Dictionary>(topic_name, plot_data)
   {
   }
 
@@ -18,18 +18,18 @@ public:
   {
   }
 
-  void parseMessageImpl(const pj_msgs::msg::Dictionary& msg, double timestamp) override
+  void parseMessageImpl(const plotjuggler_msgs::msg::Dictionary& msg, double timestamp) override
   {
-    _pj_msgs_dictionaries[msg.dictionary_uuid] = msg.names;
+    _plotjuggler_msgs_dictionaries[msg.dictionary_uuid] = msg.names;
   }
 };
 
 //------------------------------------
-class PlotJugglerDataPointsParser : public BuiltinMessageParser<pj_msgs::msg::DataPoints>
+class PlotJugglerDataPointsParser : public BuiltinMessageParser<plotjuggler_msgs::msg::DataPoints>
 {
 public:
   PlotJugglerDataPointsParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : BuiltinMessageParser<pj_msgs::msg::DataPoints>(topic_name, plot_data)
+    : BuiltinMessageParser<plotjuggler_msgs::msg::DataPoints>(topic_name, plot_data)
   {
     _prefix = topic_name + "/";
   }
@@ -38,10 +38,10 @@ public:
   {
   }
 
-  void parseMessageImpl(const pj_msgs::msg::DataPoints& msg, double timestamp) override
+  void parseMessageImpl(const plotjuggler_msgs::msg::DataPoints& msg, double timestamp) override
   {
-    auto it = _pj_msgs_dictionaries.find(msg.dictionary_uuid);
-    if (it == _pj_msgs_dictionaries.end())
+    auto it = _plotjuggler_msgs_dictionaries.find(msg.dictionary_uuid);
+    if (it == _plotjuggler_msgs_dictionaries.end())
     {
       //        const auto& names = it->second;
       //        for( const auto& sample: msg.samples)

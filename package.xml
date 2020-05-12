@@ -33,7 +33,7 @@
     <depend>nav_msgs</depend>
     <depend>tf</depend>
     <depend>tf2_msgs</depend>
-    <depend>pj_msgs</depend>
+    <depend>plotjuggler_msgs</depend>
 
     <!-- common dependancies -->
     <depend>qtbase5-dev</depend>

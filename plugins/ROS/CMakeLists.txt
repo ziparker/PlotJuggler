@@ -87,7 +87,7 @@ elseif(COMPILING_WITH_AMENT)
     find_package(nav_msgs REQUIRED)
     find_package(fastcdr REQUIRED)
     find_package(Boost REQUIRED)
-    find_package(pj_msgs REQUIRED)
+    find_package(plotjuggler_msgs REQUIRED)
 
     include_directories(
         ./
@@ -109,7 +109,7 @@ elseif(COMPILING_WITH_AMENT)
         sensor_msgs
         geometry_msgs
         nav_msgs
-        pj_msgs
+        plotjuggler_msgs
         )
 
     add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC})

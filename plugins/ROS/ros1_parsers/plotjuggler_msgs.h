@@ -1,39 +1,39 @@
 #pragma once
 
-#include <pj_msgs/Dictionary.h>
-#include <pj_msgs/DataPoints.h>
+#include <plotjuggler_msgs/Dictionary.h>
+#include <plotjuggler_msgs/DataPoints.h>
 #include "ros1_parser.h"
 
-static std::unordered_map<unsigned, std::vector<std::string>> _pj_msgs_dictionaries;
+static std::unordered_map<unsigned, std::vector<std::string>> _plotjuggler_msgs_dictionaries;
 
-class PlotJugglerDictionaryParser : public BuiltinMessageParser<pj_msgs::Dictionary>
+class PlotJugglerDictionaryParser : public BuiltinMessageParser<plotjuggler_msgs::Dictionary>
 {
 public:
   PlotJugglerDictionaryParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : BuiltinMessageParser<pj_msgs::Dictionary>(topic_name, plot_data)
+    : BuiltinMessageParser<plotjuggler_msgs::Dictionary>(topic_name, plot_data)
   {
   }
 
-  void parseMessageImpl(const pj_msgs::Dictionary& msg, double timestamp) override
+  void parseMessageImpl(const plotjuggler_msgs::Dictionary& msg, double timestamp) override
   {
-    _pj_msgs_dictionaries[msg.dictionary_uuid] = msg.names;
+    _plotjuggler_msgs_dictionaries[msg.dictionary_uuid] = msg.names;
   }
 };
 
 //------------------------------------
-class PlotJugglerDataPointsParser : public BuiltinMessageParser<pj_msgs::DataPoints>
+class PlotJugglerDataPointsParser : public BuiltinMessageParser<plotjuggler_msgs::DataPoints>
 {
 public:
   PlotJugglerDataPointsParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : BuiltinMessageParser<pj_msgs::DataPoints>(topic_name, plot_data)
+    : BuiltinMessageParser<plotjuggler_msgs::DataPoints>(topic_name, plot_data)
   {
     _prefix = topic_name + "/";
   }
 
-  void parseMessageImpl(const pj_msgs::DataPoints& msg, double timestamp) override
+  void parseMessageImpl(const plotjuggler_msgs::DataPoints& msg, double timestamp) override
   {
-    auto it = _pj_msgs_dictionaries.find(msg.dictionary_uuid);
-    if (it == _pj_msgs_dictionaries.end())
+    auto it = _plotjuggler_msgs_dictionaries.find(msg.dictionary_uuid);
+    if (it == _plotjuggler_msgs_dictionaries.end())
     {
       const auto& names = it->second;
       for (const auto& sample : msg.samples)
