@@ -42,8 +42,8 @@ public:
         BuiltinMessageParser<geometry_msgs::PoseStamped>(topic_name, plot_data),
         _pose_parser(topic_name, plot_data)
     {
-      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/sec") );
-      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/nanosec") );
+      _data.emplace_back( &getSeries(plot_data, topic_name + "/header/seq") );
+      _data.emplace_back( &getSeries(plot_data, topic_name + "/header/stamp") );
     }
 
     void parseMessageImpl(const geometry_msgs::PoseStamped& msg,
@@ -51,11 +51,10 @@ public:
     {
         if( _use_header_stamp )
         {
-            timestamp = double(msg.header.stamp.sec) +
-                        double(msg.header.stamp.nsec)*1e-9;
+            timestamp = msg.header.stamp.toSec();
         }
-        _data[0]->pushBack( {timestamp, double(msg.header.stamp.sec)} );
-        _data[1]->pushBack({timestamp,  double(msg.header.stamp.nsec)});
+        _data[0]->pushBack( {timestamp, double(msg.header.seq)} );
+        _data[1]->pushBack({timestamp,  msg.header.stamp.toSec()});
 
         _pose_parser.parseMessageImpl(msg.pose, timestamp);
     }

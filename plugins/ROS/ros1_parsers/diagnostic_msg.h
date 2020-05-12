@@ -1,96 +1,59 @@
-#ifndef DIAGNOSTIC_MSG_H
-#define DIAGNOSTIC_MSG_H
+#pragma once
 
-#include "ros_parser_base.h"
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <boost/spirit/include/qi.hpp>
+#include "ros1_parser.h"
 
-class DiagnosticMsg: public RosParserBase
+class DiagnosticMsgParser: public BuiltinMessageParser<diagnostic_msgs::DiagnosticArray>
 {
 public:
 
-    DiagnosticMsg()
+    DiagnosticMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data):
+    BuiltinMessageParser<diagnostic_msgs::DiagnosticArray>(topic_name, plot_data)
     {
-        _header_data.emplace_back( "/header/seq" );
-        _header_data.emplace_back( "/header/stamp" );
+      _data.emplace_back( &getSeries(plot_data, "/header/seq") );
+      _data.emplace_back( &getSeries(plot_data, "/header/stamp") );
     }
 
-    static const std::string& getCompatibleKey()
+    virtual void parseMessageImpl(const  diagnostic_msgs::DiagnosticArray& msg,
+                                  double timestamp) override
     {
-        static std::string str = ros::message_traits::MD5Sum<diagnostic_msgs::DiagnosticArray>::value();
-        return str;
-    }
-
-    const std::unordered_set<std::string>& getCompatibleKeys() const override
-    {
-        static std::unordered_set<std::string> temp = { getCompatibleKey() };
-        return temp;
-    }
-
-    virtual void pushMessageRef(const std::string& ,
-                                const MessageRef& msg,
-                                double timestamp) override
-    {
-        diagnostic_msgs::DiagnosticArray status_array;
-        ros::serialization::IStream is( const_cast<uint8_t*>(msg.data()), msg.size() );
-        ros::serialization::deserialize(is, status_array);
-
         if( _use_header_stamp )
         {
-            timestamp = status_array.header.stamp.toSec();
+            timestamp = msg.header.stamp.toSec();
         }
 
-        _header_data[0].pushBack( {timestamp, (double)status_array.header.seq} );
-        _header_data[1].pushBack( {timestamp, status_array.header.stamp.toSec()} );
+        _data[0]->pushBack( {timestamp, (double)msg.header.seq} );
+        _data[1]->pushBack( {timestamp, msg.header.stamp.toSec()} );
 
-        for( const auto& status: status_array.status)
+        for( const auto& status: msg.status)
         {
             for( const auto& kv: status.values)
             {
                 const char *start_ptr = kv.value.data();
                 double val = 0;
 
-                bool parsed = boost::spirit::qi::parse(start_ptr, start_ptr + kv.value.size(), boost::spirit::qi::double_, val);
+                bool parsed = boost::spirit::qi::parse(start_ptr,
+                                                       start_ptr + kv.value.size(),
+                                                       boost::spirit::qi::double_,
+                                                       val);
                 if( !parsed ) continue;
 
-                std::string status_prefix;
+                std::string key;
                 if( status.hardware_id.empty()){
-                    status_prefix = fmt::format("/{}/{}", status.name, kv.key );
+                    key = fmt::format("{}/{}/{}",
+                                      _topic_name, status.name, kv.key );
                 }
                 else {
-                    status_prefix = fmt::format( "/{}/{}/{}",status.hardware_id, status.name, kv.key );
+                    key = fmt::format("{}/{}/{}/{}",
+                                      _topic_name, status.hardware_id, status.name, kv.key );
                 }
-                auto it = _data.find(status_prefix);
-                if( it == _data.end() )
-                {
-                    it = _data.emplace( std::piecewise_construct,
-                                        std::forward_as_tuple(status_prefix),
-                                        std::forward_as_tuple(status_prefix)
-                                        ).first;
-                }
-               it->second.pushBack( { timestamp, val } );
+                auto& series = getSeries(_plot_data, key);
+                series.pushBack( { timestamp, val } );
             }
         }
-
     }
-
-    void extractData(PlotDataMapRef& plot_map, const std::string& prefix) override
-    {
-        for (auto& it: _header_data)
-        {
-            appendData(plot_map, prefix + it.name(), it);
-        }
-        for (auto& it: _data)
-        {
-            appendData(plot_map, prefix + it.first, it.second);
-        }
-    }
-
-private:
-    std::vector<PlotData> _header_data;
-    std::unordered_map<std::string,PlotData> _data;
+  private:
+     std::vector<PlotData*> _data;
 };
 
-
-
-#endif // DIAGNOSTIC_MSG_H

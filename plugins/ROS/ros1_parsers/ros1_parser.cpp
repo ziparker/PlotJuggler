@@ -1,11 +1,13 @@
 #include "ros1_parser.h"
 #include "jointstates_msg.h"
 #include "imu_msg.h"
+#include "diagnostic_msg.h"
 #include "odometry_msg.h"
+#include "pal_statistics_msg.h"
+#include "tf_msg.h"
 #ifdef FOUND_PJ_MSGS
   #include "plotjuggler_msgs.h"
 #endif
-
 
 
 void MessageParserBase::setUseHeaderStamp(bool use)
@@ -100,17 +102,19 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
     return;
   }
 
-  std::string type = topic_type;
-
-  // replace verbose name
-  size_t str_index = type.find("/msg/", 0);
-  if (str_index != std::string::npos)
-  {
-      type.erase(str_index, 4);
-  }
+  const std::string& type = topic_type;
 
   if( type == "sensor_msgs/JointState"){
       parser.reset(new JointStateMsgParser(topic_name, _plot_data));
+  }
+  else if (type == "diagnostic_msgs/DiagnosticArray") {
+    parser.reset(new DiagnosticMsgParser(topic_name, _plot_data));
+  }
+  else if (type == "tf/tfMessage") {
+    parser.reset(new TfMsgParser(topic_name, _plot_data));
+  }
+  else if (type == "tf2_msgs/TFMessage") {
+    parser.reset(new Tf2MsgParser(topic_name, _plot_data));
   }
   else if (type == "geometry_msgs/Quaternion") {
       parser.reset(new QuaternionMsgParser(topic_name, _plot_data));
@@ -138,6 +142,12 @@ void CompositeParser::registerMessageType(const std::string &topic_name,
   }
   else if (type == "geometry_msgs/TwistWithCovariance") {
       parser.reset(new TwistCovarianceMsgParser(topic_name, _plot_data));
+  }
+  else if (type == "pal_statistics_msgs/StatisticsNames") {
+    parser.reset(new PalStatisticsNamesParser(topic_name, _plot_data));
+  }
+  else if (type == "pal_statistics_msgs/StatisticsValues") {
+    parser.reset(new PalStatisticsValuesParser(topic_name, _plot_data));
   }
 #ifdef FOUND_PJ_MSGS
   else if (type == "pj_msgs/Dictionary") {

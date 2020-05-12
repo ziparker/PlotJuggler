@@ -44,12 +44,13 @@ public:
       auto it = _pj_msgs_dictionaries.find( msg.dictionary_uuid );
       if( it == _pj_msgs_dictionaries.end() )
       {
-        const auto& names = it->second;
-        for( const auto& sample: msg.samples)
-        {
-          auto& series = getSeries(_plot_data, _prefix + std::to_string(sample.name_index));
-          series.pushBack( {sample.stamp, sample.value} );
-        }
+//        const auto& names = it->second;
+//        for( const auto& sample: msg.samples)
+//        {
+//          auto& series = getSeries(_plot_data, _prefix + std::to_string(sample.name_index));
+//          series.pushBack( {sample.stamp, sample.value} );
+//        }
+        // just skip... ?
       }
       else{
         const auto& names = it->second;

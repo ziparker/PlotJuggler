@@ -16,8 +16,8 @@ public:
         _lin_acc_covariance(topic_name + "/linear_acceleration_covariance", plot_data),
         _ang_vel_covariance(topic_name + "/angular_velocity_covariance", plot_data)
     {
-      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/sec"));
-      _data.push_back( &getSeries(plot_data, topic_name + "/header/stamp/nanosec"));
+      _data.emplace_back( &getSeries(plot_data, topic_name + "/header/seq") );
+      _data.emplace_back( &getSeries(plot_data, topic_name + "/header/stamp") );
 
       _data.push_back( &getSeries(plot_data, topic_name + "/angular_velocity/x"));
       _data.push_back( &getSeries(plot_data, topic_name + "/angular_velocity/y"));
@@ -32,11 +32,10 @@ public:
                           double timestamp) override
     {
         if (_use_header_stamp) {
-            timestamp = double(msg.header.stamp.sec) +
-                        double(msg.header.stamp.nsec) * 1e-9;
+            timestamp = msg.header.stamp.toSec();
         }
-        _data[0]->pushBack({timestamp, double(msg.header.stamp.sec)});
-        _data[1]->pushBack({timestamp, double(msg.header.stamp.sec)});
+        _data[0]->pushBack({timestamp, double(msg.header.seq)});
+        _data[1]->pushBack({timestamp, double(msg.header.stamp.toSec())});
 
         _data[2]->pushBack({timestamp, msg.angular_velocity.x});
         _data[3]->pushBack({timestamp, msg.angular_velocity.y});

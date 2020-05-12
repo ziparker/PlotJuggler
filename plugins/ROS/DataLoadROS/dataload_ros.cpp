@@ -20,12 +20,6 @@
 #include "rule_editing.h"
 #include "dialog_with_itemlist.h"
 
-#include "marl/defer.h"
-#include "marl/scheduler.h"
-#include "marl/thread.h"
-#include "marl/ticket.h"
-#include "marl/waitgroup.h"
-
 DataLoadROS::DataLoadROS()
 {
   _extensions.push_back("bag");
@@ -196,15 +190,7 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
 
   PlotDataAny& plot_consecutive = plot_map.addUserDefined("__consecutive_message_instances__")->second;
 
-  marl::Scheduler scheduler;
-  scheduler.setWorkerThreadCount(3);
-
-  marl::WaitGroup wg;
-
-  bool abort_marl = false;
-  std::exception_ptr thrown_error;
-
-  std::unordered_map<std::string, marl::Ticket::Queue> topic_tickets;
+  std::vector<uint8_t> buffer;
 
   for (const rosbag::MessageInstance& msg_instance : bag_view)
   {
@@ -239,43 +225,13 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
       continue;
     }
 
-    wg.add();
-    auto ticket = topic_tickets[topic_name].take();
+    const size_t msg_size = msg_instance.size();
+    buffer.resize(msg_size);
+    ros::serialization::OStream stream(buffer.data(), msg_size);
+    msg_instance.write(stream);
 
-    marl::schedule( [=, &abort_marl, &thrown_error, &ros_parser] {
-      try
-      {
-        ticket.wait();
-        std::vector<uint8_t> buffer;
-        const size_t msg_size = msg_instance.size();
-        buffer.resize(msg_size);
-        ros::serialization::OStream stream(buffer.data(), msg_size);
-        msg_instance.write(stream);
-        ros_parser.parseMessage(topic_name, buffer, msg_time);
-      }
-      catch (std::exception&)
-      {
-        abort_marl = true;
-        thrown_error = std::current_exception();
-      }
-      ticket.done();
-      wg.done();
-    });
-
-    //---------------
-    if (abort_marl)
-    {
-      std::rethrow_exception(thrown_error);
-    }
-
-    // periodically flush marl
-    if (msg_count++ % 1000 == 999)
-    {
-      wg.wait();
-    }
+    ros_parser.parseMessage(topic_name, buffer, msg_time);
   }
-
-  wg.wait();
 
   qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
 
