@@ -10,8 +10,6 @@
 #include "PlotJuggler/dataloader_base.h"
 #include "dialog_select_ros_topics.h"
 #include "ros1_parsers/ros1_parser.h"
-#include "marl/scheduler.h"
-#include "marl/ticket.h"
 
 class DataLoadROS : public DataLoader
 {
@@ -47,8 +45,6 @@ private:
   std::vector<const char*> _extensions;
 
   DialogSelectRosTopics::Configuration _config;
-
-  marl::Scheduler scheduler_;
 
   std::vector<std::pair<QString,QString>> getAllTopics(const rosbag::Bag* bag, CompositeParser& parser);
 

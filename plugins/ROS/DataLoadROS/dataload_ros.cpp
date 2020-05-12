@@ -24,13 +24,11 @@ DataLoadROS::DataLoadROS()
 {
   _extensions.push_back("bag");
   loadDefaultSettings();
-
-  scheduler_.bind();
 }
 
 DataLoadROS::~DataLoadROS()
 {
-  scheduler_.unbind();
+
 }
 
 void StrCat(const std::string& a, const std::string& b, std::string& out)

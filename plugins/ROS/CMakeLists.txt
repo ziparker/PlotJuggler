@@ -41,13 +41,13 @@ if(COMPILING_WITH_CATKIN)
         )
 
     add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC} )
+    target_compile_definitions(commonROS PUBLIC DISABLE_RULE_EDITING)
     target_link_libraries( commonROS PRIVATE
         ${Qt5Widgets_LIBRARIES}
         ${Qt5Xml_LIBRARIES}
         ${catkin_LIBRARIES}
         ros_type_introspection_static
-        fmt::fmt-header-only
-        marl )
+        fmt::fmt-header-only )
 
     #########
     add_library( DataLoadROS SHARED
