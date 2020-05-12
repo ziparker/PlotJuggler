@@ -28,7 +28,6 @@ DataLoadROS::DataLoadROS()
 
 DataLoadROS::~DataLoadROS()
 {
-
 }
 
 void StrCat(const std::string& a, const std::string& b, std::string& out)
@@ -156,14 +155,13 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
   saveDefaultSettings();
 
   ros_parser.setUseHeaderStamp(_config.use_header_stamp);
-  ros_parser.setMaxArrayPolicy(static_cast<LargeArrayPolicy>(_config.discard_large_arrays),
-                               _config.max_array_size);
+  ros_parser.setMaxArrayPolicy(static_cast<LargeArrayPolicy>(_config.discard_large_arrays), _config.max_array_size);
 
-// TODO?
-//  if (_config.use_renaming_rules)
-//  {
-//    parser.addRules(RuleEditing::getRenamingRules());
-//  }
+  // TODO?
+  //  if (_config.use_renaming_rules)
+  //  {
+  //    parser.addRules(RuleEditing::getRenamingRules());
+  //  }
 
   //-----------------------------------
   std::set<std::string> topic_selected;

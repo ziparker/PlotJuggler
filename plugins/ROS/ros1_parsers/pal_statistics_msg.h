@@ -37,7 +37,7 @@ namespace ros
 namespace serialization
 {
 template <>
-struct Serializer< ::PalStatisticsNames_>
+struct Serializer<::PalStatisticsNames_>
 {
   template <typename Stream, typename T>
   inline static void allInOne(Stream& stream, T m)
@@ -50,7 +50,7 @@ struct Serializer< ::PalStatisticsNames_>
 };
 
 template <>
-struct Serializer< ::PalStatisticsValues_>
+struct Serializer<::PalStatisticsValues_>
 {
   template <typename Stream, typename T>
   inline static void allInOne(Stream& stream, T m)
@@ -82,19 +82,19 @@ public:
     PalStatisticsNames_ pal_names;
     ros::serialization::IStream is(const_cast<uint8_t*>(msg.data()), msg.size());
     ros::serialization::deserialize(is, pal_names);
-    _stored_pal_statistics_names.insert({ pal_names.names_version,
-                                          std::move(pal_names.names) });
+    _stored_pal_statistics_names.insert({ pal_names.names_version, std::move(pal_names.names) });
     return true;
   }
 };
 
 //-----------------------------------------------------
-class PalStatisticsValuesParser: public MessageParserBase
+class PalStatisticsValuesParser : public MessageParserBase
 {
 public:
   PalStatisticsValuesParser(const std::string& topic_name, PlotDataMapRef& plot_data)
     : MessageParserBase(topic_name, plot_data)
-  {}
+  {
+  }
 
   virtual bool parseMessage(SerializedMessage msg, double timestamp) override
   {
@@ -104,21 +104,19 @@ public:
 
     auto& values = _data[pal_msg.names_version];
 
-    if (_use_header_stamp)
-    {
-      timestamp = pal_msg.header.stamp.toSec();
-    }
+    double header_stamp = pal_msg.header.stamp.toSec();
+    timestamp = (_use_header_stamp && header_stamp > 0) ? header_stamp : timestamp;
 
     auto names_it = _stored_pal_statistics_names.find(pal_msg.names_version);
-    if( names_it == _stored_pal_statistics_names.end())
+    if (names_it == _stored_pal_statistics_names.end())
     {
-      return false; //missing vocabulary
+      return false;  // missing vocabulary
     }
     const auto& names = names_it->second;
 
-    if( pal_msg.values.size() != names.size() )
+    if (pal_msg.values.size() != names.size())
     {
-      return false; // weird... skip
+      return false;  // weird... skip
     }
 
     for (size_t index = 0; index < pal_msg.values.size(); index++)
@@ -126,7 +124,7 @@ public:
       const auto& name = names[index];
       if (index >= values.size())
       {
-        values.emplace_back( &getSeries(_plot_data, _topic_name + name ) );
+        values.emplace_back(&getSeries(_plot_data, _topic_name + name));
       }
       values[index]->pushBack({ timestamp, pal_msg.values[index] });
     }

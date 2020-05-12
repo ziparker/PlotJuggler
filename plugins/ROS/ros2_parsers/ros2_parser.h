@@ -11,7 +11,8 @@
 
 //----------------------------------
 
-enum LargeArrayPolicy: bool {
+enum LargeArrayPolicy : bool
+{
   DISCARD_LARGE_ARRAYS = true,
   KEEP_LARGE_ARRAYS = false
 };
@@ -30,10 +31,11 @@ public:
 
   virtual void setUseHeaderStamp(bool use);
 
-  virtual void setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size) {}
+  virtual void setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size)
+  {
+  }
 
-  virtual bool parseMessage(const SerializedMessage* serialized_msg,
-                            double timestamp) = 0;
+  virtual bool parseMessage(const SerializedMessage* serialized_msg, double timestamp) = 0;
 
   static PlotData& getSeries(PlotDataMapRef& plot_data, const std::string key);
 
@@ -49,18 +51,16 @@ template <typename T>
 class BuiltinMessageParser : public MessageParserBase
 {
 public:
-
-  BuiltinMessageParser(const std::string& topic_name, PlotDataMapRef& plot_data):
-        MessageParserBase(topic_name, plot_data)
+  BuiltinMessageParser(const std::string& topic_name, PlotDataMapRef& plot_data)
+    : MessageParserBase(topic_name, plot_data)
   {
     _type_support = rosidl_typesupport_cpp::get_message_type_support_handle<T>();
   }
 
-  virtual bool parseMessage(const SerializedMessage* serialized_msg,
-                            double timestamp) override
+  virtual bool parseMessage(const SerializedMessage* serialized_msg, double timestamp) override
   {
     T msg;
-    if ( RMW_RET_OK !=  rmw_deserialize(serialized_msg, _type_support, &msg))
+    if (RMW_RET_OK != rmw_deserialize(serialized_msg, _type_support, &msg))
     {
       throw std::runtime_error("failed to deserialize message");
     }
@@ -79,19 +79,17 @@ protected:
   const rosidl_message_type_support_t* _type_support;
 };
 
-
-class IntrospectionParser: public MessageParserBase
+class IntrospectionParser : public MessageParserBase
 {
 public:
-  IntrospectionParser(const std::string& topic_name, const std::string& topic_type, PlotDataMapRef& plot_data):
-    MessageParserBase(topic_name, plot_data),
-    _intropection_parser(topic_name, topic_type)
-  {}
+  IntrospectionParser(const std::string& topic_name, const std::string& topic_type, PlotDataMapRef& plot_data)
+    : MessageParserBase(topic_name, plot_data), _intropection_parser(topic_name, topic_type)
+  {
+  }
 
   void setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size) override;
 
-  virtual bool parseMessage(const SerializedMessage *serialized_msg,
-                            double timestamp) override;
+  virtual bool parseMessage(const SerializedMessage* serialized_msg, double timestamp) override;
 
   const rosidl_message_type_support_t* typeSupport() const override
   {
@@ -113,12 +111,9 @@ public:
 
   virtual void setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size);
 
-  void registerMessageType(const std::string& topic_name,
-                           const std::string& topic_type);
+  void registerMessageType(const std::string& topic_name, const std::string& topic_type);
 
-  bool parseMessage(const std::string& topic_name,
-                    const SerializedMessage* serialized_msg,
-                    double timestamp);
+  bool parseMessage(const std::string& topic_name, const SerializedMessage* serialized_msg, double timestamp);
 
   const rosidl_message_type_support_t* typeSupport(const std::string& topic_name) const;
 
@@ -133,6 +128,3 @@ private:
 
   PlotDataMapRef& _plot_data;
 };
-
-
-
