@@ -52,8 +52,6 @@ private:
 
   std::vector<std::pair<QString,QString>> getAllTopics(const rosbag::Bag* bag, CompositeParser& parser);
 
-  PlotDataMapRef _temp_plot_map;
-
   void saveDefaultSettings();
 
   void loadDefaultSettings();

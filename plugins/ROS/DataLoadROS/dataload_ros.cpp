@@ -128,7 +128,7 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     return false;
   }
 
-  CompositeParser ros_parser(_temp_plot_map);
+  CompositeParser ros_parser(plot_map);
   auto all_topics = getAllTopics(temp_bag.get(), ros_parser);
 
   //----------------------------------
@@ -189,8 +189,6 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
   progress_dialog.setRange(0, bag_view.size() - 1);
   progress_dialog.show();
 
-  std::vector<uint8_t> buffer;
-
   int msg_count = 0;
 
   QElapsedTimer timer;
@@ -240,21 +238,20 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     {
       continue;
     }
-    const size_t msg_size = msg_instance.size();
-    buffer.resize(msg_size);
-    ros::serialization::OStream stream(buffer.data(), buffer.size());
-    msg_instance.write(stream);
 
     wg.add();
     auto ticket = topic_tickets[topic_name].take();
-
-    SerializedMessage msg(buffer.data(), buffer.size());
 
     marl::schedule( [=, &abort_marl, &thrown_error, &ros_parser] {
       try
       {
         ticket.wait();
-        ros_parser.parseMessage(topic_name, msg, msg_time);
+        std::vector<uint8_t> buffer;
+        const size_t msg_size = msg_instance.size();
+        buffer.resize(msg_size);
+        ros::serialization::OStream stream(buffer.data(), msg_size);
+        msg_instance.write(stream);
+        ros_parser.parseMessage(topic_name, buffer, msg_time);
       }
       catch (std::exception&)
       {
@@ -279,8 +276,6 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
   }
 
   wg.wait();
-
-  MoveData(_temp_plot_map, plot_map);
 
   qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";
 

@@ -52,11 +52,9 @@ public:
                             double timestamp) override
   {
     T msg;
-//    if ( RMW_RET_OK !=  rmw_deserialize(serialized_msg, _type_support, &msg))
-//    {
-//      throw std::runtime_error("failed to deserialize message");
-//    }
-//    parseMessageImpl(msg, timestamp);
+    ros::serialization::IStream is( const_cast<uint8_t*>(serialized_msg.data()), serialized_msg.size() );
+    ros::serialization::deserialize(is, msg);
+    parseMessageImpl(msg, timestamp);
     return true;
   }
 
@@ -76,7 +74,8 @@ public:
     MessageParserBase(topic_name, plot_data),
     _max_size(999)
   {
-    // _intropection_parser.register
+    auto type = RosIntrospection::ROSType(topic_type);
+    _intropection_parser.registerMessageDefinition(topic_name, type, definition);
   }
 
   void setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size) override;

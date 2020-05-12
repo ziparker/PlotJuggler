@@ -35,28 +35,30 @@ void IntrospectionParser::setMaxArrayPolicy(LargeArrayPolicy discard_policy, siz
 bool IntrospectionParser::parseMessage(SerializedMessage serialized_msg,
                                        double timestamp)
 {
-  /*_intropection_parser.deserializeIntoFlatMessage(serialized_msg, &_flat_msg);
+  _intropection_parser.deserializeIntoFlatContainer(
+      _topic_name, serialized_msg, &_flat_msg, _max_size );
 
-  if(_use_header_stamp && _intropection_parser.topicInfo().has_header_stamp)
-  {
-    double sec  = _flat_msg.values[0].second;
-    double nsec = _flat_msg.values[1].second;
-    timestamp = sec + (nsec*1e-9);
-  }
+//  if(_use_header_stamp && _intropection_parser.topicInfo().has_header_stamp)
+//  {
+//    double sec  = _flat_msg.values[0].second;
+//    double nsec = _flat_msg.values[1].second;
+//    timestamp = sec + (nsec*1e-9);
+//  }
 
-  ConvertFlatMessageToRenamedValues(_flat_msg, _renamed);
+  _intropection_parser.applyNameTransform(
+      _topic_name, _flat_msg, &_renamed);
 
   for(const auto& it: _renamed)
   {
       const auto& key = it.first;
-      double value = it.second;
+      double value = it.second.convert<double>();
 
       auto& series = getSeries(_plot_data, key );
 
       if( !std::isnan(value) && !std::isinf(value) ){
         series.pushBack( {timestamp, value} );
       }
-  }*/
+  }
   return true;
 }
 
