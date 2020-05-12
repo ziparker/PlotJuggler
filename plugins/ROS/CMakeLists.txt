@@ -87,7 +87,7 @@ elseif(COMPILING_WITH_AMENT)
     find_package(nav_msgs REQUIRED)
     find_package(fastcdr REQUIRED)
     find_package(Boost REQUIRED)
-    find_package(pj_msgs QUIET)
+    find_package(pj_msgs REQUIRED)
 
     include_directories(
         ./
@@ -109,14 +109,10 @@ elseif(COMPILING_WITH_AMENT)
         sensor_msgs
         geometry_msgs
         nav_msgs
+        pj_msgs
         )
 
     add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC})
-
-    if( pj_msgs_FOUND )
-        list(APPEND AMENT_DEPENDECIES pj_msgs)
-        target_compile_definitions(commonROS PUBLIC FOUND_PJ_MSGS)
-    endif()
 
     target_compile_definitions(commonROS PUBLIC DISABLE_RULE_EDITING)
     target_link_libraries( commonROS

@@ -2,9 +2,8 @@
 #include "jointstates_msg.h"
 #include "imu_msg.h"
 #include "odometry_msg.h"
-#ifdef FOUND_PJ_MSGS
 #include "plotjuggler_msgs.h"
-#endif
+
 
 void MessageParserBase::setUseHeaderStamp(bool use)
 {
@@ -141,7 +140,6 @@ void CompositeParser::registerMessageType(const std::string& topic_name, const s
   {
     parser.reset(new TwistCovarianceMsgParser(topic_name, _plot_data));
   }
-#ifdef FOUND_PJ_MSGS
   else if (type == "pj_msgs/Dictionary")
   {
     parser.reset(new PlotJugglerDictionaryParser(topic_name, _plot_data));
@@ -150,7 +148,6 @@ void CompositeParser::registerMessageType(const std::string& topic_name, const s
   {
     parser.reset(new PlotJugglerDataPointsParser(topic_name, _plot_data));
   }
-#endif
   else
   {
     parser.reset(new IntrospectionParser(topic_name, type, _plot_data));

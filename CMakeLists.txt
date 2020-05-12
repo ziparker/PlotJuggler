@@ -16,7 +16,8 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
         tf
         diagnostic_msgs
         nav_msgs
-        sensor_msgs )
+        sensor_msgs
+        pj_msgs )
 
     find_package(catkin REQUIRED COMPONENTS ${ROS_DEPENDENCIES} )
 
