@@ -46,9 +46,9 @@ Watch this video to learn how to use it.
 
 ## "Download and Run" (Ubuntu 16.04 Xenial or later)
 
-For those of you that can't wait and want to get their hands dirty, just download this AppImage:
+For those of you that can't wait and want to get their hands dirty, just download the AppImage:
 
-[PlotJuggler-2.6.x-x86_64.AppImage](https://github.com/facontidavide/PlotJuggler/releases/download/2.6.3/PlotJuggler-2.6.3-x86_64.AppImage).
+ROS1 only: [PlotJuggler-2.7.x-x86_64.AppImage](https://github.com/facontidavide/PlotJuggler/releases/download/2.7.0/PlotJuggler-2.7.0-x86_64.AppImage).
    
 Do not forget to make it executable with the command 
 
