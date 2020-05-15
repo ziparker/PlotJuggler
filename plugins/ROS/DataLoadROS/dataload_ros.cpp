@@ -144,6 +144,7 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     _config = dialog->getResult();
   }
 
+  //--- Swith the previous bag with this one
   // clean up previous MessageInstances
   plot_map.user_defined.clear();
   if (_bag)
@@ -151,6 +152,7 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     _bag->close();
   }
   _bag = temp_bag;
+  //---------------------------------------
 
   saveDefaultSettings();
 
@@ -193,6 +195,7 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     const std::string& topic_name = msg_instance.getTopic();
     double msg_time = msg_instance.getTime().toSec();
 
+    //------ progress dialog --------------
     if (msg_count++ % 100 == 0)
     {
       progress_dialog.setValue(msg_count);
@@ -204,6 +207,7 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
       }
     }
 
+    //------ save msg reference in PlotAny ----
     auto data_point = PlotDataAny::Point(msg_time, nonstd::any(msg_instance));
     plot_consecutive.pushBack(data_point);
 
@@ -215,12 +219,13 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     PlotDataAny& plot_raw = plot_pair->second;
     plot_raw.pushBack(data_point);
 
-    //------------------------------------------
+    //----- skip not selected -----------
     if (topic_selected.find(topic_name) == topic_selected.end())
     {
       continue;
     }
 
+    //----- parse! -----------
     const size_t msg_size = msg_instance.size();
     buffer.resize(msg_size);
     ros::serialization::OStream stream(buffer.data(), msg_size);

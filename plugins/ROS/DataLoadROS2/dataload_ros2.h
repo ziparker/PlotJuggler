@@ -37,7 +37,7 @@ public:
   virtual bool xmlLoadState(const QDomElement& parent_element) override;
 
 private:
-  std::shared_ptr<rosbag2::readers::SequentialReader> _bagReader;
+  std::shared_ptr<rosbag2::readers::SequentialReader> _bag_reader;
 
   PlotDataMapRef _temp_plot_map;
 
