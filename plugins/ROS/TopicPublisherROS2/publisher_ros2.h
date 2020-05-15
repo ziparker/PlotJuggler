@@ -6,10 +6,17 @@
 #include <map>
 
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/publisher.hpp>
 #include <rosbag2_storage/serialized_bag_message.hpp>
-#include "PlotJuggler/statepublisher_base.h"
 
-using SerializedMessage = rosbag2_storage::SerializedBagMessage;
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+
+#include "PlotJuggler/statepublisher_base.h"
+#include "generic_publisher.h"
+
+using SerializedMessagePtr = std::shared_ptr<rosbag2_storage::SerializedBagMessage>;
+
 
 class TopicPublisherROS2 : public StatePublisher
 {
@@ -52,11 +59,11 @@ private:
   bool _enabled;
 
   bool _publish_clock;
- // std::unique_ptr<tf::TransformBroadcaster> _tf_publisher;
 
-  std::unordered_map<std::string, ros::Publisher> _publishers;
-  ros::Publisher _tf_static_pub;
-  ros::Publisher _clock_publisher;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> _tf_broadcaster;
+  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> _tf_static_broadcaster;
+
+  std::unordered_map<std::string, GenericPublisher> _publishers;
 
   QAction* _enable_self_action;
   QAction* _select_topics_to_publish;
@@ -71,7 +78,7 @@ private:
 
   void broadcastTF(double current_time);
 
-  void publishAnyMsg(const std::shared_ptr<SerializedMessage> &msg);
+  void publishAnyMsg(const SerializedMessagePtr &msg);
 };
 
 #endif  // STATE_PUBLISHER_ROS2TOPIC_H

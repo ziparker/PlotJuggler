@@ -76,10 +76,12 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
 
   std::unordered_map<std::string, std::string> topicTypesByName;
 
-  std::vector<std::pair<QString, QString>> all_topics;
+  std::vector<std::pair<QString, QString>> all_topics_qt;
+
   for (const rosbag2::TopicMetadata& topic : topic_metadata)
   {
-    all_topics.push_back(std::make_pair(QString::fromStdString(topic.name), QString::fromStdString(topic.type)));
+    all_topics_qt.push_back( {QString::fromStdString(topic.name),
+                              QString::fromStdString(topic.type)} );
     topicTypesByName.emplace(topic.name, topic.type);
   }
 
@@ -94,7 +96,7 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
   }
   else
   {
-    DialogSelectRosTopics* dialog = new DialogSelectRosTopics(all_topics, _config);
+    DialogSelectRosTopics* dialog = new DialogSelectRosTopics(all_topics_qt, _config);
 
     if (dialog->exec() != static_cast<int>(QDialog::Accepted))
     {
@@ -144,7 +146,10 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
   progress_dialog.show();
   int msg_count = 0;
 
-  PlotDataAny& plot_consecutive = plot_map.addUserDefined("__consecutive_message_instances__")->second;
+  PlotDataAny& plot_consecutive = plot_map.addUserDefined("rosbag2::plotjuggler::consecutive_messages")->second;
+  PlotDataAny& metadata_storage = plot_map.addUserDefined("rosbag2::plotjuggler::topics_metadata")->second;
+  // dirty trick
+  metadata_storage.pushBack( {0, nonstd::any(topic_metadata) } );
 
   auto time_prev = std::chrono::high_resolution_clock::now();
 
