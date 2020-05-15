@@ -55,10 +55,10 @@ if(COMPILING_WITH_CATKIN)
         ${PLUGIN_BASE_DIR}/dataloader_base.h )
     target_link_libraries( DataLoadROS  commonROS)
     #############
-#    add_library( DataStreamROS SHARED
-#        DataStreamROS/datastream_ROS.cpp
-#        ${PLUGIN_BASE_DIR}/datastreamer_base.h )
-#    target_link_libraries( DataStreamROS  commonROS )
+    add_library( DataStreamROS SHARED
+        DataStreamROS/datastream_ROS.cpp
+        ${PLUGIN_BASE_DIR}/datastreamer_base.h )
+    target_link_libraries( DataStreamROS  commonROS )
     #############
     add_library( RosTopicPublisher SHARED
         TopicPublisherROS/statepublisher_rostopic.cpp
@@ -134,6 +134,12 @@ elseif(COMPILING_WITH_AMENT)
         ${PLUGIN_BASE_DIR}/datastreamer_base.h )
     target_link_libraries( DataStreamROS2  commonROS fastcdr)
     ament_target_dependencies( DataStreamROS2 ${AMENT_DEPENDECIES})
+    #############
+    add_library( TopicPublisherROS2 SHARED
+        TopicPublisherROS2/publisher_ros2.cpp
+        ${PLUGIN_BASE_DIR}/statepublisher_base.h)
+    target_link_libraries( TopicPublisherROS2 commonROS fastcdr)
+    ament_target_dependencies( TopicPublisherROS2 ${AMENT_DEPENDECIES})
 endif()
 
 #######################################################################
@@ -141,7 +147,7 @@ endif()
 if(COMPILING_WITH_CATKIN)
     install(TARGETS
         DataLoadROS
-#        DataStreamROS
+        DataStreamROS
         RosTopicPublisher
         RosoutPublisher
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -150,5 +156,6 @@ elseif(COMPILING_WITH_AMENT)
     install(TARGETS
         DataLoadROS2
         DataStreamROS2
+        TopicPublisherROS2
         DESTINATION bin  )
 endif()
