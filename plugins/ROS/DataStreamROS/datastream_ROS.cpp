@@ -24,7 +24,8 @@
 #include "qnodedialog.h"
 #include "shape_shifter_factory.hpp"
 
-DataStreamROS::DataStreamROS() : DataStreamer(), _node(nullptr), _action_saveIntoRosbag(nullptr), _prev_clock_time(0)
+DataStreamROS::DataStreamROS() : DataStreamer(), _node(nullptr),
+   _parser(dataMap()), _action_saveIntoRosbag(nullptr), _prev_clock_time(0)
 {
   _running = false;
   _periodic_timer = new QTimer();
@@ -46,7 +47,7 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
   const auto& definition = msg->getMessageDefinition();
 
   // register the message type
-  _parser.registerSchema(topic_name, datatype, definition);
+  _parser.registerMessageType(topic_name, datatype, definition);
 
   RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition);
 
@@ -87,8 +88,8 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
   }
   _prev_clock_time = msg_time;
 
-  MessageRef buffer_view(buffer);
-  _parser.pushMessageRef(topic_name, buffer_view, msg_time);
+  SerializedMessage buffer_view(buffer);
+  _parser.parseMessage(topic_name, buffer_view, msg_time);
 
   std::lock_guard<std::mutex> lock(mutex());
   const std::string prefixed_topic_name = _prefix + topic_name;
@@ -104,8 +105,6 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
     PlotDataAny& user_defined_data = plot_pair->second;
     user_defined_data.pushBack(PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer))));
   }
-
-  _parser.extractData(dataMap(), _prefix);
 
   //------------------------------
   {
@@ -277,7 +276,6 @@ void DataStreamROS::subscribe()
 
 bool DataStreamROS::start(QStringList* selected_datasources)
 {
-  _parser.clear();
   if (!_node)
   {
     _node = RosManager::getNode();
@@ -333,12 +331,19 @@ bool DataStreamROS::start(QStringList* selected_datasources)
 
   saveDefaultSettings();
 
-  if (_config.use_renaming_rules)
-  {
-    _parser.addRules(RuleEditing::getRenamingRules());
-  }
+//  if (_config.use_renaming_rules)
+//  {
+//    _parser.addRules(RuleEditing::getRenamingRules());
+//  }
 
-  _parser.setMaxArrayPolicy(_config.max_array_size, _config.discard_large_arrays);
+  if (_config.discard_large_arrays)
+  {
+    _parser.setMaxArrayPolicy(DISCARD_LARGE_ARRAYS, _config.max_array_size);
+  }
+  else
+  {
+    _parser.setMaxArrayPolicy(KEEP_LARGE_ARRAYS, _config.max_array_size);
+  }
 
   //-------------------------
   subscribe();

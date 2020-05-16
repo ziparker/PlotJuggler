@@ -114,9 +114,6 @@ void TopicPublisherROS::filterDialog(bool autoconfirm)
     connect(dialog->ui()->pushButtonDeselect, &QPushButton::pressed, [cb]() { cb->setChecked(false); });
   }
 
-  connect(buttons, SIGNAL(accepted()), dialog, SLOT(accept()));
-  connect(buttons, SIGNAL(rejected()), dialog, SLOT(reject()));
-
   if (!autoconfirm)
   {
     auto result = dialog->exec();
