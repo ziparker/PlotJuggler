@@ -15,12 +15,13 @@
 #include <unordered_map>
 #include <QMessageBox>
 #include <tf2_ros/qos.hpp>
+#include <rosbag2/types.hpp>
+#include <rmw/rmw.h>
+#include <rmw/types.h>
+#include "publisher_select_dialog.h"
 
-TopicPublisherROS2::TopicPublisherROS2() : _enabled(false), _node(nullptr), _publish_clock(true)
+TopicPublisherROS2::TopicPublisherROS2() :  _node(nullptr), _enabled(false)
 {
-  QSettings settings;
-  _publish_clock = settings.value("TopicPublisherROS2/publish_clock", true).toBool();
-
   _context = std::make_shared<rclcpp::Context>();
   _context->init(0, nullptr);
 
@@ -45,6 +46,41 @@ void TopicPublisherROS2::setParentMenu(QMenu* menu, QAction* action)
   connect(_select_topics_to_publish, &QAction::triggered, this, &TopicPublisherROS2::filterDialog);
 }
 
+void TopicPublisherROS2::updatePublishers()
+{
+  if( !_node )
+  {
+    return;
+  }
+  for (const auto& info : _topics_info)
+  {
+    auto to_publish = _topics_to_publish.find(info.name);
+    if( to_publish == _topics_to_publish.end() || to_publish->second == false  )
+    {
+      continue; // no publish
+    }
+
+    auto publisher_it = _publishers.find(info.name);
+    if (publisher_it == _publishers.end())
+    {
+      _publishers.insert({ info.name, GenericPublisher::create(*_node, info.name, info.type) });
+    }
+  }
+
+  // remove already created publishers if not needed anymore
+  for (auto it = _publishers.begin(); it != _publishers.end(); /* no increment */)
+  {
+    auto to_publish = _topics_to_publish.find(it->first);
+    if( to_publish == _topics_to_publish.end() || to_publish->second == false  )
+    {
+      it = _publishers.erase(it);
+    }
+    else{
+      it++;
+    }
+  }
+}
+
 void TopicPublisherROS2::setEnabled(bool to_enable)
 {
   if (!_node && to_enable)
@@ -58,17 +94,30 @@ void TopicPublisherROS2::setEnabled(bool to_enable)
 
   if (_enabled)
   {
-    filterDialog(true);
+    auto metadata_it = _datamap->user_defined.find("rosbag2::plotjuggler::topics_metadata");
+    if (metadata_it == _datamap->user_defined.end())
+    {
+      return;
+    }
+    // I stored it in a one point timeseries... shoot me
+    const auto any_metadata = metadata_it->second[0].y;
+    _topics_info = nonstd::any_cast<std::vector<TopicInfo>>(any_metadata);
+
+    // select all the topics by default
+    for(const auto& info: _topics_info)
+    {
+      _topics_to_publish.insert( {info.name, true} );
+    }
+
+    updatePublishers();
 
     if (!_tf_broadcaster)
     {
-      _tf_broadcaster =
-          std::make_unique<tf2_ros::TransformBroadcaster>(*_node);
+      _tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*_node);
     }
     if (!_tf_static_broadcaster)
     {
-      _tf_static_broadcaster =
-          std::make_unique<tf2_ros::StaticTransformBroadcaster>(*_node);
+      _tf_static_broadcaster = std::make_unique<tf2_ros::StaticTransformBroadcaster>(*_node);
     }
 
     _previous_play_index = std::numeric_limits<int>::max();
@@ -84,34 +133,28 @@ void TopicPublisherROS2::setEnabled(bool to_enable)
   StatePublisher::setEnabled(_enabled);
 }
 
-void TopicPublisherROS2::filterDialog(bool autoconfirm)
+void TopicPublisherROS2::filterDialog()
 {
-  std::vector<std::string> all_topics; // TODO  = RosIntrospectionFactory::get().getTopicList();
-
-  if (all_topics.empty()){
-    return;
+  auto metadata_it = _datamap->user_defined.find("rosbag2::plotjuggler::topics_metadata");
+  if (metadata_it != _datamap->user_defined.end())
+  {
+    // I stored it in a one point timeseries... shoot me
+    const auto any_metadata = metadata_it->second[0].y;
+    _topics_info = nonstd::any_cast<std::vector<TopicInfo>>(any_metadata);
   }
 
-  QDialog* dialog = new QDialog();
-  dialog->setWindowTitle("Select topics to be published");
-  dialog->setMinimumWidth(350);
-  QVBoxLayout* vertical_layout = new QVBoxLayout();
-  QFormLayout* grid_layout = new QFormLayout();
+  PublisherSelectDialog *dialog =  new PublisherSelectDialog();
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  dialog->ui()->radioButtonClock->setHidden(true);
+  dialog->ui()->radioButtonHeaderStamp->setHidden(true);
 
   std::map<std::string, QCheckBox*> checkbox;
 
-  QFrame* frame = new QFrame;
-
-  QPushButton* select_button = new QPushButton("Select all");
-  QPushButton* deselect_button = new QPushButton("Deselect all");
-
-  select_button->setFocusPolicy(Qt::NoFocus);
-  deselect_button->setFocusPolicy(Qt::NoFocus);
-
-  for (const auto& topic : all_topics)
+  for (const TopicInfo& info : _topics_info)
   {
+    const std::string topic_name = info.name;
     auto cb = new QCheckBox(dialog);
-    auto filter_it = _topics_to_publish.find(topic);
+    auto filter_it = _topics_to_publish.find(topic_name);
     if (filter_it == _topics_to_publish.end())
     {
       cb->setChecked(true);
@@ -121,40 +164,15 @@ void TopicPublisherROS2::filterDialog(bool autoconfirm)
       cb->setChecked(filter_it->second);
     }
     cb->setFocusPolicy(Qt::NoFocus);
-    grid_layout->addRow(new QLabel(QString::fromStdString(topic)), cb);
-    checkbox.insert(std::make_pair(topic, cb));
-    connect(select_button, &QPushButton::pressed, [cb]() { cb->setChecked(true); });
-    connect(deselect_button, &QPushButton::pressed, [cb]() { cb->setChecked(false); });
+    dialog->ui()->formLayout->addRow(new QLabel(QString::fromStdString(topic_name)), cb);
+    checkbox.insert(std::make_pair(topic_name, cb));
+    connect(dialog->ui()->pushButtonSelect, &QPushButton::pressed, [cb]() { cb->setChecked(true); });
+    connect(dialog->ui()->pushButtonDeselect, &QPushButton::pressed, [cb]() { cb->setChecked(false); });
   }
 
-  frame->setLayout(grid_layout);
+  dialog->exec();
 
-  QScrollArea* scrollArea = new QScrollArea;
-  scrollArea->setWidget(frame);
-
-  QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-
-  QHBoxLayout* select_buttons_layout = new QHBoxLayout;
-  select_buttons_layout->addWidget(select_button);
-  select_buttons_layout->addWidget(deselect_button);
-
-  //vertical_layout->addWidget(publish_sim_time);
-  //vertical_layout->addWidget(publish_real_time);
-  vertical_layout->addWidget(scrollArea);
-  vertical_layout->addLayout(select_buttons_layout);
-  vertical_layout->addWidget(buttons);
-
-  connect(buttons, SIGNAL(accepted()), dialog, SLOT(accept()));
-  connect(buttons, SIGNAL(rejected()), dialog, SLOT(reject()));
-
-  dialog->setLayout(vertical_layout);
-
-  if (!autoconfirm)
-  {
-    auto result = dialog->exec();
-  }
-
-  if (autoconfirm || dialog->result() == QDialog::Accepted)
+  if (dialog->result() == QDialog::Accepted)
   {
     _topics_to_publish.clear();
     for (const auto& it : checkbox)
@@ -162,172 +180,130 @@ void TopicPublisherROS2::filterDialog(bool autoconfirm)
       _topics_to_publish.insert({ it.first, it.second->isChecked() });
     }
 
-    // remove already created publisher if not needed anymore
-    for (auto it = _publishers.begin(); it != _publishers.end(); /* no increment */)
-    {
-      const std::string& topic_name = it->first;
-      if (!toPublish(topic_name))
-      {
-        it = _publishers.erase(it);
-      }
-      else
-      {
-        it++;
-      }
-    }
-
-//    _publish_clock = publish_sim_time->isChecked();
-//    if (_enabled //*&& _publish_clock*/)
-//    {
-//      _clock_publisher = _node->advertise<rosgraph_msgs::Clock>("/clock", 10, true);
-//    }
-//    else
-//    {
-//      _clock_publisher.shutdown();
-//    }
-
-//    QSettings settings;
-//    settings.setValue("TopicPublisherROS2/publish_clock", _publish_clock);
+    updatePublishers();
   }
+}
+
+constexpr  long NSEC_PER_SEC = 1000000000;
+
+rcutils_time_point_value_t Convert(const builtin_interfaces::msg::Time& stamp)
+{
+  return stamp.nanosec + NSEC_PER_SEC*stamp.sec;
+}
+
+builtin_interfaces::msg::Time Convert(const rcutils_time_point_value_t& time_stamp)
+{
+  builtin_interfaces::msg::Time stamp;
+  stamp.sec = static_cast<int32_t>(time_stamp / NSEC_PER_SEC);
+  stamp.nanosec = static_cast<int32_t>(time_stamp - (NSEC_PER_SEC * stamp.sec));
+  return stamp;
 }
 
 void TopicPublisherROS2::broadcastTF(double current_time)
 {
-  using StringPair = std::pair<std::string, std::string>;
+   using StringPair = std::pair<std::string, std::string>;
 
-  std::map<StringPair, geometry_msgs::msg::TransformStamped> transforms;
+   std::map<StringPair, geometry_msgs::msg::TransformStamped> transforms;
+   std::map<StringPair, geometry_msgs::msg::TransformStamped> static_transforms;
 
-  for (const auto& data_it : _datamap->user_defined)
-  {
-    const std::string& topic_name = data_it.first;
-    const PlotDataAny& plot_any = data_it.second;
+   for (const auto& data_it : _datamap->user_defined)
+   {
+     const std::string& topic_name = data_it.first;
+     const PlotDataAny& plot_any = data_it.second;
 
-    if (!toPublish(topic_name))
-    {
-      continue;  // Not selected
-    }
+     if (topic_name != "/tf_static" && topic_name != "/tf")
+     {
+       continue;
+     }
 
-    if (topic_name != "/tf_static" && topic_name != "/tf")
-    {
-      continue;
-    }
+     const PlotDataAny* tf_data = &plot_any;
+     int last_index = tf_data->getIndexFromX(current_time);
+     if (last_index < 0)
+     {
+       continue;
+     }
 
-    const PlotDataAny* tf_data = &plot_any;
-    int last_index = tf_data->getIndexFromX(current_time);
-    if (last_index < 0)
-    {
-      continue;
-    }
+     auto transforms_ptr = (topic_name == "/tf_static") ? & static_transforms : &transforms;
 
-    std::vector<uint8_t> raw_buffer;
-    // 2 seconds in the past (to be configurable in the future)
-    int initial_index = tf_data->getIndexFromX(current_time - 2.0);
+     std::vector<uint8_t> raw_buffer;
+     // 2 seconds in the past (to be configurable in the future)
+     int initial_index = tf_data->getIndexFromX(current_time - 2.0);
 
-    if (_previous_play_index < last_index && _previous_play_index > initial_index)
-    {
-      initial_index = _previous_play_index;
-    }
+     if (_previous_play_index < last_index && _previous_play_index > initial_index)
+     {
+       initial_index = _previous_play_index;
+     }
 
-    for (size_t index = std::max(0, initial_index); index <= last_index; index++)
-    {
-      const nonstd::any& any_value = tf_data->at(index).y;
+     for (size_t index = std::max(0, initial_index); index <= last_index; index++)
+     {
+       const nonstd::any& any_value = tf_data->at(index).y;
 
-      const bool isRosbagMessage = (any_value.type() == typeid(SerializedMessagePtr));
+       const bool isRosbagMessage = (any_value.type() == typeid(SerializedMessagePtr));
 
-      if (!isRosbagMessage)
-      {
-        continue;
-      }
+       if (!isRosbagMessage)
+       {
+         continue;
+       }
 
-      const auto& msg_instance = nonstd::any_cast<SerializedMessagePtr>(any_value);
+       const auto& msg_instance = nonstd::any_cast<SerializedMessagePtr>(any_value);
 
-      // TODO
-//      if (topic_name == "/tf_static")
-//      {
-//        _tf_static_pub.publish(tf_msg);
-//        continue;
-//      }
+       auto tf_type_support = rosidl_typesupport_cpp::get_message_type_support_handle<tf2_msgs::msg::TFMessage>();
+       tf2_msgs::msg::TFMessage tf_msg;
+       if ( RMW_RET_OK != rmw_deserialize(msg_instance->serialized_data.get(), tf_type_support, &tf_msg) )
+       {
+         throw std::runtime_error("failed to deserialize TF message");
+       }
 
-//      for (const auto& stamped_transform : tf_msg.transforms)
-//      {
-//        const auto& parent_id = stamped_transform.header.frame_id;
-//        const auto& child_id = stamped_transform.child_frame_id;
-//        StringPair trans_id = std::make_pair(parent_id, child_id);
-//        auto it = transforms.find(trans_id);
-//        if (it == transforms.end())
-//        {
-//          transforms.insert({ trans_id, stamped_transform });
-//        }
-//        else if (it->second.header.stamp <= stamped_transform.header.stamp)
-//        {
-//          it->second = stamped_transform;
-//        }
-//      }
-    }
-  }
+       for (const auto& stamped_transform : tf_msg.transforms)
+       {
+         const auto& parent_id = stamped_transform.header.frame_id;
+         const auto& child_id = stamped_transform.child_frame_id;
+         StringPair trans_id = std::make_pair(parent_id, child_id);
+         auto it = transforms_ptr->find(trans_id);
+         if (it == transforms_ptr->end())
+         {
+           transforms_ptr->insert({ trans_id, stamped_transform });
+         }
+         else if (Convert(it->second.header.stamp) <=
+                  Convert(stamped_transform.header.stamp))
+         {
+           it->second = stamped_transform;
+         }
+       }
+     }
 
-  std::vector<geometry_msgs::msg::TransformStamped> transforms_vector;
-  transforms_vector.reserve(transforms.size());
+     // ready to broadacast
+     std::vector<geometry_msgs::msg::TransformStamped> transforms_vector;
+     transforms_vector.reserve(transforms_ptr->size());
 
-  const auto now = std::chrono::system_clock::now();
-  for (auto& trans : transforms)
-  {
-    transforms_vector.emplace_back(std::move(trans.second));
-  }
+     rcutils_time_point_value_t time_stamp;
+     int error = rcutils_system_time_now(&time_stamp);
 
-  _tf_broadcaster->sendTransform(transforms_vector);
+     if (error != RCUTILS_RET_OK)
+     {
+       qDebug() << "Error getting current time. Error:" << rcutils_get_error_string().str;
+     }
+
+     for (auto& trans : *transforms_ptr)
+     {
+       trans.second.header.stamp = Convert( time_stamp );
+       transforms_vector.emplace_back(std::move(trans.second));
+     }
+     if( transforms_ptr == &transforms ){
+       _tf_broadcaster->sendTransform(transforms_vector);
+     }
+     else{
+      _tf_static_broadcaster->sendTransform(transforms_vector);
+     }
+   }
+
 }
 
-bool TopicPublisherROS2::toPublish(const std::string& topic_name)
-{
-  auto it = _topics_to_publish.find(topic_name);
-  if (it == _topics_to_publish.end())
-  {
-    return false;
-  }
-  else
-  {
-    return it->second;
-  }
-}
-
-void TopicPublisherROS2::publishAnyMsg(const SerializedMessagePtr &msg)
-{
-  // TODO
-
-//  if (!_publish_clock)
-//  {
-//    const ROSMessageInfo* msg_info = RosIntrospectionFactory::parser().getMessageInfo(topic_name);
-//    if (msg_info && msg_info->message_tree.croot()->children().size() >= 1)
-//    {
-//      const auto& first_field = msg_info->message_tree.croot()->child(0)->value();
-//      if (first_field->type().baseName() == "std_msgs/Header")
-//      {
-//        std_msgs::Header msg;
-//        ros::serialization::IStream is(raw_buffer.data(), raw_buffer.size());
-//        ros::serialization::deserialize(is, msg);
-//        msg.stamp = ros::Time::now();
-//        ros::serialization::OStream os(raw_buffer.data(), raw_buffer.size());
-//        ros::serialization::serialize(os, msg);
-//      }
-//    }
-//  }
-
-
-//  auto publisher_it = _publishers.find(topic_name);
-//  if (publisher_it == _publishers.end())
-//  {
-//    auto res = _publishers.insert({ topic_name, shapeshifted->advertise(*_node, topic_name, 10, true) });
-//    publisher_it = res.first;
-//  }
-
-//  const GenericPublisher& publisher = publisher_it->second;
-//  publisher.publish(*shapeshifted);
-}
 
 void TopicPublisherROS2::updateState(double current_time)
 {
-  if (!_enabled || !_node){
+  if (!_enabled || !_node)
+  {
     return;
   }
 
@@ -346,17 +322,17 @@ void TopicPublisherROS2::updateState(double current_time)
   {
     const std::string& topic_name = data_it.first;
     const PlotDataAny& plot_any = data_it.second;
-    if (!toPublish(topic_name))
+
+    if (topic_name == "/tf" || topic_name == "tf_static")
     {
-      continue;  // Not selected
+      continue;
     }
 
-    // FIXME
-//    if (msg_instance->topic_name == "tf/tfMessage" ||
-//        msg_instance->topic_name == "tf2_msgs/TFMessage")
-//    {
-//      continue;
-//    }
+    auto publisher_it = _publishers.find(topic_name);
+    if (publisher_it == _publishers.end())
+    {
+      continue;
+    }
 
     int last_index = plot_any.getIndexFromX(current_time);
     if (last_index < 0)
@@ -369,23 +345,9 @@ void TopicPublisherROS2::updateState(double current_time)
     if (any_value.type() == typeid(SerializedMessagePtr))
     {
       const auto& msg_instance = nonstd::any_cast<SerializedMessagePtr>(any_value);
-      publishAnyMsg(msg_instance);
+      publisher_it->second->publish(msg_instance->serialized_data);
     }
   }
-
-//  if (_publish_clock)
-//  {
-//    rosgraph_msgs::Clock clock;
-//    try
-//    {
-//      clock.clock.fromSec(current_time);
-//      _clock_publisher.publish(clock);
-//    }
-//    catch (...)
-//    {
-//      qDebug() << "error: " << current_time;
-//    }
-//  }
 }
 
 void TopicPublisherROS2::play(double current_time)
@@ -417,19 +379,13 @@ void TopicPublisherROS2::play(double current_time)
       {
         const auto& msg_instance = nonstd::any_cast<SerializedMessagePtr>(any_value);
 
-        if (!toPublish(msg_instance->topic_name))
+        auto publisher_it = _publishers.find(msg_instance->topic_name);
+        if (publisher_it == _publishers.end())
         {
-          continue;  // Not selected
+          continue;
         }
 
-        publishAnyMsg(msg_instance);
-
-//        if (_publish_clock)
-//        {
-//          rosgraph_msgs::Clock clock;
-//          clock.clock = msg_instance.getTime();
-//          _clock_publisher.publish(clock);
-//        }
+        publisher_it->second->publish(msg_instance->serialized_data);
       }
     }
     _previous_play_index = current_index;

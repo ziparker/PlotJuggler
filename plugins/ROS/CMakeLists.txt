@@ -12,12 +12,14 @@ QT5_WRAP_UI ( COMMON_UI_SRC
     rule_editing.ui
     dialog_select_ros_topics.ui
     dialog_with_itemlist.ui
+    publisher_select_dialog.ui
     )
 
 SET( COMMON_SRC
     dialog_select_ros_topics.h
     dialog_select_ros_topics.cpp
     dialog_with_itemlist.h
+    publisher_select_dialog.h
    )
 
 set(PLUGIN_BASE_DIR ${PROJECT_SOURCE_DIR}/include/PlotJuggler)
@@ -88,9 +90,10 @@ elseif(COMPILING_WITH_AMENT)
     find_package(fastcdr REQUIRED)
     find_package(Boost REQUIRED)
     find_package(plotjuggler_msgs REQUIRED)
+    find_package(tf2_msgs REQUIRED)
 
     include_directories(
-        ./
+        ./ ../ ../
         ${Boost_INCLUDE_DIRS}
         ros2_introspection/include
         ros2_parsers)
@@ -110,6 +113,7 @@ elseif(COMPILING_WITH_AMENT)
         geometry_msgs
         nav_msgs
         plotjuggler_msgs
+        tf2_msgs
         )
 
     add_library( commonROS STATIC ${COMMON_SRC} ${COMMON_UI_SRC})
@@ -132,13 +136,13 @@ elseif(COMPILING_WITH_AMENT)
     add_library( DataStreamROS2 SHARED
         DataStreamROS2/datastream_ros2.cpp
         ${PLUGIN_BASE_DIR}/datastreamer_base.h )
-    target_link_libraries( DataStreamROS2  commonROS fastcdr)
+    target_link_libraries( DataStreamROS2  commonROS)
     ament_target_dependencies( DataStreamROS2 ${AMENT_DEPENDECIES})
     #############
     add_library( TopicPublisherROS2 SHARED
         TopicPublisherROS2/publisher_ros2.cpp
         ${PLUGIN_BASE_DIR}/statepublisher_base.h)
-    target_link_libraries( TopicPublisherROS2 commonROS fastcdr)
+    target_link_libraries( TopicPublisherROS2 commonROS)
     ament_target_dependencies( TopicPublisherROS2 ${AMENT_DEPENDECIES})
 endif()
 

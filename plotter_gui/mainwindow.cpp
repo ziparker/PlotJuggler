@@ -443,9 +443,11 @@ void MainWindow::initializePlugins(QString directory_name)
           ui->menuPublishers->addAction(activatePublisher);
           publisher->setParentMenu(ui->menuPublishers, activatePublisher);
 
-          connect(activatePublisher, &QAction::toggled, this, [=](bool enable) { publisher->setEnabled(enable); });
+          connect(activatePublisher, &QAction::toggled, this,
+                  [=](bool enable) { publisher->setEnabled(enable); });
 
-          connect(publisher, &StatePublisher::connectionClosed, this, [=]() { activatePublisher->setChecked(false); });
+          connect(publisher, &StatePublisher::connectionClosed, this,
+                  [=]() { activatePublisher->setChecked(false); });
         }
       }
       else if (streamer)

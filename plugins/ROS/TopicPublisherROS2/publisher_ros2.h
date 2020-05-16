@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtPlugin>
 #include <map>
+#include <unordered_set>
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/publisher.hpp>
@@ -13,6 +14,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 
 #include "PlotJuggler/statepublisher_base.h"
+#include "ros2_parser.h"
 #include "generic_publisher.h"
 
 using SerializedMessagePtr = std::shared_ptr<rosbag2_storage::SerializedBagMessage>;
@@ -48,7 +50,7 @@ public:
 public slots:
   virtual void setEnabled(bool enabled) override;
 
-  void filterDialog(bool autoconfirm);
+  void filterDialog();
 
 private:
 
@@ -58,27 +60,25 @@ private:
 
   bool _enabled;
 
-  bool _publish_clock;
-
   std::shared_ptr<tf2_ros::TransformBroadcaster> _tf_broadcaster;
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> _tf_static_broadcaster;
 
-  std::unordered_map<std::string, GenericPublisher> _publishers;
+  std::unordered_map<std::string, std::shared_ptr<GenericPublisher>> _publishers;
 
   QAction* _enable_self_action;
   QAction* _select_topics_to_publish;
 
   std::unordered_map<std::string, bool> _topics_to_publish;
 
-  bool toPublish(const std::string& topic_name);
-
   double previous_time;
 
   int _previous_play_index;
 
+  std::vector<TopicInfo> _topics_info;
+
   void broadcastTF(double current_time);
 
-  void publishAnyMsg(const SerializedMessagePtr &msg);
+  void updatePublishers();
 };
 
 #endif  // STATE_PUBLISHER_ROS2TOPIC_H

@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <rosgraph_msgs/Clock.h>
 #include <QMessageBox>
+#include "publisher_select_dialog.h"
 
 TopicPublisherROS::TopicPublisherROS() : _enabled(false), _node(nullptr), _publish_clock(true)
 {
@@ -85,37 +86,14 @@ void TopicPublisherROS::filterDialog(bool autoconfirm)
 {
   auto all_topics = RosIntrospectionFactory::get().getTopicList();
 
-  if (all_topics.empty())
+  if (all_topics.empty()){
     return;
+  }
 
-  QDialog* dialog = new QDialog();
-  dialog->setWindowTitle("Select topics to be published");
-  dialog->setMinimumWidth(350);
-  QVBoxLayout* vertical_layout = new QVBoxLayout();
-  QFormLayout* grid_layout = new QFormLayout();
+  PublisherSelectDialog *dialog =  new PublisherSelectDialog();
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
 
   std::map<std::string, QCheckBox*> checkbox;
-
-  QFrame* frame = new QFrame;
-
-  auto publish_sim_time = new QRadioButton("Keep original timestamp and publish [/clock]");
-  auto publish_real_time = new QRadioButton("Overwrite timestamp [std_msgs/Header/stamp]");
-  QPushButton* select_button = new QPushButton("Select all");
-  QPushButton* deselect_button = new QPushButton("Deselect all");
-
-  publish_sim_time->setChecked(_publish_clock);
-  publish_sim_time->setFocusPolicy(Qt::NoFocus);
-  publish_sim_time->setToolTip("Publish the topic [/clock].\n"
-                               "You might want to set rosparam use_sim_time = true");
-
-  publish_real_time->setChecked(!_publish_clock);
-  publish_real_time->setFocusPolicy(Qt::NoFocus);
-  publish_real_time->setToolTip("Pretend it is a new message.\n"
-                                "The timestamp of the original message will be overwritten"
-                                "with ros::Time::Now()");
-
-  select_button->setFocusPolicy(Qt::NoFocus);
-  deselect_button->setFocusPolicy(Qt::NoFocus);
 
   for (const auto& topic : all_topics)
   {
@@ -130,33 +108,14 @@ void TopicPublisherROS::filterDialog(bool autoconfirm)
       cb->setChecked(filter_it->second);
     }
     cb->setFocusPolicy(Qt::NoFocus);
-    grid_layout->addRow(new QLabel(QString::fromStdString(*topic)), cb);
+    dialog->ui()->formLayout->addRow(new QLabel(QString::fromStdString(*topic)), cb);
     checkbox.insert(std::make_pair(*topic, cb));
-    connect(select_button, &QPushButton::pressed, [cb]() { cb->setChecked(true); });
-    connect(deselect_button, &QPushButton::pressed, [cb]() { cb->setChecked(false); });
+    connect(dialog->ui()->pushButtonSelect, &QPushButton::pressed, [cb]() { cb->setChecked(true); });
+    connect(dialog->ui()->pushButtonDeselect, &QPushButton::pressed, [cb]() { cb->setChecked(false); });
   }
-
-  frame->setLayout(grid_layout);
-
-  QScrollArea* scrollArea = new QScrollArea;
-  scrollArea->setWidget(frame);
-
-  QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-
-  QHBoxLayout* select_buttons_layout = new QHBoxLayout;
-  select_buttons_layout->addWidget(select_button);
-  select_buttons_layout->addWidget(deselect_button);
-
-  vertical_layout->addWidget(publish_sim_time);
-  vertical_layout->addWidget(publish_real_time);
-  vertical_layout->addWidget(scrollArea);
-  vertical_layout->addLayout(select_buttons_layout);
-  vertical_layout->addWidget(buttons);
 
   connect(buttons, SIGNAL(accepted()), dialog, SLOT(accept()));
   connect(buttons, SIGNAL(rejected()), dialog, SLOT(reject()));
-
-  dialog->setLayout(vertical_layout);
 
   if (!autoconfirm)
   {
@@ -185,7 +144,7 @@ void TopicPublisherROS::filterDialog(bool autoconfirm)
       }
     }
 
-    _publish_clock = publish_sim_time->isChecked();
+    _publish_clock = dialog->ui()->radioButtonClock->isChecked();
 
     if (_enabled && _publish_clock)
     {

@@ -19,6 +19,13 @@ enum LargeArrayPolicy : bool
 
 using SerializedMessage = rcutils_uint8_array_t;
 
+
+struct TopicInfo{
+  std::string name;
+  std::string type;
+  const rosidl_message_type_support_t* type_support;
+};
+
 class MessageParserBase
 {
 public:

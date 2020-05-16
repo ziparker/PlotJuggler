@@ -78,11 +78,20 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
 
   std::vector<std::pair<QString, QString>> all_topics_qt;
 
+  std::vector<TopicInfo> topics_info;
+
   for (const rosbag2::TopicMetadata& topic : topic_metadata)
   {
     all_topics_qt.push_back( {QString::fromStdString(topic.name),
                               QString::fromStdString(topic.type)} );
     topicTypesByName.emplace(topic.name, topic.type);
+
+    TopicInfo topic_info;
+    topic_info.name = topic.name;
+    topic_info.type = topic.type;
+    topic_info.type_support = rosbag2::get_typesupport(
+        topic.type, rosidl_typesupport_cpp::typesupport_identifier);
+    topics_info.emplace_back( std::move(topic_info) );
   }
 
   if (info->plugin_config.hasChildNodes())
@@ -148,8 +157,8 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
 
   PlotDataAny& plot_consecutive = plot_map.addUserDefined("rosbag2::plotjuggler::consecutive_messages")->second;
   PlotDataAny& metadata_storage = plot_map.addUserDefined("rosbag2::plotjuggler::topics_metadata")->second;
-  // dirty trick
-  metadata_storage.pushBack( {0, nonstd::any(topic_metadata) } );
+  // dirty trick. Store it in a one point timeseries
+  metadata_storage.pushBack( {0, nonstd::any(topics_info) } );
 
   auto time_prev = std::chrono::high_resolution_clock::now();
 
