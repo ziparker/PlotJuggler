@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.8.0 (2020-05-24)
+------------------
 * Update CMakeLists.txt
 * Added graph context menu description (`#288 <https://github.com/facontidavide/PlotJuggler/issues/288>`_)
 * Update FUNDING.yml
