@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.8.1 (2020-05-28)
+------------------
 * fix critical bug in streaming ROS plugin
 * Contributors: Davide Faconti
 
