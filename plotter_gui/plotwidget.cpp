@@ -126,14 +126,14 @@ PlotWidget::PlotWidget(PlotDataMapRef& datamap, QWidget* parent)
   , _tracker(nullptr)
   , _legend(nullptr)
   , _grid(nullptr)
+  , _use_date_time_scale(false)
+  , _color_index(0)
   , _mapped_data(datamap)
   , _dragging({ DragInfo::NONE, {}, nullptr })
   , _curve_style(QwtPlotCurve::Lines)
   , _time_offset(0.0)
   , _xy_mode(false)
   , _transform_select_dialog(nullptr)
-  , _use_date_time_scale(false)
-  , _color_index(0)
   , _zoom_enabled(true)
   , _keep_aspect_ratio(true)
 {
@@ -387,6 +387,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
 
 PlotWidget::~PlotWidget()
 {
+  delete _grid;
 }
 
 bool PlotWidget::addCurve(const std::string& name)
@@ -1656,7 +1657,6 @@ void PlotWidget::transformCustomCurves()
 
         error_message += curve_name + (" [") + transform.toStdString() + ("]: ");
         error_message += err.what();
-        +"\n";
 
         curve->setTitle(QString::fromStdString(curve_name));
       }
