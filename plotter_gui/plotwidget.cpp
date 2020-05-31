@@ -125,7 +125,6 @@ PlotWidget::PlotWidget(PlotDataMapRef& datamap, QWidget* parent)
   , _panner2(nullptr)
   , _tracker(nullptr)
   , _legend(nullptr)
-  , _grid(nullptr)
   , _use_date_time_scale(false)
   , _color_index(0)
   , _mapped_data(datamap)
@@ -163,13 +162,13 @@ PlotWidget::PlotWidget(PlotDataMapRef& datamap, QWidget* parent)
   this->plotLayout()->setAlignCanvasToScales(true);
 
   //--------------------------
-  _grid = new QwtPlotGrid();
   _zoomer = (new PlotZoomer(this->canvas()));
   _magnifier = (new PlotMagnifier(this->canvas()));
   _panner1 = (new QwtPlotPanner(this->canvas()));
   _panner2 = (new QwtPlotPanner(this->canvas()));
   _tracker = (new CurveTracker(this));
 
+  _grid = new QwtPlotGrid();
   _grid->setPen(QPen(Qt::gray, 0.0, Qt::DotLine));
 
   _zoomer->setRubberBandPen(QColor(Qt::red, 1, Qt::DotLine));
@@ -387,7 +386,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
 
 PlotWidget::~PlotWidget()
 {
-  delete _grid;
 }
 
 bool PlotWidget::addCurve(const std::string& name)

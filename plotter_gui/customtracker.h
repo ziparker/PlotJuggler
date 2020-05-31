@@ -15,6 +15,8 @@ class CurveTracker : public QObject
 public:
   explicit CurveTracker(QwtPlot*);
 
+  ~CurveTracker();
+
   QPointF actualPosition() const;
 
   typedef enum
@@ -48,8 +50,8 @@ private:
 
   QPointF _prev_trackerpoint;
   std::vector<QwtPlotMarker*> _marker;
-  QwtPlotMarker _line_marker;
-  QwtPlotMarker _text_marker;
+  QwtPlotMarker* _line_marker;
+  QwtPlotMarker* _text_marker;
   QwtPlot* _plot;
   Parameter _param;
   bool _visible;

@@ -20,14 +20,21 @@ struct compareX
 
 CurveTracker::CurveTracker(QwtPlot* plot) : QObject(plot), _plot(plot), _param(VALUE)
 {
-  _line_marker.setLinePen(QPen(Qt::red));
-  _line_marker.setLineStyle(QwtPlotMarker::VLine);
-  _line_marker.setValue(0, 0);
-  _line_marker.attach(plot);
+  _line_marker = new QwtPlotMarker();
 
-  _text_marker.attach(plot);
+  _line_marker->setLinePen(QPen(Qt::red));
+  _line_marker->setLineStyle(QwtPlotMarker::VLine);
+  _line_marker->setValue(0, 0);
+  _line_marker->attach(plot);
+
+  _text_marker = new QwtPlotMarker();
+  _text_marker->attach(plot);
 
   _visible = true;
+}
+
+CurveTracker::~CurveTracker()
+{
 }
 
 QPointF CurveTracker::actualPosition() const
@@ -49,8 +56,8 @@ void CurveTracker::setParameter(Parameter par)
 void CurveTracker::setEnabled(bool enable)
 {
   _visible = enable;
-  _line_marker.setVisible(enable);
-  _text_marker.setVisible(enable);
+  _line_marker->setVisible(enable);
+  _text_marker->setVisible(enable);
 
   for (int i = 0; i < _marker.size(); i++)
   {
@@ -67,7 +74,7 @@ void CurveTracker::setPosition(const QPointF& position)
 {
   const QwtPlotItemList curves = _plot->itemList(QwtPlotItem::Rtti_PlotCurve);
 
-  _line_marker.setValue(position);
+  _line_marker->setValue(position);
 
   QRectF rect;
   rect.setBottom(_plot->canvasMap(QwtPlot::yLeft).s1());
@@ -191,26 +198,26 @@ void CurveTracker::setPosition(const QPointF& position)
   mark_text.setFont(font);
   mark_text.setRenderFlags(_param == VALUE ? Qt::AlignCenter : Qt::AlignLeft);
 
-  _text_marker.setLabel(mark_text);
-  _text_marker.setLabelAlignment(Qt::AlignRight);
+  _text_marker->setLabel(mark_text);
+  _text_marker->setLabelAlignment(Qt::AlignRight);
 
-  _text_marker.setXValue(position.x() + text_X_offset);
+  _text_marker->setXValue(position.x() + text_X_offset);
 
   if (visible_points > 0)
   {
-    _text_marker.setYValue(0.5 * (max_Y + min_Y));
+    _text_marker->setYValue(0.5 * (max_Y + min_Y));
   }
 
   double canvas_ratio = rect.width() / double(_plot->width());
   double text_width = mark_text.textSize().width() * canvas_ratio;
-  bool exceed_right = (_text_marker.boundingRect().right() + text_width) > rect.right();
+  bool exceed_right = (_text_marker->boundingRect().right() + text_width) > rect.right();
 
   if (exceed_right)
   {
-    _text_marker.setXValue(position.x() - text_X_offset - text_width);
+    _text_marker->setXValue(position.x() - text_X_offset - text_width);
   }
 
-  _text_marker.setVisible(visible_points > 0 && _visible && _param != LINE_ONLY);
+  _text_marker->setVisible(visible_points > 0 && _visible && _param != LINE_ONLY);
 
   _prev_trackerpoint = position;
 }
