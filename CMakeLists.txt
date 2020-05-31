@@ -14,6 +14,7 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
         roscpp
         roscpp_serialization
         tf
+        tf2_ros
         diagnostic_msgs
         nav_msgs
         sensor_msgs

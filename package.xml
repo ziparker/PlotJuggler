@@ -18,6 +18,7 @@
     <depend condition="$ROS_VERSION == 1">roscpp</depend>
     <depend condition="$ROS_VERSION == 1">roscpp_serialization</depend>
     <depend condition="$ROS_VERSION == 1">diagnostic_msgs</depend>
+    <depend condition="$ROS_VERSION == 1">tf</depend>
 
     <!-- ROS2 dependencies -->
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
@@ -31,7 +32,7 @@
     <depend>sensor_msgs</depend>
     <depend>geometry_msgs</depend>
     <depend>nav_msgs</depend>
-    <depend>tf</depend>
+    <depend>tf2_ros</depend>
     <depend>tf2_msgs</depend>
     <depend>plotjuggler_msgs</depend>
 
