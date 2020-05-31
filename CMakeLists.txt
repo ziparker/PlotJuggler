@@ -39,6 +39,10 @@ endif()
 
 cmake_policy (SET CMP0020 NEW)
 
+if (POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif (POLICY CMP0048)
+
 add_definitions(
     -DPJ_MAJOR_VERSION=2
     -DPJ_MINOR_VERSION=8
