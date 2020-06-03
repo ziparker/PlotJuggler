@@ -71,7 +71,10 @@ SET( PLOTTER_SRC
     )
 
 add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC} ${BACKWARD_ENABLE})
-add_backward(PlotJuggler)
+
+if (NOT WIN32)
+   add_backward(PlotJuggler)
+endif()
 
 target_link_libraries(PlotJuggler
     ${QT_LINK_LIBRARIES}
