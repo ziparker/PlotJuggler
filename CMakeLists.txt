@@ -159,7 +159,7 @@ endif()
 #############################################################
 
 if (NOT WIN32)
-#   add_subdirectory( 3rdparty/backward-cpp )
+  add_subdirectory( 3rdparty/backward-cpp )
 endif()
 
 add_subdirectory( 3rdparty/color_widgets )
