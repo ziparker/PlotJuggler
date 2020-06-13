@@ -192,20 +192,11 @@ endif()
 
 #############################################################
 
-if("${CMAKE_INSTALL_PREFIX}" MATCHES "^/opt/")
-    set(DESKTOP_ICON_DIR "$ENV{HOME}/.local/share/icons")
+set(DESKTOP_ICON_DIR "${CMAKE_INSTALL_PREFIX}/share/icons")
 
-    install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop.ros
-             RENAME PlotJuggler.desktop
-             DESTINATION  "$ENV{HOME}/.local/share/applications"  )
-else()
-    set(DESKTOP_ICON_DIR "${CMAKE_INSTALL_PREFIX}/share/icons")
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop
+        DESTINATION  "${CMAKE_INSTALL_PREFIX}/share/applications"  )
 
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop
-            DESTINATION  "${CMAKE_INSTALL_PREFIX}/share/applications"  )
-endif()
-
-
-install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/plotjuggler.svg
-    DESTINATION ${DESKTOP_ICON_DIR}  )
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/plotjuggler.svg
+        DESTINATION ${DESKTOP_ICON_DIR}  )
 
