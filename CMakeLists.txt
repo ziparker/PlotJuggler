@@ -182,11 +182,9 @@ else()
     endif()
 endif()
 
+add_subdirectory( plugins/ROS )
 
-if(COMPILING_WITH_CATKIN)
-    add_subdirectory( plugins/ROS )
-elseif(COMPILING_WITH_AMENT)
-    add_subdirectory( plugins/ROS )
+if(COMPILING_WITH_AMENT)
     ament_package()
 endif()
 

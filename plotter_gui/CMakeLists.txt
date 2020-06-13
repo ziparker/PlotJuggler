@@ -92,6 +92,10 @@ if(COMPILING_WITH_CATKIN)
         PROGRAMS scripts/plotjuggler
         DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
     )
+elseif(COMPILING_WITH_AMENT)
+    install(TARGETS PlotJuggler
+            DESTINATION lib/${PROJECT_NAME} )
 else()
-    install(TARGETS PlotJuggler DESTINATION bin  )
+    install(TARGETS PlotJuggler
+            DESTINATION bin  )
 endif()
