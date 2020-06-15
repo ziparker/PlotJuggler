@@ -1,5 +1,5 @@
 
-include_directories( ./ ../  ../include)
+include_directories( ./ ../  ../include )
 
 QT5_ADD_RESOURCES (RES_SRC  resource.qrc )
 
@@ -20,7 +20,7 @@ QT5_WRAP_UI ( UI_SRC
     transforms/function_editor.ui
     transforms/transform_selector.ui
 
-    ../include/PlotJuggler/selectlistdialog.ui
+     PlotJuggler/selectlistdialog.ui
     )
 
 SET( PLOTTER_SRC
@@ -37,6 +37,7 @@ SET( PLOTTER_SRC
     plotlegend.cpp
     plotwidget.cpp
     plotmatrix.cpp
+    plot_docker.cpp
     plotmagnifier.cpp
     preferences_dialog.cpp
     point_series_xy.cpp
@@ -76,11 +77,13 @@ if (NOT WIN32)
    add_backward(PlotJuggler)
 endif()
 
-target_link_libraries(PlotJuggler
+target_link_libraries(PlotJuggler PUBLIC
     ${QT_LINK_LIBRARIES}
     colorwidgets
     qwt_static
     lua_static )
+
+target_link_libraries(PlotJuggler PRIVATE qt_advanced_docking)
 
 if(COMPILING_WITH_CATKIN)
     install(TARGETS PlotJuggler
