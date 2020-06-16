@@ -17,10 +17,12 @@ QT5_WRAP_UI ( UI_SRC
     suggest_dialog.ui
     new_release_dialog.ui
 
+    plot_docker_toolbar.ui
+
     transforms/function_editor.ui
     transforms/transform_selector.ui
 
-     PlotJuggler/selectlistdialog.ui
+    ../include/PlotJuggler/selectlistdialog.ui
     )
 
 SET( PLOTTER_SRC

@@ -255,6 +255,28 @@
         <file>resources/memes/meme_52.jpg</file>
         <file>resources/memes/meme_53.jpg</file>
         <file>resources/memes/meme_54.jpg</file>
+        <file>resources/svg/add_column.svg</file>
+        <file>resources/svg/add_row.svg</file>
+        <file>resources/svg/add_tab.svg</file>
+        <file>resources/svg/close-button.svg</file>
+        <file>resources/svg/colored_charts.svg</file>
+        <file>resources/svg/fullscreen.svg</file>
+        <file>resources/svg/function.svg</file>
+        <file>resources/svg/left-arrow.svg</file>
+        <file>resources/svg/list.svg</file>
+        <file>resources/svg/pause.svg</file>
+        <file>resources/svg/pencil-edit.svg</file>
+        <file>resources/svg/play_arrow.svg</file>
+        <file>resources/svg/point_chart.svg</file>
+        <file>resources/svg/ratio.svg</file>
+        <file>resources/svg/remove.svg</file>
+        <file>resources/svg/remove_list.svg</file>
+        <file>resources/svg/save.svg</file>
+        <file>resources/svg/settings_cog.svg</file>
+        <file>resources/svg/tree.svg</file>
+        <file>resources/svg/zoom_horizontal.svg</file>
+        <file>resources/svg/zoom_max.svg</file>
+        <file>resources/svg/zoom_vertical.svg</file>
         <file>resources/update_plotjuggler.jpg</file>
         <file>resources/memes/meme_55.jpg</file>
         <file>resources/memes/meme_56.jpg</file>

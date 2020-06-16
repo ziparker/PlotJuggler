@@ -2,6 +2,7 @@
 #include "plotwidget.h"
 #include <QPushButton>
 #include <QBoxLayout>
+#include <QMouseEvent>
 
 class SplittableComponentsFactory : public ads::CDockComponentsFactory
 {
@@ -24,18 +25,21 @@ PlotDocker::PlotDocker(PlotDataMapRef& datamap, QWidget *parent):
   ads::CDockManager::setConfigFlag(ads::CDockManager::AlwaysShowTabs, true);
 
   ads::CDockWidget* widget = new DockWidget(datamap, this);
+
+  auto area = addDockWidget(ads::TopDockWidgetArea, widget);
+  area->setAllowedAreas(ads::OuterDockAreas);
 }
 
 DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   ads::CDockWidget("Plot", parent)
 {
-/*  static int plot_count = 0;
+  static int plot_count = 0;
   QString plot_name = QString("_plot_%1_").arg(plot_count++);
   setWidget( new PlotWidget(datamap, this) );
   setFeature(ads::CDockWidget::DockWidgetFloatable, false);
   setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
 
-  DraggableToolbar* toolbar = new DraggableToolbar(widget);
+  DraggableToolbar* toolbar = new DraggableToolbar(this);
   toolbar->label()->setText("Plot");
   qobject_cast<QBoxLayout*>(layout())->insertWidget(0, toolbar);
 
@@ -69,5 +73,101 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
 
   QObject::connect(toolbar->buttonFullscreen(), &QPushButton::toggled, FullscreenAction );
   QObject::connect(toolbar->buttonClose(), &QPushButton::pressed, [=]()
-                   { dockAreaWidget()->closeArea();} );*/
+                   { dockAreaWidget()->closeArea();} );
 }
+
+static void setButtonIcon(QPushButton* button, const QString& file)
+{
+  QIcon icon(file);
+  icon.addPixmap(icon.pixmap(92));
+  button->setIcon(icon);
+  button->setText("");
+}
+
+DraggableToolbar::DraggableToolbar(ads::CDockWidget* parent) :
+  QWidget(parent),
+  parent_(parent),
+  ui(new Ui::DraggableToolbar),
+  displayed_toolbar_(false)
+{
+  ui->setupUi(this);
+
+  setButtonIcon(ui->buttonSplitHorizontal, ":/resources/svg/add_column.svg");
+  setButtonIcon(ui->buttonSplitVertical, ":/resources/svg/add_row.svg");
+  setButtonIcon(ui->buttonFunction, ":/resources/svg/function.svg");
+  setButtonIcon(ui->buttonFullscreen, ":/resources/svg/fullscreen.svg");
+  setButtonIcon(ui->buttonZoomOut,  ":/resources/svg/zoom_max.svg");
+  setButtonIcon(ui->buttonEdit, ":/resources/svg/pencil-edit.svg");
+  setButtonIcon(ui->buttonClose,  ":/resources/svg/close-button.svg");
+
+  setMouseTracking(true);
+  ui->widgetButtons->setMouseTracking(true);
+  ui->buttonClose->setMouseTracking(true);
+  ui->labelSettings->setMouseTracking(true);
+
+  displayed_toolbar_ = true;
+  showToolButtons(false);
+}
+
+DraggableToolbar::~DraggableToolbar()
+{
+  delete ui;
+}
+
+void DraggableToolbar::mousePressEvent(QMouseEvent *ev)
+{
+  parent_->dockAreaWidget()->titleBar()->mousePressEvent(ev);
+}
+
+void DraggableToolbar::mouseReleaseEvent(QMouseEvent *ev)
+{
+  parent_->dockAreaWidget()->titleBar()->mouseReleaseEvent(ev);
+}
+
+void DraggableToolbar::mouseMoveEvent(QMouseEvent *ev)
+{
+  auto pos = buttonClose()->mapFromParent(ev->pos());
+  bool under_mouse = buttonClose()->rect().contains( pos );
+  //qDebug() << pos << ": " << under_mouse << " / " << displayed_toolbar_;
+  showToolButtons( !under_mouse );
+
+  parent_->dockAreaWidget()->titleBar()->mouseMoveEvent(ev);
+
+  ev->accept();
+  QWidget::mouseMoveEvent(ev);
+}
+
+void DraggableToolbar::showToolButtons(bool show)
+{
+  static auto icon = QIcon(":/resources/svg/left-arrow.svg");
+  auto pixmap = icon.pixmap(14);
+
+  if( show == displayed_toolbar_)
+  {
+    return;
+  }
+  displayed_toolbar_ = show;
+  ui->widget->setVisible(show);
+
+  QTransform t;
+  if( !displayed_toolbar_ )
+  {
+    t.rotate(-90);
+  }
+
+  ui->labelSettings->setPixmap(pixmap.transformed(t));
+}
+
+void DraggableToolbar::enterEvent(QEvent *ev)
+{
+  showToolButtons(true);
+  QWidget::enterEvent(ev);
+}
+
+void DraggableToolbar::leaveEvent(QEvent *ev)
+{
+  showToolButtons(false);
+  QWidget::leaveEvent(ev);
+}
+
+

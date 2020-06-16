@@ -56,16 +56,16 @@ private:
 	friend struct DockWidgetTabPrivate;
 	friend class CDockWidget;
 	friend class CDockManager;
-	void onDockWidgetFeaturesChanged();
+  void onDockWidgetFeaturesChanged();
 
 private slots:
-	void detachDockWidget();
+  void detachDockWidget();
 
-protected:
-	virtual void mousePressEvent(QMouseEvent* ev) override;
-	virtual void mouseReleaseEvent(QMouseEvent* ev) override;
-	virtual void mouseMoveEvent(QMouseEvent* ev) override;
-	virtual void contextMenuEvent(QContextMenuEvent* ev) override;
+public:
+  virtual void mousePressEvent(QMouseEvent* ev) override;
+  virtual void mouseReleaseEvent(QMouseEvent* ev) override;
+  virtual void mouseMoveEvent(QMouseEvent* ev) override;
+  virtual void contextMenuEvent(QContextMenuEvent* ev) override;
 
 	/**
 	 * Double clicking the tab widget makes the assigned dock widget floating

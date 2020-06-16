@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -9,12 +7,12 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="100mm"
-   height="100mm"
-   viewBox="0 0 354.33071 354.33071"
+   width="400"
+   height="400"
+   viewBox="0 0 375 375"
    id="svg3497"
    version="1.1"
-   inkscape:version="0.92.4 (33fec40, 2019-01-16)"
+   inkscape:version="1.0 (6e3e5246a0, 2020-05-07)"
    sodipodi:docname="add_column.svg"
    inkscape:export-filename="/home/davide.faconti/ws_plotjuggler/src/PlotJuggler/plotter_gui/resources/svg/light/add_column.png"
    inkscape:export-xdpi="36.124447"
@@ -34,12 +32,14 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1855"
-     inkscape:window-height="1056"
-     inkscape:window-x="1985"
-     inkscape:window-y="24"
+     inkscape:window-width="1853"
+     inkscape:window-height="1025"
+     inkscape:window-x="67"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
-     inkscape:pagecheckerboard="true" />
+     inkscape:pagecheckerboard="true"
+     inkscape:document-rotation="0"
+     units="px" />
   <metadata
      id="metadata3502">
     <rdf:RDF>
@@ -48,7 +48,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -57,41 +57,33 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-698.0315)">
-    <rect
-       style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:1.03030229px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       id="rect3505"
-       width="317.86734"
-       height="317.86734"
-       x="18.231686"
-       y="716.26318" />
-    <rect
-       style="fill:#ffffff"
-       id="rect3524"
-       width="120.47244"
-       height="276.37796"
-       x="42.519684"
-       y="737.00787" />
-    <rect
-       style="fill:#ffffff"
-       id="rect3524-7"
-       width="124.01575"
-       height="276.37796"
-       x="187.79527"
-       y="737.00787" />
-    <rect
-       style="fill:#000000"
-       id="rect3565"
-       width="85.039368"
-       height="28.346457"
-       x="206.47519"
-       y="859.25989" />
-    <rect
-       style="fill:#000000"
-       id="rect3565-3"
-       width="85.039368"
-       height="28.346457"
-       x="833.77295"
-       y="-263.07483"
-       transform="matrix(0,1,-1,0,0,0)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:23.4375;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 14.0625,712.094 v 346.875 c 0,0 115.625,0 173.4375,0 57.8125,0 173.4375,0 173.4375,0 V 712.094 c 0,0 -115.625,0 -173.4375,0 -57.8125,0 -173.4375,0 -173.4375,0 z"
+       id="path837"
+       sodipodi:nodetypes="ccsccsc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:24.375;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 187.96875,712.09412 0.0899,347.91038"
+       id="path839" />
+    <g
+       id="g2158">
+      <rect
+         transform="scale(-1)"
+         y="-908.26758"
+         x="-337.11618"
+         height="39.065056"
+         width="124.10484"
+         id="rect3565-3"
+         style="fill:#000000;stroke-width:1.41817" />
+      <rect
+         y="-294.82306"
+         x="831.51416"
+         height="41.368282"
+         width="117.19516"
+         id="rect3565"
+         style="fill:#000000;stroke-width:1.41817"
+         transform="rotate(90)" />
+    </g>
   </g>
 </svg>
