@@ -38,14 +38,14 @@ SET( PLOTTER_SRC
     new_release_dialog.cpp
     plotlegend.cpp
     plotwidget.cpp
-    plotmatrix.cpp
+#    plotmatrix.cpp
     plot_docker.cpp
     plotmagnifier.cpp
     preferences_dialog.cpp
     point_series_xy.cpp
     plotzoomer.cpp
     removecurvedialog.cpp
-    subwindow.cpp
+#    subwindow.cpp
     suggest_dialog.cpp
     timeseries_qwt.cpp
     tabbedplotwidget.cpp

@@ -12,10 +12,9 @@
 #include <QShortcut>
 
 #include "plotwidget.h"
-#include "plotmatrix.h"
+#include "plot_docker.h"
 #include "curvelist_panel.h"
 #include "tabbedplotwidget.h"
-#include "subwindow.h"
 #include "realslider.h"
 #include "utils.h"
 #include "PlotJuggler/dataloader_base.h"
@@ -61,13 +60,9 @@ public slots:
   void onTimeSlider_valueChanged(double abs_time);
 
   void onPlotAdded(PlotWidget* plot);
-  void onPlotMatrixAdded(PlotMatrix* matrix);
+  void onPlotMatrixAdded(PlotDocker* matrix);
 
   void on_tabbedAreaDestroyed(QObject* object);
-
-  void onFloatingWindowDestroyed(QObject* object);
-
-  void onCreateFloatingWindow(PlotMatrix* first_tab = nullptr);
 
   void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
@@ -134,7 +129,7 @@ private:
   void initializeActions();
   void initializePlugins(QString subdir_name);
 
-  void forEachWidget(std::function<void(PlotWidget*, PlotMatrix*, int, int)> op);
+  void forEachWidget(std::function<void(PlotWidget*, PlotDocker*, int, int)> op);
   void forEachWidget(std::function<void(PlotWidget*)> op);
 
   void rearrangeGridLayout();
@@ -143,8 +138,6 @@ private:
   bool xmlLoadState(QDomDocument state_document);
 
   void checkAllCurvesFromLayout(const QDomElement& root);
-
-  void createTabbedDialog(QString suggest_win_name, PlotMatrix* first_tab);
 
   void importPlotDataMap(PlotDataMapRef& new_data, bool remove_old);
 

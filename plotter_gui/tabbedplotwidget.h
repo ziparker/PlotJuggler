@@ -4,7 +4,8 @@
 #include <QWidget>
 #include <QMainWindow>
 #include <QTableWidget>
-#include "plotmatrix.h"
+#include <QDomDocument>
+#include "plot_docker.h"
 
 namespace Ui
 {
@@ -20,16 +21,16 @@ public:
   {
   } MainWindowArea;
 
-  explicit TabbedPlotWidget(QString name, QMainWindow* main_window, PlotMatrix* first_tab, PlotDataMapRef& mapped_data,
+  explicit TabbedPlotWidget(QString name, QMainWindow* main_window, PlotDocker* first_tab, PlotDataMapRef& mapped_data,
                             QMainWindow* parent);
 
-  PlotMatrix* currentTab();
+  PlotDocker* currentTab();
 
   QTabWidget* tabWidget();
 
   const QTabWidget* tabWidget() const;
 
-  void addTab(PlotMatrix* tab = nullptr);
+  void addTab(PlotDocker* tab = nullptr);
 
   QDomElement xmlSaveState(QDomDocument& doc) const;
 
@@ -52,7 +53,7 @@ public slots:
 
   void setStreamingMode(bool streaming_mode);
 
-  static void saveTabImage(QString fileName, PlotMatrix* matrix);
+  static void saveTabImage(QString fileName, PlotDocker* matrix);
 
   void on_stylesheetChanged(QString style_dir);
 
@@ -62,17 +63,7 @@ private slots:
 
   void on_savePlotsToFile();
 
-  void on_pushAddColumn_pressed();
-
-  void on_pushVerticalResize_pressed();
-
-  void on_pushHorizontalResize_pressed();
-
-  void on_pushAddRow_pressed();
-
   void on_addTabButton_pressed();
-
-  void on_pushRemoveEmpty_pressed();
 
   void on_tabWidget_currentChanged(int index);
 
@@ -87,8 +78,6 @@ private slots:
   void on_pushButtonShowLabel_pressed();
 
   void onLabelStatusChanged();
-
-  void on_pushButtonZoomMax_pressed();
 
   void onMoveWidgetIntoNewTab(QString plot_name);
 
@@ -131,8 +120,8 @@ protected:
 signals:
   void created();
   void undoableChangeHappened();
-  void matrixAdded(PlotMatrix*);
-  void sendTabToNewWindow(PlotMatrix*);
+  void matrixAdded(PlotDocker*);
+  void sendTabToNewWindow(PlotDocker*);
 };
 
 #endif  // TABBEDPLOTWIDGET_H

@@ -15,7 +15,7 @@
 
 std::map<QString, TabbedPlotWidget*> TabbedPlotWidget::_instances;
 
-TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotMatrix* first_tab,
+TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDocker *first_tab,
                                    PlotDataMapRef& mapped_data, QMainWindow* parent)
   : QWidget(parent)
   , _mapped_data(mapped_data)
@@ -61,7 +61,6 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotMa
   _tab_menu->addSeparator();
 
   connect(this, &TabbedPlotWidget::destroyed, main_window, &MainWindow::on_tabbedAreaDestroyed);
-  connect(this, &TabbedPlotWidget::sendTabToNewWindow, main_window, &MainWindow::onCreateFloatingWindow);
   connect(this, &TabbedPlotWidget::matrixAdded, main_window, &MainWindow::onPlotMatrixAdded);
   connect(this, &TabbedPlotWidget::undoableChangeHappened, main_window, &MainWindow::onUndoableChange);
 
@@ -73,14 +72,10 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotMa
   ui->tabWidget->setCornerWidget(ui->widgetControls);
 }
 
-// void TabbedPlotWidget::setSiblingsList(const std::map<QString, TabbedPlotWidget *> &other_tabbed_widgets)
-//{
-//    _other_siblings = other_tabbed_widgets;
-//}
 
-PlotMatrix* TabbedPlotWidget::currentTab()
+PlotDocker* TabbedPlotWidget::currentTab()
 {
-  return static_cast<PlotMatrix*>(tabWidget()->currentWidget());
+  return static_cast<PlotDocker*>(tabWidget()->currentWidget());
 }
 
 QTabWidget* TabbedPlotWidget::tabWidget()
@@ -93,11 +88,11 @@ const QTabWidget* TabbedPlotWidget::tabWidget() const
   return ui->tabWidget;
 }
 
-void TabbedPlotWidget::addTab(PlotMatrix* tab)
+void TabbedPlotWidget::addTab(PlotDocker* tab)
 {
   if (!tab)
   {
-    tab = new PlotMatrix("plot", _mapped_data, this);
+    tab = new PlotDocker("plot", _mapped_data, this);
     tabWidget()->addTab(tab, QString("plot"));
 
     QApplication::processEvents();
@@ -122,7 +117,7 @@ QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument& doc) const
 
   for (int i = 0; i < tabWidget()->count(); i++)
   {
-    PlotMatrix* widget = static_cast<PlotMatrix*>(tabWidget()->widget(i));
+    PlotDocker* widget = static_cast<PlotDocker*>(tabWidget()->widget(i));
     QDomElement element = widget->xmlSaveState(doc);
 
     element.setAttribute("tab_name", tabWidget()->tabText(i));
@@ -152,7 +147,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
       this->addTab(NULL);
       num_tabs++;
     }
-    PlotMatrix* plot_matrix = static_cast<PlotMatrix*>(tabWidget()->widget(index));
+    PlotDocker* plot_matrix = static_cast<PlotDocker*>(tabWidget()->widget(index));
     bool success = plot_matrix->xmlLoadState(plotmatrix_el);
 
     // read tab name
@@ -218,7 +213,7 @@ void TabbedPlotWidget::on_renameCurrentTab()
 void TabbedPlotWidget::on_savePlotsToFile()
 {
   int idx = tabWidget()->tabBar()->currentIndex();
-  PlotMatrix* matrix = static_cast<PlotMatrix*>(tabWidget()->widget(idx));
+  PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(idx));
 
   QFileDialog saveDialog(this);
   saveDialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -257,7 +252,7 @@ void TabbedPlotWidget::on_savePlotsToFile()
   }
 }
 
-void TabbedPlotWidget::saveTabImage(QString fileName, PlotMatrix* matrix)
+void TabbedPlotWidget::saveTabImage(QString fileName, PlotDocker *matrix)
 {
   bool is_svg = (QFileInfo(fileName).suffix().toLower() == "svg");
 
@@ -320,54 +315,16 @@ void TabbedPlotWidget::saveTabImage(QString fileName, PlotMatrix* matrix)
 
 void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
 {
-  ui->pushButtonZoomMax->setIcon(QIcon(tr(":/%1/zoom_max.png").arg(style_dir)));
-  ui->pushVerticalResize->setIcon(QIcon(tr(":/%1/zoom_vertical.png").arg(style_dir)));
-  ui->pushHorizontalResize->setIcon(QIcon(tr(":/%1/zoom_horizontal.png").arg(style_dir)));
-  ui->pushAddColumn->setIcon(QIcon(tr(":/%1/add_column.png").arg(style_dir)));
-  ui->pushAddRow->setIcon(QIcon(tr(":/%1/add_row.png").arg(style_dir)));
   ui->addTabButton->setIcon(QIcon(tr(":/%1/add_tab.png").arg(style_dir)));
-  ui->pushRemoveEmpty->setIcon(QIcon(tr(":/%1/clean_pane.png").arg(style_dir)));
   ui->pushButtonShowLabel->setIcon(QIcon(tr(":/%1/list.png").arg(style_dir)));
   ui->buttonLinkHorizontalScale->setIcon(QIcon(tr(":/%1/link.png").arg(style_dir)));
-}
-
-void TabbedPlotWidget::on_pushAddRow_pressed()
-{
-  currentTab()->addRow();
-  onLabelStatusChanged();
-  emit undoableChangeHappened();
-}
-
-void TabbedPlotWidget::on_pushAddColumn_pressed()
-{
-  currentTab()->addColumn();
-  onLabelStatusChanged();
-  emit undoableChangeHappened();
-}
-
-void TabbedPlotWidget::on_pushVerticalResize_pressed()
-{
-  currentTab()->maximumZoomOutVertical();
-  emit undoableChangeHappened();
-}
-
-void TabbedPlotWidget::on_pushHorizontalResize_pressed()
-{
-  currentTab()->maximumZoomOutHorizontal();
-  emit undoableChangeHappened();
-}
-
-void TabbedPlotWidget::on_pushButtonZoomMax_pressed()
-{
-  currentTab()->maximumZoomOut();
-  emit undoableChangeHappened();
 }
 
 void TabbedPlotWidget::printPlotsNames()
 {
   for (int t = 0; t < tabWidget()->count(); t++)
   {
-    PlotMatrix* matrix = static_cast<PlotMatrix*>(tabWidget()->widget(t));
+    PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(t));
     for (unsigned row = 0; row < matrix->rowsCount(); row++)
     {
       for (unsigned col = 0; col < matrix->colsCount(); col++)
@@ -383,12 +340,12 @@ void TabbedPlotWidget::printPlotsNames()
 void TabbedPlotWidget::onMoveWidgetIntoNewTab(QString plot_name)
 {
   int src_row, src_col;
-  PlotMatrix* src_matrix = nullptr;
+  PlotDocker* src_matrix = nullptr;
   PlotWidget* source = nullptr;
 
   for (int t = 0; t < tabWidget()->count(); t++)
   {
-    PlotMatrix* matrix = static_cast<PlotMatrix*>(tabWidget()->widget(t));
+    PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(t));
 
     for (unsigned row = 0; row < matrix->rowsCount(); row++)
     {
@@ -408,7 +365,7 @@ void TabbedPlotWidget::onMoveWidgetIntoNewTab(QString plot_name)
   }
 
   addTab();
-  PlotMatrix* dst_matrix = currentTab();
+  PlotDocker* dst_matrix = currentTab();
   PlotWidget* destination = dst_matrix->plotAt(0, 0);
 
   src_matrix->gridLayout()->removeWidget(source);
@@ -451,7 +408,7 @@ void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
     }
   }
 
-  PlotMatrix* tab = static_cast<PlotMatrix*>(tabWidget()->widget(index));
+  PlotDocker* tab = static_cast<PlotDocker*>(tabWidget()->widget(index));
   if (tab)
   {
     tab->replot();
@@ -460,7 +417,7 @@ void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
 
 void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
 {
-  PlotMatrix* tab = static_cast<PlotMatrix*>(tabWidget()->widget(index));
+  PlotDocker* tab = static_cast<PlotDocker*>(tabWidget()->widget(index));
 
   bool close_confirmed = true;
   if (tab->plotCount() == 1)
@@ -490,7 +447,7 @@ void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
       on_addTabButton_pressed();
     }
 
-    PlotMatrix* matrix = static_cast<PlotMatrix*>(tabWidget()->widget(index));
+    PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(index));
 
     for (unsigned p = 0; p < matrix->plotCount(); p++)
     {
@@ -511,7 +468,7 @@ void TabbedPlotWidget::on_buttonLinkHorizontalScale_toggled(bool checked)
 
   for (int i = 0; i < tabWidget()->count(); i++)
   {
-    PlotMatrix* tab = static_cast<PlotMatrix*>(tabWidget()->widget(i));
+    PlotDocker* tab = static_cast<PlotDocker*>(tabWidget()->widget(i));
     tab->setHorizontalLink(_horizontal_link);
   }
 }
@@ -520,7 +477,7 @@ void TabbedPlotWidget::on_requestTabMovement(const QString& destination_name)
 {
   TabbedPlotWidget* destination_widget = TabbedPlotWidget::_instances[destination_name];
 
-  PlotMatrix* tab_to_move = currentTab();
+  PlotDocker* tab_to_move = currentTab();
   int index = tabWidget()->tabBar()->currentIndex();
 
   const QString& tab_name = this->tabWidget()->tabText(index);
@@ -616,7 +573,7 @@ void TabbedPlotWidget::onLabelStatusChanged()
 {
   for (int i = 0; i < tabWidget()->count(); i++)
   {
-    PlotMatrix* matrix = static_cast<PlotMatrix*>(tabWidget()->widget(i));
+    PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(i));
 
     for (unsigned p = 0; p < matrix->plotCount(); p++)
     {

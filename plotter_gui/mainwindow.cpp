@@ -293,37 +293,6 @@ void MainWindow::onTrackerTimeUpdated(double absolute_time, bool do_replot)
   });
 }
 
-void MainWindow::createTabbedDialog(QString suggest_win_name, PlotMatrix* first_tab)
-{
-  if (suggest_win_name.isEmpty())
-  {
-    for (size_t i = 0; i <= TabbedPlotWidget::instances().size(); i++)
-    {
-      suggest_win_name = QString("Window%1").arg(i);
-      TabbedPlotWidget* tw = TabbedPlotWidget::instance(suggest_win_name);
-      if (tw == nullptr)
-      {
-        break;
-      }
-    }
-  }
-
-  SubWindow* window = new SubWindow(suggest_win_name, first_tab, _mapped_plot_data, this);
-
-  connect(window, SIGNAL(destroyed(QObject*)), this, SLOT(onFloatingWindowDestroyed(QObject*)));
-  connect(window, SIGNAL(destroyed(QObject*)), this, SLOT(onUndoableChange()));
-
-  window->tabbedWidget()->setStreamingMode(isStreamingActive());
-
-  window->setAttribute(Qt::WA_DeleteOnClose, true);
-  window->show();
-  window->activateWindow();
-  window->raise();
-
-  if (this->signalsBlocked() == false)
-    onUndoableChange();
-}
-
 void MainWindow::initializeActions()
 {
   _undo_shortcut.setContext(Qt::ApplicationShortcut);
@@ -610,7 +579,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
   plot->configureTracker(_tracker_param);
 }
 
-void MainWindow::onPlotMatrixAdded(PlotMatrix* matrix)
+void MainWindow::onPlotMatrixAdded(PlotDocker* matrix)
 {
   connect(matrix, &PlotMatrix::plotAdded, this, &MainWindow::onPlotAdded);
   connect(matrix, &PlotMatrix::undoableChange, this, &MainWindow::onUndoableChange);
@@ -1601,29 +1570,13 @@ void MainWindow::on_tabbedAreaDestroyed(QObject* object)
   this->setFocus();
 }
 
-void MainWindow::onFloatingWindowDestroyed(QObject* object)
-{
-  //    for (size_t i=0; i< SubWindow::instances().size(); i++)
-  //    {
-  //        if( SubWindow::instances()[i] == object)
-  //        {
-  //            SubWindow::instances().erase( SubWindow::instances().begin() + i);
-  //            break;
-  //        }
-  //    }
-}
 
-void MainWindow::onCreateFloatingWindow(PlotMatrix* first_tab)
-{
-  createTabbedDialog(QString(), first_tab);
-}
-
-void MainWindow::forEachWidget(std::function<void(PlotWidget*, PlotMatrix*, int, int)> operation)
+void MainWindow::forEachWidget(std::function<void(PlotWidget*, PlotDocker*, int, int)> operation)
 {
   auto func = [&](QTabWidget* tabs) {
     for (int t = 0; t < tabs->count(); t++)
     {
-      PlotMatrix* matrix = static_cast<PlotMatrix*>(tabs->widget(t));
+      PlotDocker* matrix = static_cast<PlotDocker*>(tabs->widget(t));
 
       for (unsigned row = 0; row < matrix->rowsCount(); row++)
       {
@@ -1644,7 +1597,7 @@ void MainWindow::forEachWidget(std::function<void(PlotWidget*, PlotMatrix*, int,
 
 void MainWindow::forEachWidget(std::function<void(PlotWidget*)> op)
 {
-  forEachWidget([&](PlotWidget* plot, PlotMatrix*, int, int) { op(plot); });
+  forEachWidget([&](PlotWidget* plot, PlotDocker*, int, int) { op(plot); });
 }
 
 void MainWindow::updateTimeSlider()
@@ -1678,12 +1631,12 @@ void MainWindow::onSwapPlots(PlotWidget* source, PlotWidget* destination)
   if (!source || !destination)
     return;
 
-  PlotMatrix* src_matrix = nullptr;
-  PlotMatrix* dst_matrix = nullptr;
+  PlotDocker* src_matrix = nullptr;
+  PlotDocker* dst_matrix = nullptr;
   QPoint src_pos;
   QPoint dst_pos;
 
-  forEachWidget([&](PlotWidget* plot, PlotMatrix* matrix, int row, int col) {
+  forEachWidget([&](PlotWidget* plot, PlotDocker* matrix, int row, int col) {
     if (plot == source)
     {
       src_matrix = matrix;
@@ -1837,13 +1790,13 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
       QTabWidget* tabs = it.second->tabWidget();
       for (int index = 0; index < tabs->count(); index++)
       {
-        PlotMatrix* matrix = static_cast<PlotMatrix*>(tabs->widget(index));
+        PlotDocker* matrix = static_cast<PlotDocker*>(tabs->widget(index));
         matrix->maximumZoomOut();
       }
     }
     else
     {
-      PlotMatrix* matrix = it.second->currentTab();
+      PlotDocker* matrix = it.second->currentTab();
       matrix->maximumZoomOut();  // includes replot
     }
   }
@@ -2239,7 +2192,7 @@ void MainWindow::on_actionCheatsheet_triggered()
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->show();
 
-  connect(dialog, &QDialog::finished, this, [this, dialog]() {
+  connect(dialog, &QDialog::finished, this, [dialog]() {
     QSettings settings;
     settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
   });
@@ -2283,7 +2236,7 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
       auto tab_widget = it.second->tabWidget();
       for (int i = 0; i < tab_widget->count(); i++)
       {
-        PlotMatrix* matrix = static_cast<PlotMatrix*>(tab_widget->widget(i));
+        PlotDocker* matrix = static_cast<PlotDocker*>(tab_widget->widget(i));
         QString name = QString("%1/%2_%3_%4.png")
                            .arg(directory)
                            .arg(current_date_time_name)
@@ -2325,7 +2278,7 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
       auto tab_widget = it.second->tabWidget();
       for (int i = 0; i < tab_widget->count(); i++)
       {
-        PlotMatrix* matrix = static_cast<PlotMatrix*>(tab_widget->widget(i));
+        PlotDocker* matrix = static_cast<PlotDocker*>(tab_widget->widget(i));
         TabbedPlotWidget::saveTabImage(file_names[image_number], matrix);
         image_number++;
       }
@@ -2637,7 +2590,7 @@ void MainWindow::on_actionDeleteAllData_triggered()
 
   //        for(const auto& it: TabbedPlotWidget::instances())
   //        {
-  //            PlotMatrix* matrix =  it.second->currentTab() ;
+  //            PlotDocker* matrix =  it.second->currentTab() ;
   //            matrix->maximumZoomOut(); // includes replot
   //        }
   //    }
