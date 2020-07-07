@@ -1,5 +1,12 @@
-project(plotjuggler)
 cmake_minimum_required(VERSION 3.5)
+
+cmake_policy(SET CMP0048 OLD)
+PROJECT(plotjuggler)
+
+add_definitions(
+    -DPJ_MAJOR_VERSION="2"
+    -DPJ_MINOR_VERSION="8"
+    -DPJ_PATCH_VERSION="2" )
 
 # http://answers.ros.org/question/230877/optionally-build-a-package-with-catkin/
 if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
@@ -39,15 +46,6 @@ else()
 endif()
 
 cmake_policy (SET CMP0020 NEW)
-
-if (POLICY CMP0048)
-  cmake_policy(SET CMP0048 NEW)
-endif (POLICY CMP0048)
-
-add_definitions(
-    -DPJ_MAJOR_VERSION=2
-    -DPJ_MINOR_VERSION=8
-    -DPJ_PATCH_VERSION=1 )
 
 add_subdirectory( 3rdparty/fmt )
 
