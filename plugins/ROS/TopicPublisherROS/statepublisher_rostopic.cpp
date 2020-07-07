@@ -97,7 +97,6 @@ void TopicPublisherROS::filterDialog(bool autoconfirm)
   }
 
   PublisherSelectDialog *dialog =  new PublisherSelectDialog();
-  dialog->setAttribute(Qt::WA_DeleteOnClose);
 
   std::map<std::string, QCheckBox*> checkbox;
 
@@ -157,6 +156,8 @@ void TopicPublisherROS::filterDialog(bool autoconfirm)
     {
       _clock_publisher.shutdown();
     }
+
+    dialog->deleteLater();
 
     QSettings settings;
     settings.setValue("TopicPublisherROS/publish_clock", _publish_clock);
