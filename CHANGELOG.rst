@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.8.2 (2020-07-07)
+------------------
 * might fix issue `#301 <https://github.com/facontidavide/PlotJuggler/issues/301>`_
 * fix warnings
 * fix potential mutex problem related to `#300 <https://github.com/facontidavide/PlotJuggler/issues/300>`_
