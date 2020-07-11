@@ -255,5 +255,6 @@
         <file>resources/memes/meme_52.jpg</file>
         <file>resources/memes/meme_53.jpg</file>
         <file>resources/memes/meme_54.jpg</file>
+        <file>resources/update_plotjuggler.jpg</file>
     </qresource>
 </RCC>
