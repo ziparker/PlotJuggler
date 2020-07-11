@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.8.3 (2020-07-11)
+------------------
 * more memes
 * "New versione vailable" improved
 * fix segmentation fault when tryin reconnect to ROS master
