@@ -51,20 +51,20 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
   _action_renameTab = new QAction(tr("Rename tab"), this);
   connect(_action_renameTab, &QAction::triggered, this, &TabbedPlotWidget::on_renameCurrentTab);
 
-  _action_savePlots = new QAction(tr("&Save plots to file"), this);
-  connect(_action_savePlots, &QAction::triggered, this, &TabbedPlotWidget::on_savePlotsToFile);
+  // TODO _action_savePlots = new QAction(tr("&Save plots to file"), this);
+  // TODO connect(_action_savePlots, &QAction::triggered, this, &TabbedPlotWidget::on_savePlotsToFile);
 
   _tab_menu = new QMenu(this);
   _tab_menu->addAction(_action_renameTab);
   _tab_menu->addSeparator();
-  _tab_menu->addAction(_action_savePlots);
+  //_tab_menu->addAction(_action_savePlots);
   _tab_menu->addSeparator();
 
   connect(this, &TabbedPlotWidget::destroyed, main_window, &MainWindow::on_tabbedAreaDestroyed);
   connect(this, &TabbedPlotWidget::matrixAdded, main_window, &MainWindow::onPlotMatrixAdded);
   connect(this, &TabbedPlotWidget::undoableChangeHappened, main_window, &MainWindow::onUndoableChange);
 
-  connect(ui->tabWidget, &TabWidget::movingPlotWidgetToTab, this, &TabbedPlotWidget::onMoveWidgetIntoNewTab);
+  // TODO connect(ui->tabWidget, &TabWidget::movingPlotWidgetToTab, this, &TabbedPlotWidget::onMoveWidgetIntoNewTab);
 
   this->addTab(first_tab);
 
@@ -97,7 +97,6 @@ void TabbedPlotWidget::addTab(PlotDocker* tab)
 
     QApplication::processEvents();
     emit matrixAdded(tab);
-    tab->addColumn();
   }
   else
   {
@@ -186,8 +185,11 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
 void TabbedPlotWidget::setStreamingMode(bool streaming_mode)
 {
   ui->buttonLinkHorizontalScale->setEnabled(!streaming_mode);
-  ui->pushVerticalResize->setEnabled(!streaming_mode);
-  ui->pushHorizontalResize->setEnabled(!streaming_mode);
+}
+
+void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
+{
+
 }
 
 TabbedPlotWidget::~TabbedPlotWidget()
@@ -210,7 +212,7 @@ void TabbedPlotWidget::on_renameCurrentTab()
   }
 }
 
-void TabbedPlotWidget::on_savePlotsToFile()
+/*void TabbedPlotWidget::on_savePlotsToFile()
 {
   int idx = tabWidget()->tabBar()->currentIndex();
   PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(idx));
@@ -248,11 +250,11 @@ void TabbedPlotWidget::on_savePlotsToFile()
         fileName.append(".svg");
       }
     }
-    saveTabImage(fileName, matrix);
+    //saveTabImage(fileName, matrix);
   }
-}
+}*/
 
-void TabbedPlotWidget::saveTabImage(QString fileName, PlotDocker *matrix)
+/*void TabbedPlotWidget::saveTabImage(QString fileName, PlotDocker *matrix)
 {
   bool is_svg = (QFileInfo(fileName).suffix().toLower() == "svg");
 
@@ -280,6 +282,8 @@ void TabbedPlotWidget::saveTabImage(QString fileName, PlotDocker *matrix)
   }
 
   QwtPlotRenderer rend;
+
+
 
   int delta_X = pixmap.width() / matrix->colsCount();
   int delta_Y = pixmap.height() / matrix->rowsCount();
@@ -380,17 +384,11 @@ void TabbedPlotWidget::onMoveWidgetIntoNewTab(QString plot_name)
   src_matrix->updateLayout();
   dst_matrix->updateLayout();
   emit undoableChangeHappened();
-}
+}*/
 
 void TabbedPlotWidget::on_addTabButton_pressed()
 {
   addTab(nullptr);
-  emit undoableChangeHappened();
-}
-
-void TabbedPlotWidget::on_pushRemoveEmpty_pressed()
-{
-  currentTab()->removeEmpty();
   emit undoableChangeHappened();
 }
 
@@ -549,10 +547,10 @@ bool TabbedPlotWidget::eventFilter(QObject* obj, QEvent* event)
         connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(on_requestTabMovement(QString)));
 
         //-------------------------------
-        QString theme = static_cast<MainWindow*>(_main_window)->styleDirectory();
-        QIcon iconSave;
-        iconSave.addFile(tr(":/%1/save.png").arg(theme), QSize(26, 26));
-        _action_savePlots->setIcon(iconSave);
+         QString theme = static_cast<MainWindow*>(_main_window)->styleDirectory();
+//        QIcon iconSave;
+//        iconSave.addFile(tr(":/%1/save.png").arg(theme), QSize(26, 26));
+//        _action_savePlots->setIcon(iconSave);
 
         QIcon iconNewWin;
         iconNewWin.addFile(tr(":/%1/stacks.png").arg(theme), QSize(16, 16));

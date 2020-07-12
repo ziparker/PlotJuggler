@@ -557,7 +557,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
   connect(plot, &PlotWidget::trackerMoved, this, &MainWindow::onTrackerMovedFromWidget);
 
-  connect(plot, &PlotWidget::swapWidgetsRequested, this, &MainWindow::onSwapPlots);
+  // TODO connect(plot, &PlotWidget::swapWidgetsRequested, this, &MainWindow::onSwapPlots);
 
   connect(this, &MainWindow::requestRemoveCurveByName, plot, &PlotWidget::removeCurve);
 
@@ -581,8 +581,8 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
 void MainWindow::onPlotMatrixAdded(PlotDocker* matrix)
 {
-  connect(matrix, &PlotMatrix::plotAdded, this, &MainWindow::onPlotAdded);
-  connect(matrix, &PlotMatrix::undoableChange, this, &MainWindow::onUndoableChange);
+  // TODO connect(matrix, &PlotMatrix::plotAdded, this, &MainWindow::onPlotAdded);
+  // TODO  connect(matrix, &PlotMatrix::undoableChange, this, &MainWindow::onUndoableChange);
 }
 
 QDomDocument MainWindow::xmlSaveState() const
@@ -684,10 +684,9 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
   size_t num_floating = 0;
   std::map<QString, QDomElement> tabbed_widgets_with_name;
 
-  for (QDomElement tw = root.firstChildElement("tabbed_widget"); tw.isNull() == false; tw = tw.nextSiblingElement("tabb"
-                                                                                                                  "ed_"
-                                                                                                                  "widg"
-                                                                                                                  "et"))
+  for (QDomElement tw = root.firstChildElement("tabbed_widget");
+       tw.isNull() == false;
+       tw = tw.nextSiblingElement("tabbed_widget"))
   {
     if (tw.attribute("parent") != ("main_window"))
     {
@@ -701,7 +700,7 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
   {
     if (TabbedPlotWidget::instance(it.first) == nullptr)
     {
-      createTabbedDialog(it.first, nullptr);
+      // TODO createTabbedDialog(it.first, nullptr);
     }
   }
 
@@ -1571,20 +1570,17 @@ void MainWindow::on_tabbedAreaDestroyed(QObject* object)
 }
 
 
-void MainWindow::forEachWidget(std::function<void(PlotWidget*, PlotDocker*, int, int)> operation)
+void MainWindow::forEachWidget(std::function<void(PlotWidget*, PlotDocker*, int)> operation)
 {
   auto func = [&](QTabWidget* tabs) {
     for (int t = 0; t < tabs->count(); t++)
     {
       PlotDocker* matrix = static_cast<PlotDocker*>(tabs->widget(t));
 
-      for (unsigned row = 0; row < matrix->rowsCount(); row++)
+      for (unsigned index = 0; index < matrix->plotCount(); index++)
       {
-        for (unsigned col = 0; col < matrix->colsCount(); col++)
-        {
-          PlotWidget* plot = matrix->plotAt(row, col);
-          operation(plot, matrix, row, col);
-        }
+          PlotWidget* plot = matrix->plotAt(index);
+          operation(plot, matrix, index);
       }
     }
   };
@@ -1597,7 +1593,7 @@ void MainWindow::forEachWidget(std::function<void(PlotWidget*, PlotDocker*, int,
 
 void MainWindow::forEachWidget(std::function<void(PlotWidget*)> op)
 {
-  forEachWidget([&](PlotWidget* plot, PlotDocker*, int, int) { op(plot); });
+  forEachWidget([&](PlotWidget* plot, PlotDocker*, int) { op(plot); });
 }
 
 void MainWindow::updateTimeSlider()
@@ -1626,7 +1622,7 @@ void MainWindow::updateTimeOffset()
   }
 }
 
-void MainWindow::onSwapPlots(PlotWidget* source, PlotWidget* destination)
+/*void MainWindow::onSwapPlots(PlotWidget* source, PlotWidget* destination)
 {
   if (!source || !destination)
     return;
@@ -1668,7 +1664,7 @@ void MainWindow::onSwapPlots(PlotWidget* source, PlotWidget* destination)
     destination->changeBackgroundColor(Qt::white);
   }
   onUndoableChange();
-}
+}*/
 
 void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
 {
@@ -1791,13 +1787,13 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
       for (int index = 0; index < tabs->count(); index++)
       {
         PlotDocker* matrix = static_cast<PlotDocker*>(tabs->widget(index));
-        matrix->maximumZoomOut();
+        matrix->zoomOut();
       }
     }
     else
     {
       PlotDocker* matrix = it.second->currentTab();
-      matrix->maximumZoomOut();  // includes replot
+      matrix->zoomOut();  // includes replot
     }
   }
 }
@@ -2209,6 +2205,7 @@ void MainWindow::on_actionSupportPlotJuggler_triggered()
   dialog->exec();
 }
 
+/*
 void MainWindow::on_actionSaveAllPlotTabs_triggered()
 {
   QSettings settings;
@@ -2284,7 +2281,7 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
       }
     }
   }
-}
+}*/
 
 void MainWindow::on_actionLoadData_triggered()
 {

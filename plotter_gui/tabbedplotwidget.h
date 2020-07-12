@@ -53,7 +53,7 @@ public slots:
 
   void setStreamingMode(bool streaming_mode);
 
-  static void saveTabImage(QString fileName, PlotDocker* matrix);
+  //static void saveTabImage(QString fileName, PlotDocker* matrix);
 
   void on_stylesheetChanged(QString style_dir);
 
@@ -61,7 +61,7 @@ private slots:
 
   void on_renameCurrentTab();
 
-  void on_savePlotsToFile();
+  //void on_savePlotsToFile();
 
   void on_addTabButton_pressed();
 
@@ -79,7 +79,7 @@ private slots:
 
   void onLabelStatusChanged();
 
-  void onMoveWidgetIntoNewTab(QString plot_name);
+  // TODO void onMoveWidgetIntoNewTab(QString plot_name);
 
 private:
   enum LabelStatus
@@ -92,7 +92,7 @@ private:
   Ui::TabbedPlotWidget* ui;
 
   QAction* _action_renameTab;
-  QAction* _action_savePlots;
+  // TODO QAction* _action_savePlots;
 
   QMenu* _tab_menu;
 
@@ -110,7 +110,7 @@ private:
 
   virtual void closeEvent(QCloseEvent* event) override;
 
-  void printPlotsNames();
+ // void printPlotsNames();
 
 protected:
   virtual bool eventFilter(QObject* obj, QEvent* event) override;

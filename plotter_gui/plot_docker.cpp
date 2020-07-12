@@ -1,8 +1,8 @@
 #include "plot_docker.h"
-#include "plotwidget.h"
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QMouseEvent>
+
 
 class SplittableComponentsFactory : public ads::CDockComponentsFactory
 {
@@ -16,8 +16,8 @@ public:
 };
 
 
-PlotDocker::PlotDocker(PlotDataMapRef& datamap, QWidget *parent):
-  ads::CDockManager(parent)
+PlotDocker::PlotDocker(QString name, PlotDataMapRef& datamap, QWidget *parent):
+  ads::CDockManager(parent), _name(name)
 {
   ads::CDockComponentsFactory::setFactory(new SplittableComponentsFactory());
   ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasTabsMenuButton, false);
@@ -28,6 +28,56 @@ PlotDocker::PlotDocker(PlotDataMapRef& datamap, QWidget *parent):
 
   auto area = addDockWidget(ads::TopDockWidgetArea, widget);
   area->setAllowedAreas(ads::OuterDockAreas);
+}
+
+QString PlotDocker::name() const{
+  return _name;
+}
+
+void PlotDocker::setName(QString name)
+{
+  _name = name;
+}
+
+QDomElement PlotDocker::xmlSaveState(QDomDocument &doc) const
+{
+  return {};
+}
+
+bool PlotDocker::xmlLoadState(QDomElement &element)
+{
+  return {};
+}
+
+int PlotDocker::plotCount() const
+{
+  return  dockAreaCount();
+}
+
+PlotWidget *PlotDocker::plotAt(int index)
+{
+  return static_cast<PlotWidget*>( dockArea(index)->currentDockWidget()->widget() );
+}
+
+void PlotDocker::setHorizontalLink(bool enabled)
+{
+  // TODO
+}
+
+void PlotDocker::zoomOut()
+{
+  for (int index = 0; index < plotCount(); index++)
+  {
+    plotAt(index)->zoomOut(false); // TODO is it false?
+  }
+}
+
+void PlotDocker::replot()
+{
+  for (int index = 0; index < plotCount(); index++)
+  {
+    plotAt(index)->replot();
+  }
 }
 
 DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):

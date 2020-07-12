@@ -64,7 +64,7 @@ public slots:
 
   void on_tabbedAreaDestroyed(QObject* object);
 
-  void onSwapPlots(PlotWidget* source, PlotWidget* destination);
+// TODO ?   void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
   void updateDataAndReplot(bool replot_hidden_tabs);
 
@@ -129,7 +129,7 @@ private:
   void initializeActions();
   void initializePlugins(QString subdir_name);
 
-  void forEachWidget(std::function<void(PlotWidget*, PlotDocker*, int, int)> op);
+  void forEachWidget(std::function<void(PlotWidget *, PlotDocker *, int)> op);
   void forEachWidget(std::function<void(PlotWidget*)> op);
 
   void rearrangeGridLayout();
@@ -188,7 +188,7 @@ public slots:
   void on_actionReportBug_triggered();
   void on_actionCheatsheet_triggered();
   void on_actionSupportPlotJuggler_triggered();
-  void on_actionSaveAllPlotTabs_triggered();
+// TODO ?  void on_actionSaveAllPlotTabs_triggered();
 
   void on_actionStopStreaming_triggered();
   void on_actionAbout_triggered();

@@ -1,6 +1,7 @@
 #ifndef PLOT_DOCKER_H
 #define PLOT_DOCKER_H
 
+#include <QDomElement>
 #include "Qads/DockManager.h"
 #include "Qads/DockWidget.h"
 #include "Qads/DockAreaWidget.h"
@@ -9,7 +10,7 @@
 #include "Qads/FloatingDockContainer.h"
 #include "Qads/DockComponentsFactory.h"
 #include "PlotJuggler/plotdata.h"
-
+#include "plotwidget.h"
 #include "ui_plot_docker_toolbar.h"
 
 class DraggableToolbar : public QWidget
@@ -46,17 +47,37 @@ class DockWidget: public ads::CDockWidget
 {
 public:
   DockWidget(PlotDataMapRef& datamap, QWidget* parent = nullptr);
+
 private:
 
 };
 
 class PlotDocker: public ads::CDockManager
 {
+
 public:
-  PlotDocker(PlotDataMapRef &datamap, QWidget* parent = nullptr);
+  PlotDocker(QString name, PlotDataMapRef &datamap, QWidget* parent = nullptr);
+
+  QString name() const;
+
+  void setName(QString name);
+
+  QDomElement xmlSaveState(QDomDocument& doc) const;
+
+  bool xmlLoadState(QDomElement& element);
+
+  int plotCount() const;
+
+  PlotWidget* plotAt(int index);
+
+  void setHorizontalLink(bool enabled);
+
+  void zoomOut();
+
+  void replot();
 
 private:
-
+  QString _name;
 
 };
 
