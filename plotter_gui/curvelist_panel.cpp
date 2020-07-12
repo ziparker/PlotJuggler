@@ -19,6 +19,8 @@
 #include <QScrollBar>
 #include <QTreeWidget>
 
+#include "svg_util.h"
+
 //-------------------------------------------------
 
 CurveListPanel::CurveListPanel(const CustomPlotMap& mapped_math_plots, QWidget* parent)
@@ -338,11 +340,11 @@ void CurveListPanel::on_stylesheetChanged(QString style_dir)
 
   if (_view_type == LIST)
   {
-    ui->pushButtonView->setIcon(QIcon(tr(":/%1/list_view.png").arg(style_dir)));
+    ui->pushButtonView->setIcon(LoadSvgIcon(":/resources/svg/list.svg",style_dir));
   }
   else
   {
-    ui->pushButtonView->setIcon(QIcon(tr(":/%1/tree_view.png").arg(style_dir)));
+    ui->pushButtonView->setIcon(LoadSvgIcon(":/resources/svg/tree.svg",style_dir));
   }
 }
 

@@ -23,6 +23,7 @@ PlotDocker::PlotDocker(QString name, PlotDataMapRef& datamap, QWidget *parent):
   ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasTabsMenuButton, false);
   ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasUndockButton, false);
   ads::CDockManager::setConfigFlag(ads::CDockManager::AlwaysShowTabs, true);
+  ads::CDockManager::setConfigFlag(ads::CDockManager::EqualSplitOnInsertion, true);
 
   DockWidget* widget = new DockWidget(datamap, this);
 
@@ -131,6 +132,10 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   QObject::connect(toolbar->buttonFullscreen(), &QPushButton::toggled, FullscreenAction );
   QObject::connect(toolbar->buttonClose(), &QPushButton::pressed, [=]()
                    { dockAreaWidget()->closeArea();} );
+
+
+  //this->setMinimumSize( QSize(400,300) );
+  this->layout()->setMargin(10);
 }
 
 static void setButtonIcon(QPushButton* button, const QString& file)
@@ -151,9 +156,7 @@ DraggableToolbar::DraggableToolbar(ads::CDockWidget* parent) :
 
   setButtonIcon(ui->buttonSplitHorizontal, ":/resources/svg/add_column.svg");
   setButtonIcon(ui->buttonSplitVertical, ":/resources/svg/add_row.svg");
-  setButtonIcon(ui->buttonFunction, ":/resources/svg/function.svg");
   setButtonIcon(ui->buttonFullscreen, ":/resources/svg/fullscreen.svg");
-  setButtonIcon(ui->buttonZoomOut,  ":/resources/svg/zoom_max.svg");
   setButtonIcon(ui->buttonEdit, ":/resources/svg/pencil-edit.svg");
   setButtonIcon(ui->buttonClose,  ":/resources/svg/close-button.svg");
 

@@ -71,13 +71,13 @@
     <widget class="QWidget" name="widgetButtons" native="true">
      <property name="minimumSize">
       <size>
-       <width>132</width>
+       <width>80</width>
        <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>132</width>
+       <width>80</width>
        <height>16777215</height>
       </size>
      </property>
@@ -86,19 +86,19 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>132</width>
+        <width>82</width>
         <height>24</height>
        </rect>
       </property>
       <property name="minimumSize">
        <size>
-        <width>132</width>
+        <width>80</width>
         <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>132</width>
+        <width>82</width>
         <height>16777215</height>
        </size>
       </property>
@@ -137,68 +137,6 @@
          </property>
          <property name="text">
           <string>E</string>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="buttonFunction">
-         <property name="minimumSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>24</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
-         </property>
-         <property name="text">
-          <string>f</string>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="buttonZoomOut">
-         <property name="minimumSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-         <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
-         </property>
-         <property name="text">
-          <string>Z</string>
          </property>
          <property name="iconSize">
           <size>

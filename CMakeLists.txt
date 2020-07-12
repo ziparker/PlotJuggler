@@ -85,6 +85,8 @@ find_package(Qt5 REQUIRED COMPONENTS
     Xml
     Svg)
 
+find_package(Qt5Svg REQUIRED)
+
 find_package(Qt5 QUIET COMPONENTS WebSockets)
 
 set( QT_LINK_LIBRARIES
@@ -99,11 +101,8 @@ set( QT_LINK_LIBRARIES
     Qt5::Svg
     )
 
-add_definitions( -DQWT_NO_SVG )
-
 if( NOT Qt5WebSockets_FOUND)
     message(STATUS "Can't find Qt5WebSockets in your system. Have you tried [sudo apt-get install libqt5websockets5-dev] ?")
-    add_definitions( -DQWT_NO_SVG )
 else()
     set( QT_LINK_LIBRARIES ${QT_LINK_LIBRARIES} Qt5::WebSockets)
 endif()

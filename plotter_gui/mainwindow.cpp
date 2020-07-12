@@ -38,6 +38,7 @@
 #include "qwt_plot_canvas.h"
 #include "transforms/function_editor.h"
 #include "utils.h"
+#include "svg_util.h"
 
 #include "ui_aboutdialog.h"
 #include "ui_support_dialog.h"
@@ -57,7 +58,6 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   , _disable_undo_logging(false)
   , _tracker_time(0)
   , _tracker_param(CurveTracker::VALUE)
-  , _style_directory("style_light")
 {
   QLocale::setDefault(QLocale::c());  // set as default
 
@@ -187,8 +187,8 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   forEachWidget([&](PlotWidget* plot) { plot->configureTracker(_tracker_param); });
 
-  _style_directory = settings.value("Preferences::theme", "style_light").toString();
-  emit stylesheetChanged(_style_directory);
+  QString theme = settings.value("Preferences::theme", "style_light").toString();
+  emit stylesheetChanged(theme);
 }
 
 MainWindow::~MainWindow()
@@ -1130,10 +1130,6 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
   return true;
 }
 
-QString MainWindow::styleDirectory() const
-{
-  return _style_directory;
-}
 
 void MainWindow::on_actionStartStreaming(QString streamer_name)
 {
@@ -1209,19 +1205,19 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
 
 void MainWindow::on_stylesheetChanged(QString style_dir)
 {
-  QFile styleFile(tr("://%1/stylesheet.qss").arg(style_dir));
+  QFile styleFile(tr(":/%1/stylesheet.qss").arg(style_dir));
   styleFile.open(QFile::ReadOnly);
   dynamic_cast<QApplication*>(QCoreApplication::instance())->setStyleSheet(styleFile.readAll());
 
-  ui->pushButtonOptions->setIcon(QIcon(tr(":/%1/settings_cog.png").arg(style_dir)));
-  // ui->pushButtonTimeTracker->setIcon(QIcon(tr(":/%1/line_tracker_1.png").arg(style_dir)));
-  ui->playbackLoop->setIcon(QIcon(tr(":/%1/loop.png").arg(style_dir)));
-  ui->pushButtonPlay->setIcon(QIcon(tr(":/%1/play_arrow.png").arg(style_dir)));
-  ui->pushButtonUseDateTime->setIcon(QIcon(tr(":/%1/datetime.png").arg(style_dir)));
-  ui->pushButtonActivateGrid->setIcon(QIcon(tr(":/%1/grid.png").arg(style_dir)));
-  ui->pushButtonRatio->setIcon(QIcon(tr(":/%1/ratio.png").arg(style_dir)));
-  ui->actionClearRecentData->setIcon(QIcon(tr(":/%1/clean_pane.png").arg(style_dir)));
-  ui->actionClearRecentLayout->setIcon(QIcon(tr(":/%1/clean_pane.png").arg(style_dir)));
+  ui->pushButtonOptions->setIcon(LoadSvgIcon(":/resources/svg/settings_cog.svg", style_dir));
+  // ui->pushButtonTimeTracker->setIcon(LoadSvgIcon(":/resources/svg/line_tracker_1.svg", style_dir));
+  ui->playbackLoop->setIcon(LoadSvgIcon(":/resources/svg/loop.svg", style_dir));
+  ui->pushButtonPlay->setIcon(LoadSvgIcon(":/resources/svg/play_arrow.svg", style_dir));
+  ui->pushButtonUseDateTime->setIcon(LoadSvgIcon(":/resources/svg/datetime.svg", style_dir));
+  ui->pushButtonActivateGrid->setIcon(LoadSvgIcon(":/resources/svg/grid.svg", style_dir));
+  ui->pushButtonRatio->setIcon(LoadSvgIcon(":/resources/svg/ratio.svg", style_dir));
+  ui->actionClearRecentData->setIcon(LoadSvgIcon(":/resources/svg/clean_pane.svg", style_dir));
+  ui->actionClearRecentLayout->setIcon(LoadSvgIcon(":/resources/svg/clean_pane.svg", style_dir));
 }
 
 void MainWindow::loadPluginState(const QDomElement& root)
@@ -1575,9 +1571,12 @@ void MainWindow::forEachWidget(std::function<void(PlotWidget*, PlotDocker*, int)
   auto func = [&](QTabWidget* tabs) {
     for (int t = 0; t < tabs->count(); t++)
     {
-      PlotDocker* matrix = static_cast<PlotDocker*>(tabs->widget(t));
+      PlotDocker* matrix = dynamic_cast<PlotDocker*>(tabs->widget(t));
+      if(!matrix){
+        continue;
+      }
 
-      for (unsigned index = 0; index < matrix->plotCount(); index++)
+      for (int index = 0; index < matrix->plotCount(); index++)
       {
           PlotWidget* plot = matrix->plotAt(index);
           operation(plot, matrix, index);
@@ -2599,16 +2598,17 @@ void MainWindow::on_actionDeleteAllData_triggered()
 
 void MainWindow::on_actionPreferences_triggered()
 {
+  QSettings settings;
+  QString prev_theme = settings.value("Preferences::theme", "style_light").toString();
+
   PreferencesDialog dialog;
   dialog.exec();
 
-  QSettings settings;
-  QString theme = settings.value("Preferences::theme", _style_directory).toString();
+  QString theme = settings.value("Preferences::theme", "style_light").toString();
 
-  if (theme != _style_directory)
+  if (theme != prev_theme)
   {
-    _style_directory = theme;
-    emit stylesheetChanged(_style_directory);
+    emit stylesheetChanged(theme);
   }
 }
 

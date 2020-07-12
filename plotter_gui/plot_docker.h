@@ -26,7 +26,6 @@ public:
   QPushButton* buttonSplitVertical() { return ui->buttonSplitVertical; }
   QPushButton* buttonFullscreen() { return ui->buttonFullscreen; }
   QPushButton* buttonEdit() { return ui->buttonEdit; }
-  QPushButton* buttonZoomOut() { return ui->buttonZoomOut; }
   QPushButton* buttonClose() { return ui->buttonClose; }
 
 private:

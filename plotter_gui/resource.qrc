@@ -7,9 +7,6 @@
         <file>resources/splash_2.2.jpg</file>
         <file>resources/default.snippets.xml</file>
         <file>resources/DejaVuSans-ExtraLight.ttf</file>
-        <file>style_light/add_column.png</file>
-        <file>style_light/add_row.png</file>
-        <file>style_light/add_tab.png</file>
         <file>style_light/checkbox_checked.svg</file>
         <file>style_light/checkbox_checked_disabled.svg</file>
         <file>style_light/checkbox_checked_focus.svg</file>
@@ -19,41 +16,21 @@
         <file>style_light/checkbox_unchecked.svg</file>
         <file>style_light/checkbox_unchecked_disabled.svg</file>
         <file>style_light/checkbox_unchecked_focus.svg</file>
-        <file>style_light/clean_pane.png</file>
         <file>style_light/colored_charts.png</file>
-        <file>style_light/datetime.png</file>
-        <file>style_light/grid.png</file>
         <file>style_light/line_tracker.png</file>
         <file>style_light/line_tracker_1.png</file>
         <file>style_light/line_tracker_a.png</file>
-        <file>style_light/link.png</file>
-        <file>style_light/list.png</file>
-        <file>style_light/loop.png</file>
-        <file>style_light/move.png</file>
-        <file>style_light/pause.png</file>
-        <file>style_light/play_arrow.png</file>
-        <file>style_light/point_chart.png</file>
         <file>style_light/radio_checked.svg</file>
         <file>style_light/radio_checked_disabled.svg</file>
         <file>style_light/radio_checked_focus.svg</file>
         <file>style_light/radio_unchecked.svg</file>
         <file>style_light/radio_unchecked_disabled.svg</file>
         <file>style_light/radio_unchecked_focus.svg</file>
-        <file>style_light/ratio.png</file>
-        <file>style_light/remove.png</file>
-        <file>style_light/remove_list.png</file>
-        <file>style_light/save.png</file>
-        <file>style_light/settings_cog.png</file>
-        <file>style_light/stacks.png</file>
         <file>style_light/stylesheet.qss</file>
         <file>style_light/window_close.png</file>
         <file>style_light/window_close_disabled.png</file>
         <file>style_light/window_close_focus.png</file>
         <file>style_light/window_close_pressed.png</file>
-        <file>style_light/zoom_horizontal.png</file>
-        <file>style_light/zoom_in.png</file>
-        <file>style_light/zoom_max.png</file>
-        <file>style_light/zoom_vertical.png</file>
         <file>style_dark/arrow_down.png</file>
         <file>style_dark/arrow_down_disabled.png</file>
         <file>style_dark/arrow_down_focus.png</file>
@@ -158,28 +135,6 @@
         <file>style_dark/window_undock_disabled.png</file>
         <file>style_dark/window_undock_focus.png</file>
         <file>style_dark/window_undock_pressed.png</file>
-        <file>style_dark/add_column.png</file>
-        <file>style_dark/add_tab.png</file>
-        <file>style_dark/clean_pane.png</file>
-        <file>style_dark/datetime.png</file>
-        <file>style_dark/grid.png</file>
-        <file>style_dark/link.png</file>
-        <file>style_dark/list.png</file>
-        <file>style_dark/loop.png</file>
-        <file>style_dark/move.png</file>
-        <file>style_dark/pause.png</file>
-        <file>style_dark/play_arrow.png</file>
-        <file>style_dark/point_chart.png</file>
-        <file>style_dark/ratio.png</file>
-        <file>style_dark/remove.png</file>
-        <file>style_dark/remove_list.png</file>
-        <file>style_dark/save.png</file>
-        <file>style_dark/settings_cog.png</file>
-        <file>style_dark/stacks.png</file>
-        <file>style_dark/zoom_horizontal.png</file>
-        <file>style_dark/zoom_in.png</file>
-        <file>style_dark/zoom_max.png</file>
-        <file>style_dark/zoom_vertical.png</file>
         <file>cheatsheet/video/cheatsheet-drag-drop.mp4</file>
         <file>cheatsheet/video/cheatsheet-pan-view.mp4</file>
         <file>cheatsheet/video/cheatsheet-remove-column.mp4</file>
@@ -190,7 +145,6 @@
         <file>cheatsheet/video/cheatsheet-zoom-area.mp4</file>
         <file>cheatsheet/video/cheatsheet-zoom-in-out.mp4</file>
         <file>style_dark/stylesheet.qss</file>
-        <file>style_dark/add_row.png</file>
         <file>resources/memes/meme_00.jpg</file>
         <file>resources/memes/meme_01.jpg</file>
         <file>resources/memes/meme_02.jpg</file>
@@ -245,12 +199,7 @@
         <file>resources/memes/meme_49.jpg</file>
         <file>resources/memes/meme_50.jpg</file>
         <file>resources/memes/meme_51.jpg</file>
-        <file>style_light/tree_view.png</file>
-        <file>style_light/list_view.png</file>
-        <file>style_dark/list_view.png</file>
-        <file>style_dark/tree_view.png</file>
         <file>style_dark/copy_clipboard.png</file>
-        <file>style_light/copy_clipboard.png</file>
         <file>resources/plotjuggler.svg</file>
         <file>resources/memes/meme_52.jpg</file>
         <file>resources/memes/meme_53.jpg</file>
@@ -284,5 +233,9 @@
         <file>resources/memes/meme_58.jpg</file>
         <file>resources/memes/meme_59.jpg</file>
         <file>resources/memes/meme_60.jpg</file>
+        <file>resources/svg/grid.svg</file>
+        <file>resources/svg/datetime.svg</file>
+        <file>resources/svg/link.svg</file>
+        <file>resources/svg/legend.svg</file>
     </qresource>
 </RCC>

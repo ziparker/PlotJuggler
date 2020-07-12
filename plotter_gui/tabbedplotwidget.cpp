@@ -1,6 +1,7 @@
 #include <QMenu>
 #include <QSignalMapper>
 #include <QAction>
+#include <QTabBar>
 #include <QSvgGenerator>
 #include <QInputDialog>
 #include <QMouseEvent>
@@ -12,6 +13,7 @@
 #include "tabbedplotwidget.h"
 #include "tab_widget.h"
 #include "ui_tabbedplotwidget.h"
+#include "svg_util.h"
 
 std::map<QString, TabbedPlotWidget*> TabbedPlotWidget::_instances;
 
@@ -69,7 +71,11 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
   this->addTab(first_tab);
 
   this->layout()->removeWidget(ui->widgetControls);
-  ui->tabWidget->setCornerWidget(ui->widgetControls);
+  ui->tabWidget->setCornerWidget(ui->widgetControls, Qt::TopRightCorner );
+
+  QToolButton *tb = new QToolButton();
+  tb->setText("+");
+  ui->tabWidget->setCornerWidget(tb, Qt::TopLeftCorner);
 }
 
 
@@ -187,11 +193,6 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
 void TabbedPlotWidget::setStreamingMode(bool streaming_mode)
 {
   ui->buttonLinkHorizontalScale->setEnabled(!streaming_mode);
-}
-
-void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
-{
-
 }
 
 TabbedPlotWidget::~TabbedPlotWidget()
@@ -318,14 +319,16 @@ void TabbedPlotWidget::on_renameCurrentTab()
     pixmap.save(fileName);
   }
 }
+*/
 
 void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
 {
-  ui->addTabButton->setIcon(QIcon(tr(":/%1/add_tab.png").arg(style_dir)));
-  ui->pushButtonShowLabel->setIcon(QIcon(tr(":/%1/list.png").arg(style_dir)));
-  ui->buttonLinkHorizontalScale->setIcon(QIcon(tr(":/%1/link.png").arg(style_dir)));
+  ui->addTabButton->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
+  ui->pushButtonShowLabel->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
+  ui->buttonLinkHorizontalScale->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
 }
 
+/*
 void TabbedPlotWidget::printPlotsNames()
 {
   for (int t = 0; t < tabWidget()->count(); t++)
@@ -340,7 +343,6 @@ void TabbedPlotWidget::printPlotsNames()
       }
     }
   }
-  qDebug() << "----------";
 }
 
 void TabbedPlotWidget::onMoveWidgetIntoNewTab(QString plot_name)
@@ -400,7 +402,7 @@ void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
   {
     if (_parent_type.compare("main_window") == 0)
     {
-      addTab(NULL);
+      addTab(nullptr);
     }
     else
     {
@@ -408,7 +410,7 @@ void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
     }
   }
 
-  PlotDocker* tab = static_cast<PlotDocker*>(tabWidget()->widget(index));
+  PlotDocker* tab = dynamic_cast<PlotDocker*>(tabWidget()->widget(index));
   if (tab)
   {
     tab->replot();
@@ -417,7 +419,7 @@ void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
 
 void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
 {
-  PlotDocker* tab = static_cast<PlotDocker*>(tabWidget()->widget(index));
+  PlotDocker* tab = dynamic_cast<PlotDocker*>( tabWidget()->widget(index) );
 
   bool close_confirmed = true;
   if (tab->plotCount() == 1)
@@ -529,9 +531,9 @@ bool TabbedPlotWidget::eventFilter(QObject* obj, QEvent* event)
         QSignalMapper* signalMapper = new QSignalMapper(submenu);
 
         //-----------------------------------
-        QAction* action_new_window = submenu->addAction("New Window");
-        submenu->addSeparator();
-        connect(action_new_window, &QAction::triggered, this, &TabbedPlotWidget::on_moveTabIntoNewWindow);
+//        QAction* action_new_window = submenu->addAction("New Window");
+//        submenu->addSeparator();
+//        connect(action_new_window, &QAction::triggered, this, &TabbedPlotWidget::on_moveTabIntoNewWindow);
 
         //-----------------------------------
         for (auto& it : TabbedPlotWidget::_instances)
@@ -549,14 +551,13 @@ bool TabbedPlotWidget::eventFilter(QObject* obj, QEvent* event)
         connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(on_requestTabMovement(QString)));
 
         //-------------------------------
-         QString theme = static_cast<MainWindow*>(_main_window)->styleDirectory();
 //        QIcon iconSave;
 //        iconSave.addFile(tr(":/%1/save.png").arg(theme), QSize(26, 26));
 //        _action_savePlots->setIcon(iconSave);
 
-        QIcon iconNewWin;
-        iconNewWin.addFile(tr(":/%1/stacks.png").arg(theme), QSize(16, 16));
-        action_new_window->setIcon(iconNewWin);
+//        QIcon iconNewWin;
+//        iconNewWin.addFile(tr(":/%1/stacks.png").arg(theme), QSize(16, 16));
+//        action_new_window->setIcon(iconNewWin);
 
         _tab_menu->exec(mouse_event->globalPos());
         //-------------------------------

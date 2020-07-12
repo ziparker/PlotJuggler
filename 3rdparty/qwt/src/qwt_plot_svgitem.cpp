@@ -127,7 +127,7 @@ QRectF QwtPlotSvgItem::boundingRect() const
 //! \return Renderer used to render the SVG data
 const QSvgRenderer &QwtPlotSvgItem::renderer() const
 {
-    return d_data->renderer;
+   return d_data->renderer;
 }
 
 //! \return Renderer used to render the SVG data

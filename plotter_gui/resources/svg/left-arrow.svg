@@ -30,8 +30,8 @@
    guidetolerance="10"
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
-   inkscape:window-width="756"
-   inkscape:window-height="480"
+   inkscape:window-width="1770"
+   inkscape:window-height="839"
    id="namedview34"
    showgrid="false"
    inkscape:zoom="0.71514715"
@@ -40,12 +40,13 @@
    inkscape:window-x="67"
    inkscape:window-y="27"
    inkscape:window-maximized="0"
-   inkscape:current-layer="Layer_1" />
+   inkscape:current-layer="Layer_1"
+   inkscape:pagecheckerboard="true" />
 <path
    id="XMLID_23_"
    d="m 210.02529,284.65284 c 4.55409,-1.5006 7.60278,-5.54115 7.60278,-10.07571 V 61.018006 c 0,-4.535284 -3.04869,-8.57511 -7.60278,-10.075719 -4.55409,-1.50132 -9.62109,-0.135254 -12.63568,3.405557 L 106.47454,161.13025 c -1.65996,1.94979 -2.49032,4.31034 -2.49032,6.67016 0,2.36054 0.83036,4.72037 2.49032,6.67088 l 90.91507,106.77672 c 3.01535,3.5408 8.08159,4.90615 12.63568,3.40483 z"
    inkscape:connector-curvature="0"
-   style="stroke-width:0.73438835" />
+   style="stroke-width:0.73438835;fill:#000000;fill-opacity:1" />
 <g
    id="g3">
 </g>
