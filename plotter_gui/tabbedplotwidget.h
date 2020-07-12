@@ -30,7 +30,7 @@ public:
 
   const QTabWidget* tabWidget() const;
 
-  void addTab(PlotDocker* tab = nullptr);
+  void addTab(PlotDocker* docker = nullptr);
 
   QDomElement xmlSaveState(QDomDocument& doc) const;
 

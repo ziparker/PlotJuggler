@@ -45,15 +45,21 @@ private:
 
 class DockWidget: public ads::CDockWidget
 {
+  Q_OBJECT
+
 public:
   DockWidget(PlotDataMapRef& datamap, QWidget* parent = nullptr);
 
-private:
-
+  PlotWidget* plotWidget()
+  {
+    return static_cast<PlotWidget*>( widget() );
+  }
 };
 
 class PlotDocker: public ads::CDockManager
 {
+
+Q_OBJECT
 
 public:
   PlotDocker(QString name, PlotDataMapRef &datamap, QWidget* parent = nullptr);
@@ -75,6 +81,10 @@ public:
   void zoomOut();
 
   void replot();
+
+signals:
+
+  void plotWidgetAdded(PlotWidget*);
 
 private:
   QString _name;

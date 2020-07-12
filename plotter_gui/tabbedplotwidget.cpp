@@ -88,23 +88,25 @@ const QTabWidget* TabbedPlotWidget::tabWidget() const
   return ui->tabWidget;
 }
 
-void TabbedPlotWidget::addTab(PlotDocker* tab)
+void TabbedPlotWidget::addTab(PlotDocker* docker)
 {
-  if (!tab)
+  if (!docker)
   {
-    tab = new PlotDocker("plot", _mapped_data, this);
-    tabWidget()->addTab(tab, QString("plot"));
+    docker = new PlotDocker("plot", _mapped_data, this);
+    tabWidget()->addTab(docker, QString("plot"));
 
     QApplication::processEvents();
-    emit matrixAdded(tab);
+    emit matrixAdded(docker);
+    // we need to send the signal for the very first widget
+    emit docker->plotWidgetAdded( docker->plotAt(0) );
   }
   else
   {
-    tabWidget()->addTab(tab, tab->name());
+    tabWidget()->addTab(docker, docker->name());
   }
 
-  tabWidget()->setCurrentWidget(tab);
-  tab->setHorizontalLink(_horizontal_link);
+  tabWidget()->setCurrentWidget(docker);
+  docker->setHorizontalLink(_horizontal_link);
 }
 
 QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument& doc) const

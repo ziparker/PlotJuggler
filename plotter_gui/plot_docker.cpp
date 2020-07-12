@@ -24,7 +24,7 @@ PlotDocker::PlotDocker(QString name, PlotDataMapRef& datamap, QWidget *parent):
   ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasUndockButton, false);
   ads::CDockManager::setConfigFlag(ads::CDockManager::AlwaysShowTabs, true);
 
-  ads::CDockWidget* widget = new DockWidget(datamap, this);
+  DockWidget* widget = new DockWidget(datamap, this);
 
   auto area = addDockWidget(ads::TopDockWidgetArea, widget);
   area->setAllowedAreas(ads::OuterDockAreas);
@@ -85,7 +85,8 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
 {
   static int plot_count = 0;
   QString plot_name = QString("_plot_%1_").arg(plot_count++);
-  setWidget( new PlotWidget(datamap, this) );
+  auto plot_widget = new PlotWidget(datamap, this);
+  setWidget( plot_widget );
   setFeature(ads::CDockWidget::DockWidgetFloatable, false);
   setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
 
@@ -96,24 +97,30 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   QObject::connect(toolbar->buttonSplitHorizontal(), &QPushButton::pressed,
                    [&datamap, parent, this]() {
     auto new_widget = new DockWidget(datamap, parent);
-    auto area = dockManager()->addDockWidget(ads::RightDockWidgetArea,
+    PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
+    auto area = parent_docker->addDockWidget(ads::RightDockWidgetArea,
                                              new_widget, dockAreaWidget());
     area->setAllowedAreas(ads::OuterDockAreas);
+
+    parent_docker->plotWidgetAdded( new_widget->plotWidget() );
   });
 
   QObject::connect(toolbar->buttonSplitVertical(), &QPushButton::pressed,
                    [&datamap, parent, this]() {
     auto new_widget = new DockWidget(datamap, parent);
-    auto area = dockManager()->addDockWidget(ads::BottomDockWidgetArea,
+    PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
+    auto area = parent_docker->addDockWidget(ads::BottomDockWidgetArea,
                                              new_widget, dockAreaWidget());
     area->setAllowedAreas(ads::OuterDockAreas);
+
+    parent_docker->plotWidgetAdded( new_widget->plotWidget() );
   });
 
   auto FullscreenAction = [=](bool checked) {
-    auto manager = dockManager();
-    for(int i = 0; i < manager->dockAreaCount(); i++ )
+    PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
+    for(int i = 0; i < parent_docker->dockAreaCount(); i++ )
     {
-      auto area = manager->dockArea(i);
+      auto area = parent_docker->dockArea(i);
       if (area != dockAreaWidget())
       {
         area->setVisible(!checked);

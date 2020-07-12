@@ -581,7 +581,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
 void MainWindow::onPlotMatrixAdded(PlotDocker* matrix)
 {
-  // TODO connect(matrix, &PlotMatrix::plotAdded, this, &MainWindow::onPlotAdded);
+  connect(matrix, &PlotDocker::plotWidgetAdded, this, &MainWindow::onPlotAdded);
   // TODO  connect(matrix, &PlotMatrix::undoableChange, this, &MainWindow::onUndoableChange);
 }
 
