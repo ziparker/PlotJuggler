@@ -1,3 +1,19 @@
+
+PlotWidget {
+    background: white;
+    border: 0px solid white;
+}
+
+ads--CDockAreaWidget
+{
+    border: 0px solid red;
+}
+
+DockWidget
+{
+    border: 0px solid white;
+}
+
 QMainWindow {
     background: #E5E5E5;
 }
@@ -83,7 +99,6 @@ QPlainTextEdit {
    border: 1px solid grey;
 }
 
-
 QToolTip {
     border: 1px solid #111111;
     border-radius: 1px;
@@ -92,16 +107,6 @@ QToolTip {
 
 QScrollBar {
     background: #EEEEEE;
-}
-
-QSplitter::handle
-{
-    background: #111111;
-    border: 0px;
-    width: 1px;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    border-radius: 1px;
 }
 
 

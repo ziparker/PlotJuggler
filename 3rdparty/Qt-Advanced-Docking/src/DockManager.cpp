@@ -193,7 +193,7 @@ void DockManagerPrivate::loadStylesheet()
 	QTextStream StyleSheetStream(&StyleSheetFile);
 	Result = StyleSheetStream.readAll();
 	StyleSheetFile.close();
-	_this->setStyleSheet(Result);
+  _this->setStyleSheet(Result);
 }
 
 
@@ -468,7 +468,7 @@ CDockManager::CDockManager(QWidget *parent) :
 	d->DockAreaOverlay = new CDockOverlay(this, CDockOverlay::ModeDockAreaOverlay);
 	d->ContainerOverlay = new CDockOverlay(this, CDockOverlay::ModeContainerOverlay);
 	d->Containers.append(this);
-  d->loadStylesheet();
+  //d->loadStylesheet();
 
 	if (CDockManager::testConfigFlag(CDockManager::FocusHighlighting))
 	{

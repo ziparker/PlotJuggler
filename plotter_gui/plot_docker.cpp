@@ -20,10 +20,6 @@ PlotDocker::PlotDocker(QString name, PlotDataMapRef& datamap, QWidget *parent):
   ads::CDockManager(parent), _name(name)
 {
   ads::CDockComponentsFactory::setFactory(new SplittableComponentsFactory());
-  ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasTabsMenuButton, false);
-  ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasUndockButton, false);
-  ads::CDockManager::setConfigFlag(ads::CDockManager::AlwaysShowTabs, true);
-  ads::CDockManager::setConfigFlag(ads::CDockManager::EqualSplitOnInsertion, true);
 
   DockWidget* widget = new DockWidget(datamap, this);
 
@@ -84,6 +80,8 @@ void PlotDocker::replot()
 DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   ads::CDockWidget("Plot", parent)
 {
+  setFrameShape(QFrame::NoFrame);
+
   static int plot_count = 0;
   QString plot_name = QString("_plot_%1_").arg(plot_count++);
   auto plot_widget = new PlotWidget(datamap, this);

@@ -206,6 +206,7 @@ private slots:
   void on_actionPreferences_triggered();
   void on_actionShare_the_love_triggered();
   void on_playbackStep_valueChanged(double arg1);
+  void on_actionLoadStyleSheet_triggered();
 };
 
 #endif  // MAINWINDOW_H

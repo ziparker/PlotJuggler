@@ -8,11 +8,12 @@
 #include <QFileDialog>
 #include <QApplication>
 #include <QPainter>
+#include <QTabWidget>
+#include <QHBoxLayout>
 #include "qwt_plot_renderer.h"
 #include "mainwindow.h"
 #include "tabbedplotwidget.h"
 #include "tab_widget.h"
-#include "ui_tabbedplotwidget.h"
 #include "svg_util.h"
 
 std::map<QString, TabbedPlotWidget*> TabbedPlotWidget::_instances;
@@ -21,7 +22,6 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
                                    PlotDataMapRef& mapped_data, QMainWindow* parent)
   : QWidget(parent)
   , _mapped_data(mapped_data)
-  , ui(new Ui::TabbedPlotWidget)
   , _name(name)
   , _main_window(mainwindow)
   , _labels_status(LabelStatus::RIGHT)
@@ -44,9 +44,12 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
   // register this instance
   _instances[_name] = this;
 
-  ui->setupUi(this);
-
   _horizontal_link = true;
+
+  QHBoxLayout* main_layout = new QHBoxLayout(this);
+
+  _tabWidget = new QTabWidget(this);
+  main_layout->addWidget(_tabWidget);
 
   tabWidget()->tabBar()->installEventFilter(this);
 
@@ -66,16 +69,15 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
   connect(this, &TabbedPlotWidget::matrixAdded, main_window, &MainWindow::onPlotMatrixAdded);
   connect(this, &TabbedPlotWidget::undoableChangeHappened, main_window, &MainWindow::onUndoableChange);
 
-  // TODO connect(ui->tabWidget, &TabWidget::movingPlotWidgetToTab, this, &TabbedPlotWidget::onMoveWidgetIntoNewTab);
+  // TODO connect(_tabWidget, &TabWidget::movingPlotWidgetToTab, this, &TabbedPlotWidget::onMoveWidgetIntoNewTab);
 
   this->addTab(first_tab);
 
-  this->layout()->removeWidget(ui->widgetControls);
-  ui->tabWidget->setCornerWidget(ui->widgetControls, Qt::TopRightCorner );
+ // TODO  _tabWidget->setCornerWidget(ui->widgetControls, Qt::TopRightCorner );
 
   QToolButton *tb = new QToolButton();
   tb->setText("+");
-  ui->tabWidget->setCornerWidget(tb, Qt::TopLeftCorner);
+  _tabWidget->setCornerWidget(tb, Qt::TopLeftCorner);
 }
 
 
@@ -86,18 +88,25 @@ PlotDocker* TabbedPlotWidget::currentTab()
 
 QTabWidget* TabbedPlotWidget::tabWidget()
 {
-  return ui->tabWidget;
+  return _tabWidget;
 }
 
 const QTabWidget* TabbedPlotWidget::tabWidget() const
 {
-  return ui->tabWidget;
+  return _tabWidget;
 }
 
 void TabbedPlotWidget::addTab(PlotDocker* docker)
 {
   if (!docker)
   {
+    // this must be done before ant PlotDocker is created
+    ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasTabsMenuButton, false);
+    ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasUndockButton, false);
+    ads::CDockManager::setConfigFlag(ads::CDockManager::AlwaysShowTabs, true);
+    ads::CDockManager::setConfigFlag(ads::CDockManager::EqualSplitOnInsertion, true);
+    ads::CDockManager::setConfigFlag(ads::CDockManager::OpaqueSplitterResize, true);
+
     docker = new PlotDocker("plot", _mapped_data, this);
     tabWidget()->addTab(docker, QString("plot"));
 
@@ -192,12 +201,12 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
 
 void TabbedPlotWidget::setStreamingMode(bool streaming_mode)
 {
-  ui->buttonLinkHorizontalScale->setEnabled(!streaming_mode);
+  //ui->buttonLinkHorizontalScale->setEnabled(!streaming_mode);
 }
 
 TabbedPlotWidget::~TabbedPlotWidget()
 {
-  delete ui;
+
 }
 
 void TabbedPlotWidget::on_renameCurrentTab()
@@ -323,9 +332,10 @@ void TabbedPlotWidget::on_renameCurrentTab()
 
 void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
 {
-  ui->addTabButton->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
-  ui->pushButtonShowLabel->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
-  ui->buttonLinkHorizontalScale->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
+  // TODO
+  //ui->addTabButton->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
+  //ui->pushButtonShowLabel->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
+  //ui->buttonLinkHorizontalScale->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
 }
 
 /*
@@ -619,5 +629,5 @@ TabbedPlotWidget* TabbedPlotWidget::instance(const QString& key)
 
 void TabbedPlotWidget::setControlsVisible(bool visible)
 {
-  ui->widgetControls->setVisible(visible);
+  // ui->widgetControls->setVisible(visible);
 }

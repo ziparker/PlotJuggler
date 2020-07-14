@@ -10,7 +10,7 @@ QT5_WRAP_UI ( UI_SRC
     mainwindow.ui
     removecurvedialog.ui
     curvecolorpick.ui
-    tabbedplotwidget.ui
+
     support_dialog.ui
     curvelist_panel.ui
     preferences_dialog.ui

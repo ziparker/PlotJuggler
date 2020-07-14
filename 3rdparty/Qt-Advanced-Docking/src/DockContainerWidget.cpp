@@ -299,8 +299,9 @@ public:
 	CDockSplitter* newSplitter(Qt::Orientation orientation, QWidget* parent = nullptr)
 	{
 		CDockSplitter* s = new CDockSplitter(orientation, parent);
-		s->setOpaqueResize(CDockManager::testConfigFlag(CDockManager::OpaqueSplitterResize));
+    s->setOpaqueResize(CDockManager::testConfigFlag(CDockManager::OpaqueSplitterResize));
 		s->setChildrenCollapsible(false);
+    s->setHandleWidth(1);
 		return s;
 	}
 

@@ -7,11 +7,6 @@
 #include <QDomDocument>
 #include "plot_docker.h"
 
-namespace Ui
-{
-class TabbedPlotWidget;
-}
-
 class TabbedPlotWidget : public QWidget
 {
   Q_OBJECT
@@ -89,7 +84,11 @@ private:
     HIDDEN
   };
 
-  Ui::TabbedPlotWidget* ui;
+  QTabWidget* _tabWidget;
+
+  QPushButton* _buttonHorizontalLink;
+  QPushButton* _buttonLegend;
+  QPushButton* _buttonAddTab;
 
   QAction* _action_renameTab;
   // TODO QAction* _action_savePlots;

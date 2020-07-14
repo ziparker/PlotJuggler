@@ -2617,3 +2617,24 @@ void MainWindow::on_playbackStep_valueChanged(double step)
   ui->timeSlider->setFocus();
   ui->timeSlider->setRealStepValue(step);
 }
+
+void MainWindow::on_actionLoadStyleSheet_triggered()
+{
+  QSettings settings;
+  QString directory_path = settings.value("MainWindow.loadStyleSheetDirectory", QDir::currentPath()).toString();
+
+  QString fileName = QFileDialog::getOpenFileName(this, tr("Load StyleSheet"), directory_path, tr("(*.qss)"));
+  if (fileName.isEmpty())
+  {
+    return;
+  }
+
+  QFile file(fileName);
+  if( file.open(QFile::ReadOnly) )
+  {
+    dynamic_cast<QApplication*>(QCoreApplication::instance())->setStyleSheet(file.readAll());
+  }
+
+  directory_path = QFileInfo(fileName).absolutePath();
+  settings.setValue("MainWindow.loadStyleSheetDirectory", directory_path);
+}

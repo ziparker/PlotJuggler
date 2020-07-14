@@ -214,6 +214,7 @@ void DockWidgetPrivate::setupScrollArea()
 	ScrollArea = new QScrollArea(_this);
 	ScrollArea->setObjectName("dockWidgetScrollArea");
 	ScrollArea->setWidgetResizable(true);
+  ScrollArea->setFrameShape(QFrame::NoFrame);
 	Layout->addWidget(ScrollArea);
 }
 
@@ -228,7 +229,7 @@ CDockWidget::CDockWidget(const QString &title, QWidget *parent) :
 	d->Layout->setSpacing(0);
 	setLayout(d->Layout);
 	setWindowTitle(title);
-	setObjectName(title);
+  setObjectName(title);
 
 	d->TabWidget = componentsFactory()->createDockWidgetTab(this);
     d->ToggleViewAction = new QAction(title, this);

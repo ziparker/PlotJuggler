@@ -946,6 +946,7 @@
     <addaction name="separator"/>
     <addaction name="actionFunctionEditor"/>
     <addaction name="actionSaveAllPlotTabs"/>
+    <addaction name="actionLoadStyleSheet"/>
    </widget>
    <widget class="QMenu" name="menuData">
     <property name="title">
@@ -1077,11 +1078,6 @@
     <string>Ctrl+Shift+X</string>
    </property>
   </action>
-  <action name="actionLoad_stylesheet">
-   <property name="text">
-    <string>Load stylesheet</string>
-   </property>
-  </action>
   <action name="actionPreferences">
    <property name="text">
     <string>Preferences...</string>
@@ -1094,6 +1090,11 @@
    </property>
    <property name="text">
     <string>Share the love</string>
+   </property>
+  </action>
+  <action name="actionLoadStyleSheet">
+   <property name="text">
+    <string>Load StyleSheet</string>
    </property>
   </action>
  </widget>
