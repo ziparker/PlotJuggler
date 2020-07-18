@@ -237,5 +237,13 @@
         <file>resources/svg/datetime.svg</file>
         <file>resources/svg/link.svg</file>
         <file>resources/svg/legend.svg</file>
+        <file>style_light/line_horizontal.png</file>
+        <file>style_light/line_horizontal_disabled.png</file>
+        <file>style_light/line_horizontal_focus.png</file>
+        <file>style_light/line_horizontal_pressed.png</file>
+        <file>style_light/line_vertical.png</file>
+        <file>style_light/line_vertical_disabled.png</file>
+        <file>style_light/line_vertical_focus.png</file>
+        <file>style_light/line_vertical_pressed.png</file>
     </qresource>
 </RCC>

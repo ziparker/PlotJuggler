@@ -508,12 +508,40 @@ QListView::indicator:indeterminate {
   image: url(":/style_dark/checkbox_indeterminate.png");
 }
 
-QTreeView::indicator:indeterminate:hover, QTreeView::indicator:indeterminate:focus, QTreeView::indicator:indeterminate:pressed,
+QTreeView::indicator:indeterminate:hover,
+QTreeView::indicator:indeterminate:focus,
+QTreeView::indicator:indeterminate:pressed,
 QListView::indicator:indeterminate:hover,
 QListView::indicator:indeterminate:focus,
 QListView::indicator:indeterminate:pressed {
   image: url(":/style_dark/checkbox_indeterminate_focus.png");
 }
 
+QSplitter {
+  spacing: 0px;
+  padding: 0px;
+  margin: 0px;
+}
 
+QSplitter::handle {
+  background-color: transparent;
+  border: 0px solid transparent;
+  spacing: 0px;
+  padding: 1px;
+  margin: 0px;
+}
+
+QSplitter::handle:hover {
+  background-color: #666666;
+}
+
+QSplitter::handle:horizontal {
+  width: 5px;
+  image: url(":/style_dark/line_vertical.png");
+}
+
+QSplitter::handle:vertical {
+  height: 5px;
+  image: url(":/style_dark/line_horizontal.png");
+}
 
