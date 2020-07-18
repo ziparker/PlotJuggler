@@ -53,6 +53,10 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
   _tabWidget = new QTabWidget(this);
   _tabWidget->setTabsClosable(true);
   _tabWidget->setMovable(true);
+
+  connect(_tabWidget->tabBar(), &QTabBar::tabBarDoubleClicked,
+          this, &TabbedPlotWidget::on_renameCurrentTab);
+
   main_layout->addWidget(_tabWidget);
 
   connect(_tabWidget, &QTabWidget::currentChanged,
@@ -60,17 +64,14 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
 
   tabWidget()->tabBar()->installEventFilter(this);
 
-  _action_renameTab = new QAction(tr("Rename tab"), this);
-  connect(_action_renameTab, &QAction::triggered, this, &TabbedPlotWidget::on_renameCurrentTab);
 
   // TODO _action_savePlots = new QAction(tr("&Save plots to file"), this);
   // TODO connect(_action_savePlots, &QAction::triggered, this, &TabbedPlotWidget::on_savePlotsToFile);
 
-  _tab_menu = new QMenu(this);
-  _tab_menu->addAction(_action_renameTab);
-  _tab_menu->addSeparator();
-  //_tab_menu->addAction(_action_savePlots);
-  _tab_menu->addSeparator();
+//  _tab_menu = new QMenu(this);
+//  _tab_menu->addSeparator();
+//  //_tab_menu->addAction(_action_savePlots);
+//  _tab_menu->addSeparator();
 
   connect(this, &TabbedPlotWidget::destroyed, main_window, &MainWindow::on_tabbedAreaDestroyed);
   connect(this, &TabbedPlotWidget::matrixAdded, main_window, &MainWindow::onPlotMatrixAdded);
@@ -85,6 +86,7 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
   _buttonAddTab = new QPushButton("",this);
   _buttonAddTab->setFlat(true);
   _buttonAddTab->setFixedSize( QSize(28,28));
+  _buttonAddTab->setFocusPolicy(Qt::NoFocus);
 
   connect(_buttonAddTab, &QPushButton::pressed, this, &TabbedPlotWidget::on_addTabButton_pressed);
 }
@@ -115,6 +117,7 @@ const QTabWidget* TabbedPlotWidget::tabWidget() const
 
 void TabbedPlotWidget::addTab(PlotDocker* docker)
 {
+  static int tab_suffix_count = 1;
   if (!docker)
   {
     // this must be done before ant PlotDocker is created
@@ -124,8 +127,9 @@ void TabbedPlotWidget::addTab(PlotDocker* docker)
     ads::CDockManager::setConfigFlag(ads::CDockManager::EqualSplitOnInsertion, true);
     ads::CDockManager::setConfigFlag(ads::CDockManager::OpaqueSplitterResize, true);
 
-    docker = new PlotDocker("plot", _mapped_data, this);
-    tabWidget()->addTab(docker, QString("plot"));
+    auto tab_name = QString("tab%1").arg(tab_suffix_count++);
+    docker = new PlotDocker(tab_name, _mapped_data, this);
+    tabWidget()->addTab(docker, tab_name);
 
     QApplication::processEvents();
     emit matrixAdded(docker);
@@ -137,8 +141,26 @@ void TabbedPlotWidget::addTab(PlotDocker* docker)
     tabWidget()->addTab(docker, docker->name());
   }
 
-  tabWidget()->setCurrentWidget(docker);
+  int index = tabWidget()->count() - 1;
+
+  QWidget* button_widget = new QWidget();
+  QHBoxLayout* layout = new QHBoxLayout(button_widget);
+  layout->setSpacing(2);
+  layout->setMargin(0);
+
+  QPushButton* close_button = new QPushButton();
+  close_button->setIcon(LoadSvgIcon(":/resources/svg/close-button.svg", "light"));
+  close_button->setFixedSize( QSize(16,16));
+  close_button->setFlat(true);
+  connect(close_button, &QPushButton::pressed,
+          this, [this](){ on_tabWidget_tabCloseRequested(tabWidget()->tabBar()->currentIndex());} );
+
+  layout->addWidget(close_button);
+  tabWidget()->tabBar()->setTabButton(index, QTabBar::RightSide, button_widget);
+
   docker->setHorizontalLink(_horizontal_link);
+
+  tabWidget()->setCurrentWidget(docker);
 }
 
 QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument& doc) const
@@ -231,9 +253,8 @@ void TabbedPlotWidget::on_renameCurrentTab()
   int idx = tabWidget()->tabBar()->currentIndex();
 
   bool ok = true;
-  QString newName = QInputDialog::getText(this, tr("Change Name of the selected tab"), tr("Insert New Tab Name"),
+  QString newName = QInputDialog::getText(this, tr("Change the tab name"), tr("New name:"),
                                           QLineEdit::Normal, tabWidget()->tabText(idx), &ok);
-
   if (ok)
   {
     tabWidget()->setTabText(idx, newName);
@@ -444,7 +465,10 @@ void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
   }
   for (int i=0; i<tabWidget()->count(); i++ )
   {
-    // TODO  ? _tabWidget->tabBar()->tabButton(i, QTabBar::RightSide)->setHidden( i!=index );
+    auto button = _tabWidget->tabBar()->tabButton(i, QTabBar::RightSide);
+    if( button ){
+      button->setHidden( i!=index );
+    }
   }
 }
 
@@ -452,47 +476,26 @@ void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
 {
   PlotDocker* tab = dynamic_cast<PlotDocker*>( tabWidget()->widget(index) );
 
-  bool close_confirmed = true;
-  if (tab->plotCount() == 1)
+  // first add then delete.
+  // Otherwise currentPlotGrid might be empty
+  if (tabWidget()->count() == 1)
   {
-    if (tab->plotAt(0)->isEmpty())
-    {
-      close_confirmed = false;
-    }
+    on_addTabButton_pressed();
   }
 
-  QMessageBox::StandardButton do_remove = QMessageBox::Yes;
+  PlotDocker* docker = static_cast<PlotDocker*>(tabWidget()->widget(index));
 
-  if (close_confirmed)
+  for (unsigned p = 0; p < docker->plotCount(); p++)
   {
-    tabWidget()->setCurrentIndex(index);
-    QApplication::processEvents();
-
-    do_remove = QMessageBox::question(this, tr("Warning"), tr("Do you really want to destroy this tab?\n"),
-                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    PlotWidget* plot = docker->plotAt(p);
+    plot->detachAllCurves();
+    plot->deleteLater();
   }
-  if (do_remove == QMessageBox::Yes)
-  {
-    // first add then delete.
-    // Otherwise currentPlotGrid might be empty
-    if (tabWidget()->count() == 1)
-    {
-      on_addTabButton_pressed();
-    }
+  docker->deleteLater();
 
-    PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(index));
+  tabWidget()->removeTab(index);
+  emit undoableChangeHappened();
 
-    for (unsigned p = 0; p < matrix->plotCount(); p++)
-    {
-      PlotWidget* plot = matrix->plotAt(p);
-      plot->detachAllCurves();
-      plot->deleteLater();
-    }
-    matrix->deleteLater();
-
-    tabWidget()->removeTab(index);
-    emit undoableChangeHappened();
-  }
 }
 
 void TabbedPlotWidget::on_buttonLinkHorizontalScale_toggled(bool checked)
@@ -556,43 +559,43 @@ bool TabbedPlotWidget::eventFilter(QObject* obj, QEvent* event)
 
       if (mouse_event->button() == Qt::RightButton)
       {
-        QMenu* submenu = new QMenu("Move tab to...");
-        _tab_menu->addMenu(submenu);
+        //QMenu* submenu = new QMenu("Move tab to...");
+       // _tab_menu->addMenu(submenu);
 
-        QSignalMapper* signalMapper = new QSignalMapper(submenu);
+       // QSignalMapper* signalMapper = new QSignalMapper(submenu);
 
         //-----------------------------------
 //        QAction* action_new_window = submenu->addAction("New Window");
 //        submenu->addSeparator();
 //        connect(action_new_window, &QAction::triggered, this, &TabbedPlotWidget::on_moveTabIntoNewWindow);
 
-        //-----------------------------------
-        for (auto& it : TabbedPlotWidget::_instances)
-        {
-          QString name = it.first;
-          TabbedPlotWidget* tabbed_menu = it.second;
-          if (tabbed_menu != this)
-          {
-            QAction* action = submenu->addAction(name);
-            connect(action, SIGNAL(triggered()), signalMapper, SLOT(map()));
-            signalMapper->setMapping(action, name);
-          }
-        }
+//        //-----------------------------------
+//        for (auto& it : TabbedPlotWidget::_instances)
+//        {
+//          QString name = it.first;
+//          TabbedPlotWidget* tabbed_menu = it.second;
+//          if (tabbed_menu != this)
+//          {
+//            QAction* action = submenu->addAction(name);
+//            connect(action, SIGNAL(triggered()), signalMapper, SLOT(map()));
+//            signalMapper->setMapping(action, name);
+//          }
+//        }
 
-        connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(on_requestTabMovement(QString)));
+//        connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(on_requestTabMovement(QString)));
 
-        //-------------------------------
-//        QIcon iconSave;
-//        iconSave.addFile(tr(":/%1/save.png").arg(theme), QSize(26, 26));
-//        _action_savePlots->setIcon(iconSave);
+//        //-------------------------------
+////        QIcon iconSave;
+////        iconSave.addFile(tr(":/%1/save.png").arg(theme), QSize(26, 26));
+////        _action_savePlots->setIcon(iconSave);
 
-//        QIcon iconNewWin;
-//        iconNewWin.addFile(tr(":/%1/stacks.png").arg(theme), QSize(16, 16));
-//        action_new_window->setIcon(iconNewWin);
+////        QIcon iconNewWin;
+////        iconNewWin.addFile(tr(":/%1/stacks.png").arg(theme), QSize(16, 16));
+////        action_new_window->setIcon(iconNewWin);
 
-        _tab_menu->exec(mouse_event->globalPos());
-        //-------------------------------
-        submenu->deleteLater();
+//        _tab_menu->exec(mouse_event->globalPos());
+//        //-------------------------------
+//        submenu->deleteLater();
       }
     }
   }

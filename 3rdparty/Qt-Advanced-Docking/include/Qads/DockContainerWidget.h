@@ -81,11 +81,6 @@ protected:
 	virtual bool event(QEvent *e) override;
 
 	/**
-	 * Access function for the internal root splitter
-	 */
-	QSplitter* rootSplitter() const;
-
-	/**
 	 * Helper function for creation of the root splitter
 	 */
 	void createRootSplitter();
@@ -165,6 +160,12 @@ public:
 	 * Virtual Destructor
 	 */
 	virtual ~CDockContainerWidget();
+
+
+  /**
+   * Access function for the internal root splitter
+   */
+  QSplitter* rootSplitter() const;
 
 	/**
 	 * Adds dockwidget into the given area.

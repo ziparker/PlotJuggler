@@ -92,10 +92,9 @@ private:
   QPushButton* _buttonLegend;
   QPushButton* _buttonAddTab;
 
-  QAction* _action_renameTab;
   // TODO QAction* _action_savePlots;
 
-  QMenu* _tab_menu;
+ // QMenu* _tab_menu;
 
   const QString _name;
 
