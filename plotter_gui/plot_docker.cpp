@@ -3,7 +3,7 @@
 #include <QBoxLayout>
 #include <QMouseEvent>
 #include <QSplitter>
-
+#include <QDebug>
 
 class SplittableComponentsFactory : public ads::CDockComponentsFactory
 {
@@ -22,10 +22,33 @@ PlotDocker::PlotDocker(QString name, PlotDataMapRef& datamap, QWidget *parent):
 {
   ads::CDockComponentsFactory::setFactory(new SplittableComponentsFactory());
 
+  auto disableButtons = [this](bool only_one)
+
+  {
+     for (int i=0; i< dockAreaCount(); i++){
+      auto dock_widget = static_cast<DockWidget*>(dockArea(i)->currentDockWidget());
+      dock_widget->toolBar()->buttonClose()->setEnabled( !only_one );
+      dock_widget->toolBar()->buttonFullscreen()->setEnabled( !only_one );
+
+      if( only_one && dock_widget->toolBar()->buttonFullscreen()->isChecked() )
+      {
+        dock_widget->toolBar()->buttonFullscreen()->setChecked( false );
+      }
+    }
+  };
+
+  connect(this, &ads::CDockManager::dockWidgetRemoved,
+          this, [disableButtons, this]() { disableButtons( dockAreaCount() == 1 ); });
+
+  connect(this, &ads::CDockManager::dockAreaCreated,
+          this, [disableButtons](){ disableButtons( false ); });
+
   DockWidget* widget = new DockWidget(datamap, this);
 
   auto area = addDockWidget(ads::TopDockWidgetArea, widget);
   area->setAllowedAreas(ads::OuterDockAreas);
+
+  disableButtons(true);
 }
 
 QString PlotDocker::name() const{
@@ -172,11 +195,11 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   setFeature(ads::CDockWidget::DockWidgetFloatable, false);
   setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
 
-  DraggableToolbar* toolbar = new DraggableToolbar(this);
-  toolbar->label()->setText("Plot");
-  qobject_cast<QBoxLayout*>(layout())->insertWidget(0, toolbar);
+  _toolbar = new DraggableToolbar(this);
+  _toolbar->label()->setText("Plot");
+  qobject_cast<QBoxLayout*>(layout())->insertWidget(0, _toolbar);
 
-  QObject::connect(toolbar->buttonSplitHorizontal(), &QPushButton::pressed,
+  QObject::connect(_toolbar->buttonSplitHorizontal(), &QPushButton::pressed,
                    [&datamap, parent, this]() {
     auto new_widget = new DockWidget(datamap, parent);
     PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
@@ -187,7 +210,7 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
     parent_docker->plotWidgetAdded( new_widget->plotWidget() );
   });
 
-  QObject::connect(toolbar->buttonSplitVertical(), &QPushButton::pressed,
+  QObject::connect(_toolbar->buttonSplitVertical(), &QPushButton::pressed,
                    [&datamap, parent, this]() {
     auto new_widget = new DockWidget(datamap, parent);
     PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
@@ -198,20 +221,21 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
     parent_docker->plotWidgetAdded( new_widget->plotWidget() );
   });
 
-  auto FullscreenAction = [=](bool checked) {
+  auto FullscreenAction = [=](bool is_fullscreen) {
     PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
     for(int i = 0; i < parent_docker->dockAreaCount(); i++ )
     {
       auto area = parent_docker->dockArea(i);
       if (area != dockAreaWidget())
       {
-        area->setVisible(!checked);
+        area->setVisible(!is_fullscreen);
+        this->toolBar()->buttonClose()->setEnabled(!is_fullscreen);
       }
     }
   };
 
-  QObject::connect(toolbar->buttonFullscreen(), &QPushButton::toggled, FullscreenAction );
-  QObject::connect(toolbar->buttonClose(), &QPushButton::pressed, [=]()
+  QObject::connect(_toolbar->buttonFullscreen(), &QPushButton::toggled, FullscreenAction );
+  QObject::connect(_toolbar->buttonClose(), &QPushButton::pressed, [=]()
                    { dockAreaWidget()->closeArea();} );
 
 

@@ -54,6 +54,14 @@ public:
   {
     return static_cast<PlotWidget*>( widget() );
   }
+
+  DraggableToolbar* toolBar()
+  {
+    return _toolbar;
+  }
+
+private:
+  DraggableToolbar* _toolbar;
 };
 
 class PlotDocker: public ads::CDockManager
