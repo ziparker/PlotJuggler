@@ -22,33 +22,21 @@ PlotDocker::PlotDocker(QString name, PlotDataMapRef& datamap, QWidget *parent):
 {
   ads::CDockComponentsFactory::setFactory(new SplittableComponentsFactory());
 
-  auto disableButtons = [this](bool only_one)
-
+  auto CreateFirstWidget = [&]()
   {
-     for (int i=0; i< dockAreaCount(); i++){
-      auto dock_widget = static_cast<DockWidget*>(dockArea(i)->currentDockWidget());
-      dock_widget->toolBar()->buttonClose()->setEnabled( !only_one );
-      dock_widget->toolBar()->buttonFullscreen()->setEnabled( !only_one );
+    if( dockAreaCount() == 0)
+    {
+      DockWidget* widget = new DockWidget(datamap, this);
 
-      if( only_one && dock_widget->toolBar()->buttonFullscreen()->isChecked() )
-      {
-        dock_widget->toolBar()->buttonFullscreen()->setChecked( false );
-      }
+      auto area = addDockWidget(ads::TopDockWidgetArea, widget);
+      area->setAllowedAreas(ads::OuterDockAreas);
     }
   };
 
   connect(this, &ads::CDockManager::dockWidgetRemoved,
-          this, [disableButtons, this]() { disableButtons( dockAreaCount() == 1 ); });
+          this, CreateFirstWidget);
 
-  connect(this, &ads::CDockManager::dockAreaCreated,
-          this, [disableButtons](){ disableButtons( false ); });
-
-  DockWidget* widget = new DockWidget(datamap, this);
-
-  auto area = addDockWidget(ads::TopDockWidgetArea, widget);
-  area->setAllowedAreas(ads::OuterDockAreas);
-
-  disableButtons(true);
+  CreateFirstWidget();
 }
 
 QString PlotDocker::name() const{
