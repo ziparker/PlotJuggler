@@ -9,6 +9,7 @@
 #include <QApplication>
 #include <QPainter>
 #include <QTabWidget>
+#include <QPushButton>
 #include <QHBoxLayout>
 #include "qwt_plot_renderer.h"
 #include "mainwindow.h"
@@ -47,9 +48,15 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
   _horizontal_link = true;
 
   QHBoxLayout* main_layout = new QHBoxLayout(this);
+  main_layout->setMargin(0);
 
   _tabWidget = new QTabWidget(this);
+  _tabWidget->setTabsClosable(true);
+  _tabWidget->setMovable(true);
   main_layout->addWidget(_tabWidget);
+
+  connect(_tabWidget, &QTabWidget::currentChanged,
+          this, &TabbedPlotWidget::on_tabWidget_currentChanged);
 
   tabWidget()->tabBar()->installEventFilter(this);
 
@@ -75,9 +82,19 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
 
  // TODO  _tabWidget->setCornerWidget(ui->widgetControls, Qt::TopRightCorner );
 
-  QToolButton *tb = new QToolButton();
-  tb->setText("+");
-  _tabWidget->setCornerWidget(tb, Qt::TopLeftCorner);
+  _buttonAddTab = new QPushButton("",this);
+  _buttonAddTab->setFlat(true);
+  _buttonAddTab->setFixedSize( QSize(28,28));
+
+  connect(_buttonAddTab, &QPushButton::pressed, this, &TabbedPlotWidget::on_addTabButton_pressed);
+}
+
+void TabbedPlotWidget::paintEvent(QPaintEvent *event)
+{
+  QWidget::paintEvent(event);
+
+  auto size = tabWidget()->tabBar()->size();
+  _buttonAddTab->move( QPoint( size.width(), 0) );
 }
 
 
@@ -333,7 +350,7 @@ void TabbedPlotWidget::on_renameCurrentTab()
 void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
 {
   // TODO
-  //ui->addTabButton->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
+  _buttonAddTab->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
   //ui->pushButtonShowLabel->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
   //ui->buttonLinkHorizontalScale->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
 }
@@ -424,6 +441,10 @@ void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
   if (tab)
   {
     tab->replot();
+  }
+  for (int i=0; i<tabWidget()->count(); i++ )
+  {
+    // TODO  ? _tabWidget->tabBar()->tabButton(i, QTabBar::RightSide)->setHidden( i!=index );
   }
 }
 
@@ -603,6 +624,7 @@ void TabbedPlotWidget::onLabelStatusChanged()
     }
   }
 }
+
 
 void TabbedPlotWidget::closeEvent(QCloseEvent* event)
 {

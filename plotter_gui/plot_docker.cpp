@@ -2,6 +2,7 @@
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QMouseEvent>
+#include <QSplitter>
 
 
 class SplittableComponentsFactory : public ads::CDockComponentsFactory
@@ -36,13 +37,95 @@ void PlotDocker::setName(QString name)
   _name = name;
 }
 
+
+QDomElement saveChildNodesState(QDomDocument &doc, QWidget* widget)
+{
+    QSplitter* splitter = qobject_cast<QSplitter*>(widget);
+    if (splitter)
+    {
+      QDomElement splitter_elem = doc.createElement("DockSplitter");
+      splitter_elem.setAttribute("orientation", (splitter->orientation() == Qt::Horizontal) ? "|" : "-");
+      splitter_elem.setAttribute("count", QString::number(splitter->count()));
+
+      QString sizes_str;
+      int total_size = 0;
+      for(int size : splitter->sizes() )
+      {
+        total_size += size;
+      }
+      for(int size : splitter->sizes() )
+      {
+        sizes_str += QString::number( double(size)/double(total_size) );
+        sizes_str += ";";
+      }
+      sizes_str.resize( sizes_str.size()-1 );
+      splitter_elem.setAttribute("sizes", sizes_str);
+
+      for (int i = 0; i < splitter->count(); ++i)
+      {
+        auto child = saveChildNodesState(doc, splitter->widget(i));
+        splitter_elem.appendChild( child );
+      }
+      return splitter_elem;
+    }
+    else{
+      ads::CDockAreaWidget* dockArea = qobject_cast<ads::CDockAreaWidget*>(widget);
+      if (dockArea)
+      {
+        QDomElement area_elem = doc.createElement("DockArea");
+        for (int i = 0; i < dockArea->dockWidgetsCount(); ++i)
+        {
+          auto dock_widget = dynamic_cast<DockWidget*>( dockArea->dockWidget(i) );
+          if( dock_widget )
+          {
+            auto plotwidget_elem = dock_widget->plotWidget()->xmlSaveState(doc);
+            area_elem.appendChild( plotwidget_elem );
+          }
+        }
+        return area_elem;
+      }
+    }
+    return {};
+}
+
 QDomElement PlotDocker::xmlSaveState(QDomDocument &doc) const
 {
-  return {};
+  QDomElement containers_elem = doc.createElement("Tab");
+
+  containers_elem.setAttribute("containers", dockContainers().count());
+
+  for (CDockContainerWidget* container : dockContainers())
+  {
+    QDomElement elem = doc.createElement("Container");
+    auto child = saveChildNodesState(doc, container->rootSplitter());
+    elem.appendChild(child);
+    containers_elem.appendChild(elem);
+  }
+
+  return containers_elem;
 }
 
 bool PlotDocker::xmlLoadState(QDomElement &element)
 {
+
+  if (!isHidden())
+  {
+    hide();
+  }
+
+  QDomElement qads_alem = element.firstChildElement("Tab");
+
+  for (auto container_elem = qads_alem.firstChildElement("Container");
+       !container_elem.isNull();
+       container_elem = container_elem.nextSiblingElement("Container"))
+  {
+
+  }
+
+  if (isHidden())
+  {
+    show();
+  }
   return {};
 }
 

@@ -2,6 +2,7 @@
 #define PLOT_DOCKER_H
 
 #include <QDomElement>
+#include <QXmlStreamReader>
 #include "Qads/DockManager.h"
 #include "Qads/DockWidget.h"
 #include "Qads/DockAreaWidget.h"
@@ -69,7 +70,7 @@ public:
 
   QDomElement xmlSaveState(QDomDocument& doc) const;
 
-  bool xmlLoadState(QDomElement& element);
+  bool xmlLoadState(QDomElement& tabbed_area);
 
   int plotCount() const;
 

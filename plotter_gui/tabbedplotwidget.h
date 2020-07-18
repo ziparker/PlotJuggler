@@ -76,6 +76,8 @@ private slots:
 
   // TODO void onMoveWidgetIntoNewTab(QString plot_name);
 
+  void paintEvent(QPaintEvent* event) override;
+
 private:
   enum LabelStatus
   {
