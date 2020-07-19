@@ -16,7 +16,9 @@ public:
   {
   } MainWindowArea;
 
-  explicit TabbedPlotWidget(QString name, QMainWindow* main_window, PlotDocker* first_tab, PlotDataMapRef& mapped_data,
+  explicit TabbedPlotWidget(QString name,
+                            QMainWindow* main_window,
+                            PlotDataMapRef& mapped_data,
                             QMainWindow* parent);
 
   PlotDocker* currentTab();
@@ -25,7 +27,7 @@ public:
 
   const QTabWidget* tabWidget() const;
 
-  void addTab(PlotDocker* docker = nullptr);
+  PlotDocker* addTab(QString name);
 
   QDomElement xmlSaveState(QDomDocument& doc) const;
 
@@ -119,7 +121,7 @@ protected:
 
 signals:
   void created();
-  void undoableChangeHappened();
+  void undoableChange();
   void tabAdded(PlotDocker*);
   void sendTabToNewWindow(PlotDocker*);
 };

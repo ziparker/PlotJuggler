@@ -19,7 +19,7 @@
 
 std::map<QString, TabbedPlotWidget*> TabbedPlotWidget::_instances;
 
-TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDocker *first_tab,
+TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow,
                                    PlotDataMapRef& mapped_data, QMainWindow* parent)
   : QWidget(parent)
   , _mapped_data(mapped_data)
@@ -75,13 +75,11 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
 
   connect(this, &TabbedPlotWidget::destroyed, main_window, &MainWindow::on_tabbedAreaDestroyed);
   connect(this, &TabbedPlotWidget::tabAdded, main_window, &MainWindow::onPlottabAdded);
-  connect(this, &TabbedPlotWidget::undoableChangeHappened, main_window, &MainWindow::onUndoableChange);
+  connect(this, &TabbedPlotWidget::undoableChange, main_window, &MainWindow::onUndoableChange);
 
   // TODO connect(_tabWidget, &TabWidget::movingPlotWidgetToTab, this, &TabbedPlotWidget::onMoveWidgetIntoNewTab);
 
-  this->addTab(first_tab);
-
- // TODO  _tabWidget->setCornerWidget(ui->widgetControls, Qt::TopRightCorner );
+  this->addTab({});
 
   _buttonAddTab = new QPushButton("",this);
   _buttonAddTab->setFlat(true);
@@ -115,30 +113,30 @@ const QTabWidget* TabbedPlotWidget::tabWidget() const
   return _tabWidget;
 }
 
-void TabbedPlotWidget::addTab(PlotDocker* docker)
+PlotDocker* TabbedPlotWidget::addTab(QString tab_name)
 {
   static int tab_suffix_count = 1;
-  if (!docker)
-  {
-    // this must be done before ant PlotDocker is created
-    ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasTabsMenuButton, false);
-    ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasUndockButton, false);
-    ads::CDockManager::setConfigFlag(ads::CDockManager::AlwaysShowTabs, true);
-    ads::CDockManager::setConfigFlag(ads::CDockManager::EqualSplitOnInsertion, true);
-    ads::CDockManager::setConfigFlag(ads::CDockManager::OpaqueSplitterResize, true);
 
-    auto tab_name = QString("tab%1").arg(tab_suffix_count++);
-    docker = new PlotDocker(tab_name, _mapped_data, this);
-    tabWidget()->addTab(docker, tab_name);
+  // this must be done before ant PlotDocker is created
+  ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasTabsMenuButton, false);
+  ads::CDockManager::setConfigFlag(ads::CDockManager::DockAreaHasUndockButton, false);
+  ads::CDockManager::setConfigFlag(ads::CDockManager::AlwaysShowTabs, true);
+  ads::CDockManager::setConfigFlag(ads::CDockManager::EqualSplitOnInsertion, true);
+  ads::CDockManager::setConfigFlag(ads::CDockManager::OpaqueSplitterResize, true);
 
-    emit tabAdded(docker);
-    // we need to send the signal for the very first widget
-    emit docker->plotWidgetAdded( docker->plotAt(0) );
-  }
-  else
+  if( tab_name.isEmpty() )
   {
-    tabWidget()->addTab(docker, docker->name());
+    tab_name = QString("tab%1").arg(tab_suffix_count++);
   }
+
+  auto docker = new PlotDocker(tab_name, _mapped_data, this);
+  connect( docker, &PlotDocker::undoableChange, this, &TabbedPlotWidget::undoableChange );
+
+  tabWidget()->addTab(docker, tab_name);
+
+  emit tabAdded(docker);
+  // we need to send the signal for the very first widget
+  emit docker->plotWidgetAdded( docker->plotAt(0) );
 
   int index = tabWidget()->count() - 1;
 
@@ -161,6 +159,7 @@ void TabbedPlotWidget::addTab(PlotDocker* docker)
 
   tabWidget()->setCurrentWidget(docker);
 
+  return docker;
 }
 
 QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument& doc) const
@@ -195,11 +194,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
        docker_elem = docker_elem.nextSiblingElement("Tab"))
   {
     QString tab_name = docker_elem.attribute("tab_name");
-
-    PlotDocker* docker = new PlotDocker(tab_name, _mapped_data, this);
-    addTab( docker );
-    emit tabAdded( docker );
-    emit docker->plotWidgetAdded( docker->plotAt(0) );
+    PlotDocker* docker = addTab( tab_name );
 
     bool success = docker->xmlLoadState(docker_elem);
 
@@ -209,7 +204,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
     }
   }
 
-  // remove olf ones
+  // remove old ones
   for(int i=0; i<prev_count; i++ )
   {
     tabWidget()->removeTab(0);
@@ -223,6 +218,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
     tabWidget()->setCurrentIndex(current_index);
   }
 
+  emit undoableChange();
   return true;
 }
 
@@ -365,21 +361,6 @@ void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
 }
 
 /*
-void TabbedPlotWidget::printPlotsNames()
-{
-  for (int t = 0; t < tabWidget()->count(); t++)
-  {
-    PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(t));
-    for (unsigned row = 0; row < matrix->rowsCount(); row++)
-    {
-      for (unsigned col = 0; col < matrix->colsCount(); col++)
-      {
-        PlotWidget* plot = matrix->plotAt(row, col);
-        qDebug() << plot->windowTitle() << " at " << row << "/" << col << "/" << t;
-      }
-    }
-  }
-}
 
 void TabbedPlotWidget::onMoveWidgetIntoNewTab(QString plot_name)
 {
@@ -423,13 +404,13 @@ void TabbedPlotWidget::onMoveWidgetIntoNewTab(QString plot_name)
   src_matrix->removeEmpty();
   src_matrix->updateLayout();
   dst_matrix->updateLayout();
-  emit undoableChangeHappened();
+  emit undoableChange();
 }*/
 
 void TabbedPlotWidget::on_addTabButton_pressed()
 {
   addTab(nullptr);
-  emit undoableChangeHappened();
+  emit undoableChange();
 }
 
 void TabbedPlotWidget::on_tabWidget_currentChanged(int index)
@@ -482,7 +463,7 @@ void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
   docker->deleteLater();
 
   tabWidget()->removeTab(index);
-  emit undoableChangeHappened();
+  emit undoableChange();
 
 }
 
@@ -507,7 +488,7 @@ void TabbedPlotWidget::on_requestTabMovement(const QString& destination_name)
   const QString& tab_name = this->tabWidget()->tabText(index);
 
   destination_widget->tabWidget()->addTab(tab_to_move, tab_name);
-  emit undoableChangeHappened();
+  emit undoableChange();
 }
 
 void TabbedPlotWidget::on_moveTabIntoNewWindow()

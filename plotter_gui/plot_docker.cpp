@@ -31,11 +31,14 @@ PlotDocker::PlotDocker(QString name, PlotDataMapRef& datamap, QWidget *parent):
 
       auto area = addDockWidget(ads::TopDockWidgetArea, widget);
       area->setAllowedAreas(ads::OuterDockAreas);
+
+      connect(widget, &DockWidget::undoableChange, this, &PlotDocker::undoableChange);
     }
   };
 
-  connect(this, &ads::CDockManager::dockWidgetRemoved,
-          this, CreateFirstWidget);
+  connect(this, &ads::CDockManager::dockWidgetRemoved, this, CreateFirstWidget);
+
+  connect(this, &ads::CDockManager::dockAreasAdded, this, &PlotDocker::undoableChange);
 
   CreateFirstWidget();
 }
@@ -272,8 +275,12 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   };
 
   QObject::connect(_toolbar->buttonFullscreen(), &QPushButton::toggled, FullscreenAction );
+
   QObject::connect(_toolbar->buttonClose(), &QPushButton::pressed, [=]()
-                   { dockAreaWidget()->closeArea();} );
+                   {
+                     dockAreaWidget()->closeArea();
+                     this->undoableChange();
+                   } );
 
 
   //this->setMinimumSize( QSize(400,300) );
@@ -293,6 +300,8 @@ DockWidget* DockWidget::spliHorizontal()
 
   parent_docker->plotWidgetAdded( new_widget->plotWidget() );
 
+  connect(this, &DockWidget::undoableChange, parent_docker, &PlotDocker::undoableChange);
+
   return new_widget;
 }
 
@@ -301,11 +310,14 @@ DockWidget* DockWidget::spliVertical()
   auto new_widget = new DockWidget(_datamap, qobject_cast<QWidget*>(parent()));
 
   PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
+
   auto area = parent_docker->addDockWidget(ads::BottomDockWidgetArea,
                                            new_widget, dockAreaWidget());
 
   area->setAllowedAreas(ads::OuterDockAreas);
   parent_docker->plotWidgetAdded( new_widget->plotWidget() );
+
+  connect(this, &DockWidget::undoableChange, parent_docker, &PlotDocker::undoableChange);
 
   return new_widget;
 }

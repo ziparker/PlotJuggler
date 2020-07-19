@@ -63,6 +63,9 @@ private:
   DraggableToolbar* _toolbar;
 
   PlotDataMapRef& _datamap;
+
+signals:
+  void undoableChange();
 };
 
 class PlotDocker: public ads::CDockManager
@@ -102,6 +105,8 @@ private:
 signals:
 
   void plotWidgetAdded(PlotWidget*);
+
+  void undoableChange();
 
 };
 

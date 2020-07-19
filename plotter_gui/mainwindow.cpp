@@ -93,7 +93,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   connect(ui->playbackRate, &QDoubleSpinBox::editingFinished, this, [this]() { ui->playbackRate->clearFocus(); });
   connect(ui->playbackStep, &QDoubleSpinBox::editingFinished, this, [this]() { ui->playbackStep->clearFocus(); });
 
-  _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, nullptr, _mapped_plot_data, this);
+  _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, _mapped_plot_data, this);
 
   connect(this, &MainWindow::stylesheetChanged, _main_tabbed_widget, &TabbedPlotWidget::on_stylesheetChanged);
 
@@ -214,7 +214,7 @@ void MainWindow::onUndoableChange()
     _undo_states.pop_front();
   _undo_states.push_back(xmlSaveState());
   _redo_states.clear();
-  //    qDebug() << "undo " << _undo_states.size();
+  qDebug() << "undo " << _undo_states.size();
 }
 
 void MainWindow::onRedoInvoked()
@@ -230,7 +230,7 @@ void MainWindow::onRedoInvoked()
 
     xmlLoadState(state_document);
   }
-  //    qDebug() << "undo " << _undo_states.size();
+  qDebug() << "undo " << _undo_states.size();
   _disable_undo_logging = false;
 }
 
@@ -248,7 +248,7 @@ void MainWindow::onUndoInvoked()
 
     xmlLoadState(state_document);
   }
-  //    qDebug() << "undo " << _undo_states.size();
+  qDebug() << "undo " << _undo_states.size();
   _disable_undo_logging = false;
 }
 
