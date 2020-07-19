@@ -50,18 +50,19 @@ class DockWidget: public ads::CDockWidget
 public:
   DockWidget(PlotDataMapRef& datamap, QWidget* parent = nullptr);
 
-  PlotWidget* plotWidget()
-  {
-    return static_cast<PlotWidget*>( widget() );
-  }
+  PlotWidget* plotWidget();
 
-  DraggableToolbar* toolBar()
-  {
-    return _toolbar;
-  }
+  DraggableToolbar* toolBar();
+
+public slots:
+  DockWidget* spliHorizontal();
+
+  DockWidget* spliVertical();
 
 private:
   DraggableToolbar* _toolbar;
+
+  PlotDataMapRef& _datamap;
 };
 
 class PlotDocker: public ads::CDockManager
@@ -78,7 +79,7 @@ public:
 
   QDomElement xmlSaveState(QDomDocument& doc) const;
 
-  bool xmlLoadState(QDomElement& tabbed_area);
+  bool xmlLoadState(QDomElement& tab_element);
 
   int plotCount() const;
 
@@ -90,12 +91,17 @@ public:
 
   void replot();
 
+private:
+
+  void restoreSplitter(QDomElement elem, DockWidget* widget);
+
+  QString _name;
+
+  PlotDataMapRef& _datamap;
+
 signals:
 
   void plotWidgetAdded(PlotWidget*);
-
-private:
-  QString _name;
 
 };
 

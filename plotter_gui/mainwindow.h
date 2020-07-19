@@ -59,7 +59,7 @@ public slots:
   void onTimeSlider_valueChanged(double abs_time);
 
   void onPlotAdded(PlotWidget* plot);
-  void onPlotMatrixAdded(PlotDocker* matrix);
+  void onPlottabAdded(PlotDocker* matrix);
 
   void on_tabbedAreaDestroyed(QObject* object);
 

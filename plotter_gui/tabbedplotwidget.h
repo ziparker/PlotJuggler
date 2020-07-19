@@ -120,7 +120,7 @@ protected:
 signals:
   void created();
   void undoableChangeHappened();
-  void matrixAdded(PlotDocker*);
+  void tabAdded(PlotDocker*);
   void sendTabToNewWindow(PlotDocker*);
 };
 

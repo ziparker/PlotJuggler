@@ -74,7 +74,7 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow, PlotDo
 //  _tab_menu->addSeparator();
 
   connect(this, &TabbedPlotWidget::destroyed, main_window, &MainWindow::on_tabbedAreaDestroyed);
-  connect(this, &TabbedPlotWidget::matrixAdded, main_window, &MainWindow::onPlotMatrixAdded);
+  connect(this, &TabbedPlotWidget::tabAdded, main_window, &MainWindow::onPlottabAdded);
   connect(this, &TabbedPlotWidget::undoableChangeHappened, main_window, &MainWindow::onUndoableChange);
 
   // TODO connect(_tabWidget, &TabWidget::movingPlotWidgetToTab, this, &TabbedPlotWidget::onMoveWidgetIntoNewTab);
@@ -131,8 +131,7 @@ void TabbedPlotWidget::addTab(PlotDocker* docker)
     docker = new PlotDocker(tab_name, _mapped_data, this);
     tabWidget()->addTab(docker, tab_name);
 
-    QApplication::processEvents();
-    emit matrixAdded(docker);
+    emit tabAdded(docker);
     // we need to send the signal for the very first widget
     emit docker->plotWidgetAdded( docker->plotAt(0) );
   }
@@ -161,6 +160,7 @@ void TabbedPlotWidget::addTab(PlotDocker* docker)
   docker->setHorizontalLink(_horizontal_link);
 
   tabWidget()->setCurrentWidget(docker);
+
 }
 
 QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument& doc) const
@@ -179,7 +179,7 @@ QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument& doc) const
     tabbed_area.appendChild(element);
   }
 
-  QDomElement current_plotmatrix = doc.createElement("currentPlotMatrix");
+  QDomElement current_plotmatrix = doc.createElement("currentTabIndex");
   current_plotmatrix.setAttribute("index", tabWidget()->currentIndex());
   tabbed_area.appendChild(current_plotmatrix);
 
@@ -188,53 +188,41 @@ QDomElement TabbedPlotWidget::xmlSaveState(QDomDocument& doc) const
 
 bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
 {
-  int num_tabs = tabWidget()->count();
-  int index = 0;
+  int prev_count = tabWidget()->count();
 
-  QDomElement plotmatrix_el;
-
-  for (plotmatrix_el = tabbed_area.firstChildElement("plotmatrix"); !plotmatrix_el.isNull();
-       plotmatrix_el = plotmatrix_el.nextSiblingElement("plotmatrix"))
+  for (auto docker_elem = tabbed_area.firstChildElement("Tab");
+       !docker_elem.isNull();
+       docker_elem = docker_elem.nextSiblingElement("Tab"))
   {
-    // add if tabs are too few
-    if (index == num_tabs)
-    {
-      this->addTab(NULL);
-      num_tabs++;
-    }
-    PlotDocker* plot_matrix = static_cast<PlotDocker*>(tabWidget()->widget(index));
-    bool success = plot_matrix->xmlLoadState(plotmatrix_el);
+    QString tab_name = docker_elem.attribute("tab_name");
 
-    // read tab name
-    if (plotmatrix_el.hasAttribute("tab_name"))
-    {
-      QString tab_name = plotmatrix_el.attribute("tab_name");
-      tabWidget()->setTabText(index, tab_name);
-      plot_matrix->setName(tab_name);
-    }
+    PlotDocker* docker = new PlotDocker(tab_name, _mapped_data, this);
+    addTab( docker );
+    emit tabAdded( docker );
+    emit docker->plotWidgetAdded( docker->plotAt(0) );
+
+    bool success = docker->xmlLoadState(docker_elem);
 
     if (!success)
     {
       return false;
     }
-
-    index++;
   }
 
-  // remove if tabs are too much
-  while (num_tabs > index)
+  // remove olf ones
+  for(int i=0; i<prev_count; i++ )
   {
-    tabWidget()->removeTab(num_tabs - 1);
-    num_tabs--;
+    tabWidget()->removeTab(0);
   }
 
-  QDomElement current_plotmatrix = tabbed_area.firstChildElement("currentPlotMatrix");
-  int current_index = current_plotmatrix.attribute("index").toInt();
+  QDomElement current_tab = tabbed_area.firstChildElement("currentTabIndex");
+  int current_index = current_tab.attribute("index").toInt();
 
   if (current_index >= 0 && current_index < tabWidget()->count())
   {
     tabWidget()->setCurrentIndex(current_index);
   }
+
   return true;
 }
 

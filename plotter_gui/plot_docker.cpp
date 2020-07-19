@@ -1,4 +1,5 @@
 #include "plot_docker.h"
+#include "Qads/DockSplitter.h"
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QMouseEvent>
@@ -18,7 +19,7 @@ public:
 
 
 PlotDocker::PlotDocker(QString name, PlotDataMapRef& datamap, QWidget *parent):
-  ads::CDockManager(parent), _name(name)
+  ads::CDockManager(parent), _name(name), _datamap(datamap)
 {
   ads::CDockComponentsFactory::setFactory(new SplittableComponentsFactory());
 
@@ -112,32 +113,96 @@ QDomElement PlotDocker::xmlSaveState(QDomDocument &doc) const
     elem.appendChild(child);
     containers_elem.appendChild(elem);
   }
-
   return containers_elem;
 }
 
-bool PlotDocker::xmlLoadState(QDomElement &element)
+void PlotDocker::restoreSplitter(QDomElement elem, DockWidget* widget)
 {
+  QString orientation_str = elem.attribute("orientation");
+  int splitter_count = elem.attribute("count").toInt();
 
+  // Check if the orientation string is right
+  if (!orientation_str.startsWith("|") && !orientation_str.startsWith("-"))
+  {
+    return;
+  }
+
+  Qt::Orientation orientation = orientation_str.startsWith("|") ? Qt::Horizontal : Qt::Vertical;
+
+  std::vector<DockWidget*> widgets(splitter_count);
+
+  widgets[0] = widget;
+  for (int i=1; i<splitter_count; i++ )
+  {
+    widget = (orientation == Qt::Horizontal) ?
+                 widget->spliHorizontal() : widget->spliVertical();
+    widgets[i] = widget;
+  }
+
+  int tot_size = 0;
+
+  for (int i=0; i<splitter_count; i++ )
+  {
+    tot_size += ( orientation == Qt::Horizontal ) ? widgets[i]->width() : widgets[i]->height();
+  }
+
+  auto sizes_str = elem.attribute("sizes").splitRef(";", QString::SkipEmptyParts);
+  QList<int> sizes;
+
+  for (int i=0; i<splitter_count; i++ )
+  {
+    sizes.push_back( static_cast<int>(sizes_str[i].toDouble() * tot_size) );
+  }
+
+  auto splitter = ads::internal::findParent<ads::CDockSplitter*>(widget);
+  splitter->setSizes(sizes);
+
+  int index = 0;
+
+  QDomElement child_elem = elem.firstChildElement();
+  while (child_elem.isNull() == false)
+  {
+    if( child_elem.tagName() == "DockArea" )
+    {
+      auto plot_elem = child_elem.firstChildElement("plot");
+      widgets[index++]->plotWidget()->xmlLoadState(plot_elem);
+    }
+    else if( child_elem.tagName() == "DockSplitter" )
+    {
+       restoreSplitter(child_elem, widgets[index++]);
+    }
+    else{
+      return;
+    }
+
+    child_elem = child_elem.nextSiblingElement();
+  }
+};
+
+bool PlotDocker::xmlLoadState(QDomElement &tab_element)
+{
   if (!isHidden())
   {
     hide();
   }
 
-  QDomElement qads_alem = element.firstChildElement("Tab");
-
-  for (auto container_elem = qads_alem.firstChildElement("Container");
+  for (auto container_elem = tab_element.firstChildElement("Container");
        !container_elem.isNull();
        container_elem = container_elem.nextSiblingElement("Container"))
   {
-
+    auto splitter_elem = container_elem.firstChildElement("DockSplitter");
+    if( !splitter_elem.isNull())
+    {
+      auto widget = dynamic_cast<DockWidget*>( dockArea(0)->currentDockWidget());
+      restoreSplitter(splitter_elem, widget );
+    }
   }
 
   if (isHidden())
   {
     show();
   }
-  return {};
+  return true;
 }
 
 int PlotDocker::plotCount() const
@@ -172,7 +237,7 @@ void PlotDocker::replot()
 }
 
 DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
-  ads::CDockWidget("Plot", parent)
+  ads::CDockWidget("Plot", parent), _datamap(datamap)
 {
   setFrameShape(QFrame::NoFrame);
 
@@ -188,26 +253,10 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   qobject_cast<QBoxLayout*>(layout())->insertWidget(0, _toolbar);
 
   QObject::connect(_toolbar->buttonSplitHorizontal(), &QPushButton::pressed,
-                   [&datamap, parent, this]() {
-    auto new_widget = new DockWidget(datamap, parent);
-    PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
-    auto area = parent_docker->addDockWidget(ads::RightDockWidgetArea,
-                                             new_widget, dockAreaWidget());
-    area->setAllowedAreas(ads::OuterDockAreas);
-
-    parent_docker->plotWidgetAdded( new_widget->plotWidget() );
-  });
+                   this, &DockWidget::spliHorizontal);
 
   QObject::connect(_toolbar->buttonSplitVertical(), &QPushButton::pressed,
-                   [&datamap, parent, this]() {
-    auto new_widget = new DockWidget(datamap, parent);
-    PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
-    auto area = parent_docker->addDockWidget(ads::BottomDockWidgetArea,
-                                             new_widget, dockAreaWidget());
-    area->setAllowedAreas(ads::OuterDockAreas);
-
-    parent_docker->plotWidgetAdded( new_widget->plotWidget() );
-  });
+                   this, &DockWidget::spliVertical);
 
   auto FullscreenAction = [=](bool is_fullscreen) {
     PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
@@ -229,6 +278,46 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
 
   //this->setMinimumSize( QSize(400,300) );
   this->layout()->setMargin(10);
+}
+
+DockWidget* DockWidget::spliHorizontal()
+{
+  // create a sibling (same parent)
+  auto new_widget = new DockWidget(_datamap, qobject_cast<QWidget*>(parent()));
+
+  PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
+  auto area = parent_docker->addDockWidget(ads::RightDockWidgetArea,
+                                           new_widget, dockAreaWidget());
+
+  area->setAllowedAreas(ads::OuterDockAreas);
+
+  parent_docker->plotWidgetAdded( new_widget->plotWidget() );
+
+  return new_widget;
+}
+
+DockWidget* DockWidget::spliVertical()
+{
+  auto new_widget = new DockWidget(_datamap, qobject_cast<QWidget*>(parent()));
+
+  PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
+  auto area = parent_docker->addDockWidget(ads::BottomDockWidgetArea,
+                                           new_widget, dockAreaWidget());
+
+  area->setAllowedAreas(ads::OuterDockAreas);
+  parent_docker->plotWidgetAdded( new_widget->plotWidget() );
+
+  return new_widget;
+}
+
+PlotWidget *DockWidget::plotWidget()
+{
+  return static_cast<PlotWidget*>( widget() );
+}
+
+DraggableToolbar *DockWidget::toolBar()
+{
+  return _toolbar;
 }
 
 static void setButtonIcon(QPushButton* button, const QString& file)

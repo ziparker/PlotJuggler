@@ -579,7 +579,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
   plot->configureTracker(_tracker_param);
 }
 
-void MainWindow::onPlotMatrixAdded(PlotDocker* matrix)
+void MainWindow::onPlottabAdded(PlotDocker* matrix)
 {
   connect(matrix, &PlotDocker::plotWidgetAdded, this, &MainWindow::onPlotAdded);
   // TODO  connect(matrix, &PlotMatrix::undoableChange, this, &MainWindow::onUndoableChange);
@@ -717,10 +717,9 @@ bool MainWindow::xmlLoadState(QDomDocument state_document)
   checkAllCurvesFromLayout(root);
   //-----------------------------------------------------
 
-  for (QDomElement tw = root.firstChildElement("tabbed_widget"); tw.isNull() == false; tw = tw.nextSiblingElement("tabb"
-                                                                                                                  "ed_"
-                                                                                                                  "widg"
-                                                                                                                  "et"))
+  for (QDomElement tw = root.firstChildElement("tabbed_widget");
+       tw.isNull() == false;
+       tw = tw.nextSiblingElement("tabbed_widget"))
   {
     TabbedPlotWidget* tabwidget = TabbedPlotWidget::instance(tw.attribute("name"));
     tabwidget->xmlLoadState(tw);
