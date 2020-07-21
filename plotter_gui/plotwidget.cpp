@@ -1478,6 +1478,18 @@ void PlotWidget::on_changeColor(QString curve_name, QColor new_color)
   }
 }
 
+void PlotWidget::changeCurveStyle(QwtPlotCurve::CurveStyle style)
+{
+  _curve_style = style;
+  for (auto& it : _curve_list)
+  {
+    auto& curve = it.second;
+    curve->setPen(curve->pen().color(), (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0);
+    curve->setStyle(_curve_style);
+  }
+  replot();
+}
+
 void PlotWidget::on_showPoints_triggered()
 {
   if (_curve_style == QwtPlotCurve::Lines)
@@ -1493,13 +1505,7 @@ void PlotWidget::on_showPoints_triggered()
     _curve_style = QwtPlotCurve::Lines;
   }
 
-  for (auto& it : _curve_list)
-  {
-    auto& curve = it.second;
-    curve->setPen(curve->pen().color(), (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0);
-    curve->setStyle(_curve_style);
-  }
-  replot();
+  changeCurveStyle(_curve_style);
 }
 
 void PlotWidget::on_externallyResized(const QRectF& rect)

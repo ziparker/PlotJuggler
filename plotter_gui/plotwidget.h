@@ -87,6 +87,13 @@ public:
     return _time_offset;
   }
 
+  void changeCurveStyle(QwtPlotCurve::CurveStyle style);
+
+  QwtPlotCurve::CurveStyle curveStyle() const
+  {
+    return _curve_style;
+  }
+
 protected:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;

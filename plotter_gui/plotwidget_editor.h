@@ -3,6 +3,8 @@
 
 #include <QDialog>
 #include "plotwidget.h"
+#include "color_wheel.hpp"
+#include "color_preview.hpp"
 
 namespace Ui {
 class plotwidget_editor;
@@ -16,8 +18,34 @@ public:
   explicit PlotwidgetEditor(PlotWidget* plotwidget, QWidget *parent = nullptr);
   ~PlotwidgetEditor();
 
+public slots:
+  void onColorChanged(QColor c);
+
+private slots:
+
+  void on_editColotText_textChanged(const QString &arg1);
+
+  void on_radioLines_toggled(bool checked);
+
+  void on_radioPoints_toggled(bool checked);
+
+  void on_radioBoth_toggled(bool checked);
+
+  void on_buttonBox_accepted();
+
+  void on_buttonBox_rejected();
+
+  void on_checkBoxMax_toggled(bool checked);
+
+  void on_checkBoxMin_toggled(bool checked);
+
 private:
   Ui::plotwidget_editor *ui;
+
+  color_widgets::ColorWheel* _color_wheel;
+  color_widgets::ColorPreview* _color_preview;
+  PlotWidget* _plotwidget;
+  void setupColorWidget();
 };
 
 #endif // PLOTWIDGET_EDITOR_H
