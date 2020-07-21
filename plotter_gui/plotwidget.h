@@ -77,6 +77,16 @@ public:
 
   void setConstantRatioXY(bool active);
 
+  PlotDataMapRef& datamap()
+  {
+    return _mapped_data;
+  }
+
+  double timeOffset() const
+  {
+    return _time_offset;
+  }
+
 protected:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
@@ -86,6 +96,8 @@ protected:
   bool canvasEventFilter(QEvent* event);
 
   QColor getColorHint(PlotData* data);
+
+
 
 signals:
   void swapWidgetsRequested(PlotWidget* source, PlotWidget* destination);

@@ -18,6 +18,7 @@ QT5_WRAP_UI ( UI_SRC
     new_release_dialog.ui
 
     plot_docker_toolbar.ui
+    plotwidget_editor.ui
 
     transforms/function_editor.ui
     transforms/transform_selector.ui
@@ -38,7 +39,7 @@ SET( PLOTTER_SRC
     new_release_dialog.cpp
     plotlegend.cpp
     plotwidget.cpp
-#    plotmatrix.cpp
+    plotwidget_editor.cpp
     plot_docker.cpp
     plotmagnifier.cpp
     preferences_dialog.cpp

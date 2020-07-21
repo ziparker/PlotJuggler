@@ -29,6 +29,8 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow,
 {
   MainWindow* main_window = dynamic_cast<MainWindow*>(_main_window);
 
+  setContentsMargins(4,0,6,6);
+
   if (main_window == parent)
   {
     _parent_type = "main_window";

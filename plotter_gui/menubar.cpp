@@ -29,13 +29,13 @@ void MenuBar::paintEvent(QPaintEvent* event)
   {
     QPoint topleft(this->rect().width() - text_width - 12, 0);
     QSize rect_size(_width_plot, this->rect().height());
-    painter.setPen(QColor("#ce0e73"));
+    painter.setPen(QColor("#dd22dd"));
     painter.drawText(QRect(topleft, rect_size), Qt::AlignHCenter | Qt::AlignVCenter, "Plot");
   }
   {
     QPoint topleft(this->rect().width() - _width_juggler - 10, 0);
     QSize rect_size(_width_juggler, this->rect().height());
-    painter.setPen(QColor("#1b72cf"));
+    painter.setPen(QColor("#2288ff"));
     painter.drawText(QRect(topleft, rect_size), Qt::AlignHCenter | Qt::AlignVCenter, "Juggler");
   }
 }

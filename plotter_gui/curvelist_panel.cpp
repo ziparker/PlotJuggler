@@ -37,6 +37,12 @@ CurveListPanel::CurveListPanel(const CustomPlotMap& mapped_math_plots, QWidget* 
   ui->verticalLayout->addWidget(_tree_view, 1);
   ui->verticalLayoutCustom->addWidget(_custom_view, 1);
 
+  // set black background
+//  QPalette pal = palette();
+//  pal.setColor(QPalette::Background, QColor("#808182"));
+//  setAutoFillBackground(true);
+//  setPalette(pal);
+
   QSettings settings;
 
   int point_size = settings.value("FilterableListWidget/table_point_size", 9).toInt();

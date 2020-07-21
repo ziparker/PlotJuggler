@@ -1,4 +1,5 @@
 #include "plot_docker.h"
+#include "plotwidget_editor.h"
 #include "Qads/DockSplitter.h"
 #include <QPushButton>
 #include <QBoxLayout>
@@ -282,6 +283,14 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
                      this->undoableChange();
                    } );
 
+  _toolbar->buttonEdit()->setCheckable(false);
+  QObject::connect(_toolbar->buttonEdit(), &QPushButton::clicked, this, [=]()
+                   {
+                     auto editor_dialog = new PlotwidgetEditor(plot_widget, this);
+                     editor_dialog->exec();
+                     editor_dialog->deleteLater();
+                     _toolbar->showToolButtons(false);
+                   } );
 
   //this->setMinimumSize( QSize(400,300) );
   this->layout()->setMargin(10);

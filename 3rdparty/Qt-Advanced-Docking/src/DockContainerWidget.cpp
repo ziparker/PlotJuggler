@@ -301,7 +301,7 @@ public:
 		CDockSplitter* s = new CDockSplitter(orientation, parent);
     s->setOpaqueResize(CDockManager::testConfigFlag(CDockManager::OpaqueSplitterResize));
 		s->setChildrenCollapsible(false);
-    s->setHandleWidth(1);
+  //  s->setHandleWidth(2);
 		return s;
 	}
 

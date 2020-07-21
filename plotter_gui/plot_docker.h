@@ -29,6 +29,8 @@ public:
   QPushButton* buttonEdit() { return ui->buttonEdit; }
   QPushButton* buttonClose() { return ui->buttonClose; }
 
+  void showToolButtons(bool show);
+
 private:
   void mousePressEvent(QMouseEvent* ev) override;
   void mouseReleaseEvent(QMouseEvent* ev) override;
@@ -39,8 +41,6 @@ private:
   ads::CDockWidget* parent_;
   Ui::DraggableToolbar *ui;
   bool displayed_toolbar_;
-
-  void showToolButtons(bool show);
 };
 
 class DockWidget: public ads::CDockWidget

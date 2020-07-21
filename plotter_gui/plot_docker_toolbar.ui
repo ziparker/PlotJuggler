@@ -147,6 +147,9 @@
            <height>20</height>
           </size>
          </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
          <property name="flat">
           <bool>true</bool>
          </property>
