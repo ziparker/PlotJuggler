@@ -229,13 +229,6 @@ void PlotWidget::buildActions()
   connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::detachAllCurves);
   connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::undoableChange);
 
-  _action_changeColorsDialog = new QAction("&Change colors", this);
-  _action_changeColorsDialog->setStatusTip(tr("Change the color of the curves"));
-  connect(_action_changeColorsDialog, &QAction::triggered, this, &PlotWidget::on_changeColorsDialog_triggered);
-
-  _action_showPoints = new QAction("&Show lines and/or points", this);
-  connect(_action_showPoints, &QAction::triggered, this, &PlotWidget::on_showPoints_triggered);
-
   _action_editLimits = new QAction(tr("&Edit Axis Limits"), this);
   connect(_action_editLimits, &QAction::triggered, this, &PlotWidget::on_editAxisLimits_triggered);
 
@@ -343,8 +336,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
 
   setIcon(_action_removeCurve, "remove_list.png");
   setIcon(_action_removeAllCurves, "remove.png");
-  setIcon(_action_changeColorsDialog, "colored_charts.png");
-  setIcon(_action_showPoints, "point_chart.png");
   setIcon(_action_zoomOutMaximum, "zoom_max.png");
   setIcon(_action_zoomOutHorizontally, "zoom_horizontal.png");
   setIcon(_action_zoomOutVertically, "zoom_vertical.png");
@@ -355,8 +346,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   menu.addAction(_action_removeCurve);
   menu.addAction(_action_removeAllCurves);
   menu.addSeparator();
-  menu.addAction(_action_changeColorsDialog);
-  menu.addAction(_action_showPoints);
   menu.addSeparator();
   menu.addAction(_action_editLimits);
   menu.addAction(_action_zoomOutMaximum);
@@ -374,8 +363,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
 
   _action_removeCurve->setEnabled(!_curve_list.empty());
   _action_removeAllCurves->setEnabled(!_curve_list.empty());
-  _action_changeColorsDialog->setEnabled(!_curve_list.empty());
-
   _action_noTransform->setEnabled(!_xy_mode);
   _action_1stDerivativeTransform->setEnabled(!_xy_mode);
   _action_2ndDerivativeTransform->setEnabled(!_xy_mode);
@@ -420,11 +407,10 @@ bool PlotWidget::addCurve(const std::string& name)
     return false;
   }
 
+  QColor color = getColorHint(&data);
+  curve->setPen(color, (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0);
   curve->setStyle(_curve_style);
 
-  QColor color = getColorHint(&data);
-
-  curve->setPen(color, (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0);
   curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
 
   curve->attach(this);
@@ -505,11 +491,12 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curv
     return false;
   }
 
-  curve->setStyle(_curve_style);
 
   QColor color = getColorHint(nullptr);
 
   curve->setPen(color, (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0);
+  curve->setStyle(_curve_style);
+
   curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
 
   curve->attach(this);
@@ -795,9 +782,7 @@ QDomElement PlotWidget::xmlSaveState(QDomDocument& doc) const
     QwtPlotCurve* curve = it.second;
     QDomElement curve_el = doc.createElement("curve");
     curve_el.setAttribute("name", QString::fromStdString(name));
-    curve_el.setAttribute("R", curve->pen().color().red());
-    curve_el.setAttribute("G", curve->pen().color().green());
-    curve_el.setAttribute("B", curve->pen().color().blue());
+    curve_el.setAttribute("color", curve->pen().color().name());
     curve_el.setAttribute("custom_transform", _curves_transform.at(name));
     curve_el.setAttribute("custom_transform", _curves_transform.at(name));
 
@@ -874,10 +859,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
   {
     QString curve_name = curve_element.attribute("name");
     std::string curve_name_std = curve_name.toStdString();
-    int R = curve_element.attribute("R").toInt();
-    int G = curve_element.attribute("G").toInt();
-    int B = curve_element.attribute("B").toInt();
-    QColor color(R, G, B);
+    QColor color( curve_element.attribute("color"));
 
     bool error = false;
     if (!isXYPlot())
@@ -1011,12 +993,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
     {
       _curve_style = QwtPlotCurve::Dots;
     }
-
-    for (auto& it : _curve_list)
-    {
-      auto& curve = it.second;
-      curve->setStyle(_curve_style);
-    }
+    changeCurveStyle(_curve_style);
   }
 
   replot();
@@ -1441,7 +1418,7 @@ void PlotWidget::launchRemoveCurveDialog()
   }
 }
 
-void PlotWidget::on_changeColorsDialog_triggered()
+std::map<std::string, QColor> PlotWidget::getCurveColors() const
 {
   std::map<std::string, QColor> color_by_name;
 
@@ -1449,24 +1426,14 @@ void PlotWidget::on_changeColorsDialog_triggered()
   {
     const auto& curve_name = it.first;
     auto& curve = it.second;
-    color_by_name.insert(std::make_pair(curve_name, curve->pen().color()));
+    color_by_name.insert( {curve_name, curve->pen().color()} );
   }
-
-  CurveColorPick* dialog = new CurveColorPick(color_by_name, this);
-
-  connect(dialog, &CurveColorPick::changeColor, this, &PlotWidget::on_changeColor, Qt::DirectConnection);
-
-  dialog->exec();
-
-  if (dialog->anyColorModified())
-  {
-    emit undoableChange();
-  }
+  return color_by_name;
 }
 
-void PlotWidget::on_changeColor(QString curve_name, QColor new_color)
+void PlotWidget::on_changeCurveColor(const std::string& curve_name, QColor new_color)
 {
-  auto it = _curve_list.find(curve_name.toStdString());
+  auto it = _curve_list.find(curve_name);
   if (it != _curve_list.end())
   {
     auto& curve = it->second;

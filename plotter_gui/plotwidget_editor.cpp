@@ -1,18 +1,54 @@
 #include "plotwidget_editor.h"
 #include "ui_plotwidget_editor.h"
+#include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QSettings>
+#include <QListWidgetItem>
+#include <QLabel>
 
+class RowWidget: public QWidget
+{
+public:
+  RowWidget(QString text, QColor color): QWidget()
+  {
+    auto layout = new QHBoxLayout();
+    setLayout( layout );
+    _text = new QLabel(text, this);
+    layout->addWidget(_text);
+
+    setColor(color);
+  }
+
+  QString text() const
+  {
+    return _text->text();
+  }
+
+  void setColor(QColor color)
+  {
+    setStyleSheet( QString("color: %1;").arg(color.name()));
+    _color = color;
+  }
+
+  QColor color() const
+  {
+    return _color;
+  }
+
+private:
+  QLabel* _text;
+  QColor _color;
+};
 
 PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   QDialog(parent),
-  ui(new Ui::plotwidget_editor)
+  ui(new Ui::plotwidget_editor),
+  _plotwidget_origin(plotwidget)
 {
   ui->setupUi(this);
   auto layout = new QVBoxLayout();
 
 //  setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
-
 
   QPalette pal = palette();
   pal.setColor(QPalette::Background, Qt::white);
@@ -35,9 +71,22 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
 
   _plotwidget->zoomOut(false);
 
+  setupTable();
+
   QSettings settings;
   restoreGeometry(settings.value("PlotwidgetEditor.geometry").toByteArray());
 
+  if( _plotwidget->curveStyle() == QwtPlotCurve::Lines)
+  {
+    ui->radioLines->setChecked(true);
+  }
+  else if( _plotwidget->curveStyle() == QwtPlotCurve::Dots)
+  {
+    ui->radioPoints->setChecked(true);
+  }
+  else {
+    ui->radioBoth->setChecked(true);
+  }
 }
 
 PlotwidgetEditor::~PlotwidgetEditor()
@@ -51,6 +100,14 @@ PlotwidgetEditor::~PlotwidgetEditor()
 void PlotwidgetEditor::onColorChanged(QColor c)
 {
   ui->editColotText->setText( c.name() );
+
+  auto item =  ui->listWidget->currentItem();
+  if( item ){
+    auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
+    row_widget->setColor( c );
+
+    _plotwidget->on_changeCurveColor( row_widget->text().toStdString(), c );
+  }
 }
 
 void PlotwidgetEditor::setupColorWidget()
@@ -76,9 +133,29 @@ void PlotwidgetEditor::setupColorWidget()
   _color_wheel->setColor(Qt::blue);
 }
 
+void PlotwidgetEditor::setupTable()
+{
+  std::map<std::string, QColor> colors = _plotwidget->getCurveColors();
+
+  int row = 0;
+  for (auto& it : colors)
+  {
+    auto text = QString::fromStdString(it.first);
+    auto color = it.second;
+    auto item = new QListWidgetItem();
+  //  item->setForeground(color);
+    ui->listWidget->addItem( item );
+    auto button = new RowWidget(text, color) ;
+    item->setSizeHint( button->sizeHint() );
+    ui->listWidget->setItemWidget(item, button );
+
+    row++;
+  }
+}
+
 void PlotwidgetEditor::on_editColotText_textChanged(const QString &text)
 {
-  if( QColor::isValidColor(text))
+  if( text.size() == 7 && text[0] == '#' && QColor::isValidColor(text))
   {
     QColor col(text);
     _color_wheel->setColor( col );
@@ -114,6 +191,9 @@ void PlotwidgetEditor::on_radioBoth_toggled(bool checked)
 void PlotwidgetEditor::on_buttonBox_accepted()
 {
   this->accept();
+  QDomDocument doc;
+  auto elem = _plotwidget->xmlSaveState(doc);
+  _plotwidget_origin->xmlLoadState( elem );
 }
 
 void PlotwidgetEditor::on_buttonBox_rejected()
@@ -131,3 +211,35 @@ void PlotwidgetEditor::on_checkBoxMin_toggled(bool checked)
   ui->lineLimitMin->setEnabled(checked);
 }
 
+
+void PlotwidgetEditor::on_tableWidget_itemSelectionChanged()
+{
+//  QModelIndex index = ui->tableWidget->selectionModel()->selectedRows().first();
+//  auto item = ui->tableWidget->item( index.row(), index.column());
+//  QColor col = item->foreground().color();
+//  _color_wheel->setColor(col);
+
+}
+
+void PlotwidgetEditor::on_tableWidget_cellClicked(int row, int column)
+{
+//  for(int i=0; i< ui->tableWidget->rowCount(); i++)
+//  {
+//    auto item = ui->tableWidget->item(i, 0);
+//    if( i== row)
+//    {
+//      item->setSelected( !item->isSelected() );
+//    }
+//    else{
+//      item->setSelected(false);
+//    }
+//  }
+
+}
+
+void PlotwidgetEditor::on_listWidget_currentRowChanged(int currentRow)
+{
+  auto item =  ui->listWidget->item(currentRow);
+  auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
+  _color_wheel->setColor( row_widget->color() );
+}

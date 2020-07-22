@@ -39,13 +39,22 @@ private slots:
 
   void on_checkBoxMin_toggled(bool checked);
 
+  void on_tableWidget_itemSelectionChanged();
+
+  void on_tableWidget_cellClicked(int row, int column);
+
+  void on_listWidget_currentRowChanged(int currentRow);
+
 private:
   Ui::plotwidget_editor *ui;
 
   color_widgets::ColorWheel* _color_wheel;
   color_widgets::ColorPreview* _color_preview;
   PlotWidget* _plotwidget;
+  PlotWidget* _plotwidget_origin;
+
   void setupColorWidget();
+  void setupTable();
 };
 
 #endif // PLOTWIDGET_EDITOR_H

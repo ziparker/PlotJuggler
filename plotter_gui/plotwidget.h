@@ -94,6 +94,8 @@ public:
     return _curve_style;
   }
 
+  std::map<std::string, QColor> getCurveColors() const;
+
 protected:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
@@ -103,7 +105,6 @@ protected:
   bool canvasEventFilter(QEvent* event);
 
   QColor getColorHint(PlotData* data);
-
 
 
 signals:
@@ -149,6 +150,8 @@ public slots:
 
   void on_changeDateTimeScale(bool enable);
 
+  void on_changeCurveColor(const std::string& curve_name, QColor new_color);
+
 private slots:
 
   void on_changeToBuiltinTransforms(QString new_transform);
@@ -168,10 +171,6 @@ private slots:
 
   void canvasContextMenuTriggered(const QPoint& pos);
 
-  void on_changeColorsDialog_triggered();
-
-  void on_changeColor(QString curve_name, QColor new_color);
-
   void on_showPoints_triggered();
 
   void on_externallyResized(const QRectF& new_rect);
@@ -182,8 +181,7 @@ private:
 
   QAction* _action_removeCurve;
   QAction* _action_removeAllCurves;
-  QAction* _action_changeColorsDialog;
-  QAction* _action_showPoints;
+
   QAction* _action_zoomOutMaximum;
   QAction* _action_zoomOutHorizontally;
   QAction* _action_zoomOutVertically;
