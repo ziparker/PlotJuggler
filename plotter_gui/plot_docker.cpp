@@ -270,8 +270,9 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
       if (area != dockAreaWidget())
       {
         area->setVisible(!is_fullscreen);
-        this->toolBar()->buttonClose()->setEnabled(!is_fullscreen);
       }
+      this->toolBar()->buttonClose()->setHidden(is_fullscreen);
+      this->toolBar()->hideWidgetButtons(is_fullscreen);
     }
   };
 

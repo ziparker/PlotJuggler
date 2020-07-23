@@ -29,6 +29,12 @@ public:
   QPushButton* buttonEdit() { return ui->buttonEdit; }
   QPushButton* buttonClose() { return ui->buttonClose; }
 
+  void hideWidgetButtons(bool hide)
+  {
+    ui->labelSettings->setHidden(hide);
+    ui->widgetButtons->setHidden(hide);
+  }
+
   void showToolButtons(bool show);
 
 private:

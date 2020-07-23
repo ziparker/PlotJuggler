@@ -167,7 +167,6 @@ private slots:
   void on_copyToClipboard();
 
 private slots:
-  void launchRemoveCurveDialog();
 
   void canvasContextMenuTriggered(const QPoint& pos);
 
@@ -179,7 +178,6 @@ private:
   std::map<std::string, QwtPlotCurve*> _curve_list;
   std::map<std::string, QwtPlotMarker*> _point_marker;
 
-  QAction* _action_removeCurve;
   QAction* _action_removeAllCurves;
 
   QAction* _action_zoomOutMaximum;

@@ -29,8 +29,6 @@
 #include "qwt_scale_draw.h"
 #include "qwt_text.h"
 #include "plotwidget.h"
-#include "removecurvedialog.h"
-#include "curvecolorpick.h"
 #include "qwt_plot_renderer.h"
 #include "qwt_series_data.h"
 #include "qwt_date_scale_draw.h"
@@ -221,10 +219,6 @@ void PlotWidget::buildActions()
 {
   QIcon iconDeleteList;
 
-  _action_removeCurve = new QAction("&Remove curves", this);
-  _action_removeCurve->setStatusTip(tr("Remove one or more curves from this plot"));
-  connect(_action_removeCurve, &QAction::triggered, this, &PlotWidget::launchRemoveCurveDialog);
-
   _action_removeAllCurves = new QAction("&Remove ALL curves", this);
   connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::detachAllCurves);
   connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::undoableChange);
@@ -334,7 +328,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
     action->setIcon(icon);
   };
 
-  setIcon(_action_removeCurve, "remove_list.png");
   setIcon(_action_removeAllCurves, "remove.png");
   setIcon(_action_zoomOutMaximum, "zoom_max.png");
   setIcon(_action_zoomOutHorizontally, "zoom_horizontal.png");
@@ -343,7 +336,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   setIcon(_action_saveToFile, "save.png");
 
   QMenu menu(this);
-  menu.addAction(_action_removeCurve);
   menu.addAction(_action_removeAllCurves);
   menu.addSeparator();
   menu.addSeparator();
@@ -361,7 +353,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   menu.addAction(_action_clipboard);
   menu.addAction(_action_saveToFile);
 
-  _action_removeCurve->setEnabled(!_curve_list.empty());
   _action_removeAllCurves->setEnabled(!_curve_list.empty());
   _action_noTransform->setEnabled(!_xy_mode);
   _action_1stDerivativeTransform->setEnabled(!_xy_mode);
@@ -408,7 +399,7 @@ bool PlotWidget::addCurve(const std::string& name)
   }
 
   QColor color = getColorHint(&data);
-  curve->setPen(color, (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0);
+  curve->setPen(color, (_curve_style == QwtPlotCurve::Dots) ? 4.0 : 1.3);
   curve->setStyle(_curve_style);
 
   curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
@@ -494,7 +485,7 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curv
 
   QColor color = getColorHint(nullptr);
 
-  curve->setPen(color, (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0);
+  curve->setPen(color, (_curve_style == QwtPlotCurve::Dots) ? 4.0 : 1.3);
   curve->setStyle(_curve_style);
 
   curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
@@ -872,7 +863,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
       {
         auto added = addCurve(curve_name_std);
         curve_added = curve_added || added;
-        _curve_list[curve_name_std]->setPen(color, 1.0);
+        _curve_list[curve_name_std]->setPen(color, 1.3);
         added_curve_names.insert(curve_name_std);
       }
     }
@@ -890,7 +881,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
       {
         auto added = addCurveXY(curve_x, curve_y, curve_name);
         curve_added = curve_added || added;
-        _curve_list[curve_name_std]->setPen(color, 1.0);
+        _curve_list[curve_name_std]->setPen(color, 1.3);
         added_curve_names.insert(curve_name_std);
       }
     }
@@ -1400,24 +1391,6 @@ void PlotWidget::updateCurves()
   }
 }
 
-void PlotWidget::launchRemoveCurveDialog()
-{
-  RemoveCurveDialog* dialog = new RemoveCurveDialog(this);
-  auto prev_curve_count = _curve_list.size();
-
-  for (auto& it : _curve_list)
-  {
-    dialog->addCurveName(QString::fromStdString(it.first), it.second->pen().color());
-  }
-
-  dialog->exec();
-
-  if (prev_curve_count != _curve_list.size())
-  {
-    emit undoableChange();
-  }
-}
-
 std::map<std::string, QColor> PlotWidget::getCurveColors() const
 {
   std::map<std::string, QColor> color_by_name;
@@ -1439,7 +1412,7 @@ void PlotWidget::on_changeCurveColor(const std::string& curve_name, QColor new_c
     auto& curve = it->second;
     if (curve->pen().color() != new_color)
     {
-      curve->setPen(new_color, 1.0);
+      curve->setPen(new_color, 1.3);
     }
     replot();
   }
@@ -1451,7 +1424,7 @@ void PlotWidget::changeCurveStyle(QwtPlotCurve::CurveStyle style)
   for (auto& it : _curve_list)
   {
     auto& curve = it.second;
-    curve->setPen(curve->pen().color(), (_curve_style == QwtPlotCurve::Dots) ? 4 : 1.0);
+    curve->setPen(curve->pen().color(), (_curve_style == QwtPlotCurve::Dots) ? 4.0 : 1.3);
     curve->setStyle(_curve_style);
   }
   replot();
