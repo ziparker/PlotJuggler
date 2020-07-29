@@ -245,5 +245,6 @@
         <file>style_light/line_vertical_disabled.png</file>
         <file>style_light/line_vertical_focus.png</file>
         <file>style_light/line_vertical_pressed.png</file>
+        <file>resources/svg/remove_red.svg</file>
     </qresource>
 </RCC>

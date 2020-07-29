@@ -219,7 +219,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QGroupBox" name="groupBox">
+          <widget class="QGroupBox" name="groupBoxStyle">
            <property name="minimumSize">
             <size>
              <width>200</width>
@@ -288,7 +288,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_2">
+          <widget class="QGroupBox" name="groupBoxLimits">
            <property name="minimumSize">
             <size>
              <width>200</width>
@@ -442,7 +442,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QComboBox" name="comboBox">
+          <widget class="QComboBox" name="comboTransform">
            <item>
             <property name="text">
              <string>--- NO Transform ---</string>

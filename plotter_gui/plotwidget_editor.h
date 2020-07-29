@@ -11,6 +11,33 @@ namespace Ui {
 class plotwidget_editor;
 }
 
+class RowWidget: public QWidget
+{
+  Q_OBJECT
+
+public:
+  RowWidget(QString text, QColor color);
+
+  void enterEvent(QEvent *ev) override;
+  void leaveEvent(QEvent *ev) override;
+
+  QString text() const;
+
+  void setColor(QColor color);
+  QColor color() const;
+
+signals:
+
+  void deleteRow(QWidget* _this);
+
+private:
+  QLabel* _text;
+  QColor _color;
+  QPushButton* _delete_button;
+  QWidget* _empty_spacer;
+};
+
+
 class PlotwidgetEditor : public QDialog
 {
   Q_OBJECT
@@ -59,6 +86,8 @@ private:
   void setupColorWidget();
   void setupTable();
   void updateLimits();
+  void onDeleteRow(QWidget *w);
+  void disableWidgets();
 };
 
 #endif // PLOTWIDGET_EDITOR_H

@@ -11,50 +11,6 @@
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2;
 
-class RowWidget: public QWidget
-{
-public:
-  RowWidget(QString text, QColor color): QWidget()
-  {
-    auto layout = new QHBoxLayout();
-    setLayout( layout );
-    _text = new QLabel(text, this);
-    layout->addWidget(_text);
-
-    setColor(color);
-    _delete_button = new QPushButton(this);
-    _delete_button->setFlat(true);
-    _delete_button->setFixedSize( QSize(20,20) );
-  }
-
-  void mouseMoveEvent(QMouseEvent *ev) override
-  {
-    if (this->rect().contains(ev->pos())) {
-      // Mouse over Widget
-    }
-  }
-
-  QString text() const
-  {
-    return _text->text();
-  }
-
-  void setColor(QColor color)
-  {
-    setStyleSheet( QString("color: %1;").arg(color.name()));
-    _color = color;
-  }
-
-  QColor color() const
-  {
-    return _color;
-  }
-
-private:
-  QLabel* _text;
-  QColor _color;
-  QPushButton* _delete_button;
-};
 
 PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   QDialog(parent),
@@ -168,6 +124,43 @@ void PlotwidgetEditor::setupColorWidget()
   _color_wheel->setColor(Qt::blue);
 }
 
+void PlotwidgetEditor::onDeleteRow(QWidget* w)
+{
+  int row_count = ui->listWidget->count();
+  for(int row = 0; row < row_count; row++ )
+  {
+    auto item = ui->listWidget->item(row);
+    auto widget = ui->listWidget->itemWidget(item);
+    if( widget == w )
+    {
+      QString curve = dynamic_cast<RowWidget*>(w)->text();
+      qDebug() << "delete " << curve;
+      ui->listWidget->takeItem(row);
+      _plotwidget->removeCurve(curve.toStdString());
+      widget->deleteLater();
+      row_count--;
+      break;
+    }
+  }
+  if( row_count == 0)
+  {
+    disableWidgets();
+  }
+  _plotwidget->replot();
+}
+
+void PlotwidgetEditor::disableWidgets()
+{
+  ui->widgetColor->setEnabled(false);
+  _color_wheel->setEnabled(false);
+  _color_preview->setEnabled(false);
+
+  ui->groupBoxLimits->setEnabled(false);
+  ui->groupBoxStyle->setEnabled(false);
+
+  ui->comboTransform->setEnabled(false);
+}
+
 void PlotwidgetEditor::setupTable()
 {
   std::map<std::string, QColor> colors = _plotwidget->getCurveColors();
@@ -180,11 +173,16 @@ void PlotwidgetEditor::setupTable()
     auto item = new QListWidgetItem();
   //  item->setForeground(color);
     ui->listWidget->addItem( item );
-    auto button = new RowWidget(text, color) ;
-    item->setSizeHint( button->sizeHint() );
-    ui->listWidget->setItemWidget(item, button );
+    auto plot_row = new RowWidget(text, color) ;
+    item->setSizeHint( plot_row->sizeHint() );
+    ui->listWidget->setItemWidget(item, plot_row );
 
+    connect(plot_row, &RowWidget::deleteRow, this, [this](QWidget* w) { onDeleteRow(w); });
     row++;
+  }
+  if( row == 0 )
+  {
+    disableWidgets();
   }
 }
 
@@ -270,9 +268,21 @@ void PlotwidgetEditor::on_checkBoxMin_toggled(bool checked)
 
 void PlotwidgetEditor::on_listWidget_currentRowChanged(int currentRow)
 {
+  int row_count = ui->listWidget->count();
+  if( row_count == 0 )
+  {
+    ui->widgetWheel->setEnabled(true);
+    return;
+  }
   auto item =  ui->listWidget->item(currentRow);
   auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
-  _color_wheel->setColor( row_widget->color() );
+  if( row_widget )
+  {
+    _color_wheel->setColor( row_widget->color() );
+  }
+  else {
+    ui->widgetWheel->setEnabled(false);
+  }
 }
 
 void PlotwidgetEditor::on_pushButtonReset_clicked()
@@ -311,4 +321,63 @@ void PlotwidgetEditor::on_pushButtonSave_pressed()
   QDomDocument doc;
   auto elem = _plotwidget->xmlSaveState(doc);
   _plotwidget_origin->xmlLoadState( elem );
+}
+
+RowWidget::RowWidget(QString text, QColor color): QWidget()
+{
+  setMouseTracking(true);
+  const QSize button_size(28,28);
+
+  auto layout = new QHBoxLayout();
+  setLayout( layout );
+  _text = new QLabel(text, this);
+
+  _empty_spacer = new QWidget();
+  _empty_spacer->setFixedSize( button_size );
+
+  setColor(color);
+  _delete_button = new QPushButton(this);
+  _delete_button->setFlat(true);
+  _delete_button->setFixedSize( button_size );
+  auto icon = QIcon(":/resources/svg/remove_red.svg");
+  _delete_button->setStyleSheet("QPushButton:hover{ border: 0px;}");
+
+  _delete_button->setIcon( icon) ;
+  _delete_button->setIconSize( button_size );
+
+  layout->addWidget(_empty_spacer);
+  layout->addWidget(_delete_button);
+  layout->addWidget(_text);
+
+  _delete_button->setHidden(true);
+
+  connect( _delete_button, &QPushButton::clicked, this, [this](){ emit deleteRow(this); });
+}
+
+void RowWidget::enterEvent(QEvent *ev)
+{
+  _delete_button->setHidden(false);
+  _empty_spacer->setHidden(true);
+}
+
+void RowWidget::leaveEvent(QEvent *ev)
+{
+  _delete_button->setHidden(true);
+  _empty_spacer->setHidden(false);
+}
+
+QString RowWidget::text() const
+{
+  return _text->text();
+}
+
+void RowWidget::setColor(QColor color)
+{
+  setStyleSheet( QString("color: %1;").arg(color.name()));
+  _color = color;
+}
+
+QColor RowWidget::color() const
+{
+  return _color;
 }
