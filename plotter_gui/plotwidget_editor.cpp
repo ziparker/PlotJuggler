@@ -5,6 +5,11 @@
 #include <QSettings>
 #include <QListWidgetItem>
 #include <QLabel>
+#include <QMouseEvent>
+#include <QPushButton>
+#include <QDialogButtonBox>
+
+const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2;
 
 class RowWidget: public QWidget
 {
@@ -17,6 +22,16 @@ public:
     layout->addWidget(_text);
 
     setColor(color);
+    _delete_button = new QPushButton(this);
+    _delete_button->setFlat(true);
+    _delete_button->setFixedSize( QSize(20,20) );
+  }
+
+  void mouseMoveEvent(QMouseEvent *ev) override
+  {
+    if (this->rect().contains(ev->pos())) {
+      // Mouse over Widget
+    }
   }
 
   QString text() const
@@ -38,6 +53,7 @@ public:
 private:
   QLabel* _text;
   QColor _color;
+  QPushButton* _delete_button;
 };
 
 PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
@@ -47,6 +63,8 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
 {
   ui->setupUi(this);
   auto layout = new QVBoxLayout();
+
+  installEventFilter(this);
 
 //  setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
 
@@ -87,6 +105,22 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   else {
     ui->radioBoth->setChecked(true);
   }
+
+  ui->lineLimitMax->setValidator(new QDoubleValidator(this));
+  ui->lineLimitMin->setValidator(new QDoubleValidator(this));
+
+  auto ylimits = _plotwidget->customAxisLimit();
+  if( ylimits.min != -MAX_DOUBLE)
+  {
+    ui->checkBoxMin->setChecked(true);
+    ui->lineLimitMin->setText(QString::number(ylimits.min));
+  }
+
+  if( ylimits.max != MAX_DOUBLE)
+  {
+    ui->checkBoxMax->setChecked(true);
+    ui->lineLimitMax->setText(QString::number(ylimits.max));
+  }
 }
 
 PlotwidgetEditor::~PlotwidgetEditor()
@@ -96,6 +130,7 @@ PlotwidgetEditor::~PlotwidgetEditor()
 
   delete ui;
 }
+
 
 void PlotwidgetEditor::onColorChanged(QColor c)
 {
@@ -112,7 +147,7 @@ void PlotwidgetEditor::onColorChanged(QColor c)
 
 void PlotwidgetEditor::setupColorWidget()
 {
-  auto wheel_layout = new QVBoxLayout(this);
+  auto wheel_layout = new QVBoxLayout();
   wheel_layout->setMargin(0);
   wheel_layout->setSpacing(5);
   ui->widgetWheel->setLayout( wheel_layout );
@@ -153,6 +188,39 @@ void PlotwidgetEditor::setupTable()
   }
 }
 
+void PlotwidgetEditor::updateLimits()
+{
+  double ymin = -MAX_DOUBLE;
+  double ymax = MAX_DOUBLE;
+
+  if (ui->checkBoxMax->isChecked() && !ui->lineLimitMax->text().isEmpty())
+  {
+    bool ok = false;
+    double val = ui->lineLimitMax->text().toDouble(&ok);
+    if(ok) { ymax = val; }
+  }
+
+  if (ui->checkBoxMin->isChecked() && !ui->lineLimitMin->text().isEmpty())
+  {
+    bool ok = false;
+    double val = ui->lineLimitMin->text().toDouble(&ok);
+    if(ok) { ymin = val; }
+  }
+
+  if (ymin > ymax)
+  {
+    // swap
+    ui->lineLimitMin->setText(QString::number(ymax));
+    ui->lineLimitMax->setText(QString::number(ymin));
+    std::swap(ymin, ymax);
+  }
+
+  PlotData::RangeValue range;
+  range.min = ymin;
+  range.max = ymax;
+  _plotwidget->setCustomAxisLimits(range);
+}
+
 void PlotwidgetEditor::on_editColotText_textChanged(const QString &text)
 {
   if( text.size() == 7 && text[0] == '#' && QColor::isValidColor(text))
@@ -188,53 +256,16 @@ void PlotwidgetEditor::on_radioBoth_toggled(bool checked)
   }
 }
 
-void PlotwidgetEditor::on_buttonBox_accepted()
-{
-  this->accept();
-  QDomDocument doc;
-  auto elem = _plotwidget->xmlSaveState(doc);
-  _plotwidget_origin->xmlLoadState( elem );
-}
-
-void PlotwidgetEditor::on_buttonBox_rejected()
-{
-  this->reject();
-}
-
 void PlotwidgetEditor::on_checkBoxMax_toggled(bool checked)
 {
   ui->lineLimitMax->setEnabled(checked);
+  updateLimits();
 }
 
 void PlotwidgetEditor::on_checkBoxMin_toggled(bool checked)
 {
   ui->lineLimitMin->setEnabled(checked);
-}
-
-
-void PlotwidgetEditor::on_tableWidget_itemSelectionChanged()
-{
-//  QModelIndex index = ui->tableWidget->selectionModel()->selectedRows().first();
-//  auto item = ui->tableWidget->item( index.row(), index.column());
-//  QColor col = item->foreground().color();
-//  _color_wheel->setColor(col);
-
-}
-
-void PlotwidgetEditor::on_tableWidget_cellClicked(int row, int column)
-{
-//  for(int i=0; i< ui->tableWidget->rowCount(); i++)
-//  {
-//    auto item = ui->tableWidget->item(i, 0);
-//    if( i== row)
-//    {
-//      item->setSelected( !item->isSelected() );
-//    }
-//    else{
-//      item->setSelected(false);
-//    }
-//  }
-
+  updateLimits();
 }
 
 void PlotwidgetEditor::on_listWidget_currentRowChanged(int currentRow)
@@ -242,4 +273,42 @@ void PlotwidgetEditor::on_listWidget_currentRowChanged(int currentRow)
   auto item =  ui->listWidget->item(currentRow);
   auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
   _color_wheel->setColor( row_widget->color() );
+}
+
+void PlotwidgetEditor::on_pushButtonReset_clicked()
+{
+  PlotData::RangeValue no_limits;
+  no_limits.min = -MAX_DOUBLE;
+  no_limits.max = +MAX_DOUBLE;
+
+  _plotwidget->setCustomAxisLimits(no_limits);
+
+  auto range_x = _plotwidget->getMaximumRangeX();
+  PlotData::RangeValue limits = _plotwidget->getMaximumRangeY(range_x);
+
+  ui->lineLimitMin->setText(QString::number(limits.min));
+  ui->lineLimitMax->setText(QString::number(limits.max));
+}
+
+void PlotwidgetEditor::on_lineLimitMax_editingFinished()
+{
+   updateLimits();
+}
+
+void PlotwidgetEditor::on_lineLimitMin_editingFinished()
+{
+   updateLimits();
+}
+
+void PlotwidgetEditor::on_pushButtonCancel_pressed()
+{
+  this->reject();
+}
+
+void PlotwidgetEditor::on_pushButtonSave_pressed()
+{
+  this->accept();
+  QDomDocument doc;
+  auto elem = _plotwidget->xmlSaveState(doc);
+  _plotwidget_origin->xmlLoadState( elem );
 }

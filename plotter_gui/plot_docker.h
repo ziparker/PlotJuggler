@@ -29,11 +29,7 @@ public:
   QPushButton* buttonEdit() { return ui->buttonEdit; }
   QPushButton* buttonClose() { return ui->buttonClose; }
 
-  void hideWidgetButtons(bool hide)
-  {
-    ui->labelSettings->setHidden(hide);
-    ui->widgetButtons->setHidden(hide);
-  }
+  void toggleFullscreen(bool is_fullscreen);
 
   void showToolButtons(bool show);
 
@@ -47,6 +43,7 @@ private:
   ads::CDockWidget* parent_;
   Ui::DraggableToolbar *ui;
   bool displayed_toolbar_;
+  bool fullscreen_mode_;
 };
 
 class DockWidget: public ads::CDockWidget

@@ -172,7 +172,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="editColotText"/>
+          <widget class="QLineEdit" name="editColotText">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="verticalSpacer_2">
@@ -249,6 +253,9 @@
             </property>
             <item>
              <widget class="QRadioButton" name="radioLines">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="text">
                <string>Lines</string>
               </property>
@@ -259,6 +266,9 @@
             </item>
             <item>
              <widget class="QRadioButton" name="radioPoints">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="text">
                <string>Dots</string>
               </property>
@@ -266,6 +276,9 @@
             </item>
             <item>
              <widget class="QRadioButton" name="radioBoth">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="text">
                <string>Lines and Dots</string>
               </property>
@@ -312,6 +325,9 @@
             </property>
             <item row="1" column="0">
              <widget class="QCheckBox" name="checkBoxMax">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="text">
                <string>Max</string>
               </property>
@@ -326,6 +342,9 @@
             </item>
             <item row="2" column="0">
              <widget class="QCheckBox" name="checkBoxMin">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
               <property name="text">
                <string>Min</string>
               </property>
@@ -356,6 +375,9 @@
                   <width>100</width>
                   <height>16777215</height>
                  </size>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::NoFocus</enum>
                 </property>
                 <property name="layoutDirection">
                  <enum>Qt::LeftToRight</enum>
@@ -475,14 +497,44 @@
           </widget>
          </item>
          <item>
-          <widget class="QDialogButtonBox" name="buttonBox">
-           <property name="standardButtons">
-            <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="topMargin">
+            <number>0</number>
            </property>
-           <property name="centerButtons">
-            <bool>false</bool>
-           </property>
-          </widget>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButtonCancel">
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
+             <property name="text">
+              <string>Cancel</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButtonSave">
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
+             <property name="text">
+              <string>Save Changes</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>

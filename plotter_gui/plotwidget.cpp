@@ -203,8 +203,6 @@ PlotWidget::PlotWidget(PlotDataMapRef& datamap, QWidget* parent)
 
   setDefaultRangeX();
 
-  _axis_limits_dialog = new AxisLimitsDialog(this);
-
   _custom_Y_limits.min = (-MAX_DOUBLE);
   _custom_Y_limits.max = (MAX_DOUBLE);
 
@@ -222,9 +220,6 @@ void PlotWidget::buildActions()
   _action_removeAllCurves = new QAction("&Remove ALL curves", this);
   connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::detachAllCurves);
   connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::undoableChange);
-
-  _action_editLimits = new QAction(tr("&Edit Axis Limits"), this);
-  connect(_action_editLimits, &QAction::triggered, this, &PlotWidget::on_editAxisLimits_triggered);
 
   _action_zoomOutMaximum = new QAction("&Zoom Out", this);
   connect(_action_zoomOutMaximum, &QAction::triggered, this, [this]() {
@@ -315,10 +310,6 @@ void PlotWidget::buildActions()
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
 {
-  QString edit("&Edit Axis Limits ");
-  edit.append(_axis_limits_dialog->limitsEnabled() ? tr("(ENABLED)") : tr("(disabled)"));
-  _action_editLimits->setText(edit);
-
   QSettings settings;
   QString theme = settings.value("Preferences::theme", "style_light").toString();
 
@@ -338,8 +329,6 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   QMenu menu(this);
   menu.addAction(_action_removeAllCurves);
   menu.addSeparator();
-  menu.addSeparator();
-  menu.addAction(_action_editLimits);
   menu.addAction(_action_zoomOutMaximum);
   menu.addAction(_action_zoomOutHorizontally);
   menu.addAction(_action_zoomOutVertically);
@@ -816,28 +805,19 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
   }
 
   QDomElement limitY_el = plot_widget.firstChildElement("limitY");
+
+  _custom_Y_limits.min = -MAX_DOUBLE;
+  _custom_Y_limits.max = +MAX_DOUBLE;
+
   if (!limitY_el.isNull())
   {
     if (limitY_el.hasAttribute("min"))
     {
       _custom_Y_limits.min = limitY_el.attribute("min").toDouble();
-      _axis_limits_dialog->enableMin(true, _custom_Y_limits.min);
     }
-    else
-    {
-      _custom_Y_limits.max = -MAX_DOUBLE;
-      _axis_limits_dialog->enableMin(false, _custom_Y_limits.min);
-    }
-
     if (limitY_el.hasAttribute("max"))
     {
       _custom_Y_limits.max = limitY_el.attribute("max").toDouble();
-      _axis_limits_dialog->enableMax(true, _custom_Y_limits.max);
-    }
-    else
-    {
-      _custom_Y_limits.max = MAX_DOUBLE;
-      _axis_limits_dialog->enableMax(false, _custom_Y_limits.max);
     }
   }
 
@@ -987,6 +967,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
     changeCurveStyle(_curve_style);
   }
 
+  updateMaximumZoomArea();
   replot();
   return true;
 }
@@ -1319,8 +1300,9 @@ PlotData::RangeValue PlotWidget::getMaximumRangeY(PlotData::RangeTime range_X) c
     auto series = static_cast<DataSeriesBase*>(it.second->data());
 
     const auto max_range_X = series->getVisualizationRangeX();
-    if (!max_range_X)
+    if (!max_range_X){
       continue;
+    }
 
     double left = std::max(max_range_X->min, range_X.min);
     double right = std::min(max_range_X->max, range_X.max);
@@ -1336,10 +1318,12 @@ PlotData::RangeValue PlotWidget::getMaximumRangeY(PlotData::RangeTime range_X) c
       qDebug() << " invalid range_Y in PlotWidget::maximumRangeY";
       continue;
     }
-    if (top < range_Y->max)
+    if (top < range_Y->max){
       top = range_Y->max;
-    if (bottom > range_Y->min)
+    }
+    if (bottom > range_Y->min){
       bottom = range_Y->min;
+    }
   }
 
   double margin = 0.1;
@@ -1361,15 +1345,17 @@ PlotData::RangeValue PlotWidget::getMaximumRangeY(PlotData::RangeTime range_X) c
   if (lower_limit)
   {
     bottom = _custom_Y_limits.min;
-    if (top < bottom)
+    if (top < bottom){
       top = bottom + margin;
+    }
   }
 
   if (upper_limit)
   {
     top = _custom_Y_limits.max;
-    if (top < bottom)
+    if (top < bottom){
       bottom = top - margin;
+    }
   }
 
   if (!lower_limit && !upper_limit)
@@ -1733,24 +1719,16 @@ void PlotWidget::on_savePlotToFile()
   }
 }
 
-void PlotWidget::on_editAxisLimits_triggered()
+void PlotWidget::setCustomAxisLimits(PlotData::RangeValue range)
 {
-  auto rangeX = this->getMaximumRangeX();
-
-  // temporary reset the limit during editing
-  _custom_Y_limits.min = -MAX_DOUBLE;
-  _custom_Y_limits.max = MAX_DOUBLE;
-
-  auto rangeY = getMaximumRangeY(rangeX);
-
-  _axis_limits_dialog->setDefaultRange(rangeY);
-  _axis_limits_dialog->exec();
-
-  _custom_Y_limits = _axis_limits_dialog->rangeY();
-
+  _custom_Y_limits = range;
   on_zoomOutVertical_triggered(false);
   replot();
-  emit undoableChange();
+}
+
+PlotData::RangeValue PlotWidget::customAxisLimit() const
+{
+  return _custom_Y_limits;
 }
 
 void PlotWidget::on_copyToClipboard()

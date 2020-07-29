@@ -20,7 +20,6 @@
 #include "qwt_plot_legenditem.h"
 #include "timeseries_qwt.h"
 #include "customtracker.h"
-#include "axis_limits_dialog.h"
 #include "transforms/transform_selector.h"
 #include "transforms/custom_function.h"
 #include "plotlegend.h"
@@ -96,6 +95,10 @@ public:
 
   std::map<std::string, QColor> getCurveColors() const;
 
+  void setCustomAxisLimits(PlotData::RangeValue range);
+
+  PlotData::RangeValue customAxisLimit() const;
+
 protected:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
@@ -162,8 +165,6 @@ private slots:
 
   void on_savePlotToFile();
 
-  void on_editAxisLimits_triggered();
-
   void on_copyToClipboard();
 
 private slots:
@@ -189,7 +190,6 @@ private:
   QAction* _action_custom_transform;
   QAction* _action_XY_transform;
   QAction* _action_saveToFile;
-  QAction* _action_editLimits;
   QAction* _action_clipboard;
 
   PlotZoomer* _zoomer;
@@ -246,8 +246,6 @@ private:
   bool _xy_mode;
 
   PlotData::RangeValue _custom_Y_limits;
-
-  AxisLimitsDialog* _axis_limits_dialog;
 
   TransformSelector* _transform_select_dialog;
 

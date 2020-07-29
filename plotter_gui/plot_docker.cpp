@@ -272,7 +272,7 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
         area->setVisible(!is_fullscreen);
       }
       this->toolBar()->buttonClose()->setHidden(is_fullscreen);
-      this->toolBar()->hideWidgetButtons(is_fullscreen);
+      this->toolBar()->toggleFullscreen(is_fullscreen);
     }
   };
 
@@ -354,7 +354,8 @@ DraggableToolbar::DraggableToolbar(ads::CDockWidget* parent) :
   QWidget(parent),
   parent_(parent),
   ui(new Ui::DraggableToolbar),
-  displayed_toolbar_(false)
+  displayed_toolbar_(false),
+  fullscreen_mode_(false)
 {
   ui->setupUi(this);
 
@@ -376,6 +377,26 @@ DraggableToolbar::DraggableToolbar(ads::CDockWidget* parent) :
 DraggableToolbar::~DraggableToolbar()
 {
   delete ui;
+}
+
+void DraggableToolbar::toggleFullscreen(bool is_fullscreen)
+{
+  fullscreen_mode_ = is_fullscreen;
+  ui->labelSettings->setHidden(is_fullscreen);
+  ui->buttonClose->setHidden(is_fullscreen);
+  ui->widgetButtons->setHidden(is_fullscreen);
+
+  QHBoxLayout* layout = ui->mainHorizontalLayout;
+  QHBoxLayout* button_layout = ui->buttonHorizontalLayout;
+
+  if( is_fullscreen ){
+    button_layout->removeWidget( ui->buttonFullscreen );
+    layout->addWidget( ui->buttonFullscreen );
+  }
+  else{
+    layout->removeWidget( ui->buttonFullscreen );
+    button_layout->addWidget( ui->buttonFullscreen );
+  }
 }
 
 void DraggableToolbar::mousePressEvent(QMouseEvent *ev)
@@ -411,7 +432,10 @@ void DraggableToolbar::showToolButtons(bool show)
     return;
   }
   displayed_toolbar_ = show;
-  ui->widget->setVisible(show);
+  ui->buttonEdit->setVisible(show);
+  ui->buttonSplitVertical->setVisible(show);
+  ui->buttonSplitHorizontal->setVisible(show);
+  ui->buttonFullscreen->setVisible(show || fullscreen_mode_ );
 
   QTransform t;
   if( !displayed_toolbar_ )

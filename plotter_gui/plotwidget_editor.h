@@ -2,6 +2,7 @@
 #define PLOTWIDGET_EDITOR_H
 
 #include <QDialog>
+#include <QKeyEvent>
 #include "plotwidget.h"
 #include "color_wheel.hpp"
 #include "color_preview.hpp"
@@ -31,19 +32,21 @@ private slots:
 
   void on_radioBoth_toggled(bool checked);
 
-  void on_buttonBox_accepted();
-
-  void on_buttonBox_rejected();
-
   void on_checkBoxMax_toggled(bool checked);
 
   void on_checkBoxMin_toggled(bool checked);
 
-  void on_tableWidget_itemSelectionChanged();
-
-  void on_tableWidget_cellClicked(int row, int column);
-
   void on_listWidget_currentRowChanged(int currentRow);
+
+  void on_pushButtonReset_clicked();
+
+  void on_lineLimitMax_editingFinished();
+
+  void on_lineLimitMin_editingFinished();
+
+  void on_pushButtonCancel_pressed();
+
+  void on_pushButtonSave_pressed();
 
 private:
   Ui::plotwidget_editor *ui;
@@ -55,6 +58,7 @@ private:
 
   void setupColorWidget();
   void setupTable();
+  void updateLimits();
 };
 
 #endif // PLOTWIDGET_EDITOR_H
