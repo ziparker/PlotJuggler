@@ -33,6 +33,8 @@ public:
 
   void showToolButtons(bool show);
 
+  bool eventFilter(QObject* object,QEvent* event);
+
 private:
   void mousePressEvent(QMouseEvent* ev) override;
   void mouseReleaseEvent(QMouseEvent* ev) override;

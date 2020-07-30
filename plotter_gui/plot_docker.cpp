@@ -6,6 +6,9 @@
 #include <QMouseEvent>
 #include <QSplitter>
 #include <QDebug>
+#include <QInputDialog>
+#include <QLineEdit>
+
 
 class SplittableComponentsFactory : public ads::CDockComponentsFactory
 {
@@ -96,6 +99,7 @@ QDomElement saveChildNodesState(QDomDocument &doc, QWidget* widget)
           {
             auto plotwidget_elem = dock_widget->plotWidget()->xmlSaveState(doc);
             area_elem.appendChild( plotwidget_elem );
+            area_elem.setAttribute("name", dock_widget->toolBar()->label()->text());
           }
         }
         return area_elem;
@@ -169,7 +173,13 @@ void PlotDocker::restoreSplitter(QDomElement elem, DockWidget* widget)
     if( child_elem.tagName() == "DockArea" )
     {
       auto plot_elem = child_elem.firstChildElement("plot");
-      widgets[index++]->plotWidget()->xmlLoadState(plot_elem);
+      widgets[index]->plotWidget()->xmlLoadState(plot_elem);
+      if( child_elem.hasAttribute("name") )
+      {
+        QString area_name = child_elem.attribute("name");
+        widgets[index]->toolBar()->label()->setText(area_name);
+      }
+      index++;
     }
     else if( child_elem.tagName() == "DockSplitter" )
     {
@@ -253,7 +263,7 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
 
   _toolbar = new DraggableToolbar(this);
-  _toolbar->label()->setText("Plot");
+  _toolbar->label()->setText("*");
   qobject_cast<QBoxLayout*>(layout())->insertWidget(0, _toolbar);
 
   QObject::connect(_toolbar->buttonSplitHorizontal(), &QPushButton::pressed,
@@ -372,6 +382,8 @@ DraggableToolbar::DraggableToolbar(ads::CDockWidget* parent) :
 
   displayed_toolbar_ = true;
   showToolButtons(false);
+
+  ui->label->installEventFilter(this);
 }
 
 DraggableToolbar::~DraggableToolbar()
@@ -446,11 +458,23 @@ void DraggableToolbar::showToolButtons(bool show)
   ui->labelSettings->setPixmap(pixmap.transformed(t));
 }
 
-//void DraggableToolbar::enterEvent(QEvent *ev)
-//{
-//  showToolButtons(true);
-//  QWidget::enterEvent(ev);
-//}
+bool DraggableToolbar::eventFilter(QObject *object, QEvent *event)
+{
+  if(event->type() == QEvent::MouseButtonDblClick)
+  {
+    bool ok = true;
+    QString newName = QInputDialog::getText(this, tr("Change name of the Area"), tr("New name:"),
+                                            QLineEdit::Normal, ui->label->text(), &ok);
+    if (ok)
+    {
+      ui->label->setText(newName);
+    }
+    return true;
+  }
+  else{
+    return QObject::eventFilter(object,event);
+  }
+}
 
 void DraggableToolbar::leaveEvent(QEvent *ev)
 {
