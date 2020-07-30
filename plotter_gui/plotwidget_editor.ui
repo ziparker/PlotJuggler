@@ -302,7 +302,7 @@
             </size>
            </property>
            <property name="title">
-            <string>Vertical Limits</string>
+            <string>Vertical Range</string>
            </property>
            <layout class="QFormLayout" name="formLayout">
             <property name="horizontalSpacing">
@@ -366,13 +366,13 @@
                <widget class="QPushButton" name="pushButtonReset">
                 <property name="minimumSize">
                  <size>
-                  <width>60</width>
+                  <width>110</width>
                   <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>100</width>
+                  <width>110</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -383,7 +383,7 @@
                  <enum>Qt::LeftToRight</enum>
                 </property>
                 <property name="text">
-                 <string>Reset Limits</string>
+                 <string>Default Limits</string>
                 </property>
                 <property name="flat">
                  <bool>false</bool>

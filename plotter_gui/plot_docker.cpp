@@ -446,11 +446,11 @@ void DraggableToolbar::showToolButtons(bool show)
   ui->labelSettings->setPixmap(pixmap.transformed(t));
 }
 
-void DraggableToolbar::enterEvent(QEvent *ev)
-{
-  showToolButtons(true);
-  QWidget::enterEvent(ev);
-}
+//void DraggableToolbar::enterEvent(QEvent *ev)
+//{
+//  showToolButtons(true);
+//  QWidget::enterEvent(ev);
+//}
 
 void DraggableToolbar::leaveEvent(QEvent *ev)
 {

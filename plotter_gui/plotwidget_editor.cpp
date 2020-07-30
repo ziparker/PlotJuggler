@@ -35,8 +35,11 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
 
   auto saved_state = plotwidget->xmlSaveState(doc);
 
+
   _plotwidget = new PlotWidget(plotwidget->datamap());
   _plotwidget->xmlLoadState(saved_state);
+
+  _bounding_rect = _plotwidget_origin->canvasBoundingRect();
 
   _plotwidget->on_changeTimeOffset( plotwidget->timeOffset() );
 
@@ -66,10 +69,16 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   ui->lineLimitMin->setValidator(new QDoubleValidator(this));
 
   auto ylimits = _plotwidget->customAxisLimit();
+  auto range_x = _plotwidget->getMaximumRangeX();
+  PlotData::RangeValue suggested_limits = _plotwidget->getMaximumRangeY(range_x);
+
   if( ylimits.min != -MAX_DOUBLE)
   {
     ui->checkBoxMin->setChecked(true);
     ui->lineLimitMin->setText(QString::number(ylimits.min));
+  }
+  else{
+    ui->lineLimitMin->setText(QString::number(suggested_limits.min));
   }
 
   if( ylimits.max != MAX_DOUBLE)
@@ -77,6 +86,10 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
     ui->checkBoxMax->setChecked(true);
     ui->lineLimitMax->setText(QString::number(ylimits.max));
   }
+  else{
+    ui->lineLimitMax->setText(QString::number(suggested_limits.max));
+  }
+
 }
 
 PlotwidgetEditor::~PlotwidgetEditor()
@@ -317,10 +330,11 @@ void PlotwidgetEditor::on_pushButtonCancel_pressed()
 
 void PlotwidgetEditor::on_pushButtonSave_pressed()
 {
-  this->accept();
   QDomDocument doc;
+  _plotwidget->setZoomRectangle(_bounding_rect, false);
   auto elem = _plotwidget->xmlSaveState(doc);
   _plotwidget_origin->xmlLoadState( elem );
+  this->accept();
 }
 
 RowWidget::RowWidget(QString text, QColor color): QWidget()

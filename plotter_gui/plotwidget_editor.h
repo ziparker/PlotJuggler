@@ -82,6 +82,7 @@ private:
   color_widgets::ColorPreview* _color_preview;
   PlotWidget* _plotwidget;
   PlotWidget* _plotwidget_origin;
+  QRectF _bounding_rect;
 
   void setupColorWidget();
   void setupTable();
