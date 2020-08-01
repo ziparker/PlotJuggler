@@ -96,7 +96,7 @@ void TabbedPlotWidget::paintEvent(QPaintEvent *event)
   QWidget::paintEvent(event);
 
   auto size = tabWidget()->tabBar()->size();
-  _buttonAddTab->move( QPoint( size.width(), 0) );
+  _buttonAddTab->move( QPoint( size.width()+ 5, 0) );
 }
 
 
@@ -226,7 +226,7 @@ bool TabbedPlotWidget::xmlLoadState(QDomElement& tabbed_area)
 
 void TabbedPlotWidget::setStreamingMode(bool streaming_mode)
 {
-  //ui->buttonLinkHorizontalScale->setEnabled(!streaming_mode);
+
 }
 
 TabbedPlotWidget::~TabbedPlotWidget()
@@ -319,8 +319,6 @@ void TabbedPlotWidget::on_renameCurrentTab()
 
   QwtPlotRenderer rend;
 
-
-
   int delta_X = pixmap.width() / matrix->colsCount();
   int delta_Y = pixmap.height() / matrix->rowsCount();
 
@@ -359,7 +357,7 @@ void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
   // TODO
   _buttonAddTab->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
   //ui->pushButtonShowLabel->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
-  //ui->buttonLinkHorizontalScale->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
+  //_button_link_horizontal->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
 }
 
 /*

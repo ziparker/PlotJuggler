@@ -68,6 +68,16 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   ui->setupUi(this);
 
+  ui->playbackLoop->setText("");
+  ui->pushButtonPlay->setText("");
+  ui->pushButtonUseDateTime->setText("");
+  ui->pushButtonActivateGrid->setText("");
+  ui->pushButtonRatio->setText("");
+  ui->pushButtonLink->setText("");
+  ui->pushButtonTimeTracker->setText("");
+  ui->pushButtonOptions->setText("");
+  ui->pushButtonRemoveTimeOffset->setText("");
+
   if (commandline_parser.isSet("buffer_size"))
   {
     int buffer_size = std::max(10, commandline_parser.value("buffer_size").toInt());
@@ -104,6 +114,10 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   ui->splitter->setStretchFactor(0, 2);
   ui->splitter->setStretchFactor(1, 6);
 
+  ui->layoutTimescale->removeWidget( ui->widgetButtons );
+  _main_tabbed_widget->tabWidget()->setCornerWidget( ui->widgetButtons );
+
+
   connect(ui->splitter, SIGNAL(splitterMoved(int, int)), SLOT(on_splitterMoved(int, int)));
 
   initializeActions();
@@ -124,9 +138,6 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   connect(_publish_timer, &QTimer::timeout, this, &MainWindow::onPlaybackLoop);
 
   ui->menuFile->setToolTipsVisible(true);
-  ui->horizontalSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-  ui->streamingLabel->setHidden(true);
-  ui->streamingSpinBox->setHidden(true);
 
   this->setMenuBar(ui->menuBar);
   ui->menuBar->setNativeMenuBar(false);
@@ -1209,14 +1220,16 @@ void MainWindow::on_stylesheetChanged(QString style_dir)
   dynamic_cast<QApplication*>(QCoreApplication::instance())->setStyleSheet(styleFile.readAll());
 
   ui->pushButtonOptions->setIcon(LoadSvgIcon(":/resources/svg/settings_cog.svg", style_dir));
-  // ui->pushButtonTimeTracker->setIcon(LoadSvgIcon(":/resources/svg/line_tracker_1.svg", style_dir));
+
   ui->playbackLoop->setIcon(LoadSvgIcon(":/resources/svg/loop.svg", style_dir));
   ui->pushButtonPlay->setIcon(LoadSvgIcon(":/resources/svg/play_arrow.svg", style_dir));
   ui->pushButtonUseDateTime->setIcon(LoadSvgIcon(":/resources/svg/datetime.svg", style_dir));
   ui->pushButtonActivateGrid->setIcon(LoadSvgIcon(":/resources/svg/grid.svg", style_dir));
   ui->pushButtonRatio->setIcon(LoadSvgIcon(":/resources/svg/ratio.svg", style_dir));
   ui->actionClearRecentData->setIcon(LoadSvgIcon(":/resources/svg/clean_pane.svg", style_dir));
-  ui->actionClearRecentLayout->setIcon(LoadSvgIcon(":/resources/svg/clean_pane.svg", style_dir));
+ // ui->actionClearRecentLayout->setIcon(LoadSvgIcon(":/resources/svg/clean_pane.svg", style_dir));
+  ui->pushButtonLink->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
+  ui->pushButtonRemoveTimeOffset->setIcon(LoadSvgIcon(":/resources/svg/t0.svg", style_dir));
 }
 
 void MainWindow::loadPluginState(const QDomElement& root)
@@ -1675,19 +1688,15 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
 
   if (streaming)
   {
-    ui->horizontalSpacer->changeSize(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
     ui->pushButtonStreaming->setText("Streaming ON");
   }
   else
   {
     _replot_timer->stop();
-    ui->horizontalSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
     ui->pushButtonStreaming->setText("Streaming OFF");
   }
-  ui->streamingLabel->setHidden(!streaming);
-  ui->streamingSpinBox->setHidden(!streaming);
-  ui->timeSlider->setHidden(streaming);
-  ui->pushButtonPlay->setHidden(streaming);
+
+  ui->widgetPlay->setEnabled(!streaming);
 
   if (streaming && ui->pushButtonPlay->isChecked())
   {

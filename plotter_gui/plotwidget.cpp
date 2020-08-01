@@ -934,10 +934,6 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
   //-----------------------------------------
 
   QDomElement rectangle = plot_widget.firstChildElement("range");
-  if (isXYPlot())
-  {
-    updateMaximumZoomArea();
-  }
 
   if (!rectangle.isNull())
   {
@@ -1462,6 +1458,7 @@ void PlotWidget::zoomOut(bool emit_signal)
   }
   updateMaximumZoomArea();
   setZoomRectangle(_max_zoom_rect, emit_signal);
+  replot();
 }
 
 void PlotWidget::on_zoomOutHorizontal_triggered(bool emit_signal)
@@ -2087,6 +2084,7 @@ void PlotWidget::replot()
     _zoomer->setZoomBase(false);
   }
 
+  static int replot_count = 0;
   QwtPlot::replot();
-  //  qDebug() << replot_count++;
+   qDebug() << replot_count++;
 }
