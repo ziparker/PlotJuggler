@@ -25,6 +25,9 @@ QT5_WRAP_UI ( UI_SRC
     )
 
 SET( PLOTTER_SRC
+
+    ../include/PlotJuggler/transform_function.h
+
     axis_limits_dialog.cpp
     customtracker.cpp
 
@@ -56,6 +59,8 @@ SET( PLOTTER_SRC
     transforms/transform_selector.cpp
     transforms/lua_custom_function.cpp
     transforms/qml_custom_function.cpp
+
+    transforms/first_derivative.cpp
 
     cheatsheet/video_cheatsheet.cpp
 

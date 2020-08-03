@@ -7,17 +7,17 @@
 #include "lua_custom_function.h"
 #include "qml_custom_function.h"
 
-ScriptedFunction::ScriptedFunction(const std::string& linkedPlot, const SnippetData& snippet)
-  : ScriptedFunction(linkedPlot, snippet.name.toStdString(), snippet.globalVars, snippet.equation)
+CustomFunction::CustomFunction(const std::string& linkedPlot, const SnippetData& snippet)
+  : CustomFunction(linkedPlot, snippet.name.toStdString(), snippet.globalVars, snippet.equation)
 {
 }
 
-void ScriptedFunction::clear()
+void CustomFunction::clear()
 {
   initEngine();
 }
 
-QStringList ScriptedFunction::getChannelsFromFuntion(const QString& function)
+QStringList CustomFunction::getChannelsFromFuntion(const QString& function)
 {
   QStringList output;
   int offset = 0;
@@ -40,7 +40,7 @@ QStringList ScriptedFunction::getChannelsFromFuntion(const QString& function)
   return output;
 }
 
-void ScriptedFunction::createReplacedFunction(int index_offset)
+void CustomFunction::createReplacedFunction(int index_offset)
 {
   QString qLinkedPlot = QString::fromStdString(_linked_plot_name);
 
@@ -76,13 +76,13 @@ void ScriptedFunction::createReplacedFunction(int index_offset)
   _function_replaced = replaced_equation;
 }
 
-ScriptedFunction::ScriptedFunction(const std::string& linkedPlot, const std::string& plotName, const QString& globalVars,
+CustomFunction::CustomFunction(const std::string& linkedPlot, const std::string& plotName, const QString& globalVars,
                                const QString& function)
   : _linked_plot_name(linkedPlot), _plot_name(plotName), _global_vars(globalVars), _function(function)
 {
 }
 
-void ScriptedFunction::calculateAndAdd(PlotDataMapRef& plotData)
+void CustomFunction::calculateAndAdd(PlotDataMapRef& plotData)
 {
   bool newly_added = false;
 
@@ -110,7 +110,7 @@ void ScriptedFunction::calculateAndAdd(PlotDataMapRef& plotData)
   }
 }
 
-void ScriptedFunction::calculate(const PlotDataMapRef& plotData, PlotData* dst_data)
+void CustomFunction::calculate(const PlotDataMapRef& plotData, PlotData* dst_data)
 {
   auto src_data_it = plotData.numeric.find(_linked_plot_name);
   if (src_data_it == plotData.numeric.end())
@@ -157,27 +157,27 @@ void ScriptedFunction::calculate(const PlotDataMapRef& plotData, PlotData* dst_d
   }
 }
 
-const std::string& ScriptedFunction::name() const
+const std::string& CustomFunction::name() const
 {
   return _plot_name;
 }
 
-const std::string& ScriptedFunction::linkedPlotName() const
+const std::string& CustomFunction::linkedPlotName() const
 {
   return _linked_plot_name;
 }
 
-const QString& ScriptedFunction::globalVars() const
+const QString& CustomFunction::globalVars() const
 {
   return _global_vars;
 }
 
-const QString& ScriptedFunction::function() const
+const QString& CustomFunction::function() const
 {
   return _function;
 }
 
-QDomElement ScriptedFunction::xmlSaveState(QDomDocument& doc) const
+QDomElement CustomFunction::xmlSaveState(QDomDocument& doc) const
 {
   QDomElement snippet = doc.createElement("snippet");
   snippet.setAttribute("name", QString::fromStdString(_plot_name));
@@ -198,7 +198,7 @@ QDomElement ScriptedFunction::xmlSaveState(QDomDocument& doc) const
   return snippet;
 }
 
-CustomPlotPtr ScriptedFunction::createFromXML(QDomElement& element)
+CustomPlotPtr CustomFunction::createFromXML(QDomElement& element)
 {
   SnippetData snippet;
   auto linkedPlot = element.firstChildElement("linkedPlot").text().trimmed().toStdString();

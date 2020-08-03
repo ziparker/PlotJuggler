@@ -33,4 +33,8 @@ private:
   double _value;
 };
 
+
+std::vector<QString> MoveData(PlotDataMapRef& source, PlotDataMapRef& destination);
+
+
 #endif  // UTILS_H

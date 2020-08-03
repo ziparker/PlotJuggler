@@ -11,6 +11,9 @@
 #include <QNetworkReply>
 #include <QJsonDocument>
 
+#include "PlotJuggler/transform_function.h"
+#include "transforms/first_derivative.h"
+
 #include "new_release_dialog.h"
 
 static QString VERSION_STRING = QString("%1.%2.%3").arg(PJ_MAJOR_VERSION).arg(PJ_MINOR_VERSION).arg(PJ_PATCH_VERSION);
@@ -82,6 +85,11 @@ int main(int argc, char* argv[])
   app.setApplicationName("PlotJuggler");
 
   app.setApplicationVersion(VERSION_STRING);
+
+  //---------------------------
+  TransformFactory::registerTransform<FirstDerivative>( FirstDerivative().name() );
+
+  //---------------------------
 
   QCommandLineParser parser;
   parser.setApplicationDescription("PlotJuggler: the time series visualization tool that you deserve ");

@@ -13,7 +13,7 @@ public:
   bool updateCache() override;
 
 private:
-  std::unique_ptr<ScriptedFunction> _transform;
+  std::unique_ptr<CustomFunction> _transform;
   const PlotDataMapRef& _mapped_data;
 };
 
