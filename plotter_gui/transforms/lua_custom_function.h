@@ -4,7 +4,7 @@
 #include "custom_function.h"
 #include "sol.hpp"
 
-class LuaCustomFunction : public CustomFunction
+class LuaCustomFunction : public ScriptedFunction
 {
 public:
   LuaCustomFunction(const std::string& linkedPlot, const SnippetData& snippet);

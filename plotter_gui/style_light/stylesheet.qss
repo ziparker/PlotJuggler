@@ -82,6 +82,13 @@ QListView {
    border: 1px solid grey;
 }
 
+CurveTableView{
+    background: red;
+    color: #111111;
+    border-radius: 4px;
+    border: 1px solid grey;
+}
+
 QTableView::item:selected,
 QTreeView::item:selected,
 QListView::item:selected {
@@ -108,10 +115,145 @@ QToolTip {
     background: white;
     color: #111111; }
 
-QScrollBar {
-    background: #EEEEEE;
+/* QScrollArea ------------------------------------------------------------
+
+--------------------------------------------------------------------------- */
+QScrollArea QWidget QWidget:disabled {
+  background-color: white;
 }
 
+/* QScrollBar -------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qscrollbar
+
+--------------------------------------------------------------------------- */
+QScrollBar:horizontal {
+  height: 16px;
+  margin: 2px 16px 2px 16px;
+  border: 0px solid #687279;
+  border-radius: 1px;
+  background-color: white;
+}
+
+QScrollBar:vertical {
+  background-color: white;
+  width: 16px;
+  margin: 16px 2px 16px 2px;
+  border: 0px solid #687279;
+  border-radius: 1px;
+}
+
+QScrollBar::handle:horizontal {
+  background-color: #787878;
+  border: 1px solid #687279;
+  border-radius: 1px;
+  min-width: 8px;
+}
+
+QScrollBar::handle:horizontal:hover {
+  background-color: #148CD2;
+  border: 1px solid #148CD2;
+  border-radius: 1px;
+  min-width: 8px;
+}
+
+QScrollBar::handle:vertical {
+  background-color: #787878;
+  border: 1px solid #687279;
+  min-height: 8px;
+  border-radius: 1px;
+}
+
+QScrollBar::handle:vertical:hover {
+  background-color: #148CD2;
+  border: 1px solid #148CD2;
+  border-radius: 1px;
+  min-height: 8px;
+}
+
+QScrollBar::add-line:horizontal {
+  margin: 0px 0px 0px 0px;
+  border-image: url(":/style_dark/arrow_right_disabled.png");
+  height: 12px;
+  width: 12px;
+  subcontrol-position: right;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:horizontal:hover, QScrollBar::add-line:horizontal:on {
+  border-image: url(":/style_dark/arrow_right.png");
+  height: 12px;
+  width: 12px;
+  subcontrol-position: right;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical {
+  margin: 3px 0px 3px 0px;
+  border-image: url(":/style_dark/arrow_down_disabled.png");
+  height: 12px;
+  width: 12px;
+  subcontrol-position: bottom;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical:hover, QScrollBar::add-line:vertical:on {
+  border-image: url(":/style_dark/arrow_down.png");
+  height: 12px;
+  width: 12px;
+  subcontrol-position: bottom;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+  margin: 0px 3px 0px 3px;
+  border-image: url(":/style_dark/arrow_left_disabled.png");
+  height: 12px;
+  width: 12px;
+  subcontrol-position: left;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal:hover, QScrollBar::sub-line:horizontal:on {
+  border-image: url(":/style_dark/arrow_left.png");
+  height: 12px;
+  width: 12px;
+  subcontrol-position: left;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+  margin: 3px 0px 3px 0px;
+  border-image: url(":/style_dark/arrow_up_disabled.png");
+  height: 12px;
+  width: 12px;
+  subcontrol-position: top;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical:hover, QScrollBar::sub-line:vertical:on {
+  border-image: url(":/style_dark/arrow_up.png");
+  height: 12px;
+  width: 12px;
+  subcontrol-position: top;
+  subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal {
+  background: none;
+}
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+  background: none;
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+  background: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+  background: none;
+}
 
 /* QMenu ----------------------------------------------------------- */
 
@@ -331,8 +473,8 @@ QPushButton:disabled {
 }
 
 QPushButton:focus {
-    border: 2px solid #003bc9;
-    color: #003bc9;
+    border: 2px solid #148CD2;
+    color: #148CD2;
 }
 
 QPushButton:checked {
@@ -361,7 +503,7 @@ QPushButton:pressed {
 
 QPushButton:hover,
 QPushButton:checked:hover{
-    border: 1px solid #003bc9;
+    border: 1px solid #148CD2;
 }
 
 QPushButton:selected,
@@ -438,47 +580,47 @@ QSlider::handle:horizontal:hover {
 /* --------------------------------------------------------------------------- */
 
 QTreeView:branch {
-    background-color: white;
+    background-color: transparent;
 }
 QTreeView:branch:selected, QTreeView:branch:hover {
-  background-color: white;
+  background-color: transparent;
   background: url(":/style_dark/transparent.png");
 }
 
 QTreeView:branch:has-siblings:!adjoins-item {
-  background-color: white;
+  background-color: transparent;
   border-image: url(":/style_dark/branch_line.png") 0;
 }
 
 QTreeView:branch:has-siblings:adjoins-item {
-  background-color: white;
+  background-color: transparent;
   border-image: url(":/style_dark/branch_more.png") 0;
 }
 
 QTreeView:branch:!has-children:!has-siblings:adjoins-item {
-  background-color: white;
+  background-color: transparent;
   border-image: url(":/style_dark/branch_end.png") 0;
 }
 
 QTreeView:branch:has-children:!has-siblings:closed, QTreeView:branch:closed:has-children:has-siblings {
-  background-color: white;
+  background-color: transparent;
   border-image: none;
   image: url(":/style_dark/branch_closed.png");
 }
 
 QTreeView:branch:open:has-children:!has-siblings, QTreeView:branch:open:has-children:has-siblings {
-  background-color: white;
+  background-color: transparent;
   border-image: none;
   image: url(":/style_dark/branch_open.png");
 }
 
 QTreeView:branch:has-children:!has-siblings:closed:hover, QTreeView:branch:closed:has-children:has-siblings:hover {
-  background-color: white;
+  background-color: transparent;
   image: url(":/style_dark/branch_closed_focus.png");
 }
 
 QTreeView:branch:open:has-children:!has-siblings:hover, QTreeView:branch:open:has-children:has-siblings:hover {
-  background-color: white;
+  background-color: transparent;
   image: url(":/style_dark/branch_open_focus.png");
 }
 

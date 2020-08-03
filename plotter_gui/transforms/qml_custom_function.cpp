@@ -1,7 +1,7 @@
 #include "qml_custom_function.h"
 
 JsCustomFunction::JsCustomFunction(const std::string& linkedPlot, const SnippetData& snippet)
-  : CustomFunction(linkedPlot, snippet)
+  : ScriptedFunction(linkedPlot, snippet)
 {
   createReplacedFunction(0);
   initEngine();

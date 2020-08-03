@@ -11,16 +11,15 @@
 
 DataStreamSample::DataStreamSample()
 {
-  DataStreamSample::Parameters param;
-  param.A = 6 * ((double)qrand() / (double)RAND_MAX) - 3;
-  param.B = 3 * ((double)qrand() / (double)RAND_MAX);
-  param.C = 3 * ((double)qrand() / (double)RAND_MAX);
-  param.D = 20 * ((double)qrand() / (double)RAND_MAX);
-  _parameters.insert(std::make_pair("data", param));
-
-  for (int i = 0; i < 20000; i++)
+  for (int i = 0; i < 150; i++)
   {
     auto str = QString("data_vect/%1").arg(i).toStdString();
+    DataStreamSample::Parameters param;
+    param.A = 6 * ((double)qrand() / (double)RAND_MAX) - 3;
+    param.B = 3 * ((double)qrand() / (double)RAND_MAX);
+    param.C = 3 * ((double)qrand() / (double)RAND_MAX);
+    param.D = 20 * ((double)qrand() / (double)RAND_MAX);
+    _parameters.insert({str, param});
     dataMap().addNumeric(str);
   }
 }
@@ -73,7 +72,10 @@ void DataStreamSample::pushSingleCycle()
   {
     auto& plot = it.second;
     const double t = duration_cast<duration<double>>(now - initial_time).count();
-    plot.pushBack(PlotData::Point(t + offset, 1));
+
+    const DataStreamSample::Parameters& param = _parameters[it.first];
+    double val = param.A*sin( param.B*t + param.C ) + param.D;
+    plot.pushBack(PlotData::Point(t + offset, val));
   }
 }
 

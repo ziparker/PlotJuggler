@@ -4,7 +4,7 @@
 #include "custom_function.h"
 #include <QJSEngine>
 
-class JsCustomFunction : public CustomFunction
+class JsCustomFunction : public ScriptedFunction
 {
 public:
   JsCustomFunction(const std::string& linkedPlot, const SnippetData& snippet);

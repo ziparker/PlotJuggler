@@ -1502,7 +1502,7 @@ bool MainWindow::loadLayoutFromFile(QString filename)
       for (QDomElement custom_eq = custom_equations.firstChildElement("snippet"); custom_eq.isNull() == false;
            custom_eq = custom_eq.nextSiblingElement("snippet"))
       {
-        CustomPlotPtr new_custom_plot = CustomFunction::createFromXML(custom_eq);
+        CustomPlotPtr new_custom_plot = ScriptedFunction::createFromXML(custom_eq);
         const auto& name = new_custom_plot->name();
         _custom_plots[name] = new_custom_plot;
         new_custom_plot->calculateAndAdd(_mapped_plot_data);
