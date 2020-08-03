@@ -33,9 +33,16 @@ CurveListPanel::CurveListPanel(const CustomPlotMap& mapped_math_plots, QWidget* 
 {
   ui->setupUi(this);
 
-  ui->verticalLayout->addWidget(_table_view, 1);
-  ui->verticalLayout->addWidget(_tree_view, 1);
-  ui->verticalLayoutCustom->addWidget(_custom_view, 1);
+  auto layout1 = new QHBoxLayout();
+  ui->listPlaceholder1->setLayout(layout1);
+  layout1->addWidget(_table_view, 1);
+  layout1->addWidget(_tree_view, 1);
+  layout1->setMargin(0);
+
+  auto layout2 = new QHBoxLayout();
+  ui->listPlaceholder2->setLayout(layout2);
+  layout2->addWidget(_custom_view, 1);
+  layout2->setMargin(0);
 
   // set black background
 //  QPalette pal = palette();

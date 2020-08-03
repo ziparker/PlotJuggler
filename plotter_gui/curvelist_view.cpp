@@ -50,7 +50,7 @@ void CurveTableView::addItem(const QString& item_name)
   val_cell->setTextAlignment(Qt::AlignRight);
   val_cell->setFlags(Qt::NoItemFlags | Qt::ItemIsEnabled);
   font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-  font.setPointSize(_point_size - 1);
+  font.setPointSize(_point_size - 2);
   val_cell->setFont(font);
   val_cell->setFlags(Qt::NoItemFlags);
 
@@ -88,13 +88,15 @@ void CurveTableView::refreshFontSize()
 
   for (int row = 0; row < rowCount(); row++)
   {
-    for (int col = 0; col < 2; col++)
-    {
-      auto cell = item(row, col);
-      QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
-      font.setPointSize(_point_size - col);
-      cell->setFont(font);
-    }
+    auto cell = item(row, 0);
+    QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
+    font.setPointSize(_point_size);
+    cell->setFont(font);
+
+    cell = item(row, 1);
+    font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    font.setPointSize(_point_size - 2 );
+    cell->setFont(font);
   }
   setViewResizeEnabled(true);
 }

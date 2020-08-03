@@ -75,7 +75,7 @@ void CurveTreeView::addItem(const QString& item_name)
       child_item->setFont(0, font);
 
       font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-      font.setPointSize(_point_size);
+      font.setPointSize(_point_size - 2);
       child_item->setFont(1, font);
       child_item->setTextAlignment(1, Qt::AlignRight);
 
@@ -126,7 +126,7 @@ void CurveTreeView::refreshFontSize()
     font.setPointSize(_point_size);
     item->setFont(0, font);
     font = item->font(1);
-    font.setPointSize(_point_size);
+    font.setPointSize(_point_size - 2);
     item->setFont(1, font);
   });
 

@@ -85,7 +85,7 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow,
 
   _buttonAddTab = new QPushButton("",this);
   _buttonAddTab->setFlat(true);
-  _buttonAddTab->setFixedSize( QSize(28,28));
+  _buttonAddTab->setFixedSize( QSize(32,32));
   _buttonAddTab->setFocusPolicy(Qt::NoFocus);
 
   connect(_buttonAddTab, &QPushButton::pressed, this, &TabbedPlotWidget::on_addTabButton_pressed);

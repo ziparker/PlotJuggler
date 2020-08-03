@@ -8,7 +8,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    sodipodi:docname="ratio.svg"
-   inkscape:version="1.0 (6e3e5246a0, 2020-05-07)"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
    version="1.1"
    id="svg2"
    viewBox="0 0 35.433071 35.433071"
@@ -22,8 +22,8 @@
      inkscape:window-maximized="1"
      inkscape:window-y="27"
      inkscape:window-x="67"
-     inkscape:window-height="1385"
-     inkscape:window-width="3373"
+     inkscape:window-height="1025"
+     inkscape:window-width="1853"
      showgrid="false"
      inkscape:current-layer="layer1"
      inkscape:document-units="px"
@@ -44,7 +44,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -53,23 +53,16 @@
      id="layer1"
      inkscape:groupmode="layer"
      inkscape:label="Layer 1">
-    <rect
-       y="1019.5184"
-       x="2.2455208"
-       height="30.241102"
-       width="30.8661"
-       id="rect4136"
-       style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:1.02675581;stroke-opacity:1" />
     <text
-       transform="scale(1.0111748,0.9889487)"
+       transform="scale(0.92482684,1.0812835)"
        id="text4138"
-       y="1053.9974"
-       x="2.7466037"
-       style="font-style:normal;font-weight:normal;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       y="964.21167"
+       x="2.3512907"
+       style="font-style:normal;font-weight:normal;font-size:13.96440315px;line-height:0%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.16370022px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"><tspan
-         style="font-size:18.0866px;line-height:1.25"
-         y="1053.9974"
-         x="2.7466037"
+         style="font-size:21.04738045px;line-height:1.25;stroke-width:1.16370022px"
+         y="964.21167"
+         x="2.3512907"
          id="tspan4140"
          sodipodi:role="line">1:1</tspan></text>
   </g>

@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>327</width>
+    <width>240</width>
     <height>684</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>280</width>
+    <width>240</width>
     <height>0</height>
    </size>
   </property>
@@ -31,78 +31,62 @@
   <property name="windowTitle">
    <string/>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_5">
-   <property name="spacing">
-    <number>8</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <property name="leftMargin">
-    <number>10</number>
+    <number>9</number>
    </property>
    <property name="topMargin">
-    <number>10</number>
+    <number>9</number>
    </property>
    <property name="rightMargin">
-    <number>10</number>
+    <number>9</number>
    </property>
    <property name="bottomMargin">
-    <number>10</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <property name="handleWidth">
-      <number>1</number>
-     </property>
-     <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+     <widget class="QWidget" name="">
+      <layout class="QVBoxLayout" name="verticalLayoutTop" stretch="0,0,1">
        <property name="bottomMargin">
-        <number>8</number>
+        <number>6</number>
        </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1">
-         <property name="spacing">
-          <number>4</number>
+        <widget class="QLineEdit" name="lineEdit">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>30</height>
+          </size>
          </property>
-         <property name="sizeConstraint">
-          <enum>QLayout::SetMinimumSize</enum>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
          </property>
-         <item>
-          <widget class="QLineEdit" name="lineEdit">
-           <property name="minimumSize">
-            <size>
-             <width>100</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="focusPolicy">
-            <enum>Qt::ClickFocus</enum>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Search box...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="inputMask">
-            <string notr="true" extracomment="Search"/>
-           </property>
-           <property name="frame">
-            <bool>false</bool>
-           </property>
-           <property name="placeholderText">
-            <string>  Filter...</string>
-           </property>
-           <property name="clearButtonEnabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Search box...&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="inputMask">
+          <string notr="true" extracomment="Search"/>
+         </property>
+         <property name="frame">
+          <bool>false</bool>
+         </property>
+         <property name="placeholderText">
+          <string>  Filter...</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0,0">
@@ -172,35 +156,21 @@
          </item>
         </layout>
        </item>
+       <item>
+        <widget class="QWidget" name="listPlaceholder1" native="true"/>
+       </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="layoutWidget1">
-      <layout class="QVBoxLayout" name="verticalLayoutCustom">
+     <widget class="QWidget" name="">
+      <layout class="QVBoxLayout" name="verticalLayoutBottom" stretch="0,1">
        <property name="topMargin">
-        <number>8</number>
+        <number>6</number>
        </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1,0,0">
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Custom time series:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,1">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
          <item>
           <widget class="QPushButton" name="buttonAddCustom">
            <property name="sizePolicy">
@@ -211,13 +181,13 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>130</width>
              <height>0</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>50</width>
+             <width>130</width>
              <height>16777215</height>
             </size>
            </property>
@@ -228,7 +198,7 @@
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Create a new timeseries&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string>Add</string>
+            <string>New time series</string>
            </property>
           </widget>
          </item>
@@ -260,7 +230,23 @@
            </property>
           </widget>
          </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QWidget" name="listPlaceholder2" native="true"/>
        </item>
       </layout>
      </widget>

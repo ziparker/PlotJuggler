@@ -90,6 +90,7 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
     ui->lineLimitMax->setText(QString::number(suggested_limits.max));
   }
 
+  ui->listWidget->setStyleSheet("QListView::item:selected { background: #ddeeff; }");
 }
 
 PlotwidgetEditor::~PlotwidgetEditor()
