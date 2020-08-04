@@ -31,6 +31,11 @@ CurveTreeView::CurveTreeView(CurveListPanel* parent) : QTreeWidget(parent), Curv
   header()->setStretchLastSection(true);
   header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+  connect(this, &QTreeWidget::itemDoubleClicked, this, [this](QTreeWidgetItem *item, int column)
+          {
+            expandChildren(item);
+          });
 }
 
 void CurveTreeView::addItem(const QString& item_name)
@@ -261,5 +266,18 @@ void CurveTreeView::treeVisitor(std::function<void(QTreeWidgetItem*)> visitor)
   for (int c = 0; c < invisibleRootItem()->childCount(); c++)
   {
     recursiveFunction(invisibleRootItem()->child(c));
+  }
+}
+
+void CurveTreeView::expandChildren(QTreeWidgetItem *item)
+{
+  int childCount = item->childCount();
+  for (int i = 0; i < childCount; i++) {
+    const auto child = item->child(i);
+    // Recursively call the function for each child node.
+    if( !child->isExpanded() && child->childCount() > 0  ){
+      child->setExpanded(true);
+      expandChildren(child);
+    }
   }
 }

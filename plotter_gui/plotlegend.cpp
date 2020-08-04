@@ -25,7 +25,7 @@ PlotLegend::PlotLegend(QwtPlot* parent) : _parent_plot(parent), _collapsed(false
   setFont(font);
   setVisible(true);
 
-  setBackgroundBrush(QBrush(QColor(122, 122, 122, 40), Qt::SolidPattern));
+  setBackgroundBrush(QBrush(QColor(255, 255, 255, 150), Qt::SolidPattern));
 
   this->attach(parent);
 }
