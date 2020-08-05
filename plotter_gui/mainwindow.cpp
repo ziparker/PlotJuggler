@@ -569,11 +569,6 @@ void MainWindow::resizeEvent(QResizeEvent*)
   on_splitterMoved(0, 0);
 }
 
-void MainWindow::showEvent(QShowEvent* ev)
-{
-  QMainWindow::showEvent(ev);
-}
-
 void MainWindow::onPlotAdded(PlotWidget* plot)
 {
   connect(plot, &PlotWidget::undoableChange, this, &MainWindow::onUndoableChange);

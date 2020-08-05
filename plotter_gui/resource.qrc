@@ -210,7 +210,6 @@
         <file>resources/svg/close-button.svg</file>
         <file>resources/svg/colored_charts.svg</file>
         <file>resources/svg/fullscreen.svg</file>
-        <file>resources/svg/function.svg</file>
         <file>resources/svg/left-arrow.svg</file>
         <file>resources/svg/list.svg</file>
         <file>resources/svg/pause.svg</file>
@@ -218,7 +217,6 @@
         <file>resources/svg/play_arrow.svg</file>
         <file>resources/svg/point_chart.svg</file>
         <file>resources/svg/ratio.svg</file>
-        <file>resources/svg/remove.svg</file>
         <file>resources/svg/remove_list.svg</file>
         <file>resources/svg/save.svg</file>
         <file>resources/svg/settings_cog.svg</file>
