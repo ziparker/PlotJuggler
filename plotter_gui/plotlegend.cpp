@@ -34,12 +34,13 @@ PlotLegend::PlotLegend(QwtPlot* parent) : _parent_plot(parent), _collapsed(false
 
 QRectF PlotLegend::hideButtonRect() const
 {
+  const int s = 5;
   auto canvas_rect = _parent_plot->canvas()->rect();
   if (alignmentInCanvas() & Qt::AlignRight)
   {
-    return QRectF(geometry(canvas_rect).topRight() + QPoint(-5, -5) , QSize(10, 10));
+    return QRectF(geometry(canvas_rect).topRight() + QPoint(-s, -s) , QSize(s*2, s*2));
   }
-  return QRectF(geometry(canvas_rect).topLeft()  + QPoint(-5, +5), QSize(10, 10));
+  return QRectF(geometry(canvas_rect).topLeft()  + QPoint(-s, -s), QSize(s*2, s*2));
 }
 
 void PlotLegend::draw(QPainter* painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap, const QRectF& rect) const

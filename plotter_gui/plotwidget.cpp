@@ -1811,17 +1811,18 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
       {
         if (legend_rect.contains(mouse_event->pos()) && _legend->isVisible())
         {
-          int point_size = _legend->font().pointSize();
-          int new_size = point_size;
-          if (mouse_event->delta() > 0 && point_size < 12)
+          int prev_size = _legend->font().pointSize();
+          int new_size = prev_size;
+          if (mouse_event->delta() > 0)
           {
-            new_size++;
+            new_size = std::min(13, prev_size+1);
           }
-          if (mouse_event->delta() < 0 && point_size > 6)
+          if (mouse_event->delta() < 0)
           {
-            new_size--;
+            new_size = std::max(7, prev_size-1);
           }
-          if( new_size != point_size){
+          if( new_size != prev_size)
+          {
             setLegendSize(new_size);
             emit legendSizeChanged(new_size);
           }

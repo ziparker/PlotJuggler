@@ -297,16 +297,17 @@ bool CurvesView::eventFilterBase(QObject* object, QEvent* event)
   else if (event->type() == QEvent::Wheel)
   {
     QWheelEvent* wheel_event = dynamic_cast<QWheelEvent*>(event);
-    int prev_size = _point_size;
+
     if (ctrl_modifier_pressed)
     {
-      if (_point_size > 6 && wheel_event->delta() < 0)
+      int prev_size = _point_size;
+      if (wheel_event->delta() < 0)
       {
-        _point_size--;
+        _point_size = std::max(8, prev_size-1);
       }
-      else if (_point_size < 14 && wheel_event->delta() > 0)
+      else if (wheel_event->delta() > 0)
       {
-        _point_size++;
+        _point_size = std::min(14, prev_size+1);
       }
       if (_point_size != prev_size)
       {
@@ -315,6 +316,5 @@ bool CurvesView::eventFilterBase(QObject* object, QEvent* event)
       return true;
     }
   }
-
   return false;
 }

@@ -72,21 +72,11 @@ private slots:
 
   void on_moveTabIntoNewWindow();
 
-  void on_pushButtonShowLabel_pressed();
-
-  void onLabelStatusChanged();
-
   // TODO void onMoveWidgetIntoNewTab(QString plot_name);
 
   void paintEvent(QPaintEvent* event) override;
 
 private:
-  enum LabelStatus
-  {
-    LEFT,
-    RIGHT,
-    HIDDEN
-  };
 
   QTabWidget* _tabWidget;
 
@@ -107,8 +97,6 @@ private:
   bool _horizontal_link;
 
   QString _parent_type;
-
-  LabelStatus _labels_status;
 
   virtual void closeEvent(QCloseEvent* event) override;
 

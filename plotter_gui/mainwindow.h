@@ -59,7 +59,8 @@ public slots:
   void onTimeSlider_valueChanged(double abs_time);
 
   void onPlotAdded(PlotWidget* plot);
-  void onPlottabAdded(PlotDocker* matrix);
+  void onPlotTabAdded(PlotDocker* matrix);
+  void onPlotZoomChanged(PlotWidget* modified_plot, QRectF new_range);
 
   void on_tabbedAreaDestroyed(QObject* object);
 
@@ -122,6 +123,15 @@ private:
   QTimer* _publish_timer;
 
   QDateTime _prev_publish_time;
+
+  enum LabelStatus
+  {
+    LEFT,
+    RIGHT,
+    HIDDEN
+  };
+
+  LabelStatus _labels_status;
 
   void initializeActions();
   void initializePlugins(QString subdir_name);
@@ -207,6 +217,7 @@ private slots:
   void on_actionShare_the_love_triggered();
   void on_playbackStep_valueChanged(double arg1);
   void on_actionLoadStyleSheet_triggered();
+  void on_pushButtonLegend_clicked();
 };
 
 #endif  // MAINWINDOW_H

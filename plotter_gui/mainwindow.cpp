@@ -58,6 +58,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   , _disable_undo_logging(false)
   , _tracker_time(0)
   , _tracker_param(CurveTracker::VALUE)
+  , _labels_status(LabelStatus::RIGHT)
 {
   QLocale::setDefault(QLocale::c());  // set as default
 
@@ -77,6 +78,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   ui->pushButtonTimeTracker->setText("");
   ui->pushButtonOptions->setText("");
   ui->pushButtonRemoveTimeOffset->setText("");
+  ui->pushButtonLegend->setText("");
 
   if (commandline_parser.isSet("buffer_size"))
   {
@@ -116,7 +118,6 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   ui->layoutTimescale->removeWidget( ui->widgetButtons );
   _main_tabbed_widget->tabWidget()->setCornerWidget( ui->widgetButtons );
-
 
   connect(ui->mainSplitter, SIGNAL(splitterMoved(int, int)), SLOT(on_splitterMoved(int, int)));
 
@@ -165,9 +166,18 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   QSettings settings;
   restoreGeometry(settings.value("MainWindow.geometry").toByteArray());
+  restoreState(settings.value("MainWindow.state").toByteArray());
+
+  qDebug() << "restoreGeometry";
 
   bool activate_grid = settings.value("MainWindow.activateGrid", false).toBool();
   ui->pushButtonActivateGrid->setChecked(activate_grid);
+
+  bool zoom_link_active = settings.value("MainWindow.buttonLink",true).toBool();
+  ui->pushButtonLink->setChecked(zoom_link_active);
+
+  bool ration_active = settings.value("MainWindow.buttonRatio",true).toBool();
+  ui->pushButtonRatio->setChecked(ration_active);
 
   int streaming_buffer_value = settings.value("MainWindow.streamingBufferValue", 5).toInt();
   ui->streamingSpinBox->setValue(streaming_buffer_value);
@@ -528,13 +538,28 @@ void MainWindow::buildDummyData()
 void MainWindow::on_splitterMoved(int, int)
 {
   QList<int> sizes = ui->mainSplitter->sizes();
-  int maxLeftWidth = _curvelist_widget->maximumWidth();
+  int max_left_size = _curvelist_widget->maximumWidth();
   int totalWidth = sizes[0] + sizes[1];
 
-  if (sizes[0] > maxLeftWidth)
+  // this is needed only once to restore the old size
+  static bool first = true;
+  if (sizes[0] != 0 && first)
   {
-    sizes[0] = maxLeftWidth;
-    sizes[1] = totalWidth - maxLeftWidth;
+    first = false;
+    QSettings settings;
+    int splitter_width = settings.value("MainWindow.splitterWidth", 200).toInt();
+    auto sizes = ui->mainSplitter->sizes();
+    int tot_splitter_width = sizes[0] + sizes[1];
+    sizes[0] = splitter_width;
+    sizes[1] = tot_splitter_width - splitter_width;
+    ui->mainSplitter->setSizes(sizes);
+    return;
+  }
+
+  if (sizes[0] > max_left_size)
+  {
+    sizes[0] = max_left_size;
+    sizes[1] = totalWidth - max_left_size;
     ui->mainSplitter->setSizes(sizes);
   }
 }
@@ -547,19 +572,6 @@ void MainWindow::resizeEvent(QResizeEvent*)
 void MainWindow::showEvent(QShowEvent* ev)
 {
   QMainWindow::showEvent(ev);
-
-  static bool first = true;
-  if (first)
-  {
-    first = false;
-    QSettings settings;
-    int splitter_width = settings.value("MainWindow.splitterWidth", 200).toInt();
-    QList<int> splitter_sizes = ui->mainSplitter->sizes();
-    int tot_splitter_width = splitter_sizes[0] + splitter_sizes[1];
-    splitter_sizes[0] = splitter_width;
-    splitter_sizes[1] = tot_splitter_width - splitter_width;
-    ui->mainSplitter->setSizes(splitter_sizes);
-  }
 }
 
 void MainWindow::onPlotAdded(PlotWidget* plot)
@@ -585,21 +597,46 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
   connect(plot, &PlotWidget::legendSizeChanged, this, [=](int point_size)
           {
-            auto visitor = [=](PlotWidget* p)
-            {
+            auto visitor = [=](PlotWidget* p){
               if(plot != p) p->setLegendSize(point_size);
             };
             this->forEachWidget(visitor);
           });
+
+  connect(plot, &PlotWidget::rectChanged, this, &MainWindow::onPlotZoomChanged);
 
   plot->on_changeTimeOffset(_time_offset.get());
   plot->on_changeDateTimeScale(ui->pushButtonUseDateTime->isChecked());
   plot->activateGrid(ui->pushButtonActivateGrid->isChecked());
   plot->enableTracker(!isStreamingActive());
   plot->configureTracker(_tracker_param);
+
 }
 
-void MainWindow::onPlottabAdded(PlotDocker* matrix)
+void MainWindow::onPlotZoomChanged(PlotWidget* modified_plot, QRectF new_range)
+{
+  if (ui->pushButtonLink->isChecked())
+  {
+    auto visitor = [=](PlotWidget* plot){
+      if(plot != modified_plot &&
+         !plot->isEmpty() &&
+         !plot->isXYPlot())
+      {
+        QRectF bound_act = plot->canvasBoundingRect();
+        bound_act.setLeft(new_range.left());
+        bound_act.setRight(new_range.right());
+        plot->setZoomRectangle(bound_act, false);
+        plot->on_zoomOutVertical_triggered(false);
+        plot->replot();
+      }
+    };
+    this->forEachWidget(visitor);
+  }
+
+  onUndoableChange();
+}
+
+void MainWindow::onPlotTabAdded(PlotDocker* matrix)
 {
   connect(matrix, &PlotDocker::plotWidgetAdded, this, &MainWindow::onPlotAdded);
   // TODO  connect(matrix, &PlotMatrix::undoableChange, this, &MainWindow::onUndoableChange);
@@ -1235,10 +1272,10 @@ void MainWindow::on_stylesheetChanged(QString style_dir)
   ui->pushButtonUseDateTime->setIcon(LoadSvgIcon(":/resources/svg/datetime.svg", style_dir));
   ui->pushButtonActivateGrid->setIcon(LoadSvgIcon(":/resources/svg/grid.svg", style_dir));
   ui->pushButtonRatio->setIcon(LoadSvgIcon(":/resources/svg/ratio.svg", style_dir));
-  ui->actionClearRecentData->setIcon(LoadSvgIcon(":/resources/svg/clean_pane.svg", style_dir));
- // ui->actionClearRecentLayout->setIcon(LoadSvgIcon(":/resources/svg/clean_pane.svg", style_dir));
+
   ui->pushButtonLink->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
   ui->pushButtonRemoveTimeOffset->setIcon(LoadSvgIcon(":/resources/svg/t0.svg", style_dir));
+  ui->pushButtonLegend->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
 }
 
 void MainWindow::loadPluginState(const QDomElement& root)
@@ -2008,10 +2045,15 @@ void MainWindow::closeEvent(QCloseEvent* event)
   }
   QSettings settings;
   settings.setValue("MainWindow.geometry", saveGeometry());
+  settings.setValue("MainWindow.state", saveState());
+
   settings.setValue("MainWindow.activateGrid", ui->pushButtonActivateGrid->isChecked());
-  settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value());
   settings.setValue("MainWindow.removeTimeOffset", ui->pushButtonRemoveTimeOffset->isChecked());
   settings.setValue("MainWindow.dateTimeDisplay", ui->pushButtonUseDateTime->isChecked());
+  settings.setValue("MainWindow.buttonLink", ui->pushButtonLink->isChecked());
+  settings.setValue("MainWindow.buttonRatio", ui->pushButtonRatio->isChecked());
+
+  settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value());
   settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param);
   settings.setValue("MainWindow.splitterWidth", ui->mainSplitter->sizes()[0]);
 
@@ -2654,4 +2696,37 @@ void MainWindow::on_actionLoadStyleSheet_triggered()
 
   directory_path = QFileInfo(fileName).absolutePath();
   settings.setValue("MainWindow.loadStyleSheetDirectory", directory_path);
+}
+
+void MainWindow::on_pushButtonLegend_clicked()
+{
+  switch (_labels_status)
+  {
+    case LabelStatus::LEFT:
+      _labels_status = LabelStatus::HIDDEN;
+      break;
+    case LabelStatus::RIGHT:
+      _labels_status = LabelStatus::LEFT;
+      break;
+    case LabelStatus::HIDDEN:
+      _labels_status = LabelStatus::RIGHT;
+      break;
+  }
+
+  auto visitor = [=](PlotWidget* plot)
+  {
+    plot->activateLegend(_labels_status != LabelStatus::HIDDEN);
+
+    if (_labels_status == LabelStatus::LEFT)
+    {
+      plot->setLegendAlignment(Qt::AlignLeft);
+    }
+    else if (_labels_status == LabelStatus::RIGHT)
+    {
+      plot->setLegendAlignment(Qt::AlignRight);
+    }
+    plot->replot();
+  };
+
+  this->forEachWidget(visitor);
 }

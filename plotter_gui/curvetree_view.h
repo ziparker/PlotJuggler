@@ -5,29 +5,6 @@
 #include <QTreeWidget>
 #include <functional>
 
-//    void addToTree(const QString& name, int reference_row) {
-//        auto parts = name.split('/', QString::SplitBehavior::SkipEmptyParts);
-//        if (parts.size() == 0) {
-//            return;
-//        }
-
-//        TreeItem* tree_parent = &_root_tree_item;
-
-//        for (int i = 0; i < parts.size(); i++) {
-//            bool is_leaf = (i == parts.size() - 1);
-//            const auto& part = parts[i];
-
-//            TreeItem* matching_child = tree_parent->findChild(part);
-//            if (matching_child) {
-//                tree_parent = matching_child;
-//            } else {
-
-//                tree_parent = tree_parent->appendChild(part);
-//                tree_parent->nameItem()->setSelectable(is_leaf);
-//            }
-//        }
-//    }
-
 class CurveTreeView : public QTreeWidget, public CurvesView
 {
 public:
@@ -40,7 +17,7 @@ public:
     _hidden_count = 0;
   }
 
-  void addItem(const QString& item_name);
+  void addItem(const QString& item_name) override;
 
   void refreshColumns() override;
 

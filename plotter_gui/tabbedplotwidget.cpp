@@ -25,7 +25,6 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow,
   , _mapped_data(mapped_data)
   , _name(name)
   , _main_window(mainwindow)
-  , _labels_status(LabelStatus::RIGHT)
 {
   MainWindow* main_window = dynamic_cast<MainWindow*>(_main_window);
 
@@ -76,7 +75,7 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow,
 //  _tab_menu->addSeparator();
 
   connect(this, &TabbedPlotWidget::destroyed, main_window, &MainWindow::on_tabbedAreaDestroyed);
-  connect(this, &TabbedPlotWidget::tabAdded, main_window, &MainWindow::onPlottabAdded);
+  connect(this, &TabbedPlotWidget::tabAdded, main_window, &MainWindow::onPlotTabAdded);
   connect(this, &TabbedPlotWidget::undoableChange, main_window, &MainWindow::onUndoableChange);
 
   // TODO connect(_tabWidget, &TabWidget::movingPlotWidgetToTab, this, &TabbedPlotWidget::onMoveWidgetIntoNewTab);
@@ -496,23 +495,6 @@ void TabbedPlotWidget::on_moveTabIntoNewWindow()
   emit sendTabToNewWindow(currentTab());
 }
 
-void TabbedPlotWidget::on_pushButtonShowLabel_pressed()
-{
-  switch (_labels_status)
-  {
-    case LabelStatus::LEFT:
-      _labels_status = LabelStatus::HIDDEN;
-      break;
-    case LabelStatus::RIGHT:
-      _labels_status = LabelStatus::LEFT;
-      break;
-    case LabelStatus::HIDDEN:
-      _labels_status = LabelStatus::RIGHT;
-      break;
-  }
-  onLabelStatusChanged();
-}
-
 bool TabbedPlotWidget::eventFilter(QObject* obj, QEvent* event)
 {
   QTabBar* tab_bar = tabWidget()->tabBar();
@@ -572,31 +554,6 @@ bool TabbedPlotWidget::eventFilter(QObject* obj, QEvent* event)
   // Standard event processing
   return QObject::eventFilter(obj, event);
 }
-
-void TabbedPlotWidget::onLabelStatusChanged()
-{
-  for (int i = 0; i < tabWidget()->count(); i++)
-  {
-    PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(i));
-
-    for (unsigned p = 0; p < matrix->plotCount(); p++)
-    {
-      PlotWidget* plot = matrix->plotAt(p);
-
-      plot->activateLegend(_labels_status != LabelStatus::HIDDEN);
-      if (_labels_status == LabelStatus::LEFT)
-      {
-        plot->setLegendAlignment(Qt::AlignLeft);
-      }
-      else if (_labels_status == LabelStatus::RIGHT)
-      {
-        plot->setLegendAlignment(Qt::AlignRight);
-      }
-      plot->replot();
-    }
-  }
-}
-
 
 void TabbedPlotWidget::closeEvent(QCloseEvent* event)
 {
