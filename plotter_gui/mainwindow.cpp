@@ -583,6 +583,15 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
   connect(plot, &PlotWidget::curvesDropped, _curvelist_widget, &CurveListPanel::clearSelections);
 
+  connect(plot, &PlotWidget::legendSizeChanged, this, [=](int point_size)
+          {
+            auto visitor = [=](PlotWidget* p)
+            {
+              if(plot != p) p->setLegendSize(point_size);
+            };
+            this->forEachWidget(visitor);
+          });
+
   plot->on_changeTimeOffset(_time_offset.get());
   plot->on_changeDateTimeScale(ui->pushButtonUseDateTime->isChecked());
   plot->activateGrid(ui->pushButtonActivateGrid->isChecked());

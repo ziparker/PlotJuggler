@@ -3,6 +3,7 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QPainter>
+#include <QMarginsF>
 #include "qwt_legend_data.h"
 #include "qwt_graphic.h"
 #include "qwt_text.h"
@@ -14,8 +15,9 @@ PlotLegend::PlotLegend(QwtPlot* parent) : _parent_plot(parent), _collapsed(false
   setMaxColumns(1);
   setAlignmentInCanvas(Qt::Alignment(Qt::AlignTop | Qt::AlignRight));
   setBackgroundMode(QwtPlotLegendItem::BackgroundMode::LegendBackground);
-
+  setBorderPen( QPen(Qt::red,1) );
   setBorderRadius(0);
+
   setMargin(2);
   setSpacing(1);
   setItemMargin(2);
@@ -35,9 +37,9 @@ QRectF PlotLegend::hideButtonRect() const
   auto canvas_rect = _parent_plot->canvas()->rect();
   if (alignmentInCanvas() & Qt::AlignRight)
   {
-    return QRectF(geometry(canvas_rect).topRight(), QSize(8, -8));
+    return QRectF(geometry(canvas_rect).topRight() + QPoint(-5, -5) , QSize(10, 10));
   }
-  return QRectF(geometry(canvas_rect).topLeft(), QSize(-8, -8));
+  return QRectF(geometry(canvas_rect).topLeft()  + QPoint(-5, +5), QSize(10, 10));
 }
 
 void PlotLegend::draw(QPainter* painter, const QwtScaleMap& xMap, const QwtScaleMap& yMap, const QRectF& rect) const
@@ -53,14 +55,17 @@ void PlotLegend::draw(QPainter* painter, const QwtScaleMap& xMap, const QwtScale
   {
     painter->save();
 
-    painter->setPen(Qt::white);
+    QColor col = _parent_plot->canvas()->palette().foreground().color();
+    painter->setPen(col);
     painter->setBrush(QBrush(Qt::white, Qt::SolidPattern));
-    painter->drawRect(iconRect);
-
-    QPen black_pen(Qt::black);
-    black_pen.setWidth(2);
-    painter->setPen(black_pen);
     painter->drawEllipse(iconRect);
+
+    if( _collapsed ){
+      iconRect -= QMarginsF(3,3,3,3);
+      painter->setBrush(QBrush(col, Qt::SolidPattern));
+      painter->drawEllipse(iconRect);
+    }
+
     painter->restore();
   }
 }
@@ -110,29 +115,6 @@ void PlotLegend::drawLegendData(QPainter* painter, const QwtPlotItem* plotItem, 
     const QRectF textRect = r.adjusted(titleOff, 0, 0, 0);
     text.draw(painter, textRect);
   }
-}
-
-bool PlotLegend::processWheelEvent(QWheelEvent* mouse_event)
-{
-  if (mouse_event->modifiers() == Qt::ControlModifier && isVisible())
-  {
-    auto canvas_rect = _parent_plot->canvas()->rect();
-    auto legend_rect = geometry(canvas_rect);
-    if (legend_rect.contains(mouse_event->pos()))
-    {
-      int point_size = font().pointSize();
-      if (mouse_event->delta() > 0 && point_size < 14)
-      {
-        emit legendSizeChanged(point_size + 1);
-      }
-      if (mouse_event->delta() < 0 && point_size > 6)
-      {
-        emit legendSizeChanged(point_size - 1);
-      }
-      return true;
-    }
-  }
-  return false;
 }
 
 void PlotLegend::drawBackground(QPainter* painter, const QRectF& rect) const

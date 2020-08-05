@@ -1812,18 +1812,22 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
         if (legend_rect.contains(mouse_event->pos()) && _legend->isVisible())
         {
           int point_size = _legend->font().pointSize();
+          int new_size = point_size;
           if (mouse_event->delta() > 0 && point_size < 12)
           {
-            emit legendSizeChanged(point_size + 1);
+            new_size++;
           }
           if (mouse_event->delta() < 0 && point_size > 6)
           {
-            emit legendSizeChanged(point_size - 1);
+            new_size--;
           }
-          return true;  // don't pass to canvas().
+          if( new_size != point_size){
+            setLegendSize(new_size);
+            emit legendSizeChanged(new_size);
+          }
+          return true;
         }
       }
-
       return false;
     }
 

@@ -13,8 +13,6 @@ public:
 
   QRectF hideButtonRect() const;
 
-  bool processWheelEvent(QWheelEvent* ev);
-
   const QwtPlotItem* processMousePressEvent(QMouseEvent* mouse_event);
 
 private:
@@ -28,8 +26,6 @@ private:
   QwtPlot* _parent_plot;
   bool _collapsed;
 
-signals:
-  void legendSizeChanged(int point_size);
 };
 
 #endif  // PLOTLEGEND_H
