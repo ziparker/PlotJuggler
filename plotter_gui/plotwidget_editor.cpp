@@ -341,7 +341,7 @@ void PlotwidgetEditor::on_pushButtonSave_pressed()
 RowWidget::RowWidget(QString text, QColor color): QWidget()
 {
   setMouseTracking(true);
-  const QSize button_size(24,24);
+  const QSize button_size(20,20);
 
   auto layout = new QHBoxLayout();
   setLayout( layout );

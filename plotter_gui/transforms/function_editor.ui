@@ -129,6 +129,9 @@
                  <height>25</height>
                 </size>
                </property>
+               <property name="focusPolicy">
+                <enum>Qt::ClickFocus</enum>
+               </property>
                <property name="toolTip">
                 <string>name of the new function/timeseries</string>
                </property>
@@ -218,6 +221,9 @@
          </item>
          <item>
           <widget class="QRadioButton" name="radioButtonJS">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>JavaScript</string>
            </property>
@@ -225,6 +231,9 @@
          </item>
          <item>
           <widget class="QRadioButton" name="radioButtonLua">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>Lua</string>
            </property>
@@ -367,7 +376,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="tab_2">
           <attribute name="title">
@@ -532,6 +541,9 @@
              </item>
              <item>
               <widget class="QLineEdit" name="lineEditFilter">
+               <property name="focusPolicy">
+                <enum>Qt::ClickFocus</enum>
+               </property>
                <property name="clearButtonEnabled">
                 <bool>true</bool>
                </property>

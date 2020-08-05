@@ -114,6 +114,9 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::ClickFocus</enum>
+           </property>
            <property name="editTriggers">
             <set>QAbstractItemView::NoEditTriggers</set>
            </property>
@@ -177,7 +180,7 @@
          <item>
           <widget class="QLineEdit" name="editColotText">
            <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
+            <enum>Qt::ClickFocus</enum>
            </property>
           </widget>
          </item>
@@ -341,6 +344,9 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
+              </property>
              </widget>
             </item>
             <item row="2" column="0">
@@ -357,6 +363,9 @@
              <widget class="QLineEdit" name="lineLimitMin">
               <property name="enabled">
                <bool>false</bool>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::ClickFocus</enum>
               </property>
              </widget>
             </item>

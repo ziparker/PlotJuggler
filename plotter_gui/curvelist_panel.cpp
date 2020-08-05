@@ -26,16 +26,17 @@
 CurveListPanel::CurveListPanel(const CustomPlotMap& mapped_math_plots, QWidget* parent)
   : QWidget(parent)
   , ui(new Ui::CurveListPanel)
-  , _table_view(new CurveTableView(this))
   , _custom_view(new CurveTableView(this))
   , _tree_view(new CurveTreeView(this))
   , _custom_plots(mapped_math_plots)
 {
   ui->setupUi(this);
 
+  _tree_view->setObjectName("curveTreeView");
+  _custom_view->setObjectName("curveCustomView");
+
   auto layout1 = new QHBoxLayout();
   ui->listPlaceholder1->setLayout(layout1);
-  layout1->addWidget(_table_view, 1);
   layout1->addWidget(_tree_view, 1);
   layout1->setMargin(0);
 
@@ -43,12 +44,6 @@ CurveListPanel::CurveListPanel(const CustomPlotMap& mapped_math_plots, QWidget* 
   ui->listPlaceholder2->setLayout(layout2);
   layout2->addWidget(_custom_view, 1);
   layout2->setMargin(0);
-
-  // set black background
-//  QPalette pal = palette();
-//  pal.setColor(QPalette::Background, QColor("#808182"));
-//  setAutoFillBackground(true);
-//  setPalette(pal);
 
   QSettings settings;
 
@@ -61,25 +56,11 @@ CurveListPanel::CurveListPanel(const CustomPlotMap& mapped_math_plots, QWidget* 
   connect(_custom_view->selectionModel(), &QItemSelectionModel::selectionChanged, this,
           &CurveListPanel::onCustomSelectionChanged);
 
-  connect(_custom_view, &QAbstractItemView::pressed, _table_view, &QAbstractItemView::clearSelection);
-
-  connect(_table_view, &QAbstractItemView::pressed, _custom_view, &QAbstractItemView::clearSelection);
-
-  connect(_table_view, &QAbstractItemView::pressed, _custom_view, &QAbstractItemView::clearSelection);
-
-  connect(_table_view->verticalScrollBar(), &QScrollBar::valueChanged, this, &CurveListPanel::refreshValues);
-
   connect(_custom_view->verticalScrollBar(), &QScrollBar::valueChanged, this, &CurveListPanel::refreshValues);
 
   connect(_tree_view->verticalScrollBar(), &QScrollBar::valueChanged, this, &CurveListPanel::refreshValues);
 
   connect(_tree_view, &QTreeWidget::itemExpanded, this, &CurveListPanel::refreshValues);
-
-  bool is_tree = settings.value("FilterableListWidget/isTreeView", false).toBool();
-  _view_type = is_tree ? TREE : LIST;
-
-  _tree_view->setHidden(!is_tree);
-  _table_view->setHidden(is_tree);
 }
 
 CurveListPanel::~CurveListPanel()
@@ -89,7 +70,6 @@ CurveListPanel::~CurveListPanel()
 
 void CurveListPanel::clear()
 {
-  _table_view->clear();
   _custom_view->clear();
   _tree_view->clear();
   _numeric_data = nullptr;
@@ -98,7 +78,6 @@ void CurveListPanel::clear()
 
 void CurveListPanel::addCurve(const QString& item_name)
 {
-  _table_view->addItem(item_name);
   _tree_view->addItem(item_name);
 }
 
@@ -109,7 +88,6 @@ void CurveListPanel::addCustom(const QString& item_name)
 
 void CurveListPanel::refreshColumns()
 {
-  _table_view->refreshColumns();
   _tree_view->refreshColumns();
   _custom_view->refreshColumns();
 
@@ -118,7 +96,7 @@ void CurveListPanel::refreshColumns()
 
 void CurveListPanel::updateFilter()
 {
-  on_lineEdit_textChanged(ui->lineEdit->text());
+  on_lineEditFilter_textChanged(ui->lineEditFilter->text());
 }
 
 void CurveListPanel::keyPressEvent(QKeyEvent* event)
@@ -131,7 +109,6 @@ void CurveListPanel::keyPressEvent(QKeyEvent* event)
 
 void CurveListPanel::changeFontSize(int point_size)
 {
-  _table_view->setFontSize(point_size);
   _custom_view->setFontSize(point_size);
   _tree_view->setFontSize(point_size);
 
@@ -199,7 +176,7 @@ void CurveListPanel::refreshValues()
   };
 
   //------------------------------------
-  for (CurveTableView* table : { _table_view, _custom_view })
+  for (CurveTableView* table : { _custom_view })
   {
     table->setViewResizeEnabled(false);
     const int vertical_height = table->visibleRegion().boundingRect().height();
@@ -226,8 +203,9 @@ void CurveListPanel::refreshValues()
     //  table->setViewResizeEnabled(true);
   }
   //------------------------------------
+  for (CurveTreeView* tree_view : {_tree_view})
   {
-    const int vertical_height = _tree_view->visibleRegion().boundingRect().height();
+    const int vertical_height = tree_view->visibleRegion().boundingRect().height();
 
     auto DisplayValue = [&](QTreeWidgetItem* cell) {
       QString curve_name = cell->data(0, Qt::UserRole).toString();
@@ -253,17 +231,17 @@ void CurveListPanel::refreshValues()
       }
     };
 
-    _tree_view->setViewResizeEnabled(false);
-    _tree_view->treeVisitor(DisplayValue);
-    // _tree_view->setViewResizeEnabled(true);
+    tree_view->setViewResizeEnabled(false);
+    tree_view->treeVisitor(DisplayValue);
+    // tree_view->setViewResizeEnabled(true);
   }
 }
 
-void CurveListPanel::on_lineEdit_textChanged(const QString& search_string)
+void CurveListPanel::on_lineEditFilter_textChanged(const QString& search_string)
 {
   bool updated = false;
 
-  CurvesView* active_view = _view_type == LIST ? (CurvesView*)_table_view : (CurvesView*)_tree_view;
+  CurvesView* active_view = (CurvesView*)_tree_view;
 
   updated = active_view->applyVisibilityFilter(search_string);
 
@@ -286,7 +264,6 @@ void CurveListPanel::removeSelectedCurves()
 
   if (reply == QMessageBox::Yes)
   {
-    emit deleteCurves(_table_view->getSelectedNames());
     emit deleteCurves(_tree_view->getSelectedNames());
     emit deleteCurves(_custom_view->getSelectedNames());
   }
@@ -297,14 +274,13 @@ void CurveListPanel::removeSelectedCurves()
 void CurveListPanel::removeCurve(const std::string& name)
 {
   QString curve_name = QString::fromStdString(name);
-  _table_view->removeCurve(curve_name);
   _tree_view->removeCurve(curve_name);
   _custom_view->removeCurve(curve_name);
 }
 
 void CurveListPanel::on_buttonAddCustom_clicked()
 {
-  std::array<CurvesView*, 3> views = { _table_view, _tree_view, _custom_view };
+  std::array<CurvesView*, 2> views = { _tree_view, _custom_view };
 
   std::string suggested_name;
   for (CurvesView* view : views)
@@ -318,7 +294,7 @@ void CurveListPanel::on_buttonAddCustom_clicked()
   }
 
   emit createMathPlot(suggested_name);
-  on_lineEdit_textChanged(ui->lineEdit->text());
+  on_lineEditFilter_textChanged(ui->lineEditFilter->text());
 }
 
 void CurveListPanel::onCustomSelectionChanged(const QItemSelection&, const QItemSelection&)
@@ -344,50 +320,18 @@ void CurveListPanel::clearSelections()
 {
   _custom_view->clearSelection();
   _tree_view->clearSelection();
-  _table_view->clearSelection();
 }
 
 void CurveListPanel::on_stylesheetChanged(QString style_dir)
 {
   _style_dir = style_dir;
-
-  if (_view_type == LIST)
-  {
-    ui->pushButtonView->setIcon(LoadSvgIcon(":/resources/svg/list.svg",style_dir));
-  }
-  else
-  {
-    ui->pushButtonView->setIcon(LoadSvgIcon(":/resources/svg/tree.svg",style_dir));
-  }
-}
-
-void CurveListPanel::on_pushButtonView_pressed()
-{
-  if (_view_type == TREE)
-  {
-    _view_type = LIST;
-  }
-  else
-  {
-    _view_type = TREE;
-  }
-
-  const bool is_tree = _view_type == TREE;
-
-  _tree_view->setVisible(is_tree);
-  _table_view->setVisible(!is_tree);
-
-  on_stylesheetChanged(_style_dir);
-
-  refreshValues();
-  QSettings settings;
-  settings.setValue("FilterableListWidget/isTreeView", is_tree);
+  ui->buttonAddCustom->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
+  ui->buttonEditCustom->setIcon(LoadSvgIcon(":/resources/svg/pencil-edit.svg", style_dir));
 }
 
 void CurveListPanel::on_checkBoxShowValues_toggled(bool show)
 {
   _tree_view->hideValuesColumn(!show);
-  _table_view->hideValuesColumn(!show);
   _custom_view->hideValuesColumn(!show);
   emit hiddenItemsChanged();
 }

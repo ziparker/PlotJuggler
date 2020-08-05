@@ -73,29 +73,6 @@ QTabBar::tab:!selected {
     border-bottom: 1px solid grey;
 }
 
-QTableView,
-QTreeView,
-QListView {
-   background: white;
-   color: #111111;
-   border-radius: 4px;
-   border: 1px solid grey;
-}
-
-CurveTableView{
-    background: red;
-    color: #111111;
-    border-radius: 4px;
-    border: 1px solid grey;
-}
-
-QTableView::item:selected,
-QTreeView::item:selected,
-QListView::item:selected {
-   background: #1464a0;
-   color: white;
-}
-
 
 QTextBrowser {
    background: white;
@@ -447,6 +424,7 @@ QGroupBox::indicator:unchecked:disabled {
 
 QPushButton
 {
+    background-color: transparent;
     color: #111111;
     border-radius: 4px;
     padding: 6px;
@@ -455,16 +433,12 @@ QPushButton
 
 QPushButton[flat="true"]
 {
-    background-color: transparent;
     border: 0px;
 }
 
 QPushButton[flat="false"]
 {
     border: 1px solid grey;
-    background-color: qlineargradient(x1:0.7, y1:0, x2:1, y2:1,
-                      stop:0 white,
-                      stop:1 rgb(210, 210, 230, 255));
 }
 
 QPushButton:disabled {
@@ -472,16 +446,10 @@ QPushButton:disabled {
     background: transparent;
 }
 
-QPushButton:focus {
-    border: 2px solid #148CD2;
-    color: #148CD2;
-}
 
 QPushButton:checked {
-    background-color: #BBBBEE;
-    border: 1px solid grey;
-    padding: 3px;
-    outline: none;
+  background: #bbddff;
+  border: 1px solid #111111;
 }
 
 QPushButton:checked:disabled {
@@ -506,12 +474,6 @@ QPushButton:checked:hover{
     border: 1px solid #148CD2;
 }
 
-QPushButton:selected,
-QPushButton:checked:selected{
-    background: #1464A0;
-    color: #32414B;
-    border-radius: 4px;
-}
 
 /* QCombobox -------------------------------------------------------------- */
 
@@ -559,68 +521,82 @@ QSlider::sub-page:horizontal {
 }
 
 QSlider::sub-page:horizontal:disabled {
-    background: #14506E;
+    background: grey;
 }
 
 QSlider::handle:horizontal {
-    background: #787878;
+    background: #999999;
     border: 1px solid #32414B;
     width: 8px;
     height: 8px;
-    margin: -8px 0;
+    margin: -4px 0;
     border-radius: 4px;
 }
 
 QSlider::handle:horizontal:hover {
-    background: #148CD2;
+    background: #bbddff;
     border: 1px solid #148CD2;
 }
 
 
 /* --------------------------------------------------------------------------- */
 
+QTableView,
+QTreeView,
+QListView {
+   background: white;
+   color: #111111;
+   border-radius: 4px;
+   border: 1px solid grey;
+
+   selection-background-color: transparent;
+   show-decoration-selected: 1;
+}
+
+QTableView::item:selected,
+QTreeView::item:selected,
+QListView::item:selected {
+   background-color: #bbddff;
+   color: black;
+}
+
+
 QTreeView:branch {
     background-color: transparent;
 }
+
+
 QTreeView:branch:selected, QTreeView:branch:hover {
-  background-color: transparent;
   background: url(":/style_dark/transparent.png");
 }
 
 QTreeView:branch:has-siblings:!adjoins-item {
-  background-color: transparent;
   border-image: url(":/style_dark/branch_line.png") 0;
 }
 
 QTreeView:branch:has-siblings:adjoins-item {
-  background-color: transparent;
   border-image: url(":/style_dark/branch_more.png") 0;
 }
 
 QTreeView:branch:!has-children:!has-siblings:adjoins-item {
-  background-color: transparent;
   border-image: url(":/style_dark/branch_end.png") 0;
 }
 
 QTreeView:branch:has-children:!has-siblings:closed, QTreeView:branch:closed:has-children:has-siblings {
-  background-color: transparent;
   border-image: none;
   image: url(":/style_dark/branch_closed.png");
 }
 
 QTreeView:branch:open:has-children:!has-siblings, QTreeView:branch:open:has-children:has-siblings {
-  background-color: transparent;
   border-image: none;
   image: url(":/style_dark/branch_open.png");
 }
 
 QTreeView:branch:has-children:!has-siblings:closed:hover, QTreeView:branch:closed:has-children:has-siblings:hover {
-  background-color: transparent;
   image: url(":/style_dark/branch_closed_focus.png");
 }
 
 QTreeView:branch:open:has-children:!has-siblings:hover, QTreeView:branch:open:has-children:has-siblings:hover {
-  background-color: transparent;
   image: url(":/style_dark/branch_open_focus.png");
 }
 
@@ -670,29 +646,24 @@ QSplitter {
 
 QSplitter::handle {
   background-color: #b5b5b5;
-  border: 0px solid red;
+  border: 0px;
   spacing: 0px;
   padding: 0px;
   margin: 0px;
 
-  width: 1px;
   height: 1px;
 }
 
 QSplitter::handle:horizontal::hover {
     background-color: qlineargradient(spread:pad,  x1:0, y1:0, x2:0, y2:1,
-    stop:0 #1177ff,
-    stop:0.4 #cc00cc,
-    stop:0.6 #cc00cc,
-    stop:1.0 #1177ff);
+       stop:0 #1177ff,   stop:0.4 #cc00cc,
+       stop:0.6 #cc00cc, stop:1.0 #1177ff);
 }
 
 QSplitter::handle:vertical::hover {
     background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
-        stop:0 #1177ff,
-        stop:0.4 #cc00cc,
-        stop:0.6 #cc00cc,
-        stop:1.0 #1177ff);
+       stop:0 #1177ff,   stop:0.4 #cc00cc,
+       stop:0.6 #cc00cc, stop:1.0 #1177ff);
 }
 
 /* QMenuBar ---------------------------------------------------------------
@@ -730,4 +701,55 @@ QMenuBar::item:pressed {
   margin-bottom: 0px;
   padding-bottom: 0px;
 }
+
+
+
+/* ------------------------ Specific Widgets ----------------------------------------------- */
+
+QWidget#CurveListPanel *
+{
+  background-color: #fafafa;
+}
+
+QLineEdit#lineEditFilter{
+  background-color: transparent;
+  border: 0px;border-radius: 0px;
+  border-bottom: 1px solid #bbddff;
+}
+
+QLineEdit#lineEditFilter:focus{
+  border-bottom: 2px solid rgb(22, 141, 223);
+}
+
+QWidget#CurveListPanel QTreeView,
+QWidget#CurveListPanel QTableView
+{
+   border: 0px;
+}
+
+QWidget#plottingArea{
+  background-color: #dddddd;
+}
+
+QSplitter#mainSplitter::handle {
+  background-color: #000000;
+  height: 1px;
+}
+QSplitter#mainSplitter::handle:horizontal::hover {
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+        stop:0 #1177ff,   stop:0.4 #cc00cc,
+        stop:0.6 #cc00cc, stop:1.0 #1177ff);
+}
+
+QPushButton#buttonAddCustom,
+QPushButton#buttonEditCustom
+{
+   border: 1px solid grey;
+}
+
+QPushButton#buttonAddCustom:hover,
+QPushButton#buttonEditCustom:hover{
+    border: 1px solid #148CD2;
+}
+
 

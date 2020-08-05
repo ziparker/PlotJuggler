@@ -52,7 +52,7 @@ public:
 
 private slots:
 
-  void on_lineEdit_textChanged(const QString& search_string);
+  void on_lineEditFilter_textChanged(const QString& search_string);
 
   void removeSelectedCurves();
 
@@ -61,8 +61,6 @@ private slots:
   void on_buttonEditCustom_clicked();
 
   void onCustomSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
-
-  void on_pushButtonView_pressed();
 
   void on_checkBoxShowValues_toggled(bool show);
 
@@ -79,7 +77,6 @@ private:
 
   void updateTreeModel();
 
-  CurveTableView* _table_view;
   CurveTableView* _custom_view;
   CurveTreeView* _tree_view;
 
@@ -88,12 +85,6 @@ private:
 
   const CustomPlotMap& _custom_plots;
 
-  enum ViewType
-  {
-    TREE,
-    LIST
-  };
-  ViewType _view_type;
   QString _style_dir;
 
 signals:

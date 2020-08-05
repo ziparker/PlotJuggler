@@ -17,6 +17,9 @@ CurveTableView::CurveTableView(CurveListPanel* parent) : QTableWidget(parent), C
   setDragDropMode(NoDragDrop);
   viewport()->installEventFilter(this);
 
+  setSelectionBehavior(QAbstractItemView::SelectRows);
+  setFocusPolicy(Qt::NoFocus);
+
   verticalHeader()->setVisible(false);
   horizontalHeader()->setVisible(false);
 
@@ -52,7 +55,6 @@ void CurveTableView::addItem(const QString& item_name)
   font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
   font.setPointSize(_point_size - 2);
   val_cell->setFont(font);
-  val_cell->setFlags(Qt::NoItemFlags);
 
   QTableWidget::setItem(row, 1, val_cell);
 

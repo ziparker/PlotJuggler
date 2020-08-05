@@ -110,15 +110,15 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   ui->plottingLayout->insertWidget(0, _main_tabbed_widget, 1);
   ui->leftLayout->addWidget(_curvelist_widget);
 
-  ui->splitter->setCollapsible(0, true);
-  ui->splitter->setStretchFactor(0, 2);
-  ui->splitter->setStretchFactor(1, 6);
+  ui->mainSplitter->setCollapsible(0, true);
+  ui->mainSplitter->setStretchFactor(0, 2);
+  ui->mainSplitter->setStretchFactor(1, 6);
 
   ui->layoutTimescale->removeWidget( ui->widgetButtons );
   _main_tabbed_widget->tabWidget()->setCornerWidget( ui->widgetButtons );
 
 
-  connect(ui->splitter, SIGNAL(splitterMoved(int, int)), SLOT(on_splitterMoved(int, int)));
+  connect(ui->mainSplitter, SIGNAL(splitterMoved(int, int)), SLOT(on_splitterMoved(int, int)));
 
   initializeActions();
   initializePlugins(QCoreApplication::applicationDirPath());
@@ -527,7 +527,7 @@ void MainWindow::buildDummyData()
 
 void MainWindow::on_splitterMoved(int, int)
 {
-  QList<int> sizes = ui->splitter->sizes();
+  QList<int> sizes = ui->mainSplitter->sizes();
   int maxLeftWidth = _curvelist_widget->maximumWidth();
   int totalWidth = sizes[0] + sizes[1];
 
@@ -535,7 +535,7 @@ void MainWindow::on_splitterMoved(int, int)
   {
     sizes[0] = maxLeftWidth;
     sizes[1] = totalWidth - maxLeftWidth;
-    ui->splitter->setSizes(sizes);
+    ui->mainSplitter->setSizes(sizes);
   }
 }
 
@@ -554,11 +554,11 @@ void MainWindow::showEvent(QShowEvent* ev)
     first = false;
     QSettings settings;
     int splitter_width = settings.value("MainWindow.splitterWidth", 200).toInt();
-    QList<int> splitter_sizes = ui->splitter->sizes();
+    QList<int> splitter_sizes = ui->mainSplitter->sizes();
     int tot_splitter_width = splitter_sizes[0] + splitter_sizes[1];
     splitter_sizes[0] = splitter_width;
     splitter_sizes[1] = tot_splitter_width - splitter_width;
-    ui->splitter->setSizes(splitter_sizes);
+    ui->mainSplitter->setSizes(splitter_sizes);
   }
 }
 
@@ -2004,7 +2004,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("MainWindow.removeTimeOffset", ui->pushButtonRemoveTimeOffset->isChecked());
   settings.setValue("MainWindow.dateTimeDisplay", ui->pushButtonUseDateTime->isChecked());
   settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param);
-  settings.setValue("MainWindow.splitterWidth", ui->splitter->sizes()[0]);
+  settings.setValue("MainWindow.splitterWidth", ui->mainSplitter->sizes()[0]);
 
   // clean up all the plugins
   for (auto& it : _data_loader)

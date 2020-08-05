@@ -26,6 +26,8 @@ CurveTreeView::CurveTreeView(CurveListPanel* parent) : QTreeWidget(parent), Curv
   setDragDropMode(NoDragDrop);
   viewport()->installEventFilter(this);
   setSelectionMode(ExtendedSelection);
+  setSelectionBehavior(QAbstractItemView::SelectRows);
+  setFocusPolicy(Qt::NoFocus);
 
   header()->setVisible(false);
   header()->setStretchLastSection(true);
@@ -34,7 +36,9 @@ CurveTreeView::CurveTreeView(CurveListPanel* parent) : QTreeWidget(parent), Curv
 
   connect(this, &QTreeWidget::itemDoubleClicked, this, [this](QTreeWidgetItem *item, int column)
           {
-            expandChildren(item);
+            if( column == 0){
+              expandChildren(item);
+            }
           });
 }
 
@@ -83,6 +87,7 @@ void CurveTreeView::addItem(const QString& item_name)
       font.setPointSize(_point_size - 2);
       child_item->setFont(1, font);
       child_item->setTextAlignment(1, Qt::AlignRight);
+
 
       tree_parent = child_item;
 
@@ -242,14 +247,7 @@ void CurveTreeView::removeCurve(const QString& to_be_deleted)
 void CurveTreeView::hideValuesColumn(bool hide)
 {
   setViewResizeEnabled(true);
-  if (hide)
-  {
-    hideColumn(1);
-  }
-  else
-  {
-    showColumn(1);
-  }
+  setColumnHidden(1,hide);
 }
 
 void CurveTreeView::treeVisitor(std::function<void(QTreeWidgetItem*)> visitor)
