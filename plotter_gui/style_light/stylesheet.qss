@@ -253,7 +253,7 @@ QMenu::item:selected {
 
 
 QMenu::item:checked {
-    color: #1464a0;
+    color: #3388DD;
     font: bold;
 }
 
@@ -513,7 +513,7 @@ QSlider::groove:horizontal {
 }
 
 QSlider::sub-page:horizontal {
-    background: #1464A0;
+    background: #3388DD;
     border: 1px solid #32414B;
     height: 4px;
     margin: 0px;
@@ -713,12 +713,13 @@ QWidget#CurveListPanel *
 
 QLineEdit#lineEditFilter{
   background-color: transparent;
-  border: 0px;border-radius: 0px;
+  border: 0px;
+  border-radius: 0px;
   border-bottom: 1px solid #bbddff;
 }
 
 QLineEdit#lineEditFilter:focus{
-  border-bottom: 2px solid rgb(22, 141, 223);
+  border-bottom: 2px solid #3388DD;
 }
 
 QWidget#CurveListPanel QTreeView,
@@ -739,17 +740,6 @@ QSplitter#mainSplitter::handle:horizontal::hover {
     background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
         stop:0 #1177ff,   stop:0.4 #cc00cc,
         stop:0.6 #cc00cc, stop:1.0 #1177ff);
-}
-
-QPushButton#buttonAddCustom,
-QPushButton#buttonEditCustom
-{
-   border: 1px solid grey;
-}
-
-QPushButton#buttonAddCustom:hover,
-QPushButton#buttonEditCustom:hover{
-    border: 1px solid #148CD2;
 }
 
 
