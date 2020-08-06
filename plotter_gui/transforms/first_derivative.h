@@ -1,8 +1,10 @@
 #ifndef FIRST_DERIVATIVE_H
 #define FIRST_DERIVATIVE_H
 
-#include "PlotJuggler/transform_function.h"
 #include <QLineEdit>
+#include "PlotJuggler/transform_function.h"
+#include "ui_first_derivative.h"
+
 
 class FirstDerivative: public SeriesTransform
 {
@@ -13,7 +15,7 @@ public:
 
   void reset() override {}
 
-  PlotData::Point calculatePoint(const PlotData& src_data, size_t point_index) override;
+  void calculate(PlotData* dst_data) override;
 
   QWidget* optionsWidget() override;
 
@@ -21,10 +23,14 @@ public:
 
   bool xmlLoadState(const QDomElement& parent_element) override;
 
+private slots:
+  void on_buttonCompute_clicked();
+
 private:
 
-  QLineEdit* _interval_linedit;
-  double _interval;
+  QWidget *_widget;
+  Ui::FirstDerivariveForm* ui;
+  double _dT;
 };
 
 #endif // FIRST_DERIVATIVE_H

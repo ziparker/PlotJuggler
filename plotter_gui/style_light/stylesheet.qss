@@ -4,11 +4,6 @@ PlotWidget {
     border: 0px solid white;
 }
 
-DockWidget
-{
-    border: 0px solid white;
-}
-
 QMainWindow {
     background: #E5E5E5;
 }
@@ -253,7 +248,7 @@ QMenu::item:selected {
 
 
 QMenu::item:checked {
-    color: #3388DD;
+    color: #1177ff;
     font: bold;
 }
 
@@ -368,24 +363,6 @@ QCheckBox::indicator:checked:pressed {
     image: url(:/style_light/checkbox_checked_focus.svg);
 }
 
-QCheckBox::indicator:checked:disabled{
-    image: url(:/style_light/checkbox_checked_disabled.svg);
-}
-
-QCheckBox::indicator:indeterminate {
-    image: url(:/style_light/checkbox_indeterminate.svg);
-}
-
-QCheckBox::indicator:indeterminate:disabled {
-    image: url(:/style_light/checkbox_indeterminate_disabled.svg);
-}
-
-QCheckBox::indicator:indeterminate:focus,
-QCheckBox::indicator:indeterminate:hover,
-QCheckBox::indicator:indeterminate:pressed {
-    image: url(:/style_light/checkbox_indeterminate_focus.svg);
-}
-
 /* QGroupBox -------------------------------------------------------------- */
 
 QGroupBox::indicator {
@@ -438,7 +415,9 @@ QPushButton[flat="true"]
 
 QPushButton[flat="false"]
 {
+    background: white;
     border: 1px solid grey;
+    border-radius: 8px;
 }
 
 QPushButton:disabled {
@@ -448,8 +427,8 @@ QPushButton:disabled {
 
 
 QPushButton:checked {
-  background: #bbddff;
-  border: 1px solid #111111;
+  background: rgba(255,255,255,100);
+  border: 2px solid #1177ff;
 }
 
 QPushButton:checked:disabled {
@@ -469,9 +448,12 @@ QPushButton:pressed {
     background-color: grey
 }
 
-QPushButton:hover,
-QPushButton:checked:hover{
+QPushButton:hover{
     border: 1px solid #148CD2;
+}
+
+QPushButton:checked:hover{
+    border: 1px solid #1177ff;
 }
 
 
@@ -513,7 +495,7 @@ QSlider::groove:horizontal {
 }
 
 QSlider::sub-page:horizontal {
-    background: #3388DD;
+    background: #1177ff;
     border: 1px solid #32414B;
     height: 4px;
     margin: 0px;
@@ -534,7 +516,7 @@ QSlider::handle:horizontal {
 }
 
 QSlider::handle:horizontal:hover {
-    background: #bbddff;
+    background: #99ccff;
     border: 1px solid #148CD2;
 }
 
@@ -546,7 +528,7 @@ QTreeView,
 QListView {
    background: white;
    color: #111111;
-   border-radius: 4px;
+   border-radius: 2px;
    border: 1px solid grey;
 
    selection-background-color: transparent;
@@ -556,7 +538,7 @@ QListView {
 QTableView::item:selected,
 QTreeView::item:selected,
 QListView::item:selected {
-   background-color: #bbddff;
+   background-color: #99ccff;
    color: black;
 }
 
@@ -600,43 +582,6 @@ QTreeView:branch:open:has-children:!has-siblings:hover, QTreeView:branch:open:ha
   image: url(":/style_dark/branch_open_focus.png");
 }
 
-QTreeView::indicator:checked,
-QListView::indicator:checked {
-  image: url(":/style_dark/checkbox_checked.png");
-}
-
-QTreeView::indicator:checked:hover, QTreeView::indicator:checked:focus, QTreeView::indicator:checked:pressed,
-QListView::indicator:checked:hover,
-QListView::indicator:checked:focus,
-QListView::indicator:checked:pressed {
-  image: url(":/style_dark/checkbox_checked_focus.png");
-}
-
-QTreeView::indicator:unchecked,
-QListView::indicator:unchecked {
-  image: url(":/style_dark/checkbox_unchecked.png");
-}
-
-QTreeView::indicator:unchecked:hover, QTreeView::indicator:unchecked:focus, QTreeView::indicator:unchecked:pressed,
-QListView::indicator:unchecked:hover,
-QListView::indicator:unchecked:focus,
-QListView::indicator:unchecked:pressed {
-  image: url(":/style_dark/checkbox_unchecked_focus.png");
-}
-
-QTreeView::indicator:indeterminate,
-QListView::indicator:indeterminate {
-  image: url(":/style_dark/checkbox_indeterminate.png");
-}
-
-QTreeView::indicator:indeterminate:hover,
-QTreeView::indicator:indeterminate:focus,
-QTreeView::indicator:indeterminate:pressed,
-QListView::indicator:indeterminate:hover,
-QListView::indicator:indeterminate:focus,
-QListView::indicator:indeterminate:pressed {
-  image: url(":/style_dark/checkbox_indeterminate_focus.png");
-}
 
 QSplitter {
   spacing: 0px;
@@ -704,9 +649,9 @@ QMenuBar::item:pressed {
 
 
 
-/* ------------------------ Specific Widgets ----------------------------------------------- */
+/* ------------------------ Specific Widgets ------------------------ */
 
-QWidget#CurveListPanel *
+QWidget#CurveListPanel
 {
   background-color: #fafafa;
 }
@@ -715,17 +660,17 @@ QLineEdit#lineEditFilter{
   background-color: transparent;
   border: 0px;
   border-radius: 0px;
-  border-bottom: 1px solid #bbddff;
+  border-bottom: 2px solid #99ccff;
 }
 
 QLineEdit#lineEditFilter:focus{
-  border-bottom: 2px solid #3388DD;
+  border-bottom: 2px solid #1177ff;
 }
 
 QWidget#CurveListPanel QTreeView,
 QWidget#CurveListPanel QTableView
 {
-   border: 0px;
+
 }
 
 QWidget#plottingArea{
@@ -736,6 +681,7 @@ QSplitter#mainSplitter::handle {
   background-color: #000000;
   height: 1px;
 }
+
 QSplitter#mainSplitter::handle:horizontal::hover {
     background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
         stop:0 #1177ff,   stop:0.4 #cc00cc,

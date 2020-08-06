@@ -10,9 +10,6 @@
         <file>style_light/checkbox_checked.svg</file>
         <file>style_light/checkbox_checked_disabled.svg</file>
         <file>style_light/checkbox_checked_focus.svg</file>
-        <file>style_light/checkbox_indeterminate.svg</file>
-        <file>style_light/checkbox_indeterminate_disabled.svg</file>
-        <file>style_light/checkbox_indeterminate_focus.svg</file>
         <file>style_light/checkbox_unchecked.svg</file>
         <file>style_light/checkbox_unchecked_disabled.svg</file>
         <file>style_light/checkbox_unchecked_focus.svg</file>
@@ -235,14 +232,6 @@
         <file>resources/svg/datetime.svg</file>
         <file>resources/svg/link.svg</file>
         <file>resources/svg/legend.svg</file>
-        <file>style_light/line_horizontal.png</file>
-        <file>style_light/line_horizontal_disabled.png</file>
-        <file>style_light/line_horizontal_focus.png</file>
-        <file>style_light/line_horizontal_pressed.png</file>
-        <file>style_light/line_vertical.png</file>
-        <file>style_light/line_vertical_disabled.png</file>
-        <file>style_light/line_vertical_focus.png</file>
-        <file>style_light/line_vertical_pressed.png</file>
         <file>resources/svg/remove_red.svg</file>
         <file>resources/svg/loop.svg</file>
         <file>resources/svg/t0.svg</file>

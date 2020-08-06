@@ -140,6 +140,13 @@ const QwtPlotItem* PlotLegend::processMousePressEvent(QMouseEvent* mouse_event)
 
   if (isVisible() && mouse_event->modifiers() == Qt::NoModifier)
   {
+    if ( (hideButtonRect() + QMargins(2,2,2,2) ).contains(press_point))
+    {
+      _collapsed = !_collapsed;
+      _parent_plot->replot();
+      return nullptr;
+    }
+
     if (!_collapsed && geometry(canvas_rect).contains(press_point))
     {
       for (auto item : plotItems())
@@ -150,12 +157,6 @@ const QwtPlotItem* PlotLegend::processMousePressEvent(QMouseEvent* mouse_event)
           return item;
         }
       }
-    }
-    else if (hideButtonRect().contains(press_point))
-    {
-      _collapsed = !_collapsed;
-      _parent_plot->replot();
-      return nullptr;
     }
   }
   return nullptr;

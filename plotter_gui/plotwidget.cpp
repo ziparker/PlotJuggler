@@ -549,8 +549,6 @@ const std::map<std::string, QwtPlotCurve*>& PlotWidget::curveList() const
 
 void PlotWidget::dragEnterEvent(QDragEnterEvent* event)
 {
-  changeBackgroundColor(QColor(230, 230, 230));
-
   const QMimeData* mimeData = event->mimeData();
   QStringList mimeFormats = mimeData->formats();
   _dragging.curves.clear();
@@ -583,16 +581,13 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent* event)
         qDebug() << "FATAL: Dragging " << _dragging.curves.size() << " curves";
         return;
       }
-
-      _dragging.mode = DragInfo::NEW_XY;
-      event->acceptProposedAction();
-    }
-    if (format == "plot_area")
-    {
-      if (_dragging.curves.size() == 1 && windowTitle() != _dragging.curves.front())
+      if( _curve_list.empty() || isXYPlot())
       {
-        _dragging.mode = DragInfo::SWAP_PLOTS;
+        _dragging.mode = DragInfo::NEW_XY;
         event->acceptProposedAction();
+      }
+      else{
+        event->ignore();
       }
     }
   }
@@ -600,24 +595,13 @@ void PlotWidget::dragEnterEvent(QDragEnterEvent* event)
 
 void PlotWidget::dragLeaveEvent(QDragLeaveEvent*)
 {
-  QPoint local_pos = canvas()->mapFromGlobal(QCursor::pos());
-  // prevent spurious exits
-  if (canvas()->rect().contains(local_pos))
-  {
-    // changeBackgroundColor( QColor( 250, 150, 150 ) );
-  }
-  else
-  {
-    changeBackgroundColor(Qt::white);
-    _dragging.mode = DragInfo::NONE;
-    _dragging.curves.clear();
-  }
+  _dragging.mode = DragInfo::NONE;
+  _dragging.curves.clear();
 }
 
 void PlotWidget::dropEvent(QDropEvent*)
 {
   bool curves_changed = false;
-  bool background_changed = false;
 
   if (_dragging.mode == DragInfo::CURVES)
   {
@@ -660,30 +644,11 @@ void PlotWidget::dropEvent(QDropEvent*)
     curves_changed = true;
     emit curvesDropped();
   }
-  else if (_dragging.mode == DragInfo::SWAP_PLOTS)
-  {
-    auto plot_widget = dynamic_cast<PlotWidget*>(_dragging.source);
-    if (plot_widget)
-    {
-      emit swapWidgetsRequested(plot_widget, this);
-    }
-  }
-  if (_dragging.mode != DragInfo::NONE && canvasBackground().color() != Qt::white)
-  {
-    this->setCanvasBackground(Qt::white);
-    background_changed = true;
-  }
 
   if (curves_changed)
   {
     emit curveListChanged();
-    zoomOut(false);
-    emit undoableChange();
-  }
-  if (curves_changed || background_changed)
-  {
-    _tracker->redraw();
-    replot();
+    zoomOut(true);
   }
   _dragging.mode = DragInfo::NONE;
   _dragging.curves.clear();
@@ -1886,22 +1851,6 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
           canvasContextMenuTriggered(mouse_event->pos());
           return true;  // don't pass to canvas().
         }
-        else if (mouse_event->modifiers() == Qt::ControlModifier)  // Start swapping two plots
-        {
-          QDrag* drag = new QDrag(this);
-          QMimeData* mimeData = new QMimeData;
-
-          QByteArray data;
-          QDataStream dataStream(&data, QIODevice::WriteOnly);
-
-          dataStream << this->windowTitle();
-
-          mimeData->setData("plot_area", data);
-          drag->setMimeData(mimeData);
-          drag->exec();
-
-          return true;  // don't pass to canvas().
-        }
       }
     }
     break;
@@ -1927,8 +1876,6 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
     case QEvent::Leave: {
       if (_dragging.mode == DragInfo::NONE)
       {
-        changeBackgroundColor(Qt::white);
-
         return false;
       }
     }
@@ -1936,7 +1883,6 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
     case QEvent::MouseButtonRelease: {
       if (_dragging.mode == DragInfo::NONE)
       {
-        changeBackgroundColor(Qt::white);
         QApplication::restoreOverrideCursor();
         return false;
       }
@@ -1953,7 +1899,6 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
       }
       return true;
     }
-    break;
 
     default: {
     }

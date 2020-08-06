@@ -275,8 +275,8 @@
                     </property>
                     <property name="iconSize">
                      <size>
-                      <width>24</width>
-                      <height>24</height>
+                      <width>22</width>
+                      <height>22</height>
                      </size>
                     </property>
                     <property name="checkable">
@@ -607,8 +607,8 @@
                     </property>
                     <property name="iconSize">
                      <size>
-                      <width>24</width>
-                      <height>24</height>
+                      <width>22</width>
+                      <height>22</height>
                      </size>
                     </property>
                     <property name="checkable">
@@ -824,6 +824,12 @@
                       <width>115</width>
                       <height>30</height>
                      </size>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <family>Ubuntu</family>
+                      <stylestrategy>PreferAntialias</stylestrategy>
+                     </font>
                     </property>
                     <property name="focusPolicy">
                      <enum>Qt::NoFocus</enum>

@@ -21,6 +21,8 @@ QT5_WRAP_UI ( UI_SRC
     transforms/function_editor.ui
     transforms/transform_selector.ui
 
+    transforms/first_derivative.ui
+
     ../include/PlotJuggler/selectlistdialog.ui
     )
 

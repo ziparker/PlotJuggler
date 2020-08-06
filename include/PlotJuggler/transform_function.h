@@ -7,19 +7,31 @@
 
 class SeriesTransform : public PlotJugglerPlugin
 {
+  Q_OBJECT
 public:
 
-  SeriesTransform() {}
+  SeriesTransform(): _src_data(nullptr) {}
+
+  void setDataSource(PlotData *src_data){
+    _src_data = src_data;
+  }
 
   virtual ~SeriesTransform() {}
 
-  void calculate(const PlotData& src_data, PlotData* dst_data);
+  virtual void calculate(PlotData* dst_data) = 0;
 
   virtual void reset() = 0;
 
+  const PlotData* dataSource() const{
+    return _src_data;
+  }
+
+signals:
+  void parametersChanged();
+
 protected:
 
-  virtual PlotData::Point calculatePoint(const PlotData& src_data, size_t point_index) = 0;
+  PlotData *_src_data;
 
 };
 

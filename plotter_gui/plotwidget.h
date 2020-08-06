@@ -216,8 +216,7 @@ private:
     {
       NONE,
       CURVES,
-      NEW_XY,
-      SWAP_PLOTS
+      NEW_XY
     } mode;
     std::vector<QString> curves;
     QObject* source;

@@ -46,14 +46,6 @@ public:
           curves.push_back(curve_name);
         }
       }
-
-      if (format == "plot_area" && curves.size() == 1)
-      {
-        QApplication::setOverrideCursor(QCursor(Qt::DragMoveCursor));
-        ev->accept();
-        _plot_to_move = curves.front();
-        return;
-      }
     }
     ev->ignore();
   }
