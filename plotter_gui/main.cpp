@@ -10,6 +10,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QJsonDocument>
+#include <QRandomGenerator>
 
 #include "new_release_dialog.h"
 
@@ -52,11 +53,11 @@ void OpenNewReleaseDialog(QNetworkReply* reply)
 QPixmap getFunnySplashscreen()
 {
   QSettings settings;
-  qsrand(time(nullptr));
+  QRandomGenerator rand;
 
-  auto getNum = []() {
+  auto getNum = [&]() {
     const int last_image_num = 60;
-    int n = qrand() % (last_image_num + 2);
+    int n = rand.bounded(0, last_image_num + 2);
     if (n > last_image_num)
     {
       n = 0;
@@ -156,9 +157,9 @@ int main(int argc, char* argv[])
     QPixmap main_pixmap = getFunnySplashscreen();
     QSplashScreen splash(main_pixmap, Qt::WindowStaysOnTopHint);
     QDesktopWidget* desktop = QApplication::desktop();
-    const int scrn = desktop->screenNumber(QCursor::pos());
-    const QPoint currentDesktopsCenter = desktop->availableGeometry(scrn).center();
-    splash.move(currentDesktopsCenter - splash.rect().center());
+    QScreen* scrn = QGuiApplication::screenAt(QCursor::pos());
+//    const QPoint currentDesktopsCenter = desktop->availableGeometry(scrn).center();
+//    splash.move(currentDesktopsCenter - splash.rect().center());
 
     splash.show();
     app.processEvents();

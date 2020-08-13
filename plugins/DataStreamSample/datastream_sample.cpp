@@ -8,14 +8,16 @@
 #include <chrono>
 #include <thread>
 #include <math.h>
+#include <QRandomGenerator>
 
 DataStreamSample::DataStreamSample()
 {
+  QRandomGenerator rand;
   DataStreamSample::Parameters param;
-  param.A = 6 * ((double)qrand() / (double)RAND_MAX) - 3;
-  param.B = 3 * ((double)qrand() / (double)RAND_MAX);
-  param.C = 3 * ((double)qrand() / (double)RAND_MAX);
-  param.D = 20 * ((double)qrand() / (double)RAND_MAX);
+  param.A = 6 * rand.generateDouble()  - 3;
+  param.B = 3 * rand.generateDouble();
+  param.C = 3 * rand.generateDouble();
+  param.D = 20 * rand.generateDouble();
   _parameters.insert(std::make_pair("data", param));
 
   for (int i = 0; i < 100; i++)
