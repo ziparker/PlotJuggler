@@ -2541,7 +2541,7 @@ void MainWindow::on_actionSaveLayout_triggered()
   if (file.open(QIODevice::WriteOnly))
   {
     QTextStream stream(&file);
-    stream << doc.toString() << Qt::endl;
+    stream << doc.toString() << endl;
   }
 }
 
