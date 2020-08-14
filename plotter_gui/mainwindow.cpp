@@ -29,7 +29,6 @@
 #include <QTextStream>
 #include <QWindow>
 #include <QHeaderView>
-#include <QRandomGenerator>
 
 #include "mainwindow.h"
 #include "curvelist_panel.h"
@@ -479,10 +478,10 @@ void MainWindow::initializePlugins(QString directory_name)
     }
     else
     {
-//      if (pluginLoader.errorString().contains("is not an ELF object") == false)
-//      {
-//        qDebug() << filename << ": " << pluginLoader.errorString();
-//      }
+      if (pluginLoader.errorString().contains("is not an ELF object") == false)
+      {
+        qDebug() << filename << ": " << pluginLoader.errorString();
+      }
     }
   }
 }
@@ -514,14 +513,12 @@ void MainWindow::buildDummyData()
     words_list.append(QString("data_vect/%1").arg(count++));
   }
 
-  QRandomGenerator rand;
-
   for (const QString& name : words_list)
   {
-    double A = 6 * rand.generateDouble() - 3;
-    double B = 3 * rand.generateDouble();
-    double C = 3 * rand.generateDouble();
-    double D = 20 * rand.generateDouble();
+    double A = 6 * ((double)qrand() / (double)RAND_MAX) - 3;
+    double B = 3 * ((double)qrand() / (double)RAND_MAX);
+    double C = 3 * ((double)qrand() / (double)RAND_MAX);
+    double D = 20 * ((double)qrand() / (double)RAND_MAX);
 
     auto it = datamap.addNumeric(name.toStdString());
     PlotData& plot = it->second;
@@ -1951,7 +1948,7 @@ void MainWindow::updatedDisplayTime()
   }
 
   QFontMetrics fm(timeLine->font());
-  int width = fm.horizontalAdvance(timeLine->text()) + 10;
+  int width = fm.width(timeLine->text()) + 10;
   timeLine->setFixedWidth(std::max(100, width));
 }
 
