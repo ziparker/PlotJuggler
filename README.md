@@ -44,15 +44,17 @@ Watch this video to learn how to use it.
 [![Custom timeseries](docs/images/custom_functions.png)](https://vimeo.com/311245098)
 
 
-## "Download and Run" (Ubuntu 16.04 Xenial or later)
+## "Download and Run" 
 
-For those of you that can't wait and want to get their hands dirty, just download the AppImage:
+For those of you that can't wait and want to get their hands dirty, you can download these binaries:
 
-ROS1 only: [PlotJuggler-2.7.x-x86_64.AppImage](https://github.com/facontidavide/PlotJuggler/releases/download/2.7.0/PlotJuggler-2.7.0-x86_64.AppImage).
+**Linux with ROS plugins**: [PlotJuggler-Linux-ROS-2.8.3.AppImage](https://github.com/facontidavide/PlotJuggler/releases/download/2.8.3/PlotJuggler-Linux-ROS-2.8.3.AppImage).
    
 Do not forget to make it executable with the command 
 
     chmod +x ./PlotJuggler-*-x86_64.AppImage
+    
+**Windows Installer**: [PlotJuggler_WIN_Installer-2.8.3.exe](https://github.com/facontidavide/PlotJuggler/releases/download/2.8.3/PlotJuggler_WIN_Installer-2.8.3.exe).
 
 ## How to build (without ROS plugins)
 
