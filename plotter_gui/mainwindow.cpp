@@ -70,6 +70,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   ui->setupUi(this);
 
   ui->playbackLoop->setText("");
+  ui->pushButtonZoomOut->setText("");
   ui->pushButtonPlay->setText("");
   ui->pushButtonUseDateTime->setText("");
   ui->pushButtonActivateGrid->setText("");
@@ -1262,6 +1263,7 @@ void MainWindow::on_stylesheetChanged(QString style_dir)
 
   ui->pushButtonOptions->setIcon(LoadSvgIcon(":/resources/svg/settings_cog.svg", style_dir));
 
+  ui->pushButtonZoomOut->setIcon(LoadSvgIcon(":/resources/svg/zoom_max.svg", style_dir));
   ui->playbackLoop->setIcon(LoadSvgIcon(":/resources/svg/loop.svg", style_dir));
   ui->pushButtonPlay->setIcon(LoadSvgIcon(":/resources/svg/play_arrow.svg", style_dir));
   ui->pushButtonUseDateTime->setIcon(LoadSvgIcon(":/resources/svg/datetime.svg", style_dir));
@@ -1913,8 +1915,9 @@ void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool)
 
   forEachWidget([](PlotWidget* plot) { plot->replot(); });
 
-  if (this->signalsBlocked() == false)
+  if (this->signalsBlocked() == false){
     onUndoableChange();
+  }
 }
 
 void MainWindow::on_pushButtonOptions_toggled(bool checked)
@@ -2724,4 +2727,14 @@ void MainWindow::on_pushButtonLegend_clicked()
   };
 
   this->forEachWidget(visitor);
+}
+
+void MainWindow::on_pushButtonZoomOut_clicked()
+{
+  auto visitor = [=](PlotWidget* plot)
+  {
+    plot->zoomOut(false);
+  };
+  this->forEachWidget(visitor);
+  onUndoableChange();
 }

@@ -5,8 +5,7 @@
 FirstDerivative::FirstDerivative():
   _widget(nullptr),
   ui(new Ui::FirstDerivariveForm),
-  _dT(0.0),
-  _auctual_mode(true)
+  _dT(0.0)
 {
   _widget = new QWidget();
   ui->setupUi(_widget);
@@ -111,8 +110,6 @@ bool FirstDerivative::xmlLoadState(const QDomElement &parent_element)
   else{
     ui->radioCustom->setChecked(true);
   }
-
-
   return false;
 }
 
@@ -152,8 +149,9 @@ void FirstDerivative::on_buttonCompute_clicked()
   double estimated_dt = total / static_cast<double>(last-first);
   ui->lineEditCustom->setText(QString::number(estimated_dt, 'g', 4));
 
-  if( std::abs(estimated_dt - _dT) > std::numeric_limits<double>::epsilon() )
+  if( ui->radioCustom->isChecked() )
   {
+    _dT = estimated_dt;
     emit parametersChanged();
   }
 }

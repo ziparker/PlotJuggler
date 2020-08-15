@@ -34,7 +34,6 @@ private:
   QWidget *_widget;
   Ui::FirstDerivariveForm* ui;
   double _dT;
-  bool _auctual_mode;
 };
 
 #endif // FIRST_DERIVATIVE_H

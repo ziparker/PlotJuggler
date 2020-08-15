@@ -216,6 +216,7 @@ private slots:
   void on_playbackStep_valueChanged(double arg1);
   void on_actionLoadStyleSheet_triggered();
   void on_pushButtonLegend_clicked();
+  void on_pushButtonZoomOut_clicked();
 };
 
 #endif  // MAINWINDOW_H
