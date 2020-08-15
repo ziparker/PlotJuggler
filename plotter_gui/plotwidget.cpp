@@ -725,8 +725,18 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
       {
         auto added = addCurve(curve_name_std);
         curve_added = curve_added || added;
-        _curve_list[curve_name_std]->setPen(color, 1.3);
+        auto& curve = _curve_list[curve_name_std];
+        curve->setPen(color, 1.3);
         added_curve_names.insert(curve_name_std);
+
+        TimeSeries* ts = dynamic_cast<TimeSeries*>(curve->data());
+        QDomElement transform_el = curve_element.firstChildElement("transform");
+        if( transform_el.isNull() == false )
+        {
+          ts->setTransform( transform_el.attribute("name") );
+          ts->transform()->xmlLoadState(transform_el);
+          ts->updateCache();
+        }
       }
     }
     else

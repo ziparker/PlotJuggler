@@ -450,11 +450,14 @@ void PlotwidgetEditor::on_comboTransform_currentIndexChanged(const QString &tran
   if( transform_ID == ui->comboTransform->itemText(0) )
   {
     ts->setTransform({});
+    ts->updateCache();
     ui->stackedWidgetArguments->setCurrentIndex(0);
     qDebug() << "stackedWidgetArguments " << 0;
   }
   else{
     ts->setTransform(transform_ID);
+    ts->updateCache();
+
     auto widget = ts->transform()->optionsWidget();
     int index = ui->stackedWidgetArguments->indexOf(widget);
     if( index == -1)

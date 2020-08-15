@@ -69,7 +69,6 @@ void TimeSeries::setTransform(QString transform_ID)
     _transform = TransformFactory::create(transform_ID.toStdString());
     _transform->setDataSource( _source_data );
   }
-  updateCache();
 }
 
 bool TimeSeries::updateCache()
