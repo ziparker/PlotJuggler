@@ -91,6 +91,12 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   }
 
   ui->listWidget->setStyleSheet("QListView::item:selected { background: #ddeeff; }");
+
+  auto names = TransformFactory::registeredNames();
+  for(const auto& name: names)
+  {
+    ui->comboTransform->addItem( QString::fromStdString(name) );
+  }
 }
 
 PlotwidgetEditor::~PlotwidgetEditor()
@@ -280,25 +286,6 @@ void PlotwidgetEditor::on_checkBoxMin_toggled(bool checked)
   updateLimits();
 }
 
-void PlotwidgetEditor::on_listWidget_currentRowChanged(int currentRow)
-{
-  int row_count = ui->listWidget->count();
-  if( row_count == 0 )
-  {
-    ui->widgetWheel->setEnabled(true);
-    return;
-  }
-  auto item =  ui->listWidget->item(currentRow);
-  auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
-  if( row_widget )
-  {
-    _color_wheel->setColor( row_widget->color() );
-  }
-  else {
-    ui->widgetWheel->setEnabled(false);
-  }
-}
-
 void PlotwidgetEditor::on_pushButtonReset_clicked()
 {
   PlotData::RangeValue no_limits;
@@ -395,4 +382,28 @@ void RowWidget::setColor(QColor color)
 QColor RowWidget::color() const
 {
   return _color;
+}
+
+void PlotwidgetEditor::on_listWidget_itemSelectionChanged()
+{
+  auto selected = ui->listWidget->selectedItems();
+  if( selected.size() == 0 || ui->listWidget->count() == 0)
+  {
+    ui->widgetColor->setEnabled(false);
+    ui->comboTransform->setEnabled(false);
+    ui->widgetArguments->setEnabled(false);
+    _color_wheel->setColor( Qt::black );
+    return;
+  }
+
+  ui->widgetColor->setEnabled(true);
+  ui->comboTransform->setEnabled(true);
+  ui->widgetArguments->setEnabled(true);
+
+  auto item = selected.front();
+  auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
+  if( row_widget )
+  {
+    _color_wheel->setColor( row_widget->color() );
+  }
 }

@@ -481,7 +481,7 @@ void MainWindow::buildDummyData()
   PlotDataMapRef datamap;
 
   static int count = 0;
-  size_t SIZE = 10000;
+  size_t SIZE = 1000;
   QElapsedTimer timer;
   timer.start();
   QStringList words_list;
@@ -894,7 +894,7 @@ void MainWindow::updateRecentLayoutMenu(QStringList new_filenames)
 
 void MainWindow::deleteAllData()
 {
-  forEachWidget([](PlotWidget* plot) { plot->detachAllCurves(); });
+  forEachWidget([](PlotWidget* plot) { plot->removeAllCurves(); });
 
   _mapped_plot_data.numeric.clear();
   _mapped_plot_data.user_defined.clear();

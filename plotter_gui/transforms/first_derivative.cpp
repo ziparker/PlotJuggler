@@ -27,12 +27,12 @@ void FirstDerivative::calculate(PlotData *dst_data)
     double dt = (_dT == 0.0) ? (p.x - prev_x) : _dT;
 
     double der = (p.y - prev_y) / dt;
+    dst_data->pushBack({prev_x, der});
     prev_x = p.x;
     prev_y = p.y;
-    dst_data->pushBack({p.x, der});
   }
 
-  dst_data->pushBack( dst_data->back() );
+  dst_data->pushBack( {prev_x, prev_y} );
 }
 
 

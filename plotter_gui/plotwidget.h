@@ -125,7 +125,9 @@ public slots:
 
   void updateCurves();
 
-  void detachAllCurves();
+  void removeCurve(const std::string& name);
+
+  void removeAllCurves();
 
   void on_panned(int dx, int dy);
 
@@ -134,8 +136,6 @@ public slots:
   void on_zoomOutHorizontal_triggered(bool emit_signal = true);
 
   void on_zoomOutVertical_triggered(bool emit_signal = true);
-
-  void removeCurve(const std::string& name);
 
   void activateLegend(bool activate);
 
@@ -157,11 +157,9 @@ public slots:
 
 private slots:
 
-  void on_changeToBuiltinTransforms(QString new_transform);
+  //void on_changeToBuiltinTransforms(QString new_transform);
 
-  void convertToXY();
-
-  void on_customTransformsDialog();
+  void setModeXY(bool enable);
 
   void on_savePlotToFile();
 
@@ -184,11 +182,6 @@ private:
   QAction* _action_zoomOutMaximum;
   QAction* _action_zoomOutHorizontally;
   QAction* _action_zoomOutVertically;
-  QAction* _action_noTransform;
-  QAction* _action_1stDerivativeTransform;
-  QAction* _action_2ndDerivativeTransform;
-  QAction* _action_custom_transform;
-  QAction* _action_XY_transform;
   QAction* _action_saveToFile;
   QAction* _action_clipboard;
 
@@ -207,8 +200,6 @@ private:
   static int global_color_index;
 
   PlotDataMapRef& _mapped_data;
-  QString _default_transform;
-  std::map<std::string, QString> _curves_transform;
 
   struct DragInfo
   {
@@ -238,7 +229,7 @@ private:
 
   DataSeriesBase* createCurveXY(const PlotData* data_x, const PlotData* data_y);
 
-  DataSeriesBase* createTimeSeries(const QString& ID, const PlotData* data);
+  DataSeriesBase* createTimeSeries(const QString& transform_ID, const PlotData* data);
 
   double _time_offset;
 

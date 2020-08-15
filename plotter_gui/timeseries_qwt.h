@@ -3,54 +3,33 @@
 
 #include "series_data.h"
 #include "PlotJuggler/plotdata.h"
+#include "PlotJuggler/transform_function.h"
 
-class TimeseriesQwt : public DataSeriesBase
+class TimeSeries : public DataSeriesBase
 {
 public:
-  TimeseriesQwt(const PlotData* source_data, const PlotData* transformed_data);
+  TimeSeries(const PlotData* source_data);
 
   PlotData::RangeValueOpt getVisualizationRangeY(PlotData::RangeTime range_X) override;
 
   nonstd::optional<QPointF> sampleFromTime(double t) override;
 
+  TimeSeriesTransformPtr transform();
+
+  void setTransform(QString transform_ID);
+
+  virtual bool updateCache() override;
+
+  QString transformName();
+
 protected:
   const PlotData* _source_data;
-  PlotData _cached_data;
+  PlotData _dst_data;
+  TimeSeriesTransformPtr _transform;
 };
 
 //---------------------------------------------------------
 
-class Timeseries_NoTransform : public TimeseriesQwt
-{
-public:
-  Timeseries_NoTransform(const PlotData* source_data) : TimeseriesQwt(source_data, source_data)
-  {
-    updateCache();
-  }
 
-  bool updateCache() override;
-};
-
-class Timeseries_1stDerivative : public TimeseriesQwt
-{
-public:
-  Timeseries_1stDerivative(const PlotData* source_data) : TimeseriesQwt(source_data, &_cached_data)
-  {
-    updateCache();
-  }
-
-  bool updateCache() override;
-};
-
-class Timeseries_2ndDerivative : public TimeseriesQwt
-{
-public:
-  Timeseries_2ndDerivative(const PlotData* source_data) : TimeseriesQwt(source_data, &_cached_data)
-  {
-    updateCache();
-  }
-
-  bool updateCache() override;
-};
 
 #endif  // PLOTDATA_H

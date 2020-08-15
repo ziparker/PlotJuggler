@@ -6,6 +6,7 @@
 #include "plotwidget.h"
 #include "color_wheel.hpp"
 #include "color_preview.hpp"
+#include "PlotJuggler/transform_function.h"
 
 namespace Ui {
 class plotwidget_editor;
@@ -63,8 +64,6 @@ private slots:
 
   void on_checkBoxMin_toggled(bool checked);
 
-  void on_listWidget_currentRowChanged(int currentRow);
-
   void on_pushButtonReset_clicked();
 
   void on_lineLimitMax_editingFinished();
@@ -74,6 +73,8 @@ private slots:
   void on_pushButtonCancel_pressed();
 
   void on_pushButtonSave_pressed();
+
+  void on_listWidget_itemSelectionChanged();
 
 private:
   Ui::plotwidget_editor *ui;
@@ -89,6 +90,8 @@ private:
   void updateLimits();
   void onDeleteRow(QWidget *w);
   void disableWidgets();
+
+  std::unordered_map<std::string, std::shared_ptr<TimeSeriesTransform>> _transforms;
 };
 
 #endif // PLOTWIDGET_EDITOR_H

@@ -133,6 +133,9 @@
       </item>
       <item>
        <widget class="QWidget" name="widgetColor" native="true">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>150</width>
@@ -202,6 +205,9 @@
       </item>
       <item>
        <widget class="QWidget" name="widgetMore" native="true">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>200</width>
@@ -455,50 +461,21 @@
          </property>
          <item>
           <widget class="QComboBox" name="comboTransform">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <item>
             <property name="text">
              <string>--- NO Transform ---</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>1st Derivative</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>2nd Derivative</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Integral</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Low-Pass filter</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Moving average</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Oulier Removal</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Scale</string>
             </property>
            </item>
           </widget>
          </item>
          <item>
           <widget class="QStackedWidget" name="widgetArguments">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>

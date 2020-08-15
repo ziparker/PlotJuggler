@@ -6,7 +6,7 @@
 #include "ui_first_derivative.h"
 
 
-class FirstDerivative: public SeriesTransform
+class FirstDerivative: public TimeSeriesTransform
 {
 public:
   FirstDerivative();

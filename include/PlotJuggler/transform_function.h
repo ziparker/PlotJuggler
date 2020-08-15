@@ -5,18 +5,18 @@
 #include "PlotJuggler/plotdata.h"
 #include "PlotJuggler/pj_plugin.h"
 
-class SeriesTransform : public PlotJugglerPlugin
+class TimeSeriesTransform : public PlotJugglerPlugin
 {
   Q_OBJECT
 public:
 
-  SeriesTransform(): _src_data(nullptr) {}
+  TimeSeriesTransform(): _src_data(nullptr) {}
 
   void setDataSource(PlotData *src_data){
     _src_data = src_data;
   }
 
-  virtual ~SeriesTransform() {}
+  virtual ~TimeSeriesTransform() {}
 
   virtual void calculate(PlotData* dst_data) = 0;
 
@@ -32,17 +32,16 @@ signals:
 protected:
 
   PlotData *_src_data;
-
 };
 
 QT_BEGIN_NAMESPACE
-#define SeriesTransform_iid "com.icarustechnology.PlotJuggler.SeriesTransform"
-Q_DECLARE_INTERFACE(SeriesTransform, SeriesTransform_iid)
+#define TimeSeriesTransform_iid "com.icarustechnology.PlotJuggler.TimeSeriesTransform"
+Q_DECLARE_INTERFACE(TimeSeriesTransform, TimeSeriesTransform_iid)
 QT_END_NAMESPACE
 
 ///------ The factory to create instances of a SeriesTransform -------------
 
-using SeriesTransformPtr = std::shared_ptr<SeriesTransform>;
+using TimeSeriesTransformPtr = std::shared_ptr<TimeSeriesTransform>;
 
 class TransformFactory
 {
@@ -53,7 +52,7 @@ private:
   TransformFactory(const TransformFactory&) = delete;
   TransformFactory& operator=(const TransformFactory&) = delete;
 
-  std::unordered_map<std::string, std::function<SeriesTransformPtr()>> creators_;
+  std::unordered_map<std::string, std::function<TimeSeriesTransformPtr()>> creators_;
   std::set<std::string> names_;
 
   static TransformFactory& get()
@@ -75,7 +74,7 @@ public:
     get().creators_[name] = [](){ return std::make_shared<T>(); };
   }
 
-  static SeriesTransformPtr create(const std::string& name)
+  static TimeSeriesTransformPtr create(const std::string& name)
   {
     auto it = get().creators_.find(name);
     if( it == get().creators_.end())
@@ -84,7 +83,6 @@ public:
     }
     return it->second();
   }
-
 };
 
 

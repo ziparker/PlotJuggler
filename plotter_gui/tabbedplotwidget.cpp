@@ -456,7 +456,7 @@ void TabbedPlotWidget::on_tabWidget_tabCloseRequested(int index)
   for (unsigned p = 0; p < docker->plotCount(); p++)
   {
     PlotWidget* plot = docker->plotAt(p);
-    plot->detachAllCurves();
+    plot->removeAllCurves();
     plot->deleteLater();
   }
   docker->deleteLater();

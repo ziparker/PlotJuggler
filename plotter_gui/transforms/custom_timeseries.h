@@ -5,7 +5,7 @@
 #include "custom_function.h"
 #include "PlotJuggler/plotdata.h"
 
-class CustomTimeseries : public TimeseriesQwt
+class CustomTimeseries : public TimeSeries
 {
 public:
   CustomTimeseries(const PlotData* source_data, const SnippetData& snippet, PlotDataMapRef& mapped_data);

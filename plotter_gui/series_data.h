@@ -7,19 +7,19 @@
 class DataSeriesBase : public QwtSeriesData<QPointF>
 {
 public:
-  DataSeriesBase(const PlotData* transformed) : _transformed_data(transformed), _time_offset(0)
+  DataSeriesBase(const PlotData* data) : _data(data), _time_offset(0)
   {
   }
 
   virtual QPointF sample(size_t i) const override
   {
-    const auto& p = _transformed_data->at(i);
+    const auto& p = _data->at(i);
     return QPointF(p.x - _time_offset, p.y);
   }
 
   virtual size_t size() const override
   {
-    return _transformed_data->size();
+    return _data->size();
   }
 
   QRectF boundingRect() const override
@@ -45,40 +45,42 @@ public:
 
   virtual PlotData::RangeTimeOpt getVisualizationRangeX()
   {
-    if (this->size() < 2)
+    if (this->size() < 2){
       return PlotData::RangeTimeOpt();
+    }
     else
     {
-      return PlotData::RangeTimeOpt({ _bounding_box.left() - _time_offset, _bounding_box.right() - _time_offset });
+      return PlotData::RangeTimeOpt({ _bounding_box.left() - _time_offset,
+                                      _bounding_box.right() - _time_offset });
     }
   }
 
-  const PlotData* transformedData() const
+  const PlotData* plotData() const
   {
-    return _transformed_data;
+    return _data;
   }
 
 protected:
   QRectF _bounding_box;
 
 private:
-  const PlotData* _transformed_data;
+  const PlotData* _data;
   double _time_offset;
 };
 
 //--------------------------------------------
 inline void DataSeriesBase::calculateBoundingBox()
 {
-  if (_transformed_data->size() == 0)
+  if (_data->size() == 0)
   {
     _bounding_box = QRectF();
     return;
   }
 
-  double min_y = _transformed_data->front().y;
-  double max_y = _transformed_data->front().y;
+  double min_y = _data->front().y;
+  double max_y = _data->front().y;
 
-  for (const auto& p : *_transformed_data)
+  for (const auto& p : *_data)
   {
     if (p.y < min_y)
     {
@@ -90,8 +92,8 @@ inline void DataSeriesBase::calculateBoundingBox()
     }
   }
 
-  _bounding_box.setLeft(_transformed_data->front().x);
-  _bounding_box.setRight(_transformed_data->back().x);
+  _bounding_box.setLeft(_data->front().x);
+  _bounding_box.setRight(_data->back().x);
   _bounding_box.setBottom(min_y);
   _bounding_box.setTop(max_y);
 }
