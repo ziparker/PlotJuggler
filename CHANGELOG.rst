@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.8.4 (2020-08-15)
+------------------
 * readme updated
 * fix issue `#318 <https://github.com/facontidavide/PlotJuggler/issues/318>`_
 * fix  `#170 <https://github.com/facontidavide/PlotJuggler/issues/170>`_ : problem with ULOG parser in Windows
