@@ -20,11 +20,13 @@ class DraggableToolbar : public QWidget
 
 public:
   explicit DraggableToolbar(ads::CDockWidget* parent);
-  ~DraggableToolbar();
+  ~DraggableToolbar() override;
 
   QLabel* label(){ return ui->label;}
   QPushButton* buttonFullscreen() { return ui->buttonFullscreen; }
   QPushButton* buttonClose() { return ui->buttonClose; }
+  QPushButton* buttonSplitHorizontal() { return ui->buttonSplitHorizontal; }
+  QPushButton* buttonSplitVertical() { return ui->buttonSplitVertical; }
 
   void toggleFullscreen(bool is_fullscreen);
 
@@ -34,7 +36,7 @@ private:
   void mousePressEvent(QMouseEvent* ev) override;
   void mouseReleaseEvent(QMouseEvent* ev) override;
   void mouseMoveEvent(QMouseEvent* ev) override;
- // void enterEvent(QEvent *) override;
+  void enterEvent(QEvent *) override;
   void leaveEvent(QEvent *) override;
 
   ads::CDockWidget* _parent;

@@ -266,6 +266,12 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   _toolbar->label()->setText("...");
   qobject_cast<QBoxLayout*>(layout())->insertWidget(0, _toolbar);
 
+  connect(_toolbar->buttonSplitHorizontal(), &QPushButton::clicked,
+          this, &DockWidget::splitHorizontal);
+
+  connect(_toolbar->buttonSplitVertical(), &QPushButton::clicked,
+          this, &DockWidget::splitVertical);
+
   connect(plot_widget, &PlotWidget::splitHorizontal,
           this, &DockWidget::splitHorizontal);
 
@@ -360,11 +366,15 @@ DraggableToolbar::DraggableToolbar(ads::CDockWidget* parent) :
 
   setButtonIcon(ui->buttonFullscreen, ":/resources/svg/fullscreen.svg");
   setButtonIcon(ui->buttonClose,  ":/resources/svg/close-button.svg");
+  setButtonIcon(ui->buttonSplitHorizontal,  ":/resources/svg/add_column.svg");
+  setButtonIcon(ui->buttonSplitVertical,  ":/resources/svg/add_row.svg");
 
   ui->buttonFullscreen->setVisible( false );
+  ui->buttonSplitHorizontal->setVisible( false );
+  ui->buttonSplitVertical->setVisible( false );
 
   setMouseTracking(true);
-  ui->buttonClose->setMouseTracking(true);
+  ui->widgetButtons->setMouseTracking(true);
 
   ui->label->installEventFilter(this);
 }
@@ -378,6 +388,10 @@ void DraggableToolbar::toggleFullscreen(bool is_fullscreen)
 {
   _fullscreen_mode = is_fullscreen;
   ui->buttonClose->setHidden(is_fullscreen);
+  if( is_fullscreen ){
+    ui->buttonSplitHorizontal->setVisible( false );
+    ui->buttonSplitVertical->setVisible( false );
+  }
 }
 
 void DraggableToolbar::mousePressEvent(QMouseEvent *ev)
@@ -393,10 +407,22 @@ void DraggableToolbar::mouseReleaseEvent(QMouseEvent *ev)
 void DraggableToolbar::mouseMoveEvent(QMouseEvent *ev)
 {
   ui->buttonFullscreen->setVisible( true );
+  ui->buttonSplitHorizontal->setVisible( !_fullscreen_mode );
+  ui->buttonSplitVertical->setVisible( !_fullscreen_mode );
   _parent->dockAreaWidget()->titleBar()->mouseMoveEvent(ev);
 
   ev->accept();
   QWidget::mouseMoveEvent(ev);
+}
+
+void DraggableToolbar::enterEvent(QEvent *ev)
+{
+  ui->buttonFullscreen->setVisible( true );
+  ui->buttonSplitHorizontal->setVisible( !_fullscreen_mode );
+  ui->buttonSplitVertical->setVisible( !_fullscreen_mode );
+
+  ev->accept();
+  QWidget::enterEvent(ev);
 }
 
 bool DraggableToolbar::eventFilter(QObject *object, QEvent *event)
@@ -420,6 +446,8 @@ bool DraggableToolbar::eventFilter(QObject *object, QEvent *event)
 void DraggableToolbar::leaveEvent(QEvent *ev)
 {
   ui->buttonFullscreen->setVisible( _fullscreen_mode );
+  ui->buttonSplitHorizontal->setVisible( false );
+  ui->buttonSplitVertical->setVisible( false );
   QWidget::leaveEvent(ev);
 }
 
