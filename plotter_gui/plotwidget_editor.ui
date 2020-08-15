@@ -446,7 +446,7 @@
           <height>16777215</height>
          </size>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -472,17 +472,26 @@
           </widget>
          </item>
          <item>
-          <widget class="QStackedWidget" name="widgetArguments">
+          <widget class="QStackedWidget" name="stackedWidgetArguments">
            <property name="enabled">
             <bool>false</bool>
            </property>
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
-           </property>
-           <widget class="QWidget" name="stackedWidgetArgumentsPage1"/>
+           <widget class="QWidget" name="stackedWidgetPageEmpty" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+            </layout>
+           </widget>
           </widget>
          </item>
          <item>

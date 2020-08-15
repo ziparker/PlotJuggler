@@ -4,8 +4,44 @@
 
 FirstDerivative::FirstDerivative():
   _widget(nullptr),
-  _dT(0.0)
+  ui(new Ui::FirstDerivariveForm),
+  _dT(0.0),
+  _auctual_mode(true)
 {
+  _widget = new QWidget();
+  ui->setupUi(_widget);
+  ui->lineEditCustom->setValidator( new QDoubleValidator(0.0001, 1000, 4, ui->lineEditCustom) );
+
+  connect(ui->buttonCompute, &QPushButton::clicked,
+          this, &FirstDerivative::on_buttonCompute_clicked );
+
+  connect(ui->lineEditCustom, &QLineEdit::editingFinished,
+          this, [=](){
+            _dT = ui->lineEditCustom->text().toDouble();
+            emit parametersChanged();
+          } );
+
+  connect(ui->radioActual, &QRadioButton::toggled,
+          this, [=](bool toggled){
+            if( toggled) {
+              _dT = 0.0;
+              emit parametersChanged();
+            }
+          } );
+
+  connect(ui->radioCustom, &QRadioButton::toggled,
+          this, [=](bool toggled){
+            if( toggled) {
+              _dT = ui->lineEditCustom->text().toDouble();
+              emit parametersChanged();
+            }
+          } );
+}
+
+FirstDerivative::~FirstDerivative()
+{
+  delete ui;
+  delete _widget;
 }
 
 void FirstDerivative::calculate(PlotData *dst_data)
@@ -20,7 +56,7 @@ void FirstDerivative::calculate(PlotData *dst_data)
   double prev_x = dataSource()->front().x;
   double prev_y = dataSource()->front().y;
 
-  for(size_t i=1; dataSource()->size(); i++)
+  for(size_t i=1; i < dataSource()->size(); i++)
   {
     const auto& p = dataSource()->at(i);
 
@@ -31,19 +67,11 @@ void FirstDerivative::calculate(PlotData *dst_data)
     prev_x = p.x;
     prev_y = p.y;
   }
-
-  dst_data->pushBack( {prev_x, prev_y} );
 }
-
 
 QWidget *FirstDerivative::optionsWidget()
 {
-  if(!_widget)
-  {
-    _widget = new QWidget;
-    ui->setupUi(_widget);
-    ui->lineEditCustom->setValidator( new QDoubleValidator(0.0001, 1000, 4, ui->lineEditCustom) );
-  }
+
   const size_t data_size = dataSource()->size();
 
   if(!dataSource() || data_size < 2)
@@ -55,11 +83,36 @@ QWidget *FirstDerivative::optionsWidget()
 
 bool FirstDerivative::xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const
 {
+  QDomElement widget_el = doc.createElement("options");
+
+  if( ui->radioActual->isChecked() )
+  {
+    widget_el.setAttribute("radioChecked", "radioActual");
+  }
+  else{
+    widget_el.setAttribute("radioChecked", "radioCustom");
+  }
+  widget_el.setAttribute("lineEdit", ui->lineEditCustom->text() );
+
+  parent_element.appendChild( widget_el );
   return false;
 }
 
 bool FirstDerivative::xmlLoadState(const QDomElement &parent_element)
 {
+  QDomElement widget_el = parent_element.firstChildElement("options");
+
+  ui->lineEditCustom->setText( widget_el.attribute("lineEdit") );
+
+  if( widget_el.attribute("radioChecked") == "radioActual")
+  {
+    ui->radioActual->setChecked(true);
+  }
+  else{
+    ui->radioCustom->setChecked(true);
+  }
+
+
   return false;
 }
 

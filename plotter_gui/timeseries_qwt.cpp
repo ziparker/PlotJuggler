@@ -6,7 +6,7 @@
 #include <QString>
 
 TimeSeries::TimeSeries(const PlotData* source_data)
-  : DataSeriesBase(source_data),
+  : DataSeriesBase(&_dst_data),
   _source_data(source_data),
   _dst_data(source_data->name())
 {
@@ -53,6 +53,23 @@ nonstd::optional<QPointF> TimeSeries::sampleFromTime(double t)
 TimeSeriesTransformPtr TimeSeries::transform()
 {
   return _transform;
+}
+
+void TimeSeries::setTransform(QString transform_ID)
+{
+  if( transformName() == transform_ID)
+  {
+    return;
+  }
+  if( transform_ID.isEmpty() )
+  {
+    _transform.reset();
+  }
+  else{
+    _transform = TransformFactory::create(transform_ID.toStdString());
+    _transform->setDataSource( _source_data );
+  }
+  updateCache();
 }
 
 bool TimeSeries::updateCache()

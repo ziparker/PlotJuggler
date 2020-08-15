@@ -11,6 +11,8 @@ class FirstDerivative: public TimeSeriesTransform
 public:
   FirstDerivative();
 
+  ~FirstDerivative() override;
+
   const char* name() const override { return "1st Derivative"; }
 
   void reset() override {}
@@ -24,6 +26,7 @@ public:
   bool xmlLoadState(const QDomElement& parent_element) override;
 
 private slots:
+
   void on_buttonCompute_clicked();
 
 private:
@@ -31,6 +34,7 @@ private:
   QWidget *_widget;
   Ui::FirstDerivariveForm* ui;
   double _dT;
+  bool _auctual_mode;
 };
 
 #endif // FIRST_DERIVATIVE_H

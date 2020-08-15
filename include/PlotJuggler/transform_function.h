@@ -12,7 +12,7 @@ public:
 
   TimeSeriesTransform(): _src_data(nullptr) {}
 
-  void setDataSource(PlotData *src_data){
+  void setDataSource(const PlotData *src_data){
     _src_data = src_data;
   }
 
@@ -31,7 +31,7 @@ signals:
 
 protected:
 
-  PlotData *_src_data;
+  const PlotData *_src_data;
 };
 
 QT_BEGIN_NAMESPACE

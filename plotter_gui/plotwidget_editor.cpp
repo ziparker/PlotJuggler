@@ -8,9 +8,9 @@
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QDialogButtonBox>
+#include <QDebug>
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2;
-
 
 PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   QDialog(parent),
@@ -34,7 +34,6 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   QDomDocument doc;
 
   auto saved_state = plotwidget->xmlSaveState(doc);
-
 
   _plotwidget = new PlotWidget(plotwidget->datamap());
   _plotwidget->xmlLoadState(saved_state);
@@ -97,6 +96,10 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   {
     ui->comboTransform->addItem( QString::fromStdString(name) );
   }
+
+  if( ui->listWidget->count() != 0 ){
+    ui->listWidget->item(0)->setSelected(true);
+  }
 }
 
 PlotwidgetEditor::~PlotwidgetEditor()
@@ -110,12 +113,19 @@ PlotwidgetEditor::~PlotwidgetEditor()
 
 void PlotwidgetEditor::onColorChanged(QColor c)
 {
-  ui->editColotText->setText( c.name() );
-
-  auto item =  ui->listWidget->currentItem();
+  auto selected = ui->listWidget->selectedItems();
+  if( selected.size() != 1)
+  {
+    return;
+  }
+  auto item =  selected.front();
   if( item ){
     auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
-    row_widget->setColor( c );
+    auto name = row_widget->text();
+    if( row_widget->color() != c)
+    {
+      row_widget->setColor( c );
+    }
 
     _plotwidget->on_changeCurveColor( row_widget->text().toStdString(), c );
   }
@@ -391,19 +401,80 @@ void PlotwidgetEditor::on_listWidget_itemSelectionChanged()
   {
     ui->widgetColor->setEnabled(false);
     ui->comboTransform->setEnabled(false);
-    ui->widgetArguments->setEnabled(false);
-    _color_wheel->setColor( Qt::black );
+    ui->stackedWidgetArguments->setEnabled(false);
+    ui->editColotText->setText( "#000000" );
     return;
   }
 
   ui->widgetColor->setEnabled(true);
-  ui->comboTransform->setEnabled(true);
-  ui->widgetArguments->setEnabled(true);
+  ui->stackedWidgetArguments->setEnabled(true);
+
+  if( selected.size() > 1)
+  {
+    return;
+  }
 
   auto item = selected.front();
   auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
   if( row_widget )
   {
-    _color_wheel->setColor( row_widget->color() );
+    ui->editColotText->setText( row_widget->color().name() );
   }
+  if( _plotwidget->isXYPlot() == false )
+  {
+    ui->comboTransform->setEnabled(true);
+    auto curve_name = row_widget->text();
+    QwtPlotCurve* qwt_curve = _plotwidget->curveList().at(curve_name.toStdString());
+    TimeSeries* ts = dynamic_cast<TimeSeries*>( qwt_curve->data() );
+    if( !ts->transform() )
+    {
+      ui->comboTransform->setCurrentIndex(0);
+    }
+    else{
+      ui->comboTransform->setCurrentText( ts->transformName() );
+    }
+  }
+
+  on_comboTransform_currentIndexChanged( ui->comboTransform->currentText() );
+}
+
+void PlotwidgetEditor::on_comboTransform_currentIndexChanged(const QString &transform_ID)
+{
+  auto selected = ui->listWidget->selectedItems();
+  auto item = selected.front();
+  auto curve_name = dynamic_cast<RowWidget*>( ui->listWidget->itemWidget(item) )->text();
+
+  QwtPlotCurve* qwt_curve = _plotwidget->curveList().at(curve_name.toStdString());
+  TimeSeries* ts = dynamic_cast<TimeSeries*>( qwt_curve->data() );
+
+  if( transform_ID == ui->comboTransform->itemText(0) )
+  {
+    ts->setTransform({});
+    ui->stackedWidgetArguments->setCurrentIndex(0);
+    qDebug() << "stackedWidgetArguments " << 0;
+  }
+  else{
+    ts->setTransform(transform_ID);
+    auto widget = ts->transform()->optionsWidget();
+    int index = ui->stackedWidgetArguments->indexOf(widget);
+    if( index == -1)
+    {
+      index = ui->stackedWidgetArguments->addWidget(widget);
+    }
+
+    ui->stackedWidgetArguments->setCurrentIndex(index);
+    qDebug() << "stackedWidgetArguments " << index;
+
+    if( _connected_transform_widgets.count(widget) == 0)
+    {
+      connect( ts->transform().get(), &TimeSeriesTransform::parametersChanged,
+                this, [=]() {
+                  ts->updateCache();
+                  _plotwidget->zoomOut(false);
+                });
+      _connected_transform_widgets.insert(widget);
+    }
+  }
+
+  _plotwidget->zoomOut(false);
 }

@@ -76,6 +76,8 @@ private slots:
 
   void on_listWidget_itemSelectionChanged();
 
+  void on_comboTransform_currentIndexChanged(const QString &transform_ID);
+
 private:
   Ui::plotwidget_editor *ui;
 
@@ -84,6 +86,8 @@ private:
   PlotWidget* _plotwidget;
   PlotWidget* _plotwidget_origin;
   QRectF _bounding_rect;
+
+  std::set<QWidget*> _connected_transform_widgets;
 
   void setupColorWidget();
   void setupTable();
