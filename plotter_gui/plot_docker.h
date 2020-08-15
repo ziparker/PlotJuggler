@@ -23,17 +23,12 @@ public:
   ~DraggableToolbar();
 
   QLabel* label(){ return ui->label;}
-  QPushButton* buttonSplitHorizontal() { return ui->buttonSplitHorizontal; }
-  QPushButton* buttonSplitVertical() { return ui->buttonSplitVertical; }
   QPushButton* buttonFullscreen() { return ui->buttonFullscreen; }
-  QPushButton* buttonEdit() { return ui->buttonEdit; }
   QPushButton* buttonClose() { return ui->buttonClose; }
 
   void toggleFullscreen(bool is_fullscreen);
 
-  void showToolButtons(bool show);
-
-  bool eventFilter(QObject* object,QEvent* event);
+  bool eventFilter(QObject* object,QEvent* event) override;
 
 private:
   void mousePressEvent(QMouseEvent* ev) override;
@@ -42,10 +37,9 @@ private:
  // void enterEvent(QEvent *) override;
   void leaveEvent(QEvent *) override;
 
-  ads::CDockWidget* parent_;
+  ads::CDockWidget* _parent;
   Ui::DraggableToolbar *ui;
-  bool displayed_toolbar_;
-  bool fullscreen_mode_;
+  bool _fullscreen_mode;
 };
 
 class DockWidget: public ads::CDockWidget
@@ -60,9 +54,9 @@ public:
   DraggableToolbar* toolBar();
 
 public slots:
-  DockWidget* spliHorizontal();
+  DockWidget* splitHorizontal();
 
-  DockWidget* spliVertical();
+  DockWidget* splitVertical();
 
 private:
   DraggableToolbar* _toolbar;

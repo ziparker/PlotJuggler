@@ -143,7 +143,7 @@ void PlotDocker::restoreSplitter(QDomElement elem, DockWidget* widget)
   for (int i=1; i<splitter_count; i++ )
   {
     widget = (orientation == Qt::Horizontal) ?
-                 widget->spliHorizontal() : widget->spliVertical();
+                 widget->splitHorizontal() : widget->splitVertical();
     widgets[i] = widget;
   }
 
@@ -263,14 +263,14 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
 
   _toolbar = new DraggableToolbar(this);
-  _toolbar->label()->setText("*");
+  _toolbar->label()->setText("...");
   qobject_cast<QBoxLayout*>(layout())->insertWidget(0, _toolbar);
 
-  QObject::connect(_toolbar->buttonSplitHorizontal(), &QPushButton::pressed,
-                   this, &DockWidget::spliHorizontal);
+  connect(plot_widget, &PlotWidget::splitHorizontal,
+          this, &DockWidget::splitHorizontal);
 
-  QObject::connect(_toolbar->buttonSplitVertical(), &QPushButton::pressed,
-                   this, &DockWidget::spliVertical);
+  connect(plot_widget, &PlotWidget::splitVertical,
+          this, &DockWidget::splitVertical);
 
   auto FullscreenAction = [=](bool is_fullscreen) {
     PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
@@ -294,20 +294,10 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
                      this->undoableChange();
                    } );
 
-  _toolbar->buttonEdit()->setCheckable(false);
-  QObject::connect(_toolbar->buttonEdit(), &QPushButton::clicked, this, [=]()
-                   {
-                     auto editor_dialog = new PlotwidgetEditor(plot_widget, this);
-                     editor_dialog->exec();
-                     editor_dialog->deleteLater();
-                     _toolbar->showToolButtons(false);
-                   } );
-
-  //this->setMinimumSize( QSize(400,300) );
   this->layout()->setMargin(10);
 }
 
-DockWidget* DockWidget::spliHorizontal()
+DockWidget* DockWidget::splitHorizontal()
 {
   // create a sibling (same parent)
   auto new_widget = new DockWidget(_datamap, qobject_cast<QWidget*>(parent()));
@@ -325,7 +315,7 @@ DockWidget* DockWidget::spliHorizontal()
   return new_widget;
 }
 
-DockWidget* DockWidget::spliVertical()
+DockWidget* DockWidget::splitVertical()
 {
   auto new_widget = new DockWidget(_datamap, qobject_cast<QWidget*>(parent()));
 
@@ -362,26 +352,19 @@ static void setButtonIcon(QPushButton* button, const QString& file)
 
 DraggableToolbar::DraggableToolbar(ads::CDockWidget* parent) :
   QWidget(parent),
-  parent_(parent),
+  _parent(parent),
   ui(new Ui::DraggableToolbar),
-  displayed_toolbar_(false),
-  fullscreen_mode_(false)
+  _fullscreen_mode(false)
 {
   ui->setupUi(this);
 
-  setButtonIcon(ui->buttonSplitHorizontal, ":/resources/svg/add_column.svg");
-  setButtonIcon(ui->buttonSplitVertical, ":/resources/svg/add_row.svg");
   setButtonIcon(ui->buttonFullscreen, ":/resources/svg/fullscreen.svg");
-  setButtonIcon(ui->buttonEdit, ":/resources/svg/pencil-edit.svg");
   setButtonIcon(ui->buttonClose,  ":/resources/svg/close-button.svg");
 
-  setMouseTracking(true);
-  ui->widgetButtons->setMouseTracking(true);
-  ui->buttonClose->setMouseTracking(true);
-  ui->labelSettings->setMouseTracking(true);
+  ui->buttonFullscreen->setVisible( false );
 
-  displayed_toolbar_ = true;
-  showToolButtons(false);
+  setMouseTracking(true);
+  ui->buttonClose->setMouseTracking(true);
 
   ui->label->installEventFilter(this);
 }
@@ -393,69 +376,27 @@ DraggableToolbar::~DraggableToolbar()
 
 void DraggableToolbar::toggleFullscreen(bool is_fullscreen)
 {
-  fullscreen_mode_ = is_fullscreen;
-  ui->labelSettings->setHidden(is_fullscreen);
+  _fullscreen_mode = is_fullscreen;
   ui->buttonClose->setHidden(is_fullscreen);
-  ui->widgetButtons->setHidden(is_fullscreen);
-
-  QHBoxLayout* layout = ui->mainHorizontalLayout;
-  QHBoxLayout* button_layout = ui->buttonHorizontalLayout;
-
-  if( is_fullscreen ){
-    button_layout->removeWidget( ui->buttonFullscreen );
-    layout->addWidget( ui->buttonFullscreen );
-  }
-  else{
-    layout->removeWidget( ui->buttonFullscreen );
-    button_layout->addWidget( ui->buttonFullscreen );
-  }
 }
 
 void DraggableToolbar::mousePressEvent(QMouseEvent *ev)
 {
-  parent_->dockAreaWidget()->titleBar()->mousePressEvent(ev);
+  _parent->dockAreaWidget()->titleBar()->mousePressEvent(ev);
 }
 
 void DraggableToolbar::mouseReleaseEvent(QMouseEvent *ev)
 {
-  parent_->dockAreaWidget()->titleBar()->mouseReleaseEvent(ev);
+  _parent->dockAreaWidget()->titleBar()->mouseReleaseEvent(ev);
 }
 
 void DraggableToolbar::mouseMoveEvent(QMouseEvent *ev)
 {
-  auto pos = buttonClose()->mapFromParent(ev->pos());
-  bool under_mouse = buttonClose()->rect().contains( pos );
-  //qDebug() << pos << ": " << under_mouse << " / " << displayed_toolbar_;
-  showToolButtons( !under_mouse );
-
-  parent_->dockAreaWidget()->titleBar()->mouseMoveEvent(ev);
+  ui->buttonFullscreen->setVisible( true );
+  _parent->dockAreaWidget()->titleBar()->mouseMoveEvent(ev);
 
   ev->accept();
   QWidget::mouseMoveEvent(ev);
-}
-
-void DraggableToolbar::showToolButtons(bool show)
-{
-  static auto icon = QIcon(":/resources/svg/left-arrow.svg");
-  auto pixmap = icon.pixmap(14);
-
-  if( show == displayed_toolbar_)
-  {
-    return;
-  }
-  displayed_toolbar_ = show;
-  ui->buttonEdit->setVisible(show);
-  ui->buttonSplitVertical->setVisible(show);
-  ui->buttonSplitHorizontal->setVisible(show);
-  ui->buttonFullscreen->setVisible(show || fullscreen_mode_ );
-
-  QTransform t;
-  if( !displayed_toolbar_ )
-  {
-    t.rotate(-90);
-  }
-
-  ui->labelSettings->setPixmap(pixmap.transformed(t));
 }
 
 bool DraggableToolbar::eventFilter(QObject *object, QEvent *event)
@@ -478,7 +419,7 @@ bool DraggableToolbar::eventFilter(QObject *object, QEvent *event)
 
 void DraggableToolbar::leaveEvent(QEvent *ev)
 {
-  showToolButtons(false);
+  ui->buttonFullscreen->setVisible( _fullscreen_mode );
   QWidget::leaveEvent(ev);
 }
 

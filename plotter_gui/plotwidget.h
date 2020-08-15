@@ -118,6 +118,8 @@ signals:
   void curveListChanged();
   void curvesDropped();
   void legendSizeChanged(int new_size);
+  void splitHorizontal();
+  void splitVertical();
 
 public slots:
 
@@ -178,6 +180,9 @@ private:
   std::map<std::string, QwtPlotMarker*> _point_marker;
 
   QAction* _action_removeAllCurves;
+  QAction* _action_edit;
+  QAction* _action_split_horizontal;
+  QAction* _action_split_vertical;
 
   QAction* _action_zoomOutMaximum;
   QAction* _action_zoomOutHorizontally;

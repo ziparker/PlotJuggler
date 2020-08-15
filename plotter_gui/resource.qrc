@@ -235,5 +235,6 @@
         <file>resources/svg/remove_red.svg</file>
         <file>resources/svg/loop.svg</file>
         <file>resources/svg/t0.svg</file>
+        <file>resources/svg/copy.svg</file>
     </qresource>
 </RCC>

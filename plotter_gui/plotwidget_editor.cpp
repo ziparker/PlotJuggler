@@ -452,7 +452,6 @@ void PlotwidgetEditor::on_comboTransform_currentIndexChanged(const QString &tran
     ts->setTransform({});
     ts->updateCache();
     ui->stackedWidgetArguments->setCurrentIndex(0);
-    qDebug() << "stackedWidgetArguments " << 0;
   }
   else{
     ts->setTransform(transform_ID);
@@ -466,7 +465,6 @@ void PlotwidgetEditor::on_comboTransform_currentIndexChanged(const QString &tran
     }
 
     ui->stackedWidgetArguments->setCurrentIndex(index);
-    qDebug() << "stackedWidgetArguments " << index;
 
     if( _connected_transform_widgets.count(widget) == 0)
     {

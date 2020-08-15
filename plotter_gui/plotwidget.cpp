@@ -36,6 +36,8 @@
 #include "suggest_dialog.h"
 #include "transforms/custom_function.h"
 #include "transforms/custom_timeseries.h"
+#include "svg_util.h"
+#include "plotwidget_editor.h"
 
 int PlotWidget::global_color_index = 0;
 
@@ -216,6 +218,21 @@ void PlotWidget::buildActions()
 {
   QIcon iconDeleteList;
 
+  _action_edit  = new QAction("&Edit...", this);
+  connect(_action_edit, &QAction::triggered, this,
+          [=]()
+          {
+            auto editor_dialog = new PlotwidgetEditor(this, this);
+            editor_dialog->exec();
+            editor_dialog->deleteLater();
+          } );
+
+  _action_split_horizontal = new  QAction("&Split Horizontally", this);
+  connect( _action_split_horizontal, &QAction::triggered, this, &PlotWidget::splitHorizontal);
+
+  _action_split_vertical = new  QAction("&Split Vertically", this);
+  connect( _action_split_vertical, &QAction::triggered, this, &PlotWidget::splitVertical);
+
   _action_removeAllCurves = new QAction("&Remove ALL curves", this);
   connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::removeAllCurves);
   connect(_action_removeAllCurves, &QAction::triggered, this, &PlotWidget::undoableChange);
@@ -257,21 +274,22 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   QSettings settings;
   QString theme = settings.value("Preferences::theme", "style_light").toString();
 
-  auto setIcon = [&](QAction* action, QString file) {
-    QIcon icon;
-    icon.addFile(tr(":/%1/%2").arg(theme).arg(file), QSize(24, 24));
-    action->setIcon(icon);
-  };
-
-  setIcon(_action_removeAllCurves, "remove.png");
-  setIcon(_action_zoomOutMaximum, "zoom_max.png");
-  setIcon(_action_zoomOutHorizontally, "zoom_horizontal.png");
-  setIcon(_action_zoomOutVertically, "zoom_vertical.png");
-  setIcon(_action_clipboard, "copy_clipboard.png");
-  setIcon(_action_saveToFile, "save.png");
+  _action_removeAllCurves->setIcon( LoadSvgIcon(":/resources/svg/remove_red.svg") );
+  _action_edit->setIcon( LoadSvgIcon(":/resources/svg/pencil-edit.svg") );
+  _action_split_horizontal->setIcon( LoadSvgIcon(":/resources/svg/add_column.svg") );
+  _action_split_vertical->setIcon( LoadSvgIcon(":/resources/svg/add_row.svg") );
+  _action_zoomOutMaximum->setIcon( LoadSvgIcon(":/resources/svg/zoom_max.svg") );
+  _action_zoomOutHorizontally->setIcon( LoadSvgIcon(":/resources/svg/zoom_horizontal.svg") );
+  _action_zoomOutVertically->setIcon( LoadSvgIcon(":/resources/svg/zoom_vertical.svg") );
+  _action_saveToFile->setIcon( LoadSvgIcon(":/resources/svg/save.svg") );
+  _action_clipboard->setIcon( LoadSvgIcon(":/resources/svg/copy.svg") );
 
   QMenu menu(this);
   menu.addAction(_action_removeAllCurves);
+  menu.addSeparator();
+  menu.addAction(_action_edit);
+  menu.addAction(_action_split_horizontal);
+  menu.addAction(_action_split_vertical);
   menu.addSeparator();
   menu.addAction(_action_zoomOutMaximum);
   menu.addAction(_action_zoomOutHorizontally);

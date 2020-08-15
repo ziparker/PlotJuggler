@@ -14,7 +14,7 @@
 #include <QPixmap>
 #include <QDebug>
 
-inline QIcon LoadSvgIcon(QString filename, QString style_name)
+inline QIcon LoadSvgIcon(QString filename, QString style_name = "light")
 {
   QFile file(filename);
   file.open(QFile::ReadOnly | QFile::Text);
