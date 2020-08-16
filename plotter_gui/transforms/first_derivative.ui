@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>200</width>
-    <height>200</height>
+    <width>361</width>
+    <height>240</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -29,7 +29,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Time Difference:</string>
+      <string>Time Difference (dT):</string>
      </property>
     </widget>
    </item>
@@ -38,6 +38,9 @@
      <layout class="QFormLayout" name="formLayout">
       <item row="1" column="0">
        <widget class="QRadioButton" name="radioActual">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;use the actual difference in time between two consecutive points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Actual </string>
         </property>
@@ -48,6 +51,9 @@
       </item>
       <item row="2" column="0">
        <widget class="QRadioButton" name="radioCustom">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use a fixed, custom value of dT.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Custom:</string>
         </property>
@@ -55,6 +61,12 @@
       </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="lineEditCustom">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>1.0</string>
         </property>
@@ -67,6 +79,9 @@
           <width>80</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Calculate the corret delta time.&lt;/p&gt;&lt;p&gt;It tries to filter out outliers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Guess dT</string>

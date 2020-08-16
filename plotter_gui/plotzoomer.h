@@ -14,7 +14,7 @@ public:
 
   virtual ~PlotZoomer() override = default;
 
-  void keepAspectratio(bool doKeep)
+  void keepAspectRatio(bool doKeep)
   {
     _keep_aspect_ratio = doKeep;
   }

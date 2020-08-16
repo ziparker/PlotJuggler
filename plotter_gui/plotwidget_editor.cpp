@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QDialogButtonBox>
 #include <QDebug>
+#include "qwt_text.h"
 
 const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2;
 
@@ -18,7 +19,6 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   _plotwidget_origin(plotwidget)
 {
   ui->setupUi(this);
-  auto layout = new QVBoxLayout();
 
   installEventFilter(this);
 
@@ -32,16 +32,15 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   setupColorWidget();
 
   QDomDocument doc;
-
   auto saved_state = plotwidget->xmlSaveState(doc);
 
   _plotwidget = new PlotWidget(plotwidget->datamap());
   _plotwidget->xmlLoadState(saved_state);
-
-  _bounding_rect = _plotwidget_origin->canvasBoundingRect();
-
   _plotwidget->on_changeTimeOffset( plotwidget->timeOffset() );
 
+  _bounding_rect_original = _plotwidget_origin->canvasBoundingRect();
+
+  auto layout = new QVBoxLayout();
   ui->plotContainer->setLayout(layout);
   layout->addWidget(_plotwidget);
 
@@ -91,12 +90,6 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
 
   ui->listWidget->setStyleSheet("QListView::item:selected { background: #ddeeff; }");
 
-  auto names = TransformFactory::registeredNames();
-  for(const auto& name: names)
-  {
-    ui->comboTransform->addItem( QString::fromStdString(name) );
-  }
-
   if( ui->listWidget->count() != 0 ){
     ui->listWidget->item(0)->setSelected(true);
   }
@@ -120,14 +113,14 @@ void PlotwidgetEditor::onColorChanged(QColor c)
   }
   auto item =  selected.front();
   if( item ){
-    auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
+    auto row_widget = dynamic_cast<EditorRowWidget*>(  ui->listWidget->itemWidget(item) );
     auto name = row_widget->text();
     if( row_widget->color() != c)
     {
       row_widget->setColor( c );
     }
 
-    _plotwidget->on_changeCurveColor( row_widget->text().toStdString(), c );
+    _plotwidget->on_changeCurveColor( item->data(Qt::UserRole).toString().toStdString(), c );
   }
 }
 
@@ -163,7 +156,7 @@ void PlotwidgetEditor::onDeleteRow(QWidget* w)
     auto widget = ui->listWidget->itemWidget(item);
     if( widget == w )
     {
-      QString curve = dynamic_cast<RowWidget*>(w)->text();
+      QString curve = dynamic_cast<EditorRowWidget*>(w)->text();
       qDebug() << "delete " << curve;
       ui->listWidget->takeItem(row);
       _plotwidget->removeCurve(curve.toStdString());
@@ -187,8 +180,6 @@ void PlotwidgetEditor::disableWidgets()
 
   ui->groupBoxLimits->setEnabled(false);
   ui->groupBoxStyle->setEnabled(false);
-
-  ui->comboTransform->setEnabled(false);
 }
 
 void PlotwidgetEditor::setupTable()
@@ -198,16 +189,21 @@ void PlotwidgetEditor::setupTable()
   int row = 0;
   for (auto& it : colors)
   {
-    auto text = QString::fromStdString(it.first);
+    auto curve_it = _plotwidget->curveList().find( it.first );
+    auto alias = curve_it->second->title().text();
+    _alias_to_curve.insert( std::make_pair(alias, curve_it->second) );
+
     auto color = it.second;
     auto item = new QListWidgetItem();
-  //  item->setForeground(color);
+    // even if it is not visible, we store here the original name (not alias)
+    item->setData(Qt::UserRole, QString::fromStdString(it.first) );
+
     ui->listWidget->addItem( item );
-    auto plot_row = new RowWidget(text, color) ;
+    auto plot_row = new EditorRowWidget(alias, color) ;
     item->setSizeHint( plot_row->sizeHint() );
     ui->listWidget->setItemWidget(item, plot_row );
 
-    connect(plot_row, &RowWidget::deleteRow, this, [this](QWidget* w) { onDeleteRow(w); });
+    connect(plot_row, &EditorRowWidget::deleteRow, this, [this](QWidget* w) { onDeleteRow(w); });
     row++;
   }
   if( row == 0 )
@@ -329,13 +325,13 @@ void PlotwidgetEditor::on_pushButtonCancel_pressed()
 void PlotwidgetEditor::on_pushButtonSave_pressed()
 {
   QDomDocument doc;
-  _plotwidget->setZoomRectangle(_bounding_rect, false);
+  _plotwidget->setZoomRectangle(_bounding_rect_original, false);
   auto elem = _plotwidget->xmlSaveState(doc);
   _plotwidget_origin->xmlLoadState( elem );
   this->accept();
 }
 
-RowWidget::RowWidget(QString text, QColor color): QWidget()
+EditorRowWidget::EditorRowWidget(QString text, QColor color): QWidget()
 {
   setMouseTracking(true);
   const QSize button_size(20,20);
@@ -366,30 +362,30 @@ RowWidget::RowWidget(QString text, QColor color): QWidget()
   connect( _delete_button, &QPushButton::clicked, this, [this](){ emit deleteRow(this); });
 }
 
-void RowWidget::enterEvent(QEvent *ev)
+void EditorRowWidget::enterEvent(QEvent *ev)
 {
   _delete_button->setHidden(false);
   _empty_spacer->setHidden(true);
 }
 
-void RowWidget::leaveEvent(QEvent *ev)
+void EditorRowWidget::leaveEvent(QEvent *ev)
 {
   _delete_button->setHidden(true);
   _empty_spacer->setHidden(false);
 }
 
-QString RowWidget::text() const
+QString EditorRowWidget::text() const
 {
   return _text->text();
 }
 
-void RowWidget::setColor(QColor color)
+void EditorRowWidget::setColor(QColor color)
 {
   setStyleSheet( QString("color: %1;").arg(color.name()));
   _color = color;
 }
 
-QColor RowWidget::color() const
+QColor EditorRowWidget::color() const
 {
   return _color;
 }
@@ -400,82 +396,21 @@ void PlotwidgetEditor::on_listWidget_itemSelectionChanged()
   if( selected.size() == 0 || ui->listWidget->count() == 0)
   {
     ui->widgetColor->setEnabled(false);
-    ui->comboTransform->setEnabled(false);
-    ui->stackedWidgetArguments->setEnabled(false);
     ui->editColotText->setText( "#000000" );
     return;
   }
 
   ui->widgetColor->setEnabled(true);
-  ui->stackedWidgetArguments->setEnabled(true);
 
-  if( selected.size() > 1)
+  if( selected.size() != 1)
   {
     return;
   }
 
   auto item = selected.front();
-  auto row_widget = dynamic_cast<RowWidget*>(  ui->listWidget->itemWidget(item) );
+  auto row_widget = dynamic_cast<EditorRowWidget*>(  ui->listWidget->itemWidget(item) );
   if( row_widget )
   {
     ui->editColotText->setText( row_widget->color().name() );
   }
-  if( _plotwidget->isXYPlot() == false )
-  {
-    ui->comboTransform->setEnabled(true);
-    auto curve_name = row_widget->text();
-    QwtPlotCurve* qwt_curve = _plotwidget->curveList().at(curve_name.toStdString());
-    TimeSeries* ts = dynamic_cast<TimeSeries*>( qwt_curve->data() );
-    if( !ts->transform() )
-    {
-      ui->comboTransform->setCurrentIndex(0);
-    }
-    else{
-      ui->comboTransform->setCurrentText( ts->transformName() );
-    }
-  }
-
-  on_comboTransform_currentIndexChanged( ui->comboTransform->currentText() );
-}
-
-void PlotwidgetEditor::on_comboTransform_currentIndexChanged(const QString &transform_ID)
-{
-  auto selected = ui->listWidget->selectedItems();
-  auto item = selected.front();
-  auto curve_name = dynamic_cast<RowWidget*>( ui->listWidget->itemWidget(item) )->text();
-
-  QwtPlotCurve* qwt_curve = _plotwidget->curveList().at(curve_name.toStdString());
-  TimeSeries* ts = dynamic_cast<TimeSeries*>( qwt_curve->data() );
-
-  if( transform_ID == ui->comboTransform->itemText(0) )
-  {
-    ts->setTransform({});
-    ts->updateCache();
-    ui->stackedWidgetArguments->setCurrentIndex(0);
-  }
-  else{
-    ts->setTransform(transform_ID);
-    ts->updateCache();
-
-    auto widget = ts->transform()->optionsWidget();
-    int index = ui->stackedWidgetArguments->indexOf(widget);
-    if( index == -1)
-    {
-      index = ui->stackedWidgetArguments->addWidget(widget);
-    }
-
-    ui->stackedWidgetArguments->setCurrentIndex(index);
-
-    if( _connected_transform_widgets.count(widget) == 0)
-    {
-      connect( ts->transform().get(), &TimeSeriesTransform::parametersChanged,
-                this, [=]() {
-                  ts->updateCache();
-                  _plotwidget->zoomOut(false);
-                });
-      _connected_transform_widgets.insert(widget);
-    }
-  }
-
-  _plotwidget->zoomOut(false);
 }

@@ -38,6 +38,7 @@
 #include "transforms/custom_timeseries.h"
 #include "svg_util.h"
 #include "plotwidget_editor.h"
+#include "plotwidget_transforms.h"
 
 int PlotWidget::global_color_index = 0;
 
@@ -218,11 +219,20 @@ void PlotWidget::buildActions()
 {
   QIcon iconDeleteList;
 
-  _action_edit  = new QAction("&Edit...", this);
+  _action_edit  = new QAction("&Edit curve style...", this);
   connect(_action_edit, &QAction::triggered, this,
           [=]()
           {
             auto editor_dialog = new PlotwidgetEditor(this, this);
+            editor_dialog->exec();
+            editor_dialog->deleteLater();
+          } );
+
+  _action_formula  = new QAction("&Apply filter to data...", this);
+  connect(_action_formula, &QAction::triggered, this,
+          [=]()
+          {
+            auto editor_dialog = new DialogTransformEditor(this);
             editor_dialog->exec();
             editor_dialog->deleteLater();
           } );
@@ -276,6 +286,7 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
 
   _action_removeAllCurves->setIcon( LoadSvgIcon(":/resources/svg/remove_red.svg") );
   _action_edit->setIcon( LoadSvgIcon(":/resources/svg/pencil-edit.svg") );
+  _action_formula->setIcon( LoadSvgIcon(":/resources/svg/Fx.svg") );
   _action_split_horizontal->setIcon( LoadSvgIcon(":/resources/svg/add_column.svg") );
   _action_split_vertical->setIcon( LoadSvgIcon(":/resources/svg/add_row.svg") );
   _action_zoomOutMaximum->setIcon( LoadSvgIcon(":/resources/svg/zoom_max.svg") );
@@ -285,9 +296,11 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   _action_clipboard->setIcon( LoadSvgIcon(":/resources/svg/copy.svg") );
 
   QMenu menu(this);
-  menu.addAction(_action_removeAllCurves);
-  menu.addSeparator();
+  menu.setStyleSheet("QMenu {icon-size; 36px; }");
+
   menu.addAction(_action_edit);
+  menu.addAction(_action_formula);
+  menu.addSeparator();
   menu.addAction(_action_split_horizontal);
   menu.addAction(_action_split_vertical);
   menu.addSeparator();
@@ -295,11 +308,13 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   menu.addAction(_action_zoomOutHorizontally);
   menu.addAction(_action_zoomOutVertically);
   menu.addSeparator();
+  menu.addAction(_action_removeAllCurves);
   menu.addSeparator();
   menu.addAction(_action_clipboard);
   menu.addAction(_action_saveToFile);
 
   _action_removeAllCurves->setEnabled(!_curve_list.empty());
+  _action_formula->setEnabled(!_curve_list.empty() && !isXYPlot());
 
   menu.exec(canvas()->mapToGlobal(pos));
 }
@@ -676,7 +691,7 @@ QDomElement PlotWidget::xmlSaveState(QDomDocument& doc) const
 
     plot_el.appendChild(curve_el);
 
-    if (_xy_mode)
+    if (isXYPlot())
     {
       PointSeriesXY* curve_xy = dynamic_cast<PointSeriesXY*>(curve->data());
       curve_el.setAttribute("curve_x", QString::fromStdString(curve_xy->dataX()->name()));
@@ -688,11 +703,14 @@ QDomElement PlotWidget::xmlSaveState(QDomDocument& doc) const
       {
         QDomElement transform_el = doc.createElement("transform");
         transform_el.setAttribute("name", ts->transformName() );
+        transform_el.setAttribute("alias", ts->transform()->alias() );
         ts->transform()->xmlSaveState(doc, transform_el);
         curve_el.appendChild(transform_el);
       }
     }
   }
+
+  plot_el.setAttribute("mode", isXYPlot() ? "XYPlot" : "TimeSeries");
 
   return plot_el;
 }
@@ -754,6 +772,9 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
           ts->setTransform( transform_el.attribute("name") );
           ts->transform()->xmlLoadState(transform_el);
           ts->updateCache();
+          auto alias = transform_el.attribute("alias");
+          ts->transform()->setAlias( alias );
+          curve->setTitle( alias );
         }
       }
     }
@@ -890,13 +911,13 @@ void PlotWidget::updateMaximumZoomArea()
     }
     _magnifier->setAxisLimits(xBottom, max_rect.left(), max_rect.right());
     _magnifier->setAxisLimits(yLeft, max_rect.bottom(), max_rect.top());
-    _zoomer->keepAspectratio(true);
+    _zoomer->keepAspectRatio(true);
   }
   else
   {
     _magnifier->setAxisLimits(xBottom, max_rect.left(), max_rect.right());
     _magnifier->setAxisLimits(yLeft, max_rect.bottom(), max_rect.top());
-    _zoomer->keepAspectratio(false);
+    _zoomer->keepAspectRatio(false);
   }
   _max_zoom_rect = max_rect;
 }
@@ -965,11 +986,11 @@ void PlotWidget::setConstantRatioXY(bool active)
   _keep_aspect_ratio = active;
   if (isXYPlot() && active)
   {
-    _zoomer->keepAspectratio(true);
+    _zoomer->keepAspectRatio(true);
   }
   else
   {
-    _zoomer->keepAspectratio(false);
+    _zoomer->keepAspectRatio(false);
   }
   zoomOut(false);
 }

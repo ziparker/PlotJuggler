@@ -13,6 +13,7 @@
 
 #include "PlotJuggler/transform_function.h"
 #include "transforms/first_derivative.h"
+#include "transforms/scale_transform.h"
 
 #include "new_release_dialog.h"
 
@@ -88,6 +89,7 @@ int main(int argc, char* argv[])
 
   //---------------------------
   TransformFactory::registerTransform<FirstDerivative>( FirstDerivative().name() );
+  TransformFactory::registerTransform<ScaleTransform>( ScaleTransform().name() );
 
   //---------------------------
 

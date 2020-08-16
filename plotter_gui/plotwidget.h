@@ -181,6 +181,7 @@ private:
 
   QAction* _action_removeAllCurves;
   QAction* _action_edit;
+  QAction* _action_formula;
   QAction* _action_split_horizontal;
   QAction* _action_split_vertical;
 

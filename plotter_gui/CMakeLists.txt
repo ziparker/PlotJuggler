@@ -6,7 +6,6 @@ QT5_ADD_RESOURCES (RES_SRC  resource.qrc )
 
 QT5_WRAP_UI ( UI_SRC
     aboutdialog.ui
-    axis_limits_dialog.ui
     mainwindow.ui
 
     support_dialog.ui
@@ -30,7 +29,6 @@ SET( PLOTTER_SRC
 
     ../include/PlotJuggler/transform_function.h
 
-    axis_limits_dialog.cpp
     customtracker.cpp
 
     curvelist_panel.cpp
@@ -43,6 +41,7 @@ SET( PLOTTER_SRC
     plotlegend.cpp
     plotwidget.cpp
     plotwidget_editor.cpp
+    plotwidget_transforms.cpp
     plot_docker.cpp
     plotmagnifier.cpp
     preferences_dialog.cpp
@@ -63,6 +62,7 @@ SET( PLOTTER_SRC
     transforms/qml_custom_function.cpp
 
     transforms/first_derivative.cpp
+    transforms/scale_transform.cpp
 
     cheatsheet/video_cheatsheet.cpp
 

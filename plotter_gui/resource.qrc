@@ -236,5 +236,6 @@
         <file>resources/svg/loop.svg</file>
         <file>resources/svg/t0.svg</file>
         <file>resources/svg/copy.svg</file>
+        <file>resources/svg/Fx.svg</file>
     </qresource>
 </RCC>

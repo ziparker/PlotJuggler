@@ -12,12 +12,12 @@ namespace Ui {
 class plotwidget_editor;
 }
 
-class RowWidget: public QWidget
+class EditorRowWidget: public QWidget
 {
   Q_OBJECT
 
 public:
-  RowWidget(QString text, QColor color);
+  EditorRowWidget(QString text, QColor color);
 
   void enterEvent(QEvent *ev) override;
   void leaveEvent(QEvent *ev) override;
@@ -37,7 +37,6 @@ private:
   QPushButton* _delete_button;
   QWidget* _empty_spacer;
 };
-
 
 class PlotwidgetEditor : public QDialog
 {
@@ -76,8 +75,6 @@ private slots:
 
   void on_listWidget_itemSelectionChanged();
 
-  void on_comboTransform_currentIndexChanged(const QString &transform_ID);
-
 private:
   Ui::plotwidget_editor *ui;
 
@@ -85,9 +82,11 @@ private:
   color_widgets::ColorPreview* _color_preview;
   PlotWidget* _plotwidget;
   PlotWidget* _plotwidget_origin;
-  QRectF _bounding_rect;
+  QRectF _bounding_rect_original;
 
   std::set<QWidget*> _connected_transform_widgets;
+
+  std::map<QString, QwtPlotCurve*> _alias_to_curve;
 
   void setupColorWidget();
   void setupTable();

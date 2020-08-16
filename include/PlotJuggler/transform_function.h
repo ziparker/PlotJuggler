@@ -10,7 +10,8 @@ class TimeSeriesTransform : public PlotJugglerPlugin
   Q_OBJECT
 public:
 
-  TimeSeriesTransform(): _src_data(nullptr) {}
+  TimeSeriesTransform(): _src_data(nullptr)
+  { }
 
   void setDataSource(const PlotData *src_data){
     _src_data = src_data;
@@ -20,10 +21,16 @@ public:
 
   virtual void calculate(PlotData* dst_data) = 0;
 
-  virtual void reset() = 0;
-
   const PlotData* dataSource() const{
     return _src_data;
+  }
+
+  QString alias() const {
+    return _alias;
+  }
+
+  void setAlias(QString alias) {
+    _alias = alias;
   }
 
 signals:
@@ -32,6 +39,7 @@ signals:
 protected:
 
   const PlotData *_src_data;
+  QString _alias;
 };
 
 QT_BEGIN_NAMESPACE
@@ -52,7 +60,7 @@ private:
   TransformFactory(const TransformFactory&) = delete;
   TransformFactory& operator=(const TransformFactory&) = delete;
 
-  std::unordered_map<std::string, std::function<TimeSeriesTransformPtr()>> creators_;
+  std::map<std::string, std::function<TimeSeriesTransformPtr()>> creators_;
   std::set<std::string> names_;
 
   static TransformFactory& get()

@@ -3,11 +3,10 @@
 #include <QDoubleValidator>
 
 FirstDerivative::FirstDerivative():
-  _widget(nullptr),
+  _widget(new QWidget()),
   ui(new Ui::FirstDerivariveForm),
   _dT(0.0)
 {
-  _widget = new QWidget();
   ui->setupUi(_widget);
   ui->lineEditCustom->setValidator( new QDoubleValidator(0.0001, 1000, 4, ui->lineEditCustom) );
 
@@ -70,7 +69,6 @@ void FirstDerivative::calculate(PlotData *dst_data)
 
 QWidget *FirstDerivative::optionsWidget()
 {
-
   const size_t data_size = dataSource()->size();
 
   if(!dataSource() || data_size < 2)
@@ -94,7 +92,7 @@ bool FirstDerivative::xmlSaveState(QDomDocument &doc, QDomElement &parent_elemen
   widget_el.setAttribute("lineEdit", ui->lineEditCustom->text() );
 
   parent_element.appendChild( widget_el );
-  return false;
+  return true;
 }
 
 bool FirstDerivative::xmlLoadState(const QDomElement &parent_element)
@@ -110,7 +108,7 @@ bool FirstDerivative::xmlLoadState(const QDomElement &parent_element)
   else{
     ui->radioCustom->setChecked(true);
   }
-  return false;
+  return true;
 }
 
 void FirstDerivative::on_buttonCompute_clicked()
