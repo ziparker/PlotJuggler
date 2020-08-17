@@ -1933,5 +1933,5 @@ void PlotWidget::replot()
 
   static int replot_count = 0;
   QwtPlot::replot();
-   qDebug() << replot_count++;
+  //qDebug() << replot_count++;
 }

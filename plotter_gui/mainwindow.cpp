@@ -169,7 +169,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   restoreGeometry(settings.value("MainWindow.geometry").toByteArray());
   restoreState(settings.value("MainWindow.state").toByteArray());
 
-  qDebug() << "restoreGeometry";
+  //qDebug() << "restoreGeometry";
 
   bool activate_grid = settings.value("MainWindow.activateGrid", false).toBool();
   ui->pushButtonActivateGrid->setChecked(activate_grid);
@@ -236,7 +236,7 @@ void MainWindow::onUndoableChange()
     _undo_states.pop_front();
   _undo_states.push_back(xmlSaveState());
   _redo_states.clear();
-  qDebug() << "undo " << _undo_states.size();
+  //qDebug() << "undo " << _undo_states.size();
 }
 
 void MainWindow::onRedoInvoked()
@@ -252,7 +252,7 @@ void MainWindow::onRedoInvoked()
 
     xmlLoadState(state_document);
   }
-  qDebug() << "undo " << _undo_states.size();
+  //qDebug() << "undo " << _undo_states.size();
   _disable_undo_logging = false;
 }
 
@@ -270,7 +270,7 @@ void MainWindow::onUndoInvoked()
 
     xmlLoadState(state_document);
   }
-  qDebug() << "undo " << _undo_states.size();
+  //qDebug() << "undo " << _undo_states.size();
   _disable_undo_logging = false;
 }
 
