@@ -98,6 +98,7 @@ public:
     timestamp = (_use_header_stamp && header_stamp > 0) ? header_stamp : timestamp;
 
     _data[0]->pushBack({ timestamp, double(msg.header.seq) });
+    _data[1]->pushBack({ timestamp, header_stamp });
 
     _pose_cov_parser.parseMessageImpl(msg.pose, timestamp);
   }
