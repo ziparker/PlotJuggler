@@ -108,6 +108,7 @@ struct DockManagerPrivate
 	bool RestoringState = false;
 	QVector<CFloatingDockContainer*> UninitializedFloatingWidgets;
 	CDockFocusController* FocusController = nullptr;
+    CDockWidget* CentralWidget = nullptr;
 
 	/**
 	 * Private data constructor
@@ -193,7 +194,7 @@ void DockManagerPrivate::loadStylesheet()
 	QTextStream StyleSheetStream(&StyleSheetFile);
 	Result = StyleSheetStream.readAll();
 	StyleSheetFile.close();
-  _this->setStyleSheet(Result);
+	_this->setStyleSheet(Result);
 }
 
 
@@ -296,11 +297,11 @@ bool DockManagerPrivate::restoreStateFromXml(const QByteArray &state,  int versi
     {
 		// Delete remaining empty floating widgets
 		int FloatingWidgetIndex = DockContainerCount - 1;
-		int DeleteCount = FloatingWidgets.count() - FloatingWidgetIndex;
-		for (int i = 0; i < DeleteCount; ++i)
+		for (int i = FloatingWidgetIndex; i < FloatingWidgets.count(); ++i)
 		{
-			FloatingWidgets[FloatingWidgetIndex + i]->deleteLater();
-			_this->removeDockContainer(FloatingWidgets[FloatingWidgetIndex + i]->dockContainer());
+			auto* floatingWidget = FloatingWidgets[i];
+			_this->removeDockContainer(floatingWidget->dockContainer());
+			floatingWidget->deleteLater();
 		}
     }
 
@@ -406,6 +407,7 @@ bool DockManagerPrivate::restoreState(const QByteArray& State, int version)
     	return false;
     }
 
+    CentralWidget = nullptr;
     // Hide updates of floating widgets from use
     hideFloatingWidgets();
     markDockWidgetsDirty();
@@ -468,7 +470,7 @@ CDockManager::CDockManager(QWidget *parent) :
 	d->DockAreaOverlay = new CDockOverlay(this, CDockOverlay::ModeDockAreaOverlay);
 	d->ContainerOverlay = new CDockOverlay(this, CDockOverlay::ModeContainerOverlay);
 	d->Containers.append(this);
-  //d->loadStylesheet();
+	d->loadStylesheet();
 
 	if (CDockManager::testConfigFlag(CDockManager::FocusHighlighting))
 	{
@@ -708,6 +710,7 @@ void CDockManager::removeDockWidget(CDockWidget* Dockwidget)
 	emit dockWidgetAboutToBeRemoved(Dockwidget);
 	d->DockWidgetsMap.remove(Dockwidget->objectName());
 	CDockContainerWidget::removeDockWidget(Dockwidget);
+	Dockwidget->setDockManager(nullptr);
 	emit dockWidgetRemoved(Dockwidget);
 }
 
@@ -813,6 +816,40 @@ void CDockManager::loadPerspectives(QSettings& Settings)
 	}
 
 	Settings.endArray();
+}
+
+
+//============================================================================
+CDockWidget* CDockManager::centralWidget() const
+{
+    return d->CentralWidget;
+}
+
+
+//============================================================================
+CDockAreaWidget* CDockManager::setCentralWidget(CDockWidget* widget)
+{
+	if (!widget)
+	{
+		d->CentralWidget = nullptr;
+		return nullptr;
+	}
+
+	// Setting a new central widget is now allowed if there is alread a central
+	// widget
+	if (d->CentralWidget)
+	{
+		return nullptr;
+	}
+
+
+	widget->setFeature(CDockWidget::DockWidgetClosable, false);
+	widget->setFeature(CDockWidget::DockWidgetMovable, false);
+	widget->setFeature(CDockWidget::DockWidgetFloatable, false);
+	d->CentralWidget = widget;
+	CDockAreaWidget* CentralArea = addDockWidget(CenterDockWidgetArea, widget);
+	CentralArea->setDockAreaFlag(CDockAreaWidget::eDockAreaFlag::HideSingleWidgetTitleBar, true);
+	return CentralArea;
 }
 
 //============================================================================

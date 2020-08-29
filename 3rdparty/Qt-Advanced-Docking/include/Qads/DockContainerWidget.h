@@ -81,6 +81,11 @@ protected:
 	virtual bool event(QEvent *e) override;
 
 	/**
+	 * Access function for the internal root splitter
+	 */
+	QSplitter* rootSplitter() const;
+
+	/**
 	 * Helper function for creation of the root splitter
 	 */
 	void createRootSplitter();
@@ -150,6 +155,12 @@ protected:
      */
     QList<CDockWidget*> dockWidgets() const;
 
+    /**
+     * This function forces the dock container widget to update handles of splitters
+     * based on resize modes of dock widgets contained in the container.
+     */
+    void updateSplitterHandles(QSplitter* splitter);
+
 public:
 	/**
 	 * Default Constructor
@@ -160,12 +171,6 @@ public:
 	 * Virtual Destructor
 	 */
 	virtual ~CDockContainerWidget();
-
-
-  /**
-   * Access function for the internal root splitter
-   */
-  QSplitter* rootSplitter() const;
 
 	/**
 	 * Adds dockwidget into the given area.
@@ -277,7 +282,7 @@ signals:
 	 * This signal is emitted if a dock area is opened or closed via
 	 * toggleView() function
 	 */
-	void dockAreaViewToggled(CDockAreaWidget* DockArea, bool Open);
+	void dockAreaViewToggled(ads::CDockAreaWidget* DockArea, bool Open);
 }; // class DockContainerWidget
 } // namespace ads
 //-----------------------------------------------------------------------------

@@ -214,7 +214,6 @@ void DockWidgetPrivate::setupScrollArea()
 	ScrollArea = new QScrollArea(_this);
 	ScrollArea->setObjectName("dockWidgetScrollArea");
 	ScrollArea->setWidgetResizable(true);
-  ScrollArea->setFrameShape(QFrame::NoFrame);
 	Layout->addWidget(ScrollArea);
 }
 
@@ -229,7 +228,7 @@ CDockWidget::CDockWidget(const QString &title, QWidget *parent) :
 	d->Layout->setSpacing(0);
 	setLayout(d->Layout);
 	setWindowTitle(title);
-  setObjectName(title);
+	setObjectName(title);
 
 	d->TabWidget = componentsFactory()->createDockWidgetTab(this);
     d->ToggleViewAction = new QAction(title, this);
@@ -341,6 +340,8 @@ void CDockWidget::setFeatures(DockWidgetFeatures features)
 	d->Features = features;
 	emit featuresChanged(d->Features);
 	d->TabWidget->onDockWidgetFeaturesChanged();
+	if(CDockAreaWidget* DockArea = dockAreaWidget())
+		DockArea->onDockWidgetFeaturesChanged();
 }
 
 
@@ -463,6 +464,13 @@ void CDockWidget::setMinimumSizeHintMode(eMinimumSizeHintMode Mode)
 
 
 //============================================================================
+bool CDockWidget::isCentralWidget() const
+{
+    return dockManager()->centralWidget() == this;
+}
+
+
+//============================================================================
 void CDockWidget::toggleView(bool Open)
 {
 	// If the toggle view action mode is ActionModeShow, then Open is always
@@ -541,6 +549,7 @@ void CDockWidget::setDockArea(CDockAreaWidget* DockArea)
 {
 	d->DockArea = DockArea;
 	d->ToggleViewAction->setChecked(DockArea != nullptr && !this->isClosed());
+	setParent(DockArea);
 }
 
 
