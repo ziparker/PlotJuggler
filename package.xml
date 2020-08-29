@@ -19,6 +19,7 @@
     <depend condition="$ROS_VERSION == 1">roscpp_serialization</depend>
     <depend condition="$ROS_VERSION == 1">diagnostic_msgs</depend>
     <depend condition="$ROS_VERSION == 1">tf</depend>
+    <depend condition="$ROS_VERSION == 1">libwebsocketpp-dev</depend>
 
     <!-- ROS2 dependencies -->
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>

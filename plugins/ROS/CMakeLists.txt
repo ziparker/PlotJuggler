@@ -28,6 +28,8 @@ set(PLUGIN_BASE_DIR ${PROJECT_SOURCE_DIR}/include/PlotJuggler)
 
 if(COMPILING_WITH_CATKIN)
 
+    find_package(websocketpp REQUIRED)
+
     include_directories(
         ./ ../
         ${PROJECT_SOURCE_DIR}/include/

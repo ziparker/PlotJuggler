@@ -136,6 +136,7 @@ include_directories(
     ./3rdparty/marl/include
     ./3rdparty/sol
     ./3rdparty/lua-5.3.4/src
+    /3rdparty/
 )
 
 #########################  INSTALL ####################################
