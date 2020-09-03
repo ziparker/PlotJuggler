@@ -61,7 +61,7 @@ private slots:
 	void onTabsMenuActionTriggered(QAction* Action);
 	void onCurrentTabChanged(int Index);
 
-protected:
+public:
 		/**
 	 * Stores mouse position to detect dragging
 	 */
