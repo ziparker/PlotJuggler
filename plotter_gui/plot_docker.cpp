@@ -303,6 +303,8 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
                    } );
 
   this->layout()->setMargin(10);
+
+  //setStyleSheet("border: 0px;");
 }
 
 DockWidget* DockWidget::splitHorizontal()

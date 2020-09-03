@@ -59,7 +59,7 @@ SET( PLOTTER_SRC
     transforms/function_editor.cpp
     transforms/transform_selector.cpp
     transforms/lua_custom_function.cpp
-    transforms/qml_custom_function.cpp
+#    transforms/qml_custom_function.cpp
 
     transforms/first_derivative.cpp
     transforms/scale_transform.cpp

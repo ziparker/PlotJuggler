@@ -21,6 +21,7 @@
 #include "PlotJuggler/statepublisher_base.h"
 #include "PlotJuggler/datastreamer_base.h"
 #include "transforms/custom_function.h"
+#include "transforms/function_editor.h"
 
 #include "ui_mainwindow.h"
 
@@ -57,12 +58,12 @@ public slots:
   void onTimeSlider_valueChanged(double abs_time);
 
   void onPlotAdded(PlotWidget* plot);
+
   void onPlotTabAdded(PlotDocker* matrix);
+
   void onPlotZoomChanged(PlotWidget* modified_plot, QRectF new_range);
 
   void on_tabbedAreaDestroyed(QObject* object);
-
-// TODO ?   void onSwapPlots(PlotWidget* source, PlotWidget* destination);
 
   void updateDataAndReplot(bool replot_hidden_tabs);
 
@@ -70,9 +71,13 @@ public slots:
 
   void onDeleteMultipleCurves(const std::vector<std::string>& curve_names);
 
-  void on_addMathPlot(const std::string& linked_name);
-  void on_editMathPlot(const std::string& plot_name);
-  void on_refreshMathPlot(const std::string& plot_name);
+  void onAddCustomPlot(const std::string& plot_name);
+
+  void onEditCustomPlot(const std::string& plot_name);
+
+  void onRefreshCustomPlot(const std::string& plot_name);
+
+  void onCustomPlotCreated(CustomPlotPtr plot);
 
   void onPlaybackLoop();
 
@@ -121,6 +126,8 @@ private:
   QTimer* _publish_timer;
 
   QDateTime _prev_publish_time;
+
+  FunctionEditorWidget* _function_editor;
 
   enum LabelStatus
   {

@@ -16,13 +16,17 @@
 #include <QSettings>
 #include <QByteArray>
 #include <QInputDialog>
+#include <QDragEnterEvent>
+#include <QMimeData>
+#include <QTableWidgetItem>
 
 #include "lua_custom_function.h"
+#include "svg_util.h"
 #include "qml_custom_function.h"
 
-AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef& plotMapData, const CustomPlotMap& mapped_custom_plots,
+FunctionEditorWidget::FunctionEditorWidget(PlotDataMapRef& plotMapData, const CustomPlotMap& mapped_custom_plots,
                                          QWidget* parent)
-  : QDialog(parent)
+  : QWidget(parent)
   , _plot_map_data(plotMapData)
   , _custom_plots(mapped_custom_plots)
   , ui(new Ui::FunctionEditor)
@@ -31,15 +35,6 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef& plotMapData, const Cust
   ui->setupUi(this);
 
   QSettings settings;
-  bool is_qml = settings.value("CustomFunction/language", "qml").toString() == "qml";
-  if (is_qml)
-  {
-    ui->labelLanguage->setText("Used language: Javascript");
-  }
-  else
-  {
-    ui->labelLanguage->setText("Used language: Lua");
-  }
 
   this->setWindowTitle("Create a custom timeseries");
 
@@ -47,6 +42,12 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef& plotMapData, const Cust
   ui->globalVarsTextField->setFont(fixedFont);
   ui->mathEquation->setFont(fixedFont);
   ui->snippetTextEdit->setFont(fixedFont);
+  ui->pushButtonDeleteCurves->setIcon(LoadSvgIcon(":/resources/svg/remove_red.svg", "light"));
+
+  QPalette palette = ui->listAdditionalSources->palette();
+  palette.setBrush(QPalette::Highlight, palette.brush(QPalette::Base));
+  palette.setBrush(QPalette::HighlightedText, palette.brush(QPalette::Text));
+  ui->listAdditionalSources->setPalette(palette);
 
   QStringList numericPlotNames;
   for (const auto& p : _plot_map_data.numeric)
@@ -55,13 +56,8 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef& plotMapData, const Cust
     numericPlotNames.push_back(name);
   }
   numericPlotNames.sort(Qt::CaseInsensitive);
-  for (const QString& name : numericPlotNames)
-  {
-    ui->combo_linkedChannel->addItem(name);
-    ui->curvesListWidget->addItem(name);
-  }
 
-  QByteArray saved_xml = settings.value("AddCustomPlotDialog.savedXML", QByteArray()).toByteArray();
+  QByteArray saved_xml = settings.value("AddCustomPlotDialog.recentSnippetsXML", QByteArray()).toByteArray();
   restoreGeometry(settings.value("AddCustomPlotDialog.geometry").toByteArray());
 
   if (saved_xml.isEmpty())
@@ -76,15 +72,10 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef& plotMapData, const Cust
 
   importSnippets(saved_xml);
 
-  ui->snippetsListRecent->setContextMenuPolicy(Qt::CustomContextMenu);
-
-  connect(ui->snippetsListRecent, &QListWidget::customContextMenuRequested, this,
-          &AddCustomPlotDialog::recentContextMenu);
-
   ui->snippetsListSaved->setContextMenuPolicy(Qt::CustomContextMenu);
 
   connect(ui->snippetsListSaved, &QListWidget::customContextMenuRequested, this,
-          &AddCustomPlotDialog::savedContextMenu);
+          &FunctionEditorWidget::savedContextMenu);
 
   ui->splitter->setStretchFactor(0, 3);
   ui->splitter->setStretchFactor(1, 2);
@@ -93,131 +84,149 @@ AddCustomPlotDialog::AddCustomPlotDialog(PlotDataMapRef& plotMapData, const Cust
 
   ui->mathEquation->setPlainText(settings.value("AddCustomPlotDialog.previousFunction", "return value").toString());
 
-  QString language = settings.value("AddCustomPlotDialog.previousLanguage", "LUA").toString();
-
-  if (language == "JS")
-  {
-    ui->radioButtonJS->setChecked(true);
-  }
-  else if (language == "LUA")
-  {
-    ui->radioButtonLua->setChecked(true);
-  }
+  ui->lineEditSource->installEventFilter(this);
+  ui->listAdditionalSources->installEventFilter(this);
 }
 
-AddCustomPlotDialog::~AddCustomPlotDialog()
+FunctionEditorWidget::~FunctionEditorWidget()
 {
   QSettings settings;
-  settings.setValue("AddCustomPlotDialog.savedXML", exportSnippets());
+  settings.setValue("AddCustomPlotDialog.recentSnippetsXML", exportSnippets());
   settings.setValue("AddCustomPlotDialog.geometry", saveGeometry());
   settings.setValue("AddCustomPlotDialog.previousGlobals", ui->globalVarsTextField->toPlainText());
   settings.setValue("AddCustomPlotDialog.previousFunction", ui->mathEquation->toPlainText());
-  if (ui->radioButtonJS->isChecked())
-  {
-    settings.setValue("AddCustomPlotDialog.previousLanguage", "JS");
-  }
-  else if (ui->radioButtonLua->isChecked())
-  {
-    settings.setValue("AddCustomPlotDialog.previousLanguage", "LUA");
-  }
+
   delete ui;
 }
 
-void AddCustomPlotDialog::setLinkedPlotName(const QString& linkedPlotName)
+void FunctionEditorWidget::setLinkedPlotName(const QString& linkedPlotName)
 {
-  int idx = ui->combo_linkedChannel->findText(linkedPlotName);
-  if (idx == -1)
-  {
-    idx = 0;
-    ui->combo_linkedChannel->insertItem(idx, linkedPlotName);
-  }
-  ui->combo_linkedChannel->setCurrentIndex(idx);
+  ui->lineEditSource->setText(linkedPlotName);
 }
 
-void AddCustomPlotDialog::setEditorMode(EditorMode mode)
+void FunctionEditorWidget::setEditorMode(EditorMode mode)
 {
   ui->label_linkeChannel->setVisible(mode != FUNCTION_ONLY);
-  ui->combo_linkedChannel->setVisible(mode != FUNCTION_ONLY);
   ui->pushButtonCreate->setVisible(mode != FUNCTION_ONLY);
   ui->pushButtonSave->setVisible(mode != TIMESERIES_ONLY);
 }
 
-QString AddCustomPlotDialog::getLinkedData() const
+QString FunctionEditorWidget::getLinkedData() const
 {
-  return ui->combo_linkedChannel->currentText();
+  return ui->lineEditSource->text();
 }
 
-QString AddCustomPlotDialog::getGlobalVars() const
+QString FunctionEditorWidget::getGlobalVars() const
 {
   return ui->globalVarsTextField->toPlainText();
 }
 
-QString AddCustomPlotDialog::getEquation() const
+QString FunctionEditorWidget::getEquation() const
 {
   return ui->mathEquation->toPlainText();
 }
 
-QString AddCustomPlotDialog::getName() const
+QString FunctionEditorWidget::getName() const
 {
   return ui->nameLineEdit->text();
 }
 
-QString AddCustomPlotDialog::getLanuguage() const
-{
-  if (ui->radioButtonLua->isChecked())
-  {
-    return "LUA";
-  }
-  return "JS";
-}
 
-void AddCustomPlotDialog::editExistingPlot(CustomPlotPtr data)
+void FunctionEditorWidget::editExistingPlot(CustomPlotPtr data)
 {
-  ui->globalVarsTextField->setPlainText(data->globalVars());
-  ui->mathEquation->setPlainText(data->function());
+  ui->globalVarsTextField->setPlainText(data->snippet().globalVars);
+  ui->mathEquation->setPlainText(data->snippet().function);
   setLinkedPlotName(QString::fromStdString(data->linkedPlotName()));
   ui->pushButtonCreate->setText("Update");
   ui->nameLineEdit->setText(QString::fromStdString(data->name()));
   ui->nameLineEdit->setEnabled(false);
 
-  if (data->language() == "LUA")
-  {
-    ui->radioButtonLua->setChecked(true);
-  }
-  else
-  {
-    ui->radioButtonJS->setChecked(true);
-  }
-  ui->radioButtonLua->setEnabled(false);
-  ui->radioButtonJS->setEnabled(false);
-
   _is_new = false;
-}
 
-CustomPlotPtr AddCustomPlotDialog::getCustomPlotData() const
-{
-  return _plot;
-}
+  auto list_widget = ui->listAdditionalSources;
+  list_widget->setRowCount(0);
 
-void AddCustomPlotDialog::on_curvesListWidget_doubleClicked(const QModelIndex& index)
-{
-  QString appendString = QString("V%1 = $$%2$$\n").arg(_v_count++).arg(ui->curvesListWidget->item(index.row())->text());
-
-  QPlainTextEdit* edit = ui->mathEquation;
-
-  if (ui->globalVarsTextField->hasFocus())
-  {
-    edit = ui->globalVarsTextField;
+  for (QString curve_name: data->snippet().additionalSources) {
+    if( list_widget->findItems(curve_name, Qt::MatchExactly).isEmpty() &&
+        curve_name != ui->lineEditSource->text() )
+    {
+      int row = list_widget->rowCount();
+      list_widget->setRowCount(row+1);
+      list_widget->setItem(row,0, new QTableWidgetItem( QString("v%1").arg(row+1)));
+      list_widget->setItem(row,1, new QTableWidgetItem(curve_name));
+    }
   }
+  on_listSourcesChanged();
 
-  if (!edit->toPlainText().endsWith("\n"))
-  {
-    edit->insertPlainText("\n");
-  }
-  edit->insertPlainText(appendString);
 }
 
-void AddCustomPlotDialog::importSnippets(const QByteArray& xml_text)
+//CustomPlotPtr FunctionEditorWidget::getCustomPlotData() const
+//{
+//  return _plot;
+//}
+
+bool FunctionEditorWidget::eventFilter(QObject *obj, QEvent *ev)
+{
+  if( ev->type() == QEvent::DragEnter )
+  {
+    auto event = static_cast<QDragEnterEvent*>(ev);
+    const QMimeData* mimeData = event->mimeData();
+    QStringList mimeFormats = mimeData->formats();
+
+    for(const QString& format : mimeFormats)
+    {
+      QByteArray encoded = mimeData->data(format);
+      QDataStream stream(&encoded, QIODevice::ReadOnly);
+
+      if (format != "curveslist/add_curve")
+      {
+        return false;
+      }
+
+      _dragging_curves.clear();
+
+      while (!stream.atEnd())
+      {
+        QString curve_name;
+        stream >> curve_name;
+        if (!curve_name.isEmpty())
+        {
+          _dragging_curves.push_back(curve_name);
+        }
+      }
+      if( (obj == ui->lineEditSource && _dragging_curves.size() == 1)
+      || (obj ==  ui->listAdditionalSources && _dragging_curves.size() > 0) )
+      {
+        event->acceptProposedAction();
+        return true;
+      }
+    }
+  }
+  else if ( ev->type() == QEvent::Drop ) {
+    if( obj == ui->lineEditSource )
+    {
+      ui->lineEditSource->setText( _dragging_curves.front() );
+    }
+    else if ( obj == ui->listAdditionalSources )
+    {
+      auto list_widget = ui->listAdditionalSources;
+      for (QString curve_name: _dragging_curves) {
+        if( list_widget->findItems(curve_name, Qt::MatchExactly).isEmpty() &&
+            curve_name != ui->lineEditSource->text() )
+        {
+          int row = list_widget->rowCount();
+          list_widget->setRowCount(row+1);
+          list_widget->setItem(row,0, new QTableWidgetItem( QString("v%1").arg(row+1)));
+          list_widget->setItem(row,1, new QTableWidgetItem(curve_name));
+        }
+      }   
+      on_listSourcesChanged();
+    }
+  }
+  return false;
+}
+
+void FunctionEditorWidget::importSnippets(const QByteArray& xml_text)
 {
   ui->snippetsListSaved->clear();
 
@@ -239,18 +248,13 @@ void AddCustomPlotDialog::importSnippets(const QByteArray& xml_text)
       continue;
     }
 
-    snippet.globalVars = math_plot->globalVars();
-    snippet.equation = math_plot->function();
-    snippet.language = math_plot->language();
-
-    _snipped_recent.insert({ snippet.name, snippet });
-    ui->snippetsListRecent->addItem(snippet.name);
+    snippet.globalVars = math_plot->snippet().globalVars;
+    snippet.function = math_plot->snippet().function;
   }
-  ui->snippetsListRecent->sortItems();
   ui->snippetsListSaved->sortItems();
 }
 
-QByteArray AddCustomPlotDialog::exportSnippets() const
+QByteArray FunctionEditorWidget::exportSnippets() const
 {
   QDomDocument doc;
   auto root = ExportSnippets(_snipped_saved, doc);
@@ -258,7 +262,7 @@ QByteArray AddCustomPlotDialog::exportSnippets() const
   return doc.toByteArray(2);
 }
 
-void AddCustomPlotDialog::on_snippetsListSaved_currentRowChanged(int current_row)
+void FunctionEditorWidget::on_snippetsListSaved_currentRowChanged(int current_row)
 {
   if (current_row < 0)
   {
@@ -267,90 +271,20 @@ void AddCustomPlotDialog::on_snippetsListSaved_currentRowChanged(int current_row
   }
   const auto& name = ui->snippetsListSaved->currentItem()->text();
   const SnippetData& snippet = _snipped_saved.at(name);
-  QString desc = QString("%1\n\nfunction calc(time,value)\n{\n%2\n}").arg(snippet.globalVars).arg(snippet.equation);
+  QString desc = QString("%1\n\nfunction calc(time,value)\n\n%2\nend").arg(snippet.globalVars).arg(snippet.function);
   ui->snippetTextEdit->setPlainText(desc);
 }
 
-void AddCustomPlotDialog::on_snippetsListSaved_doubleClicked(const QModelIndex& index)
+void FunctionEditorWidget::on_snippetsListSaved_doubleClicked(const QModelIndex& index)
 {
   const auto& name = ui->snippetsListSaved->item(index.row())->text();
   const SnippetData& snippet = _snipped_saved.at(name);
 
   ui->globalVarsTextField->setPlainText(snippet.globalVars);
-  ui->mathEquation->setPlainText(snippet.equation);
-  if (snippet.language == "LUA")
-  {
-    ui->radioButtonLua->setChecked(true);
-  }
-  else if (snippet.language == "JS")
-  {
-    ui->radioButtonJS->setChecked(true);
-  }
+  ui->mathEquation->setPlainText(snippet.function);
 }
 
-void AddCustomPlotDialog::on_snippetsListRecent_currentRowChanged(int current_row)
-{
-  if (current_row < 0)
-  {
-    ui->snippetTextEdit->setPlainText("");
-    return;
-  }
-  const auto& name = ui->snippetsListRecent->currentItem()->text();
-  const SnippetData& snippet = _snipped_recent.at(name);
-
-  QString desc = QString("%1\n\nfunction calc(time,value)\n{\n%2\n}").arg(snippet.globalVars).arg(snippet.equation);
-  ui->snippetTextEdit->setPlainText(desc);
-}
-
-void AddCustomPlotDialog::on_snippetsListRecent_doubleClicked(const QModelIndex& index)
-{
-  const auto& name = ui->snippetsListRecent->item(index.row())->text();
-  const SnippetData& snippet = _snipped_recent.at(name);
-
-  if (snippet.language == "LUA")
-  {
-    ui->radioButtonLua->setChecked(true);
-  }
-  else if (snippet.language == "JS")
-  {
-    ui->radioButtonJS->setChecked(true);
-  }
-  ui->globalVarsTextField->setPlainText(snippet.globalVars);
-  ui->mathEquation->setPlainText(snippet.equation);
-}
-
-void AddCustomPlotDialog::recentContextMenu(const QPoint& pos)
-{
-  auto list_recent = ui->snippetsListRecent;
-
-  if (list_recent->selectedItems().size() != 1)
-  {
-    return;
-  }
-
-  auto list_saved = ui->snippetsListSaved;
-
-  auto item = list_recent->selectedItems().first();
-  const auto& name = item->text();
-
-  QMenu menu;
-  QAction* move_item = new QAction("Move to Saved", this);
-  menu.addAction(move_item);
-
-  connect(move_item, &QAction::triggered, this, [=]() {
-    auto snippet_it = _snipped_recent.find(name);
-
-    if (addToSaved(name, snippet_it->second))
-    {
-      _snipped_recent.erase(snippet_it);
-      delete list_recent->takeItem(list_recent->row(item));
-    }
-  });
-
-  menu.exec(list_recent->mapToGlobal(pos));
-}
-
-void AddCustomPlotDialog::savedContextMenu(const QPoint& pos)
+void FunctionEditorWidget::savedContextMenu(const QPoint& pos)
 {
   auto list_saved = ui->snippetsListSaved;
 
@@ -364,7 +298,7 @@ void AddCustomPlotDialog::savedContextMenu(const QPoint& pos)
   QAction* rename_item = new QAction("Rename...", this);
   menu.addAction(rename_item);
 
-  connect(rename_item, &QAction::triggered, this, &AddCustomPlotDialog::onRenameSaved);
+  connect(rename_item, &QAction::triggered, this, &FunctionEditorWidget::onRenameSaved);
 
   QAction* remove_item = new QAction("Remove", this);
   menu.addAction(remove_item);
@@ -378,7 +312,7 @@ void AddCustomPlotDialog::savedContextMenu(const QPoint& pos)
   menu.exec(list_saved->mapToGlobal(pos));
 }
 
-void AddCustomPlotDialog::on_nameLineEdit_textChanged(const QString& name)
+void FunctionEditorWidget::on_nameLineEdit_textChanged(const QString& name)
 {
   ui->pushButtonCreate->setEnabled(!name.isEmpty());
   ui->pushButtonSave->setEnabled(!name.isEmpty());
@@ -393,13 +327,15 @@ void AddCustomPlotDialog::on_nameLineEdit_textChanged(const QString& name)
   }
 }
 
-void AddCustomPlotDialog::on_buttonLoadFunctions_clicked()
+void FunctionEditorWidget::on_buttonLoadFunctions_clicked()
 {
   QSettings settings;
   QString directory_path = settings.value("AddCustomPlotDialog.loadDirectory", QDir::currentPath()).toString();
 
   QString fileName =
-      QFileDialog::getOpenFileName(this, tr("Open Snippet Library"), directory_path, tr("Snippets (*.snippets.xml)"));
+      QFileDialog::getOpenFileName(this, tr("Open Snippet Library"),
+                                   directory_path,
+                                   tr("Snippets (*.snippets.xml)"));
   if (fileName.isEmpty())
   {
     return;
@@ -419,13 +355,16 @@ void AddCustomPlotDialog::on_buttonLoadFunctions_clicked()
   importSnippets(file.readAll());
 }
 
-void AddCustomPlotDialog::on_buttonSaveFunctions_clicked()
+void FunctionEditorWidget::on_buttonSaveFunctions_clicked()
 {
   QSettings settings;
-  QString directory_path = settings.value("AddCustomPlotDialog.loadDirectory", QDir::currentPath()).toString();
+  QString directory_path = settings.value("AddCustomPlotDialog.loadDirectory",
+                                          QDir::currentPath()).toString();
 
   QString fileName =
-      QFileDialog::getSaveFileName(this, tr("Open Snippet Library"), directory_path, tr("Snippets (*.snippets.xml)"));
+      QFileDialog::getSaveFileName(this, tr("Open Snippet Library"),
+                                   directory_path,
+                                   tr("Snippets (*.snippets.xml)"));
 
   if (fileName.isEmpty())
   {
@@ -448,22 +387,35 @@ void AddCustomPlotDialog::on_buttonSaveFunctions_clicked()
   file.close();
 }
 
-void AddCustomPlotDialog::on_pushButtonSave_clicked()
+void FunctionEditorWidget::on_pushButtonSave_clicked()
 {
-  QString name = ui->nameLineEdit->text();
+  QString name;
+
+  auto selected_snippets = ui->snippetsListSaved->selectedItems();
+  if( selected_snippets.size() >= 1 )
+  {
+    name = selected_snippets.front()->text();
+  }
+  bool ok = false;
+  name = QInputDialog::getText(this, tr("Name of the Function"),
+                               tr("Name:"), QLineEdit::Normal,
+                               name, &ok);
+
+  if (!ok || name.isEmpty()) {
+    return;
+  }
 
   SnippetData snippet;
   snippet.name = name;
   snippet.globalVars = ui->globalVarsTextField->toPlainText();
-  snippet.equation = ui->mathEquation->toPlainText();
-  snippet.language = getLanuguage();
+  snippet.function = ui->mathEquation->toPlainText();
 
   addToSaved(name, snippet);
 
   on_snippetsListSaved_currentRowChanged(ui->snippetsListSaved->currentRow());
 }
 
-bool AddCustomPlotDialog::addToSaved(const QString& name, const SnippetData& snippet)
+bool FunctionEditorWidget::addToSaved(const QString& name, const SnippetData& snippet)
 {
   if (_snipped_saved.count(name))
   {
@@ -490,7 +442,7 @@ bool AddCustomPlotDialog::addToSaved(const QString& name, const SnippetData& sni
   return true;
 }
 
-void AddCustomPlotDialog::onRenameSaved()
+void FunctionEditorWidget::onRenameSaved()
 {
   auto list_saved = ui->snippetsListSaved;
   auto item = list_saved->selectedItems().first();
@@ -514,7 +466,7 @@ void AddCustomPlotDialog::onRenameSaved()
   ui->snippetsListSaved->sortItems();
 }
 
-void AddCustomPlotDialog::on_pushButtonCreate_clicked()
+void FunctionEditorWidget::on_pushButtonCreate_clicked()
 {
   try
   {
@@ -527,56 +479,70 @@ void AddCustomPlotDialog::on_pushButtonCreate_clicked()
     }
 
     SnippetData snippet;
-    snippet.equation = getEquation();
+    snippet.function = getEquation();
     snippet.globalVars = getGlobalVars();
-    snippet.language = getLanuguage();
     snippet.name = getName();
-
-    if (snippet.language == "LUA")
+    snippet.linkedSource = getLinkedData();
+    for(int row = 0; row < ui->listAdditionalSources->rowCount(); row++)
     {
-      _plot = std::make_unique<LuaCustomFunction>(getLinkedData().toStdString(), snippet);
-    }
-    else if (snippet.language == "JS")
-    {
-      _plot = std::make_unique<JsCustomFunction>(getLinkedData().toStdString(), snippet);
-    }
-    else
-    {
-      throw std::runtime_error("Snippet language not recognized");
+      snippet.additionalSources.push_back( ui->listAdditionalSources->item(row,1)->text());
     }
 
-    QDialog::accept();
+    CustomPlotPtr plot = std::make_unique<LuaCustomFunction>(snippet);
+    accept(plot);
   }
   catch (const std::runtime_error& e)
   {
-    _plot.reset();
     QMessageBox::critical(this, "Error", "Failed to create math plot : " + QString::fromStdString(e.what()));
-    QDialog::reject();
   }
 }
 
-void AddCustomPlotDialog::on_lineEditFilter_textChanged(const QString& search_string)
-{
-  QStringList spaced_items = search_string.split(' ');
 
-  for (int row = 0; row < ui->curvesListWidget->count(); row++)
+void FunctionEditorWidget::on_pushButtonCancel_pressed()
+{
+  closed();
+}
+
+
+void FunctionEditorWidget::on_listSourcesChanged()
+{
+  QString function_text("function( time, value");
+  for(int row = 0; row < ui->listAdditionalSources->rowCount(); row++)
   {
-    auto item = ui->curvesListWidget->item(row);
-    QString name = item->text();
-    bool toHide = false;
-
-    for (const auto& item : spaced_items)
-    {
-      if (!name.contains(item))
-      {
-        toHide = true;
-        break;
-      }
-    }
-    ui->curvesListWidget->setRowHidden(row, toHide);
+    function_text += ", ";
+    function_text += ui->listAdditionalSources->item(row,0)->text();
   }
+  function_text += " )";
+  ui->labelFunction->setText(function_text);
 }
 
-void AddCustomPlotDialog::on_pushButtonCancel_pressed()
+void FunctionEditorWidget::on_listAdditionalSources_itemSelectionChanged()
 {
+    bool any_selected = !ui->listAdditionalSources->selectedItems().isEmpty();
+    ui->pushButtonDeleteCurves->setEnabled(any_selected);
+}
+
+void FunctionEditorWidget::on_pushButtonDeleteCurves_clicked()
+{
+  auto list_sources = ui->listAdditionalSources;
+  QModelIndexList selected = list_sources->selectionModel()->selectedRows();
+  while( selected.size() > 0 )
+  {
+    list_sources->removeRow( selected.first().row() );
+    selected = list_sources->selectionModel()->selectedRows();
+  }
+  for( int row = 0; row < list_sources->rowCount(); row++ )
+  {
+    list_sources->item(row,0)->setText( QString("v%1").arg(row+1) );
+  }
+
+  on_listAdditionalSources_itemSelectionChanged();
+  on_listSourcesChanged();
+}
+
+void FunctionEditorWidget::on_lineEditSource_textChanged(const QString &text)
+{
+  bool valid_source = ( !text.isEmpty() && _plot_map_data.numeric.count(text.toStdString()) > 0);
+  ui->pushButtonCreate->setEnabled(valid_source);
+
 }

@@ -95,11 +95,11 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   connect(_curvelist_widget, &CurveListPanel::deleteCurves, this, &MainWindow::onDeleteMultipleCurves);
 
-  connect(_curvelist_widget, &CurveListPanel::createMathPlot, this, &MainWindow::on_addMathPlot);
+  connect(_curvelist_widget, &CurveListPanel::createMathPlot, this, &MainWindow::onAddCustomPlot);
 
-  connect(_curvelist_widget, &CurveListPanel::editMathPlot, this, &MainWindow::on_editMathPlot);
+  connect(_curvelist_widget, &CurveListPanel::editMathPlot, this, &MainWindow::onEditCustomPlot);
 
-  connect(_curvelist_widget, &CurveListPanel::refreshMathPlot, this, &MainWindow::on_refreshMathPlot);
+  connect(_curvelist_widget, &CurveListPanel::refreshMathPlot, this, &MainWindow::onRefreshCustomPlot);
 
   connect(ui->timeSlider, &RealSlider::realValueChanged, this, &MainWindow::onTimeSlider_valueChanged);
 
@@ -208,6 +208,20 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   ui->pushButtonTimeTracker->setIcon(_tracker_button_icons[_tracker_param]);
 
   forEachWidget([&](PlotWidget* plot) { plot->configureTracker(_tracker_param); });
+
+  auto editor_layout = new QVBoxLayout();
+  editor_layout->setMargin(0);
+  ui->formulaPage->setLayout(editor_layout);
+  _function_editor = new FunctionEditorWidget( _mapped_plot_data, _custom_plots, this);
+  editor_layout->addWidget(_function_editor);
+
+  connect(_function_editor, &FunctionEditorWidget::closed,
+          this, [this]() {
+    ui->widgetStack->setCurrentIndex(0);
+  });
+
+  connect(_function_editor, &FunctionEditorWidget::accept,
+          this, &MainWindow::onCustomPlotCreated);
 
   QString theme = settings.value("Preferences::theme", "style_light").toString();
   emit stylesheetChanged(theme);
@@ -1572,7 +1586,8 @@ bool MainWindow::loadLayoutFromFile(QString filename)
     {
       auto prev_it = snippets_previous.find(snippet_it.first);
 
-      if (prev_it == snippets_previous.end() || prev_it->second.equation != snippet_it.second.equation ||
+      if (prev_it == snippets_previous.end() ||
+          prev_it->second.function != snippet_it.second.function ||
           prev_it->second.globalVars != snippet_it.second.globalVars)
       {
         snippets_are_different = true;
@@ -2070,17 +2085,17 @@ void MainWindow::closeEvent(QCloseEvent* event)
   }
 }
 
-void MainWindow::on_addMathPlot(const std::string& linked_name)
+void MainWindow::onAddCustomPlot(const std::string& linked_name)
 {
   addOrEditMathPlot(linked_name, false);
 }
 
-void MainWindow::on_editMathPlot(const std::string& plot_name)
+void MainWindow::onEditCustomPlot(const std::string& plot_name)
 {
   addOrEditMathPlot(plot_name, true);
 }
 
-void MainWindow::on_refreshMathPlot(const std::string& plot_name)
+void MainWindow::onRefreshCustomPlot(const std::string& plot_name)
 {
   try
   {
@@ -2105,16 +2120,16 @@ void MainWindow::on_refreshMathPlot(const std::string& plot_name)
 
 void MainWindow::addOrEditMathPlot(const std::string& name, bool modifying)
 {
-  AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
+  ui->widgetStack->setCurrentIndex(1);
 
   if (!modifying)
   {
-    dialog.setLinkedPlotName(QString::fromStdString(name));
-    dialog.setEditorMode(AddCustomPlotDialog::FUNCTION_OR_TIMESERIES);
+    _function_editor->setLinkedPlotName(QString::fromStdString(name));
+    _function_editor->setEditorMode(FunctionEditorWidget::FUNCTION_OR_TIMESERIES);
   }
   else
   {
-    dialog.setEditorMode(AddCustomPlotDialog::TIMESERIES_ONLY);
+    _function_editor->setEditorMode(FunctionEditorWidget::TIMESERIES_ONLY);
 
     auto custom_it = _custom_plots.find(name);
     if (custom_it == _custom_plots.end())
@@ -2122,60 +2137,9 @@ void MainWindow::addOrEditMathPlot(const std::string& name, bool modifying)
       qWarning("failed to find custom equation");
       return;
     }
-    dialog.editExistingPlot(custom_it->second);
+    _function_editor->editExistingPlot(custom_it->second);
   }
 
-  if (dialog.exec() == QDialog::Accepted)
-  {
-    if (modifying)
-    {
-      // clear already existing data first
-      auto data_it = _mapped_plot_data.numeric.find(name);
-      if (data_it != _mapped_plot_data.numeric.end())
-      {
-        data_it->second.clear();
-      }
-    }
-
-    const QString& qplot_name = dialog.getName();
-    std::string plot_name = qplot_name.toStdString();
-    CustomPlotPtr eq = dialog.getCustomPlotData();
-
-    try
-    {
-      eq->calculateAndAdd(_mapped_plot_data);
-    }
-    catch (std::exception& ex)
-    {
-      QMessageBox::warning(this, tr("Warning"),
-                           tr("Failed to create the custom timeseries. Error:\n\n%1").arg(ex.what()));
-
-      return;
-    }
-
-    // keep data for reference
-    auto custom_it = _custom_plots.find(plot_name);
-    if (custom_it == _custom_plots.end())
-    {
-      _custom_plots.insert({ plot_name, eq });
-    }
-    else
-    {
-      custom_it->second = eq;
-      modifying = true;
-    }
-
-    if (!modifying)
-    {
-      _curvelist_widget->addCustom(qplot_name);
-    }
-    onUpdateLeftTableValues();
-
-    if (modifying)
-    {
-      updateDataAndReplot(true);
-    }
-  }
 }
 
 void MainWindow::onPlaybackLoop()
@@ -2211,6 +2175,46 @@ void MainWindow::onPlaybackLoop()
     plot->setTrackerPosition(_tracker_time);
     plot->replot();
   });
+}
+
+void MainWindow::onCustomPlotCreated(CustomPlotPtr custom_plot)
+{
+  const std::string& name = custom_plot->name();
+
+  // clear already existing data first
+  auto data_it = _mapped_plot_data.numeric.find(name);
+  if (data_it != _mapped_plot_data.numeric.end())
+  {
+    data_it->second.clear();
+  }
+
+  try
+  {
+    custom_plot->calculateAndAdd(_mapped_plot_data);
+  }
+  catch (std::exception& ex)
+  {
+    QMessageBox::warning(this, tr("Warning"),
+                         tr("Failed to create the custom timeseries. Error:\n\n%1").arg(ex.what()));
+
+    return;
+  }
+  ui->widgetStack->setCurrentIndex(0);
+
+  // keep data for reference
+  auto custom_it = _custom_plots.find(name);
+  if (custom_it == _custom_plots.end())
+  {
+    _custom_plots.insert({ name, custom_plot });
+  }
+  else{
+    custom_it->second = custom_plot;
+  }
+
+  _curvelist_widget->addCustom( QString::fromStdString(name) );
+
+  onUpdateLeftTableValues();
+  updateDataAndReplot(true);
 }
 
 void MainWindow::on_actionReportBug_triggered()
@@ -2577,9 +2581,8 @@ void MainWindow::on_actionLoadDummyData_triggered()
 
 void MainWindow::on_actionFunctionEditor_triggered()
 {
-  AddCustomPlotDialog dialog(_mapped_plot_data, _custom_plots, this);
-  dialog.setEditorMode(AddCustomPlotDialog::FUNCTION_ONLY);
-  dialog.exec();
+  _function_editor->setEditorMode(FunctionEditorWidget::FUNCTION_ONLY);
+  ui->widgetStack->setCurrentIndex(1);
 }
 
 void MainWindow::on_actionClearRecentData_triggered()

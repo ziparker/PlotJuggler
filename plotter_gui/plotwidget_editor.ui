@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>616</height>
+    <width>920</width>
+    <height>627</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -57,12 +57,12 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>250</height>
+       <height>16777215</height>
       </size>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,0,0">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,0,0,0">
       <property name="spacing">
-       <number>12</number>
+       <number>16</number>
       </property>
       <property name="leftMargin">
        <number>0</number>
@@ -81,7 +81,7 @@
         <property name="minimumSize">
          <size>
           <width>300</width>
-          <height>0</height>
+          <height>250</height>
          </size>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -139,7 +139,7 @@
         <property name="minimumSize">
          <size>
           <width>150</width>
-          <height>0</height>
+          <height>250</height>
          </size>
         </property>
         <property name="maximumSize">
@@ -204,6 +204,16 @@
        </widget>
       </item>
       <item>
+       <widget class="Line" name="line_2">
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QWidget" name="widgetMore" native="true">
         <property name="enabled">
          <bool>true</bool>
@@ -211,7 +221,13 @@
         <property name="minimumSize">
          <size>
           <width>200</width>
-          <height>0</height>
+          <height>250</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>16777215</height>
          </size>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -231,7 +247,20 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QGroupBox" name="groupBoxStyle">
+          <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Lines Style:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frameStyle">
            <property name="minimumSize">
             <size>
              <width>200</width>
@@ -244,24 +273,21 @@
              <height>200</height>
             </size>
            </property>
-           <property name="title">
-            <string>Curve Style</string>
-           </property>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <property name="spacing">
-             <number>0</number>
+             <number>4</number>
             </property>
             <property name="leftMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <item>
              <widget class="QRadioButton" name="radioLines">
@@ -300,7 +326,20 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBoxLimits">
+          <widget class="QLabel" name="label_2">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Vertical Limits:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frameLimits">
            <property name="minimumSize">
             <size>
              <width>200</width>
@@ -313,27 +352,24 @@
              <height>200</height>
             </size>
            </property>
-           <property name="title">
-            <string>Vertical Range</string>
-           </property>
            <layout class="QFormLayout" name="formLayout">
             <property name="horizontalSpacing">
-             <number>4</number>
+             <number>6</number>
             </property>
             <property name="verticalSpacing">
              <number>4</number>
             </property>
             <property name="leftMargin">
-             <number>4</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
-             <number>9</number>
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>4</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>4</number>
+             <number>0</number>
             </property>
             <item row="1" column="0">
              <widget class="QCheckBox" name="checkBoxMax">

@@ -1,9 +1,8 @@
 #include "lua_custom_function.h"
 
-LuaCustomFunction::LuaCustomFunction(const std::string& linkedPlot, const SnippetData& snippet)
-  : CustomFunction(linkedPlot, snippet)
+LuaCustomFunction::LuaCustomFunction(const SnippetData& snippet)
+  : CustomFunction(snippet)
 {
-  createReplacedFunction(1);
   initEngine();
 }
 
@@ -11,22 +10,30 @@ void LuaCustomFunction::initEngine()
 {
   _lua_engine = std::unique_ptr<sol::state>(new sol::state());
   _lua_engine->open_libraries();
-  _lua_engine->script(_global_vars.toStdString());
+  _lua_engine->script(_snippet.globalVars.toStdString());
 
-  QString calcMethodStr = QString("function calc(time, value, CHANNEL_VALUES) %1 end").arg(_function_replaced);
+  auto calcMethodStr = QString("function calc(time, value");
+
+  for(int index = 1; index <= _snippet.additionalSources.size(); index++ )
+  {
+    calcMethodStr += QString(", v%1").arg(index);
+  }
+
+  calcMethodStr += QString(")\n%1\nend").arg(snippet().function);
   _lua_engine->script(calcMethodStr.toStdString());
 
   _lua_function = (*_lua_engine)["calc"];
 }
 
 PlotData::Point LuaCustomFunction::calculatePoint(const PlotData& src_data,
-                                                  const std::vector<const PlotData*>& channels_data, size_t point_index)
+                                                  const std::vector<const PlotData*>& channels_data,
+                                                  size_t point_index)
 {
   _chan_values.resize(channels_data.size());
 
   const PlotData::Point& old_point = src_data.at(point_index);
 
-  for (int chan_index = 0; chan_index < channels_data.size(); chan_index++)
+  for (size_t chan_index = 0; chan_index < channels_data.size(); chan_index++)
   {
     double value;
     const auto& chan_data = channels_data[chan_index];
@@ -45,7 +52,41 @@ PlotData::Point LuaCustomFunction::calculatePoint(const PlotData& src_data,
   PlotData::Point new_point;
   new_point.x = old_point.x;
 
-  sol::function_result result = _lua_function(old_point.x, old_point.y, _chan_values);
+  sol::function_result result;
+  const auto& v = _chan_values;
+  // ugly code, sorry
+  switch( _snippet.additionalSources.size())
+  {
+  case 0: result= _lua_function(old_point.x, old_point.y);
+    break;
+  case 1: result= _lua_function(old_point.x, old_point.y,
+                                v[0]);
+    break;
+  case 2: result= _lua_function(old_point.x, old_point.y,
+                                v[0], v[1]);
+    break;
+  case 3: result= _lua_function(old_point.x, old_point.y,
+                                v[0], v[1], v[2]);
+    break;
+  case 4: result= _lua_function(old_point.x, old_point.y,
+                                v[0], v[1], v[2], v[3]);
+    break;
+  case 5: result= _lua_function(old_point.x, old_point.y,
+                                v[0], v[1], v[2], v[3], v[4]);
+    break;
+  case 6: result= _lua_function(old_point.x, old_point.y,
+                                v[0], v[1], v[2], v[3], v[4], v[5]);
+    break;
+  case 7: result= _lua_function(old_point.x, old_point.y,
+                                v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
+    break;
+  case 8: result= _lua_function(old_point.x, old_point.y,
+                                v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
+    break;
+  default:
+    throw std::runtime_error("Lua Engine : maximum number of additional source is 8");
+
+  }
 
   if (result.return_count() == 2)
   {
@@ -58,8 +99,8 @@ PlotData::Point LuaCustomFunction::calculatePoint(const PlotData& src_data,
   }
   else
   {
-    throw std::runtime_error("Lua Engine : if you return an array, the size must be "
-                             "2 (time/value pair) or 1 (value only)");
+    throw std::runtime_error("Lua Engine : return either a single value "
+                             "or an array with size 2 (time, value)");
   }
   return new_point;
 }

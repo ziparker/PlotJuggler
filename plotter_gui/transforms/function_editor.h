@@ -9,13 +9,13 @@
 #include "qwt_plot_curve.h"
 #include "ui_function_editor.h"
 
-class AddCustomPlotDialog : public QDialog
+class FunctionEditorWidget : public QWidget
 {
   Q_OBJECT
 
 public:
-  explicit AddCustomPlotDialog(PlotDataMapRef& plotMapData, const CustomPlotMap& mapped_custom_plots, QWidget* parent);
-  virtual ~AddCustomPlotDialog() override;
+  explicit FunctionEditorWidget(PlotDataMapRef& plotMapData, const CustomPlotMap& mapped_custom_plots, QWidget* parent);
+  virtual ~FunctionEditorWidget() override;
 
   void setLinkedPlotName(const QString& linkedPlotName);
 
@@ -32,26 +32,20 @@ public:
   QString getGlobalVars() const;
   QString getEquation() const;
   QString getName() const;
-  QString getLanuguage() const;
+
   const PlotData& getPlotData() const;
   void editExistingPlot(CustomPlotPtr data);
-  CustomPlotPtr getCustomPlotData() const;
+ // CustomPlotPtr getCustomPlotData() const;
+
+  bool eventFilter(QObject *obj, QEvent *event) override;
 
 private slots:
-
-  void on_curvesListWidget_doubleClicked(const QModelIndex& index);
 
   void on_snippetsListSaved_currentRowChanged(int currentRow);
 
   void on_snippetsListSaved_doubleClicked(const QModelIndex& index);
 
-  void on_snippetsListRecent_currentRowChanged(int currentRow);
-
-  void on_snippetsListRecent_doubleClicked(const QModelIndex& index);
-
   void on_nameLineEdit_textChanged(const QString& arg1);
-
-  void recentContextMenu(const QPoint& pos);
 
   void savedContextMenu(const QPoint& pos);
 
@@ -65,9 +59,15 @@ private slots:
 
   void on_pushButtonCreate_clicked();
 
-  void on_lineEditFilter_textChanged(const QString& arg1);
-
   void on_pushButtonCancel_pressed();
+
+  void on_listAdditionalSources_itemSelectionChanged();
+
+  void on_pushButtonDeleteCurves_clicked();
+
+  void on_listSourcesChanged();
+  
+  void on_lineEditSource_textChanged(const QString &text);
 
 private:
   void importSnippets(const QByteArray& xml_text);
@@ -80,12 +80,16 @@ private:
   const CustomPlotMap& _custom_plots;
   Ui::FunctionEditor* ui;
 
-  CustomPlotPtr _plot;
   bool _is_new;
   int _v_count;
 
   SnippetsMap _snipped_saved;
-  SnippetsMap _snipped_recent;
+
+  QStringList _dragging_curves;
+
+signals:
+  void accept(CustomPlotPtr plot);
+  void closed();
 };
 
 #endif  // AddCustomPlotDialog_H

@@ -178,8 +178,8 @@ void PlotwidgetEditor::disableWidgets()
   _color_wheel->setEnabled(false);
   _color_preview->setEnabled(false);
 
-  ui->groupBoxLimits->setEnabled(false);
-  ui->groupBoxStyle->setEnabled(false);
+  ui->frameLimits->setEnabled(false);
+  ui->frameStyle->setEnabled(false);
 }
 
 void PlotwidgetEditor::setupTable()

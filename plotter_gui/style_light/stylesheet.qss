@@ -688,4 +688,22 @@ QSplitter#mainSplitter::handle:horizontal::hover {
         stop:0.6 #cc00cc, stop:1.0 #1177ff);
 }
 
+ads--CDockContainerWidget {
+  background: palette(light);
+  border: 0px;
+}
 
+ads--CDockAreaWidget {
+   background: palette(light);
+   border: 0px;
+}
+
+ads--CDockWidget {
+   background: palette(light);
+   border: 0px;
+}
+
+QwtPlot {
+   background: palette(light);
+   border: 0px;
+}

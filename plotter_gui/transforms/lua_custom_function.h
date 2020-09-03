@@ -7,7 +7,7 @@
 class LuaCustomFunction : public CustomFunction
 {
 public:
-  LuaCustomFunction(const std::string& linkedPlot, const SnippetData& snippet);
+  LuaCustomFunction(const SnippetData& snippet);
 
   void initEngine() override;
 

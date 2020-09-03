@@ -7,79 +7,20 @@
 #include "lua_custom_function.h"
 #include "qml_custom_function.h"
 
-CustomFunction::CustomFunction(const std::string& linkedPlot, const SnippetData& snippet)
-  : CustomFunction(linkedPlot, snippet.name.toStdString(), snippet.globalVars, snippet.equation)
+
+CustomFunction::CustomFunction(const SnippetData& snippet):
+  _snippet(snippet)
+, _linked_plot_name(snippet.linkedSource.toStdString())
+, _plot_name(snippet.name.toStdString())
 {
+  for( QString source: snippet.additionalSources){
+    _used_channels.push_back( source.toStdString() );
+  }
 }
 
 void CustomFunction::clear()
 {
   initEngine();
-}
-
-QStringList CustomFunction::getChannelsFromFuntion(const QString& function)
-{
-  QStringList output;
-  int offset = 0;
-  while (true)
-  {
-    int pos1 = function.indexOf("$$", offset);
-    if (pos1 == -1)
-    {
-      break;
-    }
-
-    int pos2 = function.indexOf("$$", pos1 + 2);
-    if (pos2 == -1)
-    {
-      return {};
-    }
-    output.push_back(function.mid(pos1 + 2, pos2 - pos1 - 2));
-    offset = pos2 + 2;
-  }
-  return output;
-}
-
-void CustomFunction::createReplacedFunction(int index_offset)
-{
-  QString qLinkedPlot = QString::fromStdString(_linked_plot_name);
-
-  QString replaced_equation = _function;
-  while (true)
-  {
-    int pos1 = replaced_equation.indexOf("$$");
-    if (pos1 == -1)
-    {
-      break;
-    }
-
-    int pos2 = replaced_equation.indexOf("$$", pos1 + 2);
-    if (pos2 == -1)
-    {
-      throw std::runtime_error("syntax error : invalid use of $$ macro");
-    }
-
-    QString channel_name = replaced_equation.mid(pos1 + 2, pos2 - pos1 - 2);
-
-    if (channel_name == qLinkedPlot)
-    {
-      // special case : user entered linkedPlot ; no need to add another channel
-      replaced_equation.replace(QStringLiteral("$$%1$$").arg(channel_name), QStringLiteral("value"));
-    }
-    else
-    {
-      QString jsExpression = QString("CHANNEL_VALUES[%1]").arg(_used_channels.size() + index_offset);
-      replaced_equation.replace(QStringLiteral("$$%1$$").arg(channel_name), jsExpression);
-      _used_channels.push_back(channel_name.toStdString());
-    }
-  }
-  _function_replaced = replaced_equation;
-}
-
-CustomFunction::CustomFunction(const std::string& linkedPlot, const std::string& plotName, const QString& globalVars,
-                               const QString& function)
-  : _linked_plot_name(linkedPlot), _plot_name(plotName), _global_vars(globalVars), _function(function)
-{
 }
 
 void CustomFunction::calculateAndAdd(PlotDataMapRef& plotData)
@@ -108,6 +49,11 @@ void CustomFunction::calculateAndAdd(PlotDataMapRef& plotData)
     }
     std::rethrow_exception(std::current_exception());
   }
+}
+
+const SnippetData &CustomFunction::snippet() const
+{
+  return _snippet;
 }
 
 void CustomFunction::calculate(const PlotDataMapRef& plotData, PlotData* dst_data)
@@ -167,65 +113,23 @@ const std::string& CustomFunction::linkedPlotName() const
   return _linked_plot_name;
 }
 
-const QString& CustomFunction::globalVars() const
-{
-  return _global_vars;
-}
-
-const QString& CustomFunction::function() const
-{
-  return _function;
-}
 
 QDomElement CustomFunction::xmlSaveState(QDomDocument& doc) const
 {
-  QDomElement snippet = doc.createElement("snippet");
-  snippet.setAttribute("name", QString::fromStdString(_plot_name));
-  snippet.setAttribute("language", language());
-
-  QDomElement linked = doc.createElement("linkedPlot");
-  linked.appendChild(doc.createTextNode(QString::fromStdString(_linked_plot_name)));
-  snippet.appendChild(linked);
-
-  QDomElement global = doc.createElement("global");
-  global.appendChild(doc.createTextNode(_global_vars));
-  snippet.appendChild(global);
-
-  QDomElement equation = doc.createElement("equation");
-  equation.appendChild(doc.createTextNode(_function));
-  snippet.appendChild(equation);
-
-  return snippet;
+  return ExportSnippetToXML(_snippet, doc);
 }
 
 CustomPlotPtr CustomFunction::createFromXML(QDomElement& element)
 {
-  SnippetData snippet;
-  auto linkedPlot = element.firstChildElement("linkedPlot").text().trimmed().toStdString();
-  snippet.name = element.attribute("name");
-  snippet.globalVars = element.firstChildElement("global").text().trimmed();
-  snippet.equation = element.firstChildElement("equation").text().trimmed();
-
-  snippet.language = element.attribute("language", "JS");
-
-  if (snippet.language == "LUA")
-  {
-    return std::make_unique<LuaCustomFunction>(linkedPlot, snippet);
-  }
-  else if (snippet.language == "JS")
-  {
-    return std::make_unique<JsCustomFunction>(linkedPlot, snippet);
-  }
-  else
-  {
-    throw std::runtime_error("Snippet language not recognized");
-  }
+  SnippetData snippet = GetSnippetFromXML(element);
+  return std::make_unique<LuaCustomFunction>(snippet);
 }
 
 SnippetsMap GetSnippetsFromXML(const QString& xml_text)
 {
-  if (xml_text.isEmpty())
+  if (xml_text.isEmpty()){
     return {};
+  }
 
   QDomDocument doc;
   QString parseErrorMsg;
@@ -248,18 +152,16 @@ SnippetsMap GetSnippetsFromXML(const QDomElement& snippets_element)
 {
   SnippetsMap snippets;
 
-  for (auto elem = snippets_element.firstChildElement("snippet"); !elem.isNull(); elem = elem.nextSiblingElement("snipp"
-                                                                                                                 "et"))
+  for (auto elem = snippets_element.firstChildElement("snippet");
+       !elem.isNull();
+       elem = elem.nextSiblingElement("snippet") )
   {
-    SnippetData snippet;
-    snippet.name = elem.attribute("name");
-    snippet.language = elem.attribute("language", "JS");
-    snippet.globalVars = elem.firstChildElement("global").text().trimmed();
-    snippet.equation = elem.firstChildElement("equation").text().trimmed();
+    SnippetData snippet = GetSnippetFromXML(elem);
     snippets.insert({ snippet.name, snippet });
   }
   return snippets;
 }
+
 
 QDomElement ExportSnippets(const SnippetsMap& snippets, QDomDocument& doc)
 {
@@ -268,20 +170,72 @@ QDomElement ExportSnippets(const SnippetsMap& snippets, QDomDocument& doc)
   for (const auto& it : snippets)
   {
     const auto& snippet = it.second;
-
-    auto element = doc.createElement("snippet");
-    element.setAttribute("name", it.first);
-    element.setAttribute("language", snippet.language);
-
-    auto global_el = doc.createElement("global");
-    global_el.appendChild(doc.createTextNode(snippet.globalVars));
-
-    auto equation_el = doc.createElement("equation");
-    equation_el.appendChild(doc.createTextNode(snippet.equation));
-
-    element.appendChild(global_el);
-    element.appendChild(equation_el);
+    auto element = ExportSnippetToXML(snippet, doc);
     snippets_root.appendChild(element);
   }
   return snippets_root;
+}
+
+SnippetData GetSnippetFromXML(const QDomElement &element)
+{
+  SnippetData snippet;
+  snippet.linkedSource = element.firstChildElement("linkedSource").text().trimmed();
+  snippet.name = element.attribute("name");
+  snippet.globalVars = element.firstChildElement("global").text().trimmed();
+  snippet.function = element.firstChildElement("function").text().trimmed();
+
+  auto additional_el = element.firstChildElement("additionalSources");
+  if( !additional_el.isNull() )
+  {
+    int count = 1;
+    auto tag_name = QString("v%1").arg(count);
+    auto source_el = additional_el.firstChildElement( tag_name );
+    while( !source_el.isNull() )
+    {
+      snippet.additionalSources.push_back( source_el.text() );
+      tag_name = QString("v%1").arg(++count);
+      source_el = additional_el.firstChildElement( tag_name );
+    }
+  }
+  return snippet;
+}
+
+
+
+QDomElement ExportSnippetToXML(const SnippetData &snippet, QDomDocument &doc)
+{
+  auto element = doc.createElement("snippet");
+
+  element.setAttribute("name", snippet.name);
+
+  auto global_el = doc.createElement("global");
+  global_el.appendChild(doc.createTextNode(snippet.globalVars));
+  element.appendChild(global_el);
+
+  auto equation_el = doc.createElement("function");
+  equation_el.appendChild(doc.createTextNode(snippet.function));
+  element.appendChild(equation_el);
+
+  auto linked_el = doc.createElement("linkedSource");
+  linked_el.appendChild(doc.createTextNode(snippet.linkedSource));
+  element.appendChild(linked_el);
+
+  if( snippet.additionalSources.size() > 0)
+  {
+    auto sources_el = doc.createElement("additionalSources");
+
+    int count = 1;
+    for(QString curve_name: snippet.additionalSources)
+    {
+      auto tag_name = QString("v%1").arg(count++);
+      auto source_el = doc.createElement(tag_name);
+      source_el.appendChild(doc.createTextNode(curve_name));
+      sources_el.appendChild(source_el);
+    }
+
+    element.appendChild(sources_el);
+  }
+
+
+  return element;
 }
