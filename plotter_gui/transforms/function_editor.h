@@ -26,6 +26,8 @@ public:
     FUNCTION_ONLY
   };
 
+  void clear();
+
   void setEditorMode(EditorMode mode);
 
   QString getLinkedData() const;

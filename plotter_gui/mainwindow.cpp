@@ -2215,6 +2215,7 @@ void MainWindow::onCustomPlotCreated(CustomPlotPtr custom_plot)
 
   onUpdateLeftTableValues();
   updateDataAndReplot(true);
+  _function_editor->clear();
 }
 
 void MainWindow::on_actionReportBug_triggered()

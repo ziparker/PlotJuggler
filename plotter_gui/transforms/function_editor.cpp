@@ -104,6 +104,13 @@ void FunctionEditorWidget::setLinkedPlotName(const QString& linkedPlotName)
   ui->lineEditSource->setText(linkedPlotName);
 }
 
+void FunctionEditorWidget::clear()
+{
+  ui->lineEditSource->setText("");
+  ui->nameLineEdit->setText("");
+  ui->listAdditionalSources->setRowCount(0);
+}
+
 void FunctionEditorWidget::setEditorMode(EditorMode mode)
 {
   ui->label_linkeChannel->setVisible(mode != FUNCTION_ONLY);
@@ -476,6 +483,32 @@ void FunctionEditorWidget::on_pushButtonCreate_clicked()
     if (_plot_map_data.numeric.count(plotName) != 0 && _custom_plots.count(plotName) == 0)
     {
       throw std::runtime_error("plot name already exists and can't be modified");
+    }
+
+    if ( _custom_plots.count(plotName) != 0 )
+    {
+      bool in_additional = ui->listAdditionalSources->findItems(getName(), Qt::MatchExactly).size() > 0;
+      if( in_additional )
+      {
+        throw std::runtime_error("The name of the new plot can not be the same of one "
+                                 "of its dependencies in \"Additional time series\"");
+      }
+      else{
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Warning");
+        msgBox.setText(tr("A custom time series with the same name exists already.\n"
+                          " Do you want to overwrite it?\n"));
+        msgBox.addButton(QMessageBox::Cancel);
+        QPushButton* button = msgBox.addButton(tr("Overwrite"), QMessageBox::YesRole);
+        msgBox.setDefaultButton(button);
+
+        int res = msgBox.exec();
+
+        if (res < 0 || res == QMessageBox::Cancel)
+        {
+          return;
+        }
+      }
     }
 
     SnippetData snippet;

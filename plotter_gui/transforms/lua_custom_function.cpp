@@ -52,36 +52,36 @@ PlotData::Point LuaCustomFunction::calculatePoint(const PlotData& src_data,
   PlotData::Point new_point;
   new_point.x = old_point.x;
 
-  sol::function_result result;
+  sol::safe_function_result result;
   const auto& v = _chan_values;
   // ugly code, sorry
-  switch( _snippet.additionalSources.size())
+  switch( _snippet.additionalSources.size() )
   {
-  case 0: result= _lua_function(old_point.x, old_point.y);
+  case 0: result = _lua_function(old_point.x, old_point.y);
     break;
-  case 1: result= _lua_function(old_point.x, old_point.y,
-                                v[0]);
+  case 1: result = _lua_function(old_point.x, old_point.y,
+                                 v[0]);
     break;
-  case 2: result= _lua_function(old_point.x, old_point.y,
-                                v[0], v[1]);
+  case 2: result = _lua_function(old_point.x, old_point.y,
+                                 v[0], v[1]);
     break;
-  case 3: result= _lua_function(old_point.x, old_point.y,
-                                v[0], v[1], v[2]);
+  case 3: result = _lua_function(old_point.x, old_point.y,
+                                 v[0], v[1], v[2]);
     break;
-  case 4: result= _lua_function(old_point.x, old_point.y,
-                                v[0], v[1], v[2], v[3]);
+  case 4: result = _lua_function(old_point.x, old_point.y,
+                                 v[0], v[1], v[2], v[3]);
     break;
-  case 5: result= _lua_function(old_point.x, old_point.y,
-                                v[0], v[1], v[2], v[3], v[4]);
+  case 5: result = _lua_function(old_point.x, old_point.y,
+                                 v[0], v[1], v[2], v[3], v[4]);
     break;
-  case 6: result= _lua_function(old_point.x, old_point.y,
-                                v[0], v[1], v[2], v[3], v[4], v[5]);
+  case 6: result = _lua_function(old_point.x, old_point.y,
+                                 v[0], v[1], v[2], v[3], v[4], v[5]);
     break;
-  case 7: result= _lua_function(old_point.x, old_point.y,
-                                v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
+  case 7: result = _lua_function(old_point.x, old_point.y,
+                                 v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
     break;
-  case 8: result= _lua_function(old_point.x, old_point.y,
-                                v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
+  case 8: result = _lua_function(old_point.x, old_point.y,
+                                 v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
     break;
   default:
     throw std::runtime_error("Lua Engine : maximum number of additional source is 8");
