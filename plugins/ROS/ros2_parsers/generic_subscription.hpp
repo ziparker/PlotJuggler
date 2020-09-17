@@ -52,7 +52,7 @@ class GenericSubscription : public rclcpp::SubscriptionBase
    * \param callback Callback for new messages of serialized form
    */
     GenericSubscription(
-      rclcpp::node_interfaces::NodeBaseInterface * node_base,
+      std::shared_ptr<rcl_node_t> node_handle,
       const rosidl_message_type_support_t & ts,
       const std::string & topic_name,
       bool transient,
@@ -65,13 +65,19 @@ class GenericSubscription : public rclcpp::SubscriptionBase
 
     void handle_message( std::shared_ptr<void> & message, const rmw_message_info_t & message_info) override;
 
-    void handle_loaned_message(
-      void * loaned_message, const rmw_message_info_t & message_info) override;
-
     // Same as return_serialized_message() as the subscription is to serialized_messages only
     void return_message(std::shared_ptr<void> & message) override;
 
     void return_serialized_message(std::shared_ptr<rmw_serialized_message_t> & message) override;
+
+    void handle_intra_process_message(
+      rcl_interfaces::msg::IntraProcessMessage & ipm,
+      const rmw_message_info_t & message_info)
+    {
+      (void) ipm;
+      (void) message_info;
+      throw std::runtime_error("Intra process is not supported");
+    }
 
   private:
     RCLCPP_DISABLE_COPY(GenericSubscription)
@@ -93,13 +99,13 @@ inline rcl_subscription_options_t LatchingOptions()
 
 inline
 GenericSubscription::GenericSubscription(
-  rclcpp::node_interfaces::NodeBaseInterface * node_base,
+  std::shared_ptr<rcl_node_t> node_handle,
   const rosidl_message_type_support_t & ts,
   const std::string & topic_name,
   bool transient,
   std::function<void(std::shared_ptr<rmw_serialized_message_t>)> callback)
 : SubscriptionBase(
-    node_base,
+    node_handle,
     ts,
     topic_name,
     transient ? LatchingOptions() : rcl_subscription_get_default_options(),

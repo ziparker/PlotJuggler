@@ -128,24 +128,24 @@ elseif(COMPILING_WITH_AMENT)
         fmt::fmt-header-only )
     ament_target_dependencies( commonROS ${AMENT_DEPENDENCIES})
 
-    #############
+#    #############
     add_library( DataLoadROS2 SHARED
         DataLoadROS2/dataload_ros2.cpp
         ${PLUGIN_BASE_DIR}/dataloader_base.h )
     target_link_libraries( DataLoadROS2 commonROS)
     ament_target_dependencies( DataLoadROS2 ${AMENT_DEPENDENCIES})
-    #############
+#    #############
     add_library( DataStreamROS2 SHARED
         DataStreamROS2/datastream_ros2.cpp
         ${PLUGIN_BASE_DIR}/datastreamer_base.h )
     target_link_libraries( DataStreamROS2  commonROS)
     ament_target_dependencies( DataStreamROS2 ${AMENT_DEPENDENCIES})
-    #############
-    add_library( TopicPublisherROS2 SHARED
-        TopicPublisherROS2/publisher_ros2.cpp
-        ${PLUGIN_BASE_DIR}/statepublisher_base.h)
-    target_link_libraries( TopicPublisherROS2 commonROS)
-    ament_target_dependencies( TopicPublisherROS2 ${AMENT_DEPENDENCIES})
+#    #############
+#    add_library( TopicPublisherROS2 SHARED
+#        TopicPublisherROS2/publisher_ros2.cpp
+#        ${PLUGIN_BASE_DIR}/statepublisher_base.h)
+#    target_link_libraries( TopicPublisherROS2 commonROS)
+#    ament_target_dependencies( TopicPublisherROS2 ${AMENT_DEPENDENCIES})
 endif()
 
 #######################################################################
@@ -162,6 +162,6 @@ elseif(COMPILING_WITH_AMENT)
     install(TARGETS
         DataLoadROS2
         DataStreamROS2
-        TopicPublisherROS2
+#        TopicPublisherROS2
         DESTINATION  lib/${PROJECT_NAME}  )
 endif()

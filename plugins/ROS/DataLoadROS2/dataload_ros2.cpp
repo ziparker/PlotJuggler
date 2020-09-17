@@ -19,6 +19,7 @@
 #include <rosidl_typesupport_cpp/identifier.hpp>
 #include <rosbag2/typesupport_helpers.hpp>
 #include <rosbag2/types/introspection_message.hpp>
+#include <rosbag2_storage/metadata_io.hpp>
 #include <unordered_map>
 #include <rclcpp/rclcpp.hpp>
 #include <rmw/rmw.h>
@@ -40,7 +41,7 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
 {
   auto metadata_io = std::make_unique<rosbag2_storage::MetadataIo>();
 
-  auto temp_bag_reader = std::make_shared<rosbag2::readers::SequentialReader>();
+  auto temp_bag_reader = std::make_shared<rosbag2::SequentialReader>();
 
   QString bagDir;
   {
@@ -119,10 +120,7 @@ bool DataLoadROS2::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map
   //--- Swith the previous bag with this one
   // clean up previous MessageInstances
   plot_map.user_defined.clear();
-  if (_bag_reader)
-  {
-    _bag_reader->reset();
-  }
+
   _bag_reader = temp_bag_reader;
   //---------------------------------------
 

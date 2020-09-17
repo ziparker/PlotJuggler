@@ -189,9 +189,15 @@ void DataStreamROS2::subscribeToTopic(const std::string& topic_name, const std::
   // double subscription, latching or not
   for (bool transient : { true, false })
   {
-    auto subscription = std::make_shared<rosbag2_transport::GenericSubscription>(_node->get_node_base_interface().get(),
-                                                                                 *_parser->typeSupport(topic_name),
-                                                                                 topic_name, transient, bound_callback);
+    std::shared_ptr<rcl_node_t> node_handle =
+        _node->get_node_base_interface()->get_shared_rcl_node_handle();
+    auto subscription = std::make_shared<rosbag2_transport::GenericSubscription>(
+          node_handle,
+          *_parser->typeSupport(topic_name),
+          topic_name,
+          transient,
+          bound_callback);
+
     _subscriptions[topic_name + (transient ? "/transient_" : "")] = subscription;
     _node->get_node_topics_interface()->add_subscription(subscription, nullptr);
   }
