@@ -363,6 +363,9 @@ void MainWindow::initializePlugins(QString directory_name)
 {
   static std::set<QString> loaded_plugins;
 
+  qDebug() << "Loading compatible plugins from directory: " << directory_name;
+  int loaded_count = 0;
+
   QDir pluginsDir(directory_name);
 
   for (const QString& filename : pluginsDir.entryList(QDir::Files))
@@ -388,16 +391,21 @@ void MainWindow::initializePlugins(QString directory_name)
       DataStreamer* streamer = qobject_cast<DataStreamer*>(plugin);
 
       QString plugin_name;
-      if (loader)
+
+      if (loader){
         plugin_name = loader->name();
-      if (publisher)
+      }
+      if (publisher){
         plugin_name = publisher->name();
-      if (streamer)
+      }
+      if (streamer){
         plugin_name = streamer->name();
+      }
 
       if (loaded_plugins.find(plugin_name) == loaded_plugins.end())
       {
         loaded_plugins.insert(plugin_name);
+        loaded_count++;
       }
       else
       {
@@ -484,6 +492,7 @@ void MainWindow::initializePlugins(QString directory_name)
       }
     }
   }
+  qDebug() << "Number of plugins loaded: " << loaded_count << "\n";
 }
 
 void MainWindow::buildDummyData()
