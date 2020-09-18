@@ -77,7 +77,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   ui->pushButtonRatio->setText("");
   ui->pushButtonLink->setText("");
   ui->pushButtonTimeTracker->setText("");
-  ui->pushButtonOptions->setText("");
+  ui->pushButtonLoadDatafile->setText("");
   ui->pushButtonRemoveTimeOffset->setText("");
   ui->pushButtonLegend->setText("");
 
@@ -111,7 +111,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   connect(this, &MainWindow::stylesheetChanged, _main_tabbed_widget, &TabbedPlotWidget::on_stylesheetChanged);
 
   ui->plottingLayout->insertWidget(0, _main_tabbed_widget, 1);
-  ui->leftLayout->addWidget(_curvelist_widget);
+  ui->leftLayout->addWidget(_curvelist_widget,1);
 
   ui->mainSplitter->setCollapsible(0, true);
   ui->mainSplitter->setStretchFactor(0, 2);
@@ -189,7 +189,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   bool remove_time_offset = settings.value("MainWindow.removeTimeOffset", true).toBool();
   ui->pushButtonRemoveTimeOffset->setChecked(remove_time_offset);
 
-  ui->widgetOptions->setVisible(ui->pushButtonOptions->isChecked());
+//  ui->widgetOptions->setVisible(ui->pushButtonOptions->isChecked());
 
   //----------------------------------------------------------
   QIcon trackerIconA, trackerIconB, trackerIconC;
@@ -1275,7 +1275,8 @@ void MainWindow::on_stylesheetChanged(QString style_dir)
   styleFile.open(QFile::ReadOnly);
   dynamic_cast<QApplication*>(QCoreApplication::instance())->setStyleSheet(styleFile.readAll());
 
-  ui->pushButtonOptions->setIcon(LoadSvgIcon(":/resources/svg/settings_cog.svg", style_dir));
+  ui->pushButtonLoadDatafile->setIcon(LoadSvgIcon(":/resources/svg/save.svg", style_dir));
+  ui->pushButtonStreamingPause->setIcon(LoadSvgIcon(":/resources/svg/pause.svg", style_dir));
 
   ui->pushButtonZoomOut->setIcon(LoadSvgIcon(":/resources/svg/zoom_max.svg", style_dir));
   ui->playbackLoop->setIcon(LoadSvgIcon(":/resources/svg/loop.svg", style_dir));
@@ -1937,7 +1938,7 @@ void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool)
 
 void MainWindow::on_pushButtonOptions_toggled(bool checked)
 {
-  ui->widgetOptions->setVisible(checked);
+//  ui->widgetOptions->setVisible(checked);
 }
 
 void MainWindow::updatedDisplayTime()
@@ -2564,8 +2565,8 @@ void MainWindow::onActionFullscreenTriggered()
 
   _minimized = !_minimized;
 
-  ui->leftFrame->setVisible(!_minimized);
-  ui->widgetOptions->setVisible(!_minimized && ui->pushButtonOptions->isChecked());
+  ui->leftMainWindowFrame->setVisible(!_minimized);
+//  ui->widgetOptions->setVisible(!_minimized && ui->pushButtonOptions->isChecked());
   ui->widgetTimescale->setVisible(!_minimized);
   ui->menuBar->setVisible(!_minimized);
 

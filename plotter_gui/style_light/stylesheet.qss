@@ -36,7 +36,7 @@ QTabWidget::pane { /* The tab widget frame */
     border: 1px solid gray;
     background: white;
     top: -1px;
-    border-radius: 4px;
+    border-radius: 2px;
     border-top-left-radius: 0px;
 }
 
@@ -45,8 +45,8 @@ QTabWidget::right-corner {
 }
 
 QTabBar::tab {
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
     border-bottom-left-radius: 0px;
     border-bottom-right-radius: 0px;
     min-width: 10ex;
@@ -77,13 +77,13 @@ QTextBrowser {
 QPlainTextEdit {
    background: white;
    color: #111111;
-   border-radius: 4px;
+   border-radius: 2px;
    border: 1px solid grey;
 }
 
 QToolTip {
     border: 1px solid #111111;
-    border-radius: 4px;
+    border-radius: 2px;
     background: white;
     color: #111111; }
 
@@ -463,7 +463,7 @@ QComboBox {
     color: #111111;
     background-color: white;
     selection-background-color:  #b5b5b5;
-    border-radius: 4px;
+    border-radius: 2px;
     border: 1px solid grey;
     padding-top: 2px;     /* This fix  #103, #111*/
     padding-bottom: 2px;  /* This fix  #103, #111*/
@@ -617,10 +617,9 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmenubar
 
 --------------------------------------------------------------------------- */
 QMenuBar {
-  background-color: #404142;
+
   padding: 2px;
   border: 1px solid #11283F;
-  color: #F0F0F0;
 }
 
 QMenuBar:focus {
@@ -651,9 +650,31 @@ QMenuBar::item:pressed {
 
 /* ------------------------ Specific Widgets ------------------------ */
 
-QWidget#CurveListPanel
+QWidget#leftMainWindowFrame
 {
-  background-color: #fafafa;
+  background-color: #F2F2F2;
+}
+
+QWidget#widgetLabelLoad,
+QWidget#widgetLabelStreaming,
+QWidget#widgetLabelTimeseries
+{
+    background-color: #556677;
+}
+
+QWidget#widgetLabelLoad QLabel,
+QWidget#widgetLabelStreaming QLabel,
+QWidget#widgetLabelTimeseries QLabel
+{
+    color: #F0F0F0;
+}
+
+
+QWidget#leftMainWindowFrame QPushButton[flat="false"]
+{
+    background: white;
+    border: 1px solid grey;
+    border-radius: 2px;
 }
 
 QLineEdit#lineEditFilter{
@@ -667,11 +688,7 @@ QLineEdit#lineEditFilter:focus{
   border-bottom: 2px solid #1177ff;
 }
 
-QWidget#CurveListPanel QTreeView,
-QWidget#CurveListPanel QTableView
-{
 
-}
 
 QWidget#plottingArea{
   background-color: #dddddd;

@@ -12,21 +12,23 @@ ScaleTransform::ScaleTransform() :
   connect(ui->buttonDegRad, &QPushButton::clicked,
           this, [=](){
             const double deg_rad = 3.14159265359 / 180;
-            ui->lineEditValue->setText( QString::number(deg_rad, 'g', 5));
+            ui->lineEditValueScale->setText( QString::number(deg_rad, 'g', 5));
             emit parametersChanged();
           } );
 
   connect(ui->buttonRadDeg, &QPushButton::clicked,
           this, [=](){
             const double rad_deg = 180.0 / 3.14159265359;
-            ui->lineEditValue->setText( QString::number(rad_deg, 'g', 5));
+            ui->lineEditValueScale->setText( QString::number(rad_deg, 'g', 5));
             emit parametersChanged();
           } );
 
-  connect(ui->lineEditValue, &QLineEdit::editingFinished,
-          this, [=](){
-            emit parametersChanged();
-          } );
+  connect(ui->lineEditTimeOffset, &QLineEdit::editingFinished,
+          this, [=](){ emit parametersChanged();  } );
+  connect(ui->lineEditValueOffset, &QLineEdit::editingFinished,
+          this, [=](){ emit parametersChanged();  } );
+  connect(ui->lineEditValueScale, &QLineEdit::editingFinished,
+          this, [=](){ emit parametersChanged();  } );
 }
 
 ScaleTransform::~ScaleTransform()
@@ -42,12 +44,14 @@ const char *ScaleTransform::name() const {
 void ScaleTransform::calculate(PlotData *dst_data)
 {
   dst_data->clear();
-  double scale = ui->lineEditValue->text().toDouble();
+  double off_x = ui->lineEditTimeOffset->text().toDouble();
+  double off_y = ui->lineEditValueOffset->text().toDouble();
+  double scale = ui->lineEditValueScale->text().toDouble();
 
   for(size_t i=0; i < dataSource()->size(); i++)
   {
     const auto& p = dataSource()->at(i);
-    dst_data->pushBack({p.x, scale * p.y});
+    dst_data->pushBack({p.x + off_x, scale * p.y + off_y});
   }
 }
 
@@ -59,7 +63,9 @@ QWidget *ScaleTransform::optionsWidget()
 bool ScaleTransform::xmlSaveState(QDomDocument &doc, QDomElement &parent_element) const
 {
   QDomElement widget_el = doc.createElement("options");
-  widget_el.setAttribute("value", ui->lineEditValue->text() );
+  widget_el.setAttribute("time_offset",  ui->lineEditTimeOffset->text() );
+  widget_el.setAttribute("value_offset", ui->lineEditValueOffset->text() );
+  widget_el.setAttribute("value_scale",  ui->lineEditValueScale->text() );
   parent_element.appendChild( widget_el );
 
   return true;
@@ -68,7 +74,8 @@ bool ScaleTransform::xmlSaveState(QDomDocument &doc, QDomElement &parent_element
 bool ScaleTransform::xmlLoadState(const QDomElement &parent_element)
 {
   QDomElement widget_el = parent_element.firstChildElement("options");
-  ui->lineEditValue->setText( widget_el.attribute("value") );
-
+  ui->lineEditTimeOffset->setText( widget_el.attribute("time_offset") );
+  ui->lineEditValueOffset->setText( widget_el.attribute("value_offset") );
+  ui->lineEditValueScale->setText( widget_el.attribute("value_scale") );
   return true;
 }

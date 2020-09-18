@@ -194,7 +194,7 @@ void DockManagerPrivate::loadStylesheet()
 	QTextStream StyleSheetStream(&StyleSheetFile);
 	Result = StyleSheetStream.readAll();
 	StyleSheetFile.close();
-	_this->setStyleSheet(Result);
+  //_this->setStyleSheet(Result);
 }
 
 

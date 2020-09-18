@@ -19,15 +19,23 @@ return dy/dx</function>
   </snippet>
   <snippet name="average_two_curves">
     <global></global>
-    <function>a = $$PLOT_A$$
-b = $$PLOT_B$$
-
-return (a+b)/2</function>
+    <function>return (value+v1)/2</function>
     <linkedSource></linkedSource>
   </snippet>
   <snippet name="integral">
-    <global>integral = 0</global>
-    <function>integral += value
+    <global>prevX = 0
+integral = 0
+is_first = true</global>
+    <function>if (is_first) then
+  is_first = false
+  prevX = time
+end
+
+dx = time - prevX
+prevX = time
+
+integral = integral + value*dx
+
 return integral</function>
     <linkedSource></linkedSource>
   </snippet>
