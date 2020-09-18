@@ -11,7 +11,6 @@ class CovarianceParser
 public:
   CovarianceParser(const std::string& prefix, PlotDataMapRef& plot_data)
   {
-    int index = 0;
     for (int i = 0; i < N; i++)
     {
       for (int j = i; j < N; j++)
@@ -24,12 +23,12 @@ public:
 
   void parse(const std::array<double, N * N>& covariance, double timestamp)
   {
-    size_t i = 0;
+    size_t index = 0;
     for (int i = 0; i < N; i++)
     {
       for (int j = i; j < N; j++)
       {
-        _data[i++]->pushBack({ timestamp, covariance[i * N + j] });
+        _data[index++]->pushBack({ timestamp, covariance[i * N + j] });
       }
     }
   }

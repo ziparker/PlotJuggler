@@ -9,7 +9,6 @@ class CovarianceParser
 public:
   CovarianceParser(const std::string& prefix, PlotDataMapRef& plot_data)
   {
-    int index = 0;
     for (int i = 0; i < N; i++)
     {
       for (int j = i; j < N; j++)
