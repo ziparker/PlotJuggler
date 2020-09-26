@@ -1242,6 +1242,7 @@ void MainWindow::stopStreamingPlugin()
   ui->buttonStreamingPause->setChecked(false);
   ui->buttonStreamingPause->setEnabled(false);
   ui->labelStreamingAnimation->setHidden(true);
+  ui->pushButtonRemoveTimeOffset->setEnabled(true);
 
   _replot_timer->stop();
 
@@ -1982,11 +1983,6 @@ void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool)
   if (this->signalsBlocked() == false){
     onUndoableChange();
   }
-}
-
-void MainWindow::on_pushButtonOptions_toggled(bool checked)
-{
-  //  ui->widgetOptions->setVisible(checked);
 }
 
 void MainWindow::updatedDisplayTime()

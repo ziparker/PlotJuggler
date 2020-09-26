@@ -215,7 +215,6 @@ public slots:
   void on_actionAbout_triggered();
   void on_actionExit_triggered();
 
-  void on_pushButtonOptions_toggled(bool checked);
   void on_pushButtonActivateGrid_toggled(bool checked);
   void on_pushButtonRatio_toggled(bool checked);
   void on_pushButtonPlay_toggled(bool checked);
