@@ -203,6 +203,8 @@ void DataStreamROS2::messageCallback(const std::string& topic_name, std::shared_
 
   std::unique_lock<std::mutex> lock(mutex());
   _parser->parseMessage(topic_name, msg.get(), timestamp);
+
+  emit dataReceived();
 }
 
 void DataStreamROS2::saveDefaultSettings()

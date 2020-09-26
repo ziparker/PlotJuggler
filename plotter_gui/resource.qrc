@@ -241,5 +241,6 @@
         <file>resources/svg/import.svg</file>
         <file>resources/svg/green_circle.svg</file>
         <file>resources/svg/red_circle.svg</file>
+        <file>resources/animated_radio.gif</file>
     </qresource>
 </RCC>

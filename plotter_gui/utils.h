@@ -34,7 +34,7 @@ private:
 };
 
 
-std::vector<QString> MoveData(PlotDataMapRef& source, PlotDataMapRef& destination);
+std::pair<std::vector<QString>,bool> MoveData(PlotDataMapRef& source, PlotDataMapRef& destination);
 
 
 #endif  // UTILS_H

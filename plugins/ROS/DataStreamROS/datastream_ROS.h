@@ -40,7 +40,7 @@ public:
 
   virtual bool xmlLoadState(const QDomElement& parent_element) override;
 
-  virtual void addActionsToParentMenu(QMenu* menu) override;
+  virtual std::vector<QAction*>  addActionsToParentMenu() override;
 
 private:
   void topicCallback(const RosIntrospection::ShapeShifter::ConstPtr& msg, const std::string& topic_name);
@@ -83,8 +83,10 @@ private:
 
   double _prev_clock_time;
 
+  std::unordered_map<std::string, PlotDataAny> _user_defined_buffers;
+
 private:
-  static void saveIntoRosbag(const PlotDataMapRef& data);
+  void saveIntoRosbag();
 };
 
 #endif  // DATALOAD_CSV_H

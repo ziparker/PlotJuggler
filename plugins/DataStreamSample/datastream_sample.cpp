@@ -86,6 +86,7 @@ void DataStreamSample::loop()
   {
     auto prev = std::chrono::high_resolution_clock::now();
     pushSingleCycle();
+    emit dataReceived();
     std::this_thread::sleep_until(prev + std::chrono::milliseconds(20));  // 50 Hz
   }
 }

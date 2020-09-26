@@ -52,8 +52,10 @@ std::vector<double> BuiltTimepointsList(PlotDataMapRef &data)
 }
 */
 
-std::vector<QString> MoveData(PlotDataMapRef &source, PlotDataMapRef &destination)
+std::pair<std::vector<QString>, bool> MoveData(PlotDataMapRef &source, PlotDataMapRef &destination)
 {
+  bool destination_updated = false;
+
   std::vector<QString> added_curves;
   for (auto& it : source.numeric)
   {
@@ -82,6 +84,7 @@ std::vector<QString> MoveData(PlotDataMapRef &source, PlotDataMapRef &destinatio
     for (size_t i = 0; i < source_plot.size(); i++)
     {
       destination_plot.pushBack(source_plot.at(i));
+      destination_updated = true;
     }
     source_plot.clear();
   }
@@ -103,9 +106,10 @@ std::vector<QString> MoveData(PlotDataMapRef &source, PlotDataMapRef &destinatio
     auto& destination_plot = plot_with_same_name->second;
     for (size_t i = 0; i < source_plot.size(); i++)
     {
-      destination_plot.pushBack(source_plot.at(i));
+      destination_plot.pushBack( std::move(source_plot.at(i)) );
+      destination_updated = true;
     }
     source_plot.clear();
   }
-  return added_curves;
+  return { added_curves, destination_updated };
 }

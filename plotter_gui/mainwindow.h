@@ -10,6 +10,7 @@
 #include <QMainWindow>
 #include <QSignalMapper>
 #include <QShortcut>
+#include <QMovie>
 
 #include "plotwidget.h"
 #include "plot_docker.h"
@@ -38,6 +39,10 @@ public:
   bool loadDataFromFiles(QStringList filenames);
   bool loadDataFromFile(const FileLoadInfo& info);
 
+
+  void stopStreamingPlugin();
+  void startStreamingPlugin(QString streamer_name);
+
 public slots:
 
   void resizeEvent(QResizeEvent*);
@@ -48,8 +53,12 @@ public slots:
 
   // Actions in UI
   void on_streamingToggled();
-  void on_pushButtonStreaming_toggled(bool streaming);
+
+  void on_buttonStreamingPause_toggled(bool paused);
+
   void on_streamingSpinBox_valueChanged(int value);
+
+  void on_comboStreaming_currentIndexChanged(const QString &current_text);
 
   void on_splitterMoved(int, int);
 
@@ -102,7 +111,7 @@ private:
   std::map<QString, DataLoader*> _data_loader;
   std::map<QString, StatePublisher*> _state_publisher;
   std::map<QString, DataStreamer*> _data_streamer;
-  DataStreamer* _current_streamer;
+  DataStreamer* _active_streamer_plugin;
 
   std::deque<QDomDocument> _undo_states;
   std::deque<QDomDocument> _redo_states;
@@ -128,6 +137,9 @@ private:
   QDateTime _prev_publish_time;
 
   FunctionEditorWidget* _function_editor;
+
+  QMovie* _animated_streaming_movie;
+  QTimer* _animated_streaming_timer;
 
   enum LabelStatus
   {
@@ -200,7 +212,6 @@ public slots:
   void on_actionSupportPlotJuggler_triggered();
 // TODO ?  void on_actionSaveAllPlotTabs_triggered();
 
-  void on_actionStopStreaming_triggered();
   void on_actionAbout_triggered();
   void on_actionExit_triggered();
 
@@ -212,8 +223,6 @@ public slots:
   void on_pushButtonTimeTracker_pressed();
   void on_pushButtonRemoveTimeOffset_toggled(bool checked);
 
-  void on_actionStartStreaming(QString streamer_name);
-
 private slots:
   void on_stylesheetChanged(QString style_name);
   void on_actionPreferences_triggered();
@@ -222,6 +231,24 @@ private slots:
   void on_actionLoadStyleSheet_triggered();
   void on_pushButtonLegend_clicked();
   void on_pushButtonZoomOut_clicked();
+
+  void on_buttonStreamingStart_clicked();
+  void on_buttonStreamingOptions_clicked();
+  void on_pushButtonLoadRecent_clicked();
 };
+
+class PopupMenu : public QMenu
+{
+  Q_OBJECT
+public:
+  explicit PopupMenu(QWidget* relative_widget, QWidget* parent = nullptr);
+
+  void showEvent(QShowEvent*) override;
+  void leaveEvent(QEvent*) override;
+  void closeEvent(QCloseEvent*) override;
+private:
+  QWidget* _w;
+};
+
 
 #endif  // MAINWINDOW_H

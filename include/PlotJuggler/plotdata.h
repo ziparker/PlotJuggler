@@ -115,7 +115,9 @@ public:
 
   void clear();
 
-  void pushBack(Point p);
+  void pushBack(const Point &p);
+
+  void pushBack(Point&& p);
 
   QColor getColorHint() const;
 
@@ -174,6 +176,14 @@ protected:
   QColor _color_hint;
 
 private:
+
+  void trimTange()
+  {
+    while (_points.size() > 2 && (_points.back().x - _points.front().x) > _max_range_X)
+    {
+      _points.pop_front();
+    }
+  }
   Time _max_range_X;
 };
 
@@ -244,29 +254,40 @@ inline PlotDataGeneric<Time, Value>::PlotDataGeneric(const std::string& name)
 }
 
 template <typename Time, typename Value>
-inline void PlotDataGeneric<Time, Value>::pushBack(Point point)
+inline void PlotDataGeneric<Time, Value>::pushBack(Point&& point)
 {
-  _points.push_back(point);
-
-  while (_points.size() > 2 && (_points.back().x - _points.front().x) > _max_range_X)
-  {
-    _points.pop_front();
-  }
+  _points.emplace_back(point);
+  trimTange();
 }
 
 template <>  // template specialization
-inline void PlotDataGeneric<double, double>::pushBack(Point point)
+inline void PlotDataGeneric<double, double>::pushBack(Point&& point)
+{
+  if (std::isinf(point.y) || std::isnan(point.y))
+  {
+    return;  // skip
+  }
+  _points.emplace_back(point);
+  trimTange();
+}
+
+
+template <typename Time, typename Value>
+inline void PlotDataGeneric<Time, Value>::pushBack(const Point& point)
+{
+  _points.push_back(point);
+  trimTange();
+}
+
+template <>  // template specialization
+inline void PlotDataGeneric<double, double>::pushBack(const Point& point)
 {
   if (std::isinf(point.y) || std::isnan(point.y))
   {
     return;  // skip
   }
   _points.push_back(point);
-
-  while (_points.size() > 2 && (_points.back().x - _points.front().x) > _max_range_X)
-  {
-    _points.pop_front();
-  }
+  trimTange();
 }
 
 template <typename Time, typename Value>
@@ -354,10 +375,7 @@ template <typename Time, typename Value>
 inline void PlotDataGeneric<Time, Value>::setMaximumRangeX(Time max_range)
 {
   _max_range_X = max_range;
-  while (_points.size() > 2 && _points.back().x - _points.front().x > _max_range_X)
-  {
-    _points.pop_front();
-  }
+  trimTange();
 }
 
 #endif  // PLOTDATA_H

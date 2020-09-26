@@ -44,8 +44,9 @@ public:
     return plugin_elem;
   }
 
-  virtual void addActionsToParentMenu(QMenu* menu)
+  virtual std::vector<QAction*> addActionsToParentMenu()
   {
+    return {};
   }
 };
 

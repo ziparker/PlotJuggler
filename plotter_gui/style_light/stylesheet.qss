@@ -242,10 +242,9 @@ QMenu::item {
 
 
 QMenu::item:selected {
-    background: #b5b5b5;
+    background: #dddddd;
     color: #111111;
 }
-
 
 QMenu::item:checked {
     color: #1177ff;
@@ -472,7 +471,8 @@ QComboBox {
 }
 
 QComboBox:disabled {
-    selection-background-color: grey;
+    color: grey;
+    background: transparent;
 }
 
 

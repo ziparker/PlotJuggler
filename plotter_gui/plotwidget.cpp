@@ -136,6 +136,7 @@ PlotWidget::PlotWidget(PlotDataMapRef& datamap, QWidget* parent)
   , _transform_select_dialog(nullptr)
   , _zoom_enabled(true)
   , _keep_aspect_ratio(true)
+  ,_context_menu_enabled(true)
 {
   connect(this, &PlotWidget::curveListChanged, this, [this]() { this->updateMaximumZoomArea(); });
 

@@ -11,6 +11,7 @@
 #include <QMessageBox>
 #include <QAbstractItemView>
 #include <set>
+#include <QSettings>
 #include "dialog_select_ros_topics.h"
 #include "ui_dialog_select_ros_topics.h"
 
@@ -149,9 +150,13 @@ void DialogSelectRosTopics::updateTopicList(std::vector<std::pair<QString, QStri
 
 DialogSelectRosTopics::~DialogSelectRosTopics()
 {
+  delete ui;
+}
+
+void DialogSelectRosTopics::closeEvent(QCloseEvent *)
+{
   QSettings settings;
   settings.setValue("DialogSelectRosTopics.geometry", saveGeometry());
-  delete ui;
 }
 
 DialogSelectRosTopics::Configuration DialogSelectRosTopics::getResult() const

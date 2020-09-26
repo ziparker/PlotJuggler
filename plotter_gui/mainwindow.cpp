@@ -45,6 +45,7 @@
 #include "cheatsheet/video_cheatsheet.h"
 #include "preferences_dialog.h"
 
+
 MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::MainWindow)
@@ -54,7 +55,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   , _streaming_shortcut(QKeySequence(Qt::CTRL + Qt::Key_Space), this)
   , _playback_shotcut(Qt::Key_Space, this)
   , _minimized(false)
-  , _current_streamer(nullptr)
+  , _active_streamer_plugin(nullptr)
   , _disable_undo_logging(false)
   , _tracker_time(0)
   , _tracker_param(CurveTracker::VALUE)
@@ -86,6 +87,23 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
     int buffer_size = std::max(10, commandline_parser.value("buffer_size").toInt());
     ui->streamingSpinBox->setMaximum(buffer_size);
   }
+
+  _animated_streaming_movie = new QMovie(":/resources/animated_radio.gif");
+  _animated_streaming_movie->setScaledSize(ui->labelStreamingAnimation->size());
+  _animated_streaming_movie->jumpToFrame( 0 );
+
+  _animated_streaming_timer = new QTimer();
+  _animated_streaming_timer->setSingleShot(true);
+
+  connect( _animated_streaming_timer, &QTimer::timeout,
+           this, [this]()
+  {
+    _animated_streaming_movie->stop();
+    _animated_streaming_movie->jumpToFrame( 0 );
+  });
+
+  ui->labelStreamingAnimation->setMovie(_animated_streaming_movie);
+  ui->labelStreamingAnimation->setHidden(true);
 
   connect(this, &MainWindow::stylesheetChanged, this, &MainWindow::on_stylesheetChanged);
 
@@ -189,7 +207,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   bool remove_time_offset = settings.value("MainWindow.removeTimeOffset", true).toBool();
   ui->pushButtonRemoveTimeOffset->setChecked(remove_time_offset);
 
-//  ui->widgetOptions->setVisible(ui->pushButtonOptions->isChecked());
+  //  ui->widgetOptions->setVisible(ui->pushButtonOptions->isChecked());
 
   //----------------------------------------------------------
   QIcon trackerIconA, trackerIconB, trackerIconC;
@@ -225,6 +243,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   QString theme = settings.value("Preferences::theme", "style_light").toString();
   emit stylesheetChanged(theme);
+
 }
 
 MainWindow::~MainWindow()
@@ -345,10 +364,6 @@ void MainWindow::initializeActions()
   connect(open_menu_shortcut, &QShortcut::activated,
           [this]() { ui->menuFile->exec(ui->menuBar->mapToGlobal(QPoint(0, 25))); });
 
-  QShortcut* open_streaming_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_S), this);
-  connect(open_streaming_shortcut, &QShortcut::activated,
-          [this]() { ui->menuStreaming->exec(ui->menuBar->mapToGlobal(QPoint(50, 25))); });
-
   QShortcut* open_publish_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_P), this);
   connect(open_publish_shortcut, &QShortcut::activated,
           [this]() { ui->menuPublishers->exec(ui->menuBar->mapToGlobal(QPoint(140, 25))); });
@@ -393,12 +408,15 @@ void MainWindow::initializePlugins(QString directory_name)
       DataStreamer* streamer = qobject_cast<DataStreamer*>(plugin);
 
       QString plugin_name;
-      if (loader)
+      if (loader){
         plugin_name = loader->name();
-      if (publisher)
+      }
+      if (publisher){
         plugin_name = publisher->name();
-      if (streamer)
+      }
+      if (streamer){
         plugin_name = streamer->name();
+      }
 
       if (loaded_plugins.find(plugin_name) == loaded_plugins.end())
       {
@@ -409,7 +427,7 @@ void MainWindow::initializePlugins(QString directory_name)
         QMessageBox::warning(this, tr("Warning"),
                              tr("Trying to load twice a plugin with name [%1].\n"
                                 "Only the first will be loaded.")
-                                 .arg(plugin_name));
+                             .arg(plugin_name));
         continue;
       }
 
@@ -466,18 +484,18 @@ void MainWindow::initializePlugins(QString directory_name)
         {
           _data_streamer.insert(std::make_pair(plugin_name, streamer));
 
-          QAction* startStreamer = new QAction(QString("Start: ") + plugin_name, this);
-          ui->menuStreaming->setEnabled(true);
-          ui->menuStreaming->addAction(startStreamer);
+          connect(streamer, &DataStreamer::connectionClosed, this,
+                  [this]() { this->stopStreamingPlugin(); } );
 
-          streamer->addActionsToParentMenu(ui->menuStreaming);
-          ui->menuStreaming->addSeparator();
+          connect(streamer, &DataStreamer::clearBuffers,
+                  this, &MainWindow::on_actionClearBuffer_triggered);
 
-          connect(startStreamer, &QAction::triggered, this, [=]() { on_actionStartStreaming(plugin_name); });
-
-          connect(streamer, &DataStreamer::connectionClosed, ui->actionStopStreaming, &QAction::trigger);
-
-          connect(streamer, &DataStreamer::clearBuffers, this, &MainWindow::on_actionClearBuffer_triggered);
+          connect(streamer, &DataStreamer::dataReceived,
+                  _animated_streaming_movie, [this]()
+          {
+            _animated_streaming_movie->start();
+            _animated_streaming_timer->start(500);
+          });
         }
       }
     }
@@ -488,6 +506,28 @@ void MainWindow::initializePlugins(QString directory_name)
         qDebug() << filename << ": " << pluginLoader.errorString();
       }
     }
+  }
+  if( !_data_streamer.empty() )
+  {
+    QSignalBlocker block(ui->comboStreaming);
+    ui->comboStreaming->setEnabled(true);
+    ui->buttonStreamingStart->setEnabled(true);
+
+    for(const auto& it: _data_streamer)
+    {
+      if( ui->comboStreaming->findText(it.first) == -1){
+        ui->comboStreaming->addItem(it.first);
+      }
+    }
+
+    // remember the previous one
+    QSettings settings;
+    QString streaming_name = settings.value("MainWindow.previousStreamingPlugin",
+                                            ui->comboStreaming->itemText(0)).toString();
+    ui->comboStreaming->setCurrentText(streaming_name);
+
+    bool contains_options = !_data_streamer.at(streaming_name)->addActionsToParentMenu().empty();
+    ui->buttonStreamingOptions->setEnabled(contains_options);
   }
 }
 
@@ -606,12 +646,12 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
   connect(plot, &PlotWidget::curvesDropped, _curvelist_widget, &CurveListPanel::clearSelections);
 
   connect(plot, &PlotWidget::legendSizeChanged, this, [=](int point_size)
-          {
-            auto visitor = [=](PlotWidget* p){
-              if(plot != p) p->setLegendSize(point_size);
-            };
-            this->forEachWidget(visitor);
-          });
+  {
+    auto visitor = [=](PlotWidget* p){
+      if(plot != p) p->setLegendSize(point_size);
+    };
+    this->forEachWidget(visitor);
+  });
 
   connect(plot, &PlotWidget::rectChanged, this, &MainWindow::onPlotZoomChanged);
 
@@ -1024,15 +1064,14 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
 
 bool MainWindow::isStreamingActive() const
 {
-  return ui->pushButtonStreaming->isChecked() && _current_streamer;
+  return !ui->buttonStreamingPause->isChecked() &&
+      _active_streamer_plugin;
 }
 
 bool MainWindow::loadDataFromFiles(QStringList filenames)
 {
   if (filenames.size() > 1)
   {
-    static bool show_me = true;
-
     QMessageBox msgbox;
     msgbox.setWindowTitle("Loading multiple files");
     msgbox.setText("You are loading multiple files at once. A prefix will be automatically added to the name of the "
@@ -1179,8 +1218,8 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
     catch (std::exception& ex)
     {
       QMessageBox::warning(
-          this, tr("Exception from the plugin"),
-          tr("The plugin [%1] thrown the following exception: \n\n %3\n").arg(dataloader->name()).arg(ex.what()));
+            this, tr("Exception from the plugin"),
+            tr("The plugin [%1] thrown the following exception: \n\n %3\n").arg(dataloader->name()).arg(ex.what()));
       return false;
     }
   }
@@ -1196,13 +1235,43 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
   return true;
 }
 
-
-void MainWindow::on_actionStartStreaming(QString streamer_name)
+void MainWindow::stopStreamingPlugin()
 {
-  if (_current_streamer)
+  ui->comboStreaming->setEnabled(true);
+  ui->buttonStreamingStart->setText("Start");
+  ui->buttonStreamingPause->setChecked(false);
+  ui->buttonStreamingPause->setEnabled(false);
+  ui->labelStreamingAnimation->setHidden(true);
+
+  _replot_timer->stop();
+
+  if( _active_streamer_plugin ) {
+    _active_streamer_plugin->shutdown();
+    _active_streamer_plugin = nullptr;
+  }
+
+  if (!_mapped_plot_data.numeric.empty())
   {
-    _current_streamer->shutdown();
-    _current_streamer = nullptr;
+    ui->actionDeleteAllData->setToolTip("");
+  }
+
+  // reset this.
+  for (auto& it : _mapped_plot_data.numeric)
+  {
+    it.second.setMaximumRangeX(std::numeric_limits<double>::max());
+  }
+  for (auto& it : _mapped_plot_data.user_defined)
+  {
+    it.second.setMaximumRangeX(std::numeric_limits<double>::max());
+  }
+}
+
+void MainWindow::startStreamingPlugin(QString streamer_name)
+{
+  if (_active_streamer_plugin)
+  {
+    _active_streamer_plugin->shutdown();
+    _active_streamer_plugin = nullptr;
   }
 
   if (_data_streamer.empty())
@@ -1213,14 +1282,14 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
 
   if (_data_streamer.size() == 1)
   {
-    _current_streamer = _data_streamer.begin()->second;
+    _active_streamer_plugin = _data_streamer.begin()->second;
   }
   else if (_data_streamer.size() > 1)
   {
     auto it = _data_streamer.find(streamer_name);
     if (it != _data_streamer.end())
     {
-      _current_streamer = it->second;
+      _active_streamer_plugin = it->second;
     }
     else
     {
@@ -1233,7 +1302,7 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
   try
   {
     // TODO data sources
-    started = _current_streamer && _current_streamer->start(nullptr);
+    started = _active_streamer_plugin && _active_streamer_plugin->start(nullptr);
   }
   catch (std::runtime_error& err)
   {
@@ -1244,23 +1313,23 @@ void MainWindow::on_actionStartStreaming(QString streamer_name)
   if (started)
   {
     {
-      std::lock_guard<std::mutex> lock(_current_streamer->mutex());
-      importPlotDataMap(_current_streamer->dataMap(), true);
+      std::lock_guard<std::mutex> lock(_active_streamer_plugin->mutex());
+      importPlotDataMap(_active_streamer_plugin->dataMap(), true);
     }
 
-    for (auto& action : ui->menuStreaming->actions())
-    {
-      action->setEnabled(false);
-    }
     ui->actionClearBuffer->setEnabled(true);
-
-    ui->actionStopStreaming->setEnabled(true);
     ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
 
-    ui->pushButtonStreaming->setEnabled(true);
-    ui->pushButtonStreaming->setChecked(true);
     ui->pushButtonRemoveTimeOffset->setEnabled(false);
 
+    ui->buttonStreamingStart->setText("Stop");
+    ui->buttonStreamingPause->setEnabled(true);
+    ui->buttonStreamingPause->setChecked(false);
+    ui->comboStreaming->setEnabled(false);
+    ui->labelStreamingAnimation->setHidden(false);
+
+    // force start
+    on_buttonStreamingPause_toggled(false);
     on_streamingSpinBox_valueChanged(ui->streamingSpinBox->value());
   }
   else
@@ -1276,7 +1345,7 @@ void MainWindow::on_stylesheetChanged(QString style_dir)
   dynamic_cast<QApplication*>(QCoreApplication::instance())->setStyleSheet(styleFile.readAll());
 
   ui->pushButtonLoadDatafile->setIcon(LoadSvgIcon(":/resources/svg/save.svg", style_dir));
-  ui->pushButtonStreamingPause->setIcon(LoadSvgIcon(":/resources/svg/pause.svg", style_dir));
+  ui->buttonStreamingPause->setIcon(LoadSvgIcon(":/resources/svg/pause.svg", style_dir));
 
   ui->pushButtonZoomOut->setIcon(LoadSvgIcon(":/resources/svg/zoom_max.svg", style_dir));
   ui->playbackLoop->setIcon(LoadSvgIcon(":/resources/svg/loop.svg", style_dir));
@@ -1288,6 +1357,8 @@ void MainWindow::on_stylesheetChanged(QString style_dir)
   ui->pushButtonLink->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
   ui->pushButtonRemoveTimeOffset->setIcon(LoadSvgIcon(":/resources/svg/t0.svg", style_dir));
   ui->pushButtonLegend->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
+
+  ui->buttonStreamingOptions->setIcon(LoadSvgIcon(":/resources/svg/settings_cog.svg", style_dir));
 }
 
 void MainWindow::loadPluginState(const QDomElement& root)
@@ -1335,8 +1406,8 @@ QDomElement MainWindow::savePluginState(QDomDocument& doc)
     {
       QMessageBox::warning(this, tr("Error saving Plugin State to Layout"),
                            tr("The method xmlSaveState() returned\n<plugin ID=\"%1\">\ninstead of\n<plugin ID=\"%2\">")
-                               .arg(elem.attribute("ID"))
-                               .arg(expected_name));
+                           .arg(elem.attribute("ID"))
+                           .arg(expected_name));
     }
   };
 
@@ -1467,8 +1538,8 @@ bool MainWindow::loadLayoutFromFile(QString filename)
     QMessageBox msgBox(this);
     msgBox.setWindowTitle("Obsolate Layout version");
     msgBox.setText(tr("This Layout ID is not supported [%1].\nThis version of PlotJuggler use Layout ID [%2]")
-                       .arg(root.attribute("version"))
-                       .arg(LAYOUT_VERSION));
+                   .arg(root.attribute("version"))
+                   .arg(LAYOUT_VERSION));
 
     msgBox.setStandardButtons(QMessageBox::Abort);
     QPushButton* continueButton = msgBox.addButton(tr("Continue anyway"), QMessageBox::ActionRole);
@@ -1520,7 +1591,7 @@ bool MainWindow::loadLayoutFromFile(QString filename)
     {
       if (_data_streamer.count(streamer_name) != 0)
       {
-        on_actionStartStreaming(streamer_name);
+        startStreamingPlugin(streamer_name);
       }
       else
       {
@@ -1649,8 +1720,8 @@ void MainWindow::forEachWidget(std::function<void(PlotWidget*, PlotDocker*, int)
 
       for (int index = 0; index < matrix->plotCount(); index++)
       {
-          PlotWidget* plot = matrix->plotAt(index);
-          operation(plot, matrix, index);
+        PlotWidget* plot = matrix->plotAt(index);
+        operation(plot, matrix, index);
       }
     }
   };
@@ -1736,43 +1807,33 @@ void MainWindow::updateTimeOffset()
   onUndoableChange();
 }*/
 
-void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
+void MainWindow::on_buttonStreamingPause_toggled(bool paused)
 {
-  if (!_current_streamer)
+  if (!_active_streamer_plugin)
   {
-    streaming = false;
+    paused = true;
   }
 
-  ui->pushButtonRemoveTimeOffset->setEnabled(!streaming);
+  ui->pushButtonRemoveTimeOffset->setEnabled(paused);
+  ui->widgetPlay->setEnabled(paused);
 
-  if (streaming)
-  {
-    ui->pushButtonStreaming->setText("Streaming ON");
-  }
-  else
-  {
-    _replot_timer->stop();
-    ui->pushButtonStreaming->setText("Streaming OFF");
-  }
-
-  ui->widgetPlay->setEnabled(!streaming);
-
-  if (streaming && ui->pushButtonPlay->isChecked())
+  if (!paused && ui->pushButtonPlay->isChecked())
   {
     ui->pushButtonPlay->setChecked(false);
   }
 
-  forEachWidget([&](PlotWidget* plot) { plot->enableTracker(!streaming); });
+  forEachWidget([&](PlotWidget* plot) { plot->enableTracker(paused); });
 
-  emit activateStreamingMode(streaming);
+  emit activateStreamingMode(!paused);
 
-  if (_current_streamer && streaming)
+  if (_active_streamer_plugin && !paused)
   {
     _replot_timer->start();
     updateTimeOffset();
   }
   else
   {
+    _replot_timer->stop();
     updateDataAndReplot(true);
     onUndoableChange();
   }
@@ -1780,10 +1841,10 @@ void MainWindow::on_pushButtonStreaming_toggled(bool streaming)
 
 void MainWindow::on_streamingToggled()
 {
-  if (ui->pushButtonStreaming->isEnabled())
+  if (ui->buttonStreamingStart->isEnabled())
   {
-    bool streaming = ui->pushButtonStreaming->isChecked();
-    ui->pushButtonStreaming->setChecked(!streaming);
+    bool streaming = ui->buttonStreamingStart->isChecked();
+    ui->buttonStreamingStart->setChecked(!streaming);
   }
   else
   {
@@ -1797,12 +1858,17 @@ void MainWindow::on_streamingToggled()
 
 void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
 {
-  if (_current_streamer)
+  bool data_updated = false;
+
+  if (_active_streamer_plugin)
   {
     std::vector<QString> curvelist_added;
+
     {
-      std::lock_guard<std::mutex> lock(_current_streamer->mutex());
-      curvelist_added = MoveData(_current_streamer->dataMap(), _mapped_plot_data);
+      std::lock_guard<std::mutex> lock(_active_streamer_plugin->mutex());
+      auto res = MoveData(_active_streamer_plugin->dataMap(), _mapped_plot_data);
+      curvelist_added = res.first;
+      data_updated = res.second;
     }
 
     for (const auto& str : curvelist_added)
@@ -1816,18 +1882,26 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
     }
   }
 
-  for (auto& custom_it : _custom_plots)
-  {
-    auto* dst_plot = &_mapped_plot_data.numeric.at(custom_it.first);
-    custom_it.second->calculate(_mapped_plot_data, dst_plot);
-  }
-
   const bool is_streaming_active = isStreamingActive();
 
+
+  if( data_updated )
+  {
+    for (auto& custom_it : _custom_plots)
+    {
+      auto* dst_plot = &_mapped_plot_data.numeric.at(custom_it.first);
+      custom_it.second->calculate(_mapped_plot_data, dst_plot);
+    }
+
+    forEachWidget([](PlotWidget* plot) {
+      plot->updateCurves();
+    });
+  }
+
   forEachWidget([is_streaming_active](PlotWidget* plot) {
-    plot->updateCurves();
     plot->setZoomEnabled(!is_streaming_active);
   });
+
 
   //--------------------------------
   // trigger again the execution of this callback if steaming == true
@@ -1836,7 +1910,6 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
     auto range = calculateVisibleRangeX();
     double max_time = std::get<1>(range);
     _tracker_time = max_time;
-
     onTrackerTimeUpdated(_tracker_time, false);
   }
   else
@@ -1845,21 +1918,24 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
     updateTimeSlider();
   }
   //--------------------------------
-  for (const auto& it : TabbedPlotWidget::instances())
+  if( data_updated )
   {
-    if (replot_hidden_tabs)
+    for (const auto& it : TabbedPlotWidget::instances())
     {
-      QTabWidget* tabs = it.second->tabWidget();
-      for (int index = 0; index < tabs->count(); index++)
+      if (replot_hidden_tabs)
       {
-        PlotDocker* matrix = static_cast<PlotDocker*>(tabs->widget(index));
-        matrix->zoomOut();
+        QTabWidget* tabs = it.second->tabWidget();
+        for (int index = 0; index < tabs->count(); index++)
+        {
+          PlotDocker* matrix = static_cast<PlotDocker*>(tabs->widget(index));
+          matrix->zoomOut();
+        }
       }
-    }
-    else
-    {
-      PlotDocker* matrix = it.second->currentTab();
-      matrix->zoomOut();  // includes replot
+      else
+      {
+        PlotDocker* matrix = it.second->currentTab();
+        matrix->zoomOut();  // includes replot
+      }
     }
   }
 }
@@ -1883,41 +1959,13 @@ void MainWindow::on_streamingSpinBox_valueChanged(int value)
     it.second.setMaximumRangeX(real_value);
   }
 
-  if (_current_streamer)
+  if (_active_streamer_plugin)
   {
-    _current_streamer->setMaximumRange(real_value);
+    _active_streamer_plugin->setMaximumRange(real_value);
   }
 }
 
-void MainWindow::on_actionStopStreaming_triggered()
-{
-  ui->pushButtonStreaming->setChecked(false);
-  ui->pushButtonStreaming->setEnabled(false);
-  _replot_timer->stop();
-  _current_streamer->shutdown();
-  _current_streamer = nullptr;
 
-  for (auto& action : ui->menuStreaming->actions())
-  {
-    action->setEnabled(true);
-  }
-  ui->actionStopStreaming->setEnabled(false);
-
-  if (!_mapped_plot_data.numeric.empty())
-  {
-    ui->actionDeleteAllData->setToolTip("");
-  }
-
-  // reset this.
-  for (auto& it : _mapped_plot_data.numeric)
-  {
-    it.second.setMaximumRangeX(std::numeric_limits<double>::max());
-  }
-  for (auto& it : _mapped_plot_data.user_defined)
-  {
-    it.second.setMaximumRangeX(std::numeric_limits<double>::max());
-  }
-}
 
 void MainWindow::on_actionExit_triggered()
 {
@@ -1938,7 +1986,7 @@ void MainWindow::on_pushButtonRemoveTimeOffset_toggled(bool)
 
 void MainWindow::on_pushButtonOptions_toggled(bool checked)
 {
-//  ui->widgetOptions->setVisible(checked);
+  //  ui->widgetOptions->setVisible(checked);
 }
 
 void MainWindow::updatedDisplayTime()
@@ -2052,10 +2100,10 @@ void MainWindow::closeEvent(QCloseEvent* event)
   _replot_timer->stop();
   _publish_timer->stop();
 
-  if (_current_streamer)
+  if (_active_streamer_plugin)
   {
-    _current_streamer->shutdown();
-    _current_streamer = nullptr;
+    _active_streamer_plugin->shutdown();
+    _active_streamer_plugin = nullptr;
   }
   QSettings settings;
   settings.setValue("MainWindow.geometry", saveGeometry());
@@ -2505,10 +2553,10 @@ void MainWindow::on_actionSaveLayout_triggered()
     }
     root.appendChild(loaded_list);
 
-    if (_current_streamer)
+    if (_active_streamer_plugin)
     {
       QDomElement loaded_streamer = doc.createElement("previouslyLoaded_Streamer");
-      QString streamer_name = _current_streamer->name();
+      QString streamer_name = _active_streamer_plugin->name();
       loaded_streamer.setAttribute("name", streamer_name);
       root.appendChild(loaded_streamer);
     }
@@ -2552,7 +2600,7 @@ void MainWindow::onActionFullscreenTriggered()
   _minimized = !_minimized;
 
   ui->leftMainWindowFrame->setVisible(!_minimized);
-//  ui->widgetOptions->setVisible(!_minimized && ui->pushButtonOptions->isChecked());
+  //  ui->widgetOptions->setVisible(!_minimized && ui->pushButtonOptions->isChecked());
   ui->widgetTimescale->setVisible(!_minimized);
   ui->menuBar->setVisible(!_minimized);
 
@@ -2690,15 +2738,15 @@ void MainWindow::on_pushButtonLegend_clicked()
 {
   switch (_labels_status)
   {
-    case LabelStatus::LEFT:
-      _labels_status = LabelStatus::HIDDEN;
-      break;
-    case LabelStatus::RIGHT:
-      _labels_status = LabelStatus::LEFT;
-      break;
-    case LabelStatus::HIDDEN:
-      _labels_status = LabelStatus::RIGHT;
-      break;
+  case LabelStatus::LEFT:
+    _labels_status = LabelStatus::HIDDEN;
+    break;
+  case LabelStatus::RIGHT:
+    _labels_status = LabelStatus::LEFT;
+    break;
+  case LabelStatus::HIDDEN:
+    _labels_status = LabelStatus::RIGHT;
+    break;
   }
 
   auto visitor = [=](PlotWidget* plot)
@@ -2728,3 +2776,67 @@ void MainWindow::on_pushButtonZoomOut_clicked()
   this->forEachWidget(visitor);
   onUndoableChange();
 }
+
+void MainWindow::on_comboStreaming_currentIndexChanged(const QString &current_text)
+{
+  QSettings settings;
+  settings.setValue("MainWindow.previousStreamingPlugin", current_text );
+  auto streamer = _data_streamer.at( current_text );
+  ui->buttonStreamingOptions->setEnabled( !streamer->addActionsToParentMenu().empty() );
+}
+
+void MainWindow::on_buttonStreamingStart_clicked()
+{
+  if( ui->buttonStreamingStart->text() == "Start")
+  {
+    startStreamingPlugin( ui->comboStreaming->currentText() );
+  }
+  else {
+    stopStreamingPlugin();
+  }
+}
+
+
+PopupMenu::PopupMenu(QWidget *relative_widget, QWidget *parent):
+  QMenu(parent), _w(relative_widget)
+{
+}
+
+void PopupMenu::showEvent(QShowEvent *)
+{
+  QPoint p = _w->mapToGlobal( {} );
+  QRect geo = _w->geometry();
+  this->move( p.x() + geo.width(), p.y() );
+}
+
+void PopupMenu::leaveEvent(QEvent *)
+{
+  close();
+}
+
+void PopupMenu::closeEvent(QCloseEvent *)
+{
+  _w->setAttribute(Qt::WA_UnderMouse, false);
+}
+
+void MainWindow::on_pushButtonLoadRecent_clicked()
+{
+  PopupMenu* menu = new PopupMenu(ui->pushButtonLoadRecent, this);
+
+  for(auto action: ui->menuRecentData->actions()) {
+    menu->addAction(action);
+  }
+  menu->exec();
+}
+
+void MainWindow::on_buttonStreamingOptions_clicked()
+{
+  auto streamer = _data_streamer.at( ui->comboStreaming->currentText() );
+
+  PopupMenu* menu = new PopupMenu(ui->buttonStreamingOptions, this);
+  for( auto action: streamer->addActionsToParentMenu() ) {
+    menu->addAction(action);
+  }
+  menu->show();
+}
+

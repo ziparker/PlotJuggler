@@ -32,6 +32,9 @@ DataStreamROS::DataStreamROS() : DataStreamer(), _node(nullptr)
   connect(_periodic_timer, &QTimer::timeout, this, &DataStreamROS::timerCallback);
 
   loadDefaultSettings();
+
+  _action_saveIntoRosbag = new QAction(QString("Save cached value in a rosbag"));
+  connect(_action_saveIntoRosbag, &QAction::triggered, this, [this]() { DataStreamROS::saveIntoRosbag(); });
 }
 
 void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr& msg, const std::string& topic_name)
@@ -40,6 +43,8 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
   {
     return;
   }
+
+  emit dataReceived();
 
   using namespace RosIntrospection;
   const auto& md5sum = msg->getMD5Sum();
@@ -52,9 +57,7 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
   RosIntrospectionFactory::registerMessage(topic_name, md5sum, datatype, definition);
 
   //------------------------------------
-
-  // it is more efficient to recycle this elements
-  static std::vector<uint8_t> buffer;
+  std::vector<uint8_t> buffer;
 
   buffer.resize(msg->size());
 
@@ -80,7 +83,7 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
     {
       it.second.clear();
     }
-    for (auto& it : dataMap().user_defined)
+    for (auto& it : _user_defined_buffers)
     {
       it.second.clear();
     }
@@ -100,10 +103,12 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
   // adding raw serialized msg for future uses.
   // do this before msg_time normalization
   {
-    auto plot_pair = dataMap().user_defined.find(prefixed_topic_name);
-    if (plot_pair == dataMap().user_defined.end())
+    auto plot_pair = _user_defined_buffers.find(prefixed_topic_name);
+    if (plot_pair == _user_defined_buffers.end())
     {
-      plot_pair = dataMap().addUserDefined(prefixed_topic_name);
+      plot_pair = _user_defined_buffers.emplace(std::piecewise_construct,
+                                                std::forward_as_tuple(prefixed_topic_name),
+                                                std::forward_as_tuple(prefixed_topic_name)).first;
     }
     PlotDataAny& user_defined_data = plot_pair->second;
     user_defined_data.pushBack(PlotDataAny::Point(msg_time, nonstd::any(std::move(buffer))));
@@ -190,9 +195,9 @@ void DataStreamROS::timerCallback()
   }
 }
 
-void DataStreamROS::saveIntoRosbag(const PlotDataMapRef& data)
+void DataStreamROS::saveIntoRosbag()
 {
-  if (data.user_defined.empty())
+  if (_user_defined_buffers.empty())
   {
     QMessageBox::warning(nullptr, tr("Warning"), tr("Your buffer is empty. Nothing to save.\n"));
     return;
@@ -214,14 +219,15 @@ void DataStreamROS::saveIntoRosbag(const PlotDataMapRef& data)
   {
     rosbag::Bag rosbag(fileName.toStdString(), rosbag::bagmode::Write);
 
-    for (const auto& it : data.user_defined)
+    for (const auto& it : _user_defined_buffers)
     {
       const std::string& topicname = it.first;
       const auto& plotdata = it.second;
 
       auto registered_msg_type = RosIntrospectionFactory::get().getShapeShifter(topicname);
-      if (!registered_msg_type)
+      if (!registered_msg_type){
         continue;
+      }
 
       RosIntrospection::ShapeShifter msg;
       msg.morph(registered_msg_type->getMD5Sum(), registered_msg_type->getDataType(),
@@ -430,12 +436,9 @@ bool DataStreamROS::xmlLoadState(const QDomElement& parent_element)
   return true;
 }
 
-void DataStreamROS::addActionsToParentMenu(QMenu* menu)
+std::vector<QAction*> DataStreamROS::addActionsToParentMenu()
 {
-  _action_saveIntoRosbag = new QAction(QString("Save cached value in a rosbag"), menu);
-  menu->addAction(_action_saveIntoRosbag);
-
-  connect(_action_saveIntoRosbag, &QAction::triggered, this, [this]() { DataStreamROS::saveIntoRosbag(dataMap()); });
+  return {_action_saveIntoRosbag};
 }
 
 void DataStreamROS::saveDefaultSettings()

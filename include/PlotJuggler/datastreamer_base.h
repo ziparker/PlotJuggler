@@ -45,10 +45,13 @@ public:
 
 signals:
 
+  // Request to clear previous data
   void clearBuffers();
 
-  void dataUpdated();
+  // signal published periodically when there is new data
+  void dataReceived();
 
+  // Stopping a plugin from the "inside"
   void connectionClosed();
 
 private:
