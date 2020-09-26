@@ -8,27 +8,27 @@
 #include "custom_function.h"
 #include "qwt_plot_curve.h"
 #include "ui_function_editor.h"
+#include "plotwidget.h"
 
 class FunctionEditorWidget : public QWidget
 {
   Q_OBJECT
 
 public:
-  explicit FunctionEditorWidget(PlotDataMapRef& plotMapData, const CustomPlotMap& mapped_custom_plots, QWidget* parent);
+  explicit FunctionEditorWidget(PlotDataMapRef& plotMapData,
+                                const CustomPlotMap& mapped_custom_plots,
+                                QWidget* parent);
   virtual ~FunctionEditorWidget() override;
 
   void setLinkedPlotName(const QString& linkedPlotName);
 
   enum EditorMode
   {
-    FUNCTION_OR_TIMESERIES,
-    TIMESERIES_ONLY,
-    FUNCTION_ONLY
+    CREATE,
+    MODIFY
   };
 
   void clear();
-
-  void setEditorMode(EditorMode mode);
 
   QString getLinkedData() const;
   QString getGlobalVars() const;
@@ -36,8 +36,10 @@ public:
   QString getName() const;
 
   const PlotData& getPlotData() const;
+
+  void createNewPlot();
+
   void editExistingPlot(CustomPlotPtr data);
- // CustomPlotPtr getCustomPlotData() const;
 
   bool eventFilter(QObject *obj, QEvent *event) override;
 
@@ -55,7 +57,7 @@ private slots:
 
   void on_buttonSaveFunctions_clicked();
 
-  void on_pushButtonSave_clicked();
+  void on_buttonSaveCurrent_clicked();
 
   void onRenameSaved();
 
@@ -71,6 +73,12 @@ private slots:
   
   void on_lineEditSource_textChanged(const QString &text);
 
+  void on_mathEquation_textChanged();
+
+  void on_globalVarsTextField_textChanged();
+
+  void on_updatePreview();
+
 private:
   void importSnippets(const QByteArray& xml_text);
 
@@ -78,16 +86,24 @@ private:
 
   bool addToSaved(const QString& name, const SnippetData& snippet);
 
+  void updatePreview();
+
+  QTimer _update_preview_timer;
+
   PlotDataMapRef& _plot_map_data;
   const CustomPlotMap& _custom_plots;
   Ui::FunctionEditor* ui;
 
-  bool _is_new;
   int _v_count;
 
   SnippetsMap _snipped_saved;
 
   QStringList _dragging_curves;
+
+  PlotDataMapRef _local_plot_data;
+  PlotWidget* _preview_widget;
+
+  EditorMode _editor_mode;
 
 signals:
   void accept(CustomPlotPtr plot);

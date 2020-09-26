@@ -29,6 +29,7 @@ DialogTransformEditor::DialogTransformEditor(PlotWidget* plotwidget) :
   layout->addWidget(_plotwidget);
 
   _plotwidget->zoomOut(false);
+  _plotwidget->setContextMenuEnabled(false);
 
   QPalette pal = palette();
   pal.setColor(QPalette::Background, Qt::white);

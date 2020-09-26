@@ -659,14 +659,15 @@ QWidget#widgetLabelLoad,
 QWidget#widgetLabelStreaming,
 QWidget#widgetLabelTimeseries
 {
-    background-color: #556677;
+    background-color: #555555;
+    border: 1px solid black;
 }
 
 QWidget#widgetLabelLoad QLabel,
 QWidget#widgetLabelStreaming QLabel,
 QWidget#widgetLabelTimeseries QLabel
 {
-    color: #F0F0F0;
+    color: #FFFFFF;
 }
 
 

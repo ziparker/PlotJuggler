@@ -37,6 +37,7 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   _plotwidget = new PlotWidget(plotwidget->datamap());
   _plotwidget->xmlLoadState(saved_state);
   _plotwidget->on_changeTimeOffset( plotwidget->timeOffset() );
+  _plotwidget->setContextMenuEnabled(false);
 
   _bounding_rect_original = _plotwidget_origin->canvasBoundingRect();
 

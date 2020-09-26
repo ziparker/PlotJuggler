@@ -2086,14 +2086,23 @@ void MainWindow::closeEvent(QCloseEvent* event)
   }
 }
 
-void MainWindow::onAddCustomPlot(const std::string& linked_name)
+void MainWindow::onAddCustomPlot(const std::string& plot_name)
 {
-  addOrEditMathPlot(linked_name, false);
+  ui->widgetStack->setCurrentIndex(1);
+  _function_editor->setLinkedPlotName(QString::fromStdString(plot_name));
+  _function_editor->createNewPlot();
 }
 
 void MainWindow::onEditCustomPlot(const std::string& plot_name)
 {
-  addOrEditMathPlot(plot_name, true);
+  ui->widgetStack->setCurrentIndex(1);
+  auto custom_it = _custom_plots.find(plot_name);
+  if (custom_it == _custom_plots.end())
+  {
+    qWarning("failed to find custom equation");
+    return;
+  }
+  _function_editor->editExistingPlot(custom_it->second);
 }
 
 void MainWindow::onRefreshCustomPlot(const std::string& plot_name)
@@ -2119,29 +2128,6 @@ void MainWindow::onRefreshCustomPlot(const std::string& plot_name)
   }
 }
 
-void MainWindow::addOrEditMathPlot(const std::string& name, bool modifying)
-{
-  ui->widgetStack->setCurrentIndex(1);
-
-  if (!modifying)
-  {
-    _function_editor->setLinkedPlotName(QString::fromStdString(name));
-    _function_editor->setEditorMode(FunctionEditorWidget::FUNCTION_OR_TIMESERIES);
-  }
-  else
-  {
-    _function_editor->setEditorMode(FunctionEditorWidget::TIMESERIES_ONLY);
-
-    auto custom_it = _custom_plots.find(name);
-    if (custom_it == _custom_plots.end())
-    {
-      qWarning("failed to find custom equation");
-      return;
-    }
-    _function_editor->editExistingPlot(custom_it->second);
-  }
-
-}
 
 void MainWindow::onPlaybackLoop()
 {
@@ -2583,7 +2569,6 @@ void MainWindow::on_actionLoadDummyData_triggered()
 
 void MainWindow::on_actionFunctionEditor_triggered()
 {
-  _function_editor->setEditorMode(FunctionEditorWidget::FUNCTION_ONLY);
   ui->widgetStack->setCurrentIndex(1);
 }
 

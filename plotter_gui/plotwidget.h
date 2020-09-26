@@ -31,6 +31,8 @@ class PlotWidget : public QwtPlot
 public:
   PlotWidget(PlotDataMapRef& datamap, QWidget* parent = nullptr);
 
+  void setContextMenuEnabled(bool enabled);
+
   virtual ~PlotWidget() override;
 
   bool isEmpty() const;
@@ -57,6 +59,8 @@ public:
   {
     return _legend;
   }
+
+  bool addCurve(const std::string& name, QColor color = Qt::transparent);
 
   void setLegendSize(int size);
 
@@ -221,8 +225,6 @@ private:
 
   DragInfo _dragging;
 
-  bool addCurve(const std::string& name);
-
   bool addCurveXY(std::string name_x, std::string name_y, QString curve_name = "");
 
   void buildActions();
@@ -252,6 +254,8 @@ private:
   bool _keep_aspect_ratio;
 
   QRectF _max_zoom_rect;
+
+  bool _context_menu_enabled;
 
   void transformCustomCurves();
   void updateMaximumZoomArea();

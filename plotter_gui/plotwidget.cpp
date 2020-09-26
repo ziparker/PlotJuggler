@@ -215,6 +215,11 @@ PlotWidget::PlotWidget(PlotDataMapRef& datamap, QWidget* parent)
   leftAxis->installEventFilter(this);
 }
 
+void PlotWidget::setContextMenuEnabled(bool enabled)
+{
+  _context_menu_enabled = enabled;
+}
+
 void PlotWidget::buildActions()
 {
   QIcon iconDeleteList;
@@ -281,6 +286,11 @@ void PlotWidget::buildActions()
 
 void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
 {
+  if( _context_menu_enabled == false )
+  {
+    return;
+  }
+
   QSettings settings;
   QString theme = settings.value("Preferences::theme", "style_light").toString();
 
@@ -323,7 +333,8 @@ PlotWidget::~PlotWidget()
 {
 }
 
-bool PlotWidget::addCurve(const std::string& name)
+
+bool PlotWidget::addCurve(const std::string& name, QColor color )
 {
   auto it = _mapped_data.numeric.find(name);
   if (it == _mapped_data.numeric.end())
@@ -354,7 +365,9 @@ bool PlotWidget::addCurve(const std::string& name)
     return false;
   }
 
-  QColor color = getColorHint(&data);
+  if( color == Qt::transparent ){
+    color = getColorHint(&data);
+  }
   curve->setPen(color, (_curve_style == QwtPlotCurve::Dots) ? 4.0 : 1.3);
   curve->setStyle(_curve_style);
 

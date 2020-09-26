@@ -20,7 +20,7 @@ void LuaCustomFunction::initEngine()
   }
 
   calcMethodStr += QString(")\n%1\nend").arg(snippet().function);
-  _lua_engine->script(calcMethodStr.toStdString());
+  _lua_engine->safe_script(calcMethodStr.toStdString());
 
   _lua_function = (*_lua_engine)["calc"];
 }

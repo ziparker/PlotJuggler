@@ -162,8 +162,6 @@ private:
 
   std::tuple<double, double, int> calculateVisibleRangeX();
 
-  void addOrEditMathPlot(const std::string& name, bool edit);
-
   void deleteAllData();
 
   void updateRecentDataMenu(QStringList new_filenames);

@@ -201,7 +201,6 @@ SnippetData GetSnippetFromXML(const QDomElement &element)
 }
 
 
-
 QDomElement ExportSnippetToXML(const SnippetData &snippet, QDomDocument &doc)
 {
   auto element = doc.createElement("snippet");
