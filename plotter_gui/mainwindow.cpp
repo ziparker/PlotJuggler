@@ -242,8 +242,11 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   connect(_function_editor, &FunctionEditorWidget::accept,
           this, &MainWindow::onCustomPlotCreated);
 
-  QString style_dir = settings.value("Preferences::theme", "style_light").toString();
-  loadStyleSheet(tr(":/%1/stylesheet.qss").arg(style_dir));
+  QString theme = settings.value("Preferences::theme", "light").toString();
+  if( theme != "dark") {
+    theme = "light";
+  }
+  loadStyleSheet(tr(":/resources/stylesheet_%1.qss").arg(theme));
 }
 
 MainWindow::~MainWindow()
@@ -2659,16 +2662,16 @@ void MainWindow::on_actionDeleteAllData_triggered()
 void MainWindow::on_actionPreferences_triggered()
 {
   QSettings settings;
-  QString prev_style = settings.value("Preferences::theme", "style_light").toString();
+  QString prev_style = settings.value("Preferences::theme", "light").toString();
 
   PreferencesDialog dialog;
   dialog.exec();
 
-  QString style_dir = settings.value("Preferences::theme", "style_light").toString();
+  QString theme = settings.value("Preferences::theme").toString();
 
-  if (style_dir != prev_style)
+  if (theme != prev_style)
   {
-    loadStyleSheet(tr(":/%1/stylesheet.qss").arg(style_dir));
+    loadStyleSheet(tr(":/resources/stylesheet_%1.qss").arg(theme));
   }
 }
 

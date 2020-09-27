@@ -44,8 +44,8 @@ void PlotZoomer::widgetMouseMoveEvent(QMouseEvent* me)
         if (!_zoom_enabled)
         {
           QSettings settings;
-          QString theme = settings.value("Preferences::theme", "style_light").toString();
-          QPixmap pixmap(tr(":/%1/zoom_in.png").arg(theme));
+          QString theme = settings.value("Preferences::theme", "light").toString();
+          QPixmap pixmap(tr(":/style_%1/zoom_in.png").arg(theme));
           QCursor zoom_cursor(pixmap.scaled(24, 24));
 
           _zoom_enabled = true;

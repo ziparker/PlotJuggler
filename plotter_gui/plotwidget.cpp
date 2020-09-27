@@ -1681,8 +1681,8 @@ bool PlotWidget::eventFilter(QObject* obj, QEvent* event)
 void PlotWidget::overrideCursonMove()
 {
   QSettings settings;
-  QString theme = settings.value("Preferences::theme", "style_light").toString();
-  QPixmap pixmap(tr(":/%1/move.png").arg(theme));
+  QString theme = settings.value("Preferences::theme", "light").toString();
+  QPixmap pixmap(tr(":/style_%1/move.png").arg(theme));
   QApplication::setOverrideCursor(QCursor(pixmap.scaled(24, 24)));
 }
 

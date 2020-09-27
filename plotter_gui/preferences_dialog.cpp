@@ -6,8 +6,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent), ui(new 
 {
   ui->setupUi(this);
   QSettings settings;
-  QString theme = settings.value("Preferences::theme").toString();
-  if (theme == "style_dark")
+  QString theme = settings.value("Preferences::theme", "light").toString();
+  if (theme == "dark")
   {
     ui->comboBoxTheme->setCurrentIndex(1);
   }
@@ -32,9 +32,7 @@ PreferencesDialog::~PreferencesDialog()
 void PreferencesDialog::on_buttonBox_accepted()
 {
   QSettings settings;
-  settings.setValue("Preferences::theme", ui->comboBoxTheme->currentIndex() == 1 ? "style_dark" : "style_light");
-
+  settings.setValue("Preferences::theme", ui->comboBoxTheme->currentIndex() == 1 ? "dark" : "light");
   settings.setValue("Preferences::remember_color", ui->checkBoxRememberColor->isChecked());
-
   settings.setValue("Preferences::use_plot_color_index", ui->radioLocalColorIndex->isChecked());
 }

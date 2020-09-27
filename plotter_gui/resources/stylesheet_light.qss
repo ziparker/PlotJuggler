@@ -1,21 +1,21 @@
 //------- PALETTE START --------
 
-theme: dark
+theme: light
 
-widget_background: #2A3A4A
-main_background: #223344
-dark_background: #112233
+widget_background: #ffffff
+main_background: #eeeeee
+dark_background: #dddddd
 
-default_text:  #F0F0F0
-disabled_text: #777777
+default_text:  #111111
+disabled_text: #666666
 
-widget_background_disabled: transparent;
+widget_background_disabled: #dddddd;
 
-border_default: #555555
-border_hover:   #148CD2
+border_default: grey
+border_hover:   #62c5ff
 border_checked: #1177ff
 
-item_selection_background: #148CD2
+item_selection_background: #62c5ff
 
 //------- PALETTE END --------
 
@@ -566,7 +566,7 @@ QPushButton:checked:hover{
 QComboBox {
     color: ${default_text};
     background-color: ${widget_background};
-    selection-background-color:  #b5b5b5;
+    selection-background-color: ${border_hover};
     border-radius: 2px;
     border: 1px solid ${border_default};
     padding-top: 2px;     /* This fix  #103, #111*/
@@ -722,7 +722,8 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmenubar
 
 --------------------------------------------------------------------------- */
 QMenuBar {
-  background: #111111;
+  background: #333333;
+  color: #eeeeee;
   border: 0px solid ${border_default};
 }
 
@@ -763,7 +764,7 @@ QWidget#widgetLabelLoad,
 QWidget#widgetLabelStreaming,
 QWidget#widgetLabelTimeseries
 {
-    background-color: #102030;
+    background-color: #555555;
     border: 1px solid black;
 }
 
@@ -791,7 +792,7 @@ QWidget#plottingArea{
 }
 
 QWidget#plottingArea QMenu{
-  background-color: ${main_background};
+  background-color: ${widget_background};
 }
 
 QSplitter#mainSplitter::handle {
@@ -838,4 +839,3 @@ QwtPlot {
 QDialog#PlotWidgetEditor QListView::item:selected {
     background-color: ${main_background};
 }
-

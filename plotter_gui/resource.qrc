@@ -23,7 +23,6 @@
         <file>style_light/radio_unchecked.svg</file>
         <file>style_light/radio_unchecked_disabled.svg</file>
         <file>style_light/radio_unchecked_focus.svg</file>
-        <file>style_light/stylesheet.qss</file>
         <file>style_light/window_close.png</file>
         <file>style_light/window_close_disabled.png</file>
         <file>style_light/window_close_focus.png</file>
@@ -121,7 +120,6 @@
         <file>cheatsheet/video/cheatsheet-xy.mp4</file>
         <file>cheatsheet/video/cheatsheet-zoom-area.mp4</file>
         <file>cheatsheet/video/cheatsheet-zoom-in-out.mp4</file>
-        <file>style_dark/stylesheet.qss</file>
         <file>resources/memes/meme_00.jpg</file>
         <file>resources/memes/meme_01.jpg</file>
         <file>resources/memes/meme_02.jpg</file>
@@ -270,6 +268,7 @@
         <file>style_light/branch_open_disabled.png</file>
         <file>style_light/branch_open_focus.png</file>
         <file>style_light/branch_open_pressed.png</file>
-        <file>style_light/stylesheet_dark.qss</file>
+        <file>resources/stylesheet_light.qss</file>
+        <file>resources/stylesheet_dark.qss</file>
     </qresource>
 </RCC>
