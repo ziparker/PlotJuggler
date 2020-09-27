@@ -32,6 +32,10 @@ public:
 
   bool eventFilter(QObject* object,QEvent* event) override;
 
+public slots:
+
+  void on_stylesheetChanged(QString theme);
+
 private:
   void mousePressEvent(QMouseEvent* ev) override;
   void mouseReleaseEvent(QMouseEvent* ev) override;
@@ -95,6 +99,10 @@ public:
 
   void replot();
 
+public slots:
+
+  void on_stylesheetChanged(QString theme);
+
 private:
 
   void restoreSplitter(QDomElement elem, DockWidget* widget);
@@ -110,5 +118,6 @@ signals:
   void undoableChange();
 
 };
+
 
 #endif // PLOT_DOCKER_H

@@ -25,19 +25,12 @@ DialogTransformEditor::DialogTransformEditor(PlotWidget* plotwidget) :
   _plotwidget->xmlLoadState(saved_state);
 
   auto layout = new QVBoxLayout();
-  ui->plotContainer->setLayout(layout);
+  ui->framePlotPreview->setLayout(layout);
   layout->addWidget(_plotwidget);
+  layout->setMargin(6);
 
   _plotwidget->zoomOut(false);
   _plotwidget->setContextMenuEnabled(false);
-
-  QPalette pal = palette();
-  pal.setColor(QPalette::Background, Qt::white);
-  ui->plotContainer->setAutoFillBackground(true);
-  ui->plotContainer->setPalette(pal);
-
-  ui->stackedWidgetArguments->setAutoFillBackground(true);
-  ui->stackedWidgetArguments->setPalette(pal);
 
   setupTable();
 

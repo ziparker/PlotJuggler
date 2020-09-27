@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>plotwidget_editor</class>
- <widget class="QDialog" name="plotwidget_editor">
+ <class>PlotWidgetEditor</class>
+ <widget class="QDialog" name="PlotWidgetEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>920</width>
-    <height>627</height>
+    <width>900</width>
+    <height>616</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -27,7 +27,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <widget class="QFrame" name="plotContainer">
+    <widget class="QFrame" name="framePlotPreview">
      <property name="minimumSize">
       <size>
        <width>800</width>
@@ -81,7 +81,7 @@
         <property name="minimumSize">
          <size>
           <width>300</width>
-          <height>250</height>
+          <height>0</height>
          </size>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -102,10 +102,16 @@
          </property>
          <item>
           <widget class="QListWidget" name="listWidget">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
              <width>300</width>
-             <height>150</height>
+             <height>0</height>
             </size>
            </property>
            <property name="maximumSize">

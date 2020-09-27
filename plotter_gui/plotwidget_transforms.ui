@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,1,0">
    <item>
-    <widget class="QFrame" name="plotContainer">
+    <widget class="QFrame" name="framePlotPreview">
      <property name="minimumSize">
       <size>
        <width>600</width>

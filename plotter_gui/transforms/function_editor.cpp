@@ -23,10 +23,46 @@
 #include <QMimeData>
 #include <QTableWidgetItem>
 #include <QTimer>
+#include <QSyntaxHighlighter>
 
 #include "lua_custom_function.h"
 #include "svg_util.h"
 #include "qml_custom_function.h"
+
+//class Highlighter : public QSyntaxHighlighter
+//{
+//    Q_OBJECT
+
+//public:
+//    Highlighter(QTextDocument *parent = nullptr);
+
+//protected:
+//    void highlightBlock(const QString &text) override;
+
+//private:
+//    struct HighlightingRule
+//    {
+//        QRegularExpression pattern;
+//        QTextCharFormat format;
+//    };
+//    QVector<HighlightingRule> highlightingRules;
+
+//    QRegularExpression commentStartExpression;
+//    QRegularExpression commentEndExpression;
+
+//    QTextCharFormat keywordFormat;
+//    QTextCharFormat classFormat;
+//    QTextCharFormat singleLineCommentFormat;
+//    QTextCharFormat multiLineCommentFormat;
+//    QTextCharFormat quotationFormat;
+//    QTextCharFormat functionFormat;
+//};
+
+
+
+
+
+
 
 FunctionEditorWidget::FunctionEditorWidget(PlotDataMapRef& plotMapData,
                                            const CustomPlotMap& mapped_custom_plots,
@@ -44,12 +80,14 @@ FunctionEditorWidget::FunctionEditorWidget(PlotDataMapRef& plotMapData,
 
   this->setWindowTitle("Create a custom timeseries");
 
-  const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+  QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+  fixedFont.setPointSize(10);
+
   ui->globalVarsTextField->setFont(fixedFont);
   ui->mathEquation->setFont(fixedFont);
-  ui->snippetTextEdit->setFont(fixedFont);
-  ui->pushButtonDeleteCurves->setIcon(LoadSvgIcon(":/resources/svg/remove_red.svg", "light"));
+  ui->snippetPreview->setFont(fixedFont);
 
+  ui->pushButtonDeleteCurves->setIcon(LoadSvgIcon(":/resources/svg/remove_red.svg", "light"));
   ui->buttonLoadFunctions->setIcon(LoadSvgIcon(":/resources/svg/import.svg", "light"));
   ui->buttonSaveFunctions->setIcon(LoadSvgIcon(":/resources/svg/export.svg", "light"));
   ui->buttonSaveCurrent->setIcon(LoadSvgIcon(":/resources/svg/save.svg", "light"));
@@ -87,9 +125,6 @@ FunctionEditorWidget::FunctionEditorWidget(PlotDataMapRef& plotMapData,
   connect(ui->snippetsListSaved, &QListWidget::customContextMenuRequested, this,
           &FunctionEditorWidget::savedContextMenu);
 
-  ui->splitter->setStretchFactor(0, 3);
-  ui->splitter->setStretchFactor(1, 2);
-
   ui->globalVarsTextField->setPlainText(settings.value("AddCustomPlotDialog.previousGlobals", "").toString());
 
   ui->mathEquation->setPlainText(settings.value("AddCustomPlotDialog.previousFunction", "return value").toString());
@@ -97,13 +132,8 @@ FunctionEditorWidget::FunctionEditorWidget(PlotDataMapRef& plotMapData,
   ui->lineEditSource->installEventFilter(this);
   ui->listAdditionalSources->installEventFilter(this);
 
-  QPalette pal = _preview_widget->palette();
-  pal.setColor(QPalette::Background, Qt::white);
-  ui->framePlotPreview->setAutoFillBackground(true);
-  ui->framePlotPreview->setPalette(pal);
-
   auto preview_layout = new QHBoxLayout( ui->framePlotPreview);
-  preview_layout->setMargin(4);
+  preview_layout->setMargin(6);
   preview_layout->addWidget(_preview_widget);
 
   _preview_widget->setContextMenuEnabled(false);
@@ -112,18 +142,6 @@ FunctionEditorWidget::FunctionEditorWidget(PlotDataMapRef& plotMapData,
 
   connect(&_update_preview_timer, &QTimer::timeout,
           this, &FunctionEditorWidget::on_updatePreview);
-
-//  if( _editor_mode == CREATE )
-//  {
-//    ui->lineEditSource->setEnabled(true);
-//    ui->pushButtonCreate->setText(true);
-//  }
-//  else if( _editor_mode == MODIFY ){
-//    ui->lineEditSource->setEnabled(false);
-//  }
-//  ui->label_linkeChannel->setVisible(_editor_mode != FUNCTION_ONLY);
-//  ui->pushButtonCreate->setVisible(_editor_mode != CREATE);
-//  ui->buttonSaveCurrent->setVisible(_editor_mode != TIMESERIES_ONLY);
 
   updatePreview();
 }
@@ -313,13 +331,33 @@ void FunctionEditorWidget::on_snippetsListSaved_currentRowChanged(int current_ro
 {
   if (current_row < 0)
   {
-    ui->snippetTextEdit->setPlainText("");
+    ui->snippetPreview->setPlainText("");
     return;
   }
   const auto& name = ui->snippetsListSaved->currentItem()->text();
   const SnippetData& snippet = _snipped_saved.at(name);
-  QString desc = QString("%1\n\nfunction calc(time,value)\n\n%2\nend").arg(snippet.globalVars).arg(snippet.function);
-  ui->snippetTextEdit->setPlainText(desc);
+
+  QString preview;
+
+  if( !snippet.globalVars.isEmpty() )
+  {
+    preview +=  snippet.globalVars + "\n\n";
+  }
+  preview += "function calc(time, value";
+
+  for (int i=1; i<= snippet.additionalSources.size(); i++)
+  {
+    preview += QString(", v%1").arg(i);
+  }
+
+  preview += ")\n";
+  auto function_lines = snippet.function.split("\n");
+  for (const auto& line: function_lines)
+  {
+       preview += "    " + line + "\n";
+  }
+  preview += "end";
+  ui->snippetPreview->setPlainText(preview);
 }
 
 void FunctionEditorWidget::on_snippetsListSaved_doubleClicked(const QModelIndex& index)

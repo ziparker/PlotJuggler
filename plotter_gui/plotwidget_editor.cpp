@@ -15,7 +15,7 @@ const double MAX_DOUBLE = std::numeric_limits<double>::max() / 2;
 
 PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   QDialog(parent),
-  ui(new Ui::plotwidget_editor),
+  ui(new Ui::PlotWidgetEditor),
   _plotwidget_origin(plotwidget)
 {
   ui->setupUi(this);
@@ -26,8 +26,8 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
 
   QPalette pal = palette();
   pal.setColor(QPalette::Background, Qt::white);
-  ui->plotContainer->setAutoFillBackground(true);
-  ui->plotContainer->setPalette(pal);
+  ui->framePlotPreview->setAutoFillBackground(true);
+  ui->framePlotPreview->setPalette(pal);
 
   setupColorWidget();
 
@@ -42,8 +42,9 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
   _bounding_rect_original = _plotwidget_origin->canvasBoundingRect();
 
   auto layout = new QVBoxLayout();
-  ui->plotContainer->setLayout(layout);
+  ui->framePlotPreview->setLayout(layout);
   layout->addWidget(_plotwidget);
+  layout->setMargin(6);
 
   _plotwidget->zoomOut(false);
 
@@ -89,7 +90,7 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
     ui->lineLimitMax->setText(QString::number(suggested_limits.max));
   }
 
-  ui->listWidget->setStyleSheet("QListView::item:selected { background: #ddeeff; }");
+  //ui->listWidget->widget_background_disabled("QListView::item:selected { background: #ddeeff; }");
 
   if( ui->listWidget->count() != 0 ){
     ui->listWidget->item(0)->setSelected(true);
@@ -144,6 +145,13 @@ void PlotwidgetEditor::setupColorWidget()
 
   connect(_color_wheel, &color_widgets::ColorWheel::colorChanged,
           _color_preview, &color_widgets::ColorPreview::setColor );
+
+  connect(_color_wheel, &color_widgets::ColorWheel::colorChanged,
+          this, [this](QColor col)
+  {
+    QSignalBlocker block( ui->editColotText );
+    ui->editColotText->setText( col.name() );
+  });
 
   _color_wheel->setColor(Qt::blue);
 }

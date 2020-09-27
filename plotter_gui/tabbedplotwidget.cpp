@@ -28,7 +28,7 @@ TabbedPlotWidget::TabbedPlotWidget(QString name, QMainWindow* mainwindow,
 {
   MainWindow* main_window = dynamic_cast<MainWindow*>(_main_window);
 
-  setContentsMargins(4,0,6,6);
+  setContentsMargins(0,0,0,0);
 
   if (main_window == parent)
   {
@@ -147,7 +147,11 @@ PlotDocker* TabbedPlotWidget::addTab(QString tab_name)
   layout->setMargin(0);
 
   QPushButton* close_button = new QPushButton();
-  close_button->setIcon(LoadSvgIcon(":/resources/svg/close-button.svg", "light"));
+
+  QSettings settings;
+  QString theme = settings.value("StyleSheet::theme", "light").toString();
+  close_button->setIcon(LoadSvgIcon(":/resources/svg/close-button.svg", theme));
+
   close_button->setFixedSize( QSize(16,16));
   close_button->setFlat(true);
   connect(close_button, &QPushButton::pressed,
@@ -247,164 +251,12 @@ void TabbedPlotWidget::on_renameCurrentTab()
   }
 }
 
-/*void TabbedPlotWidget::on_savePlotsToFile()
+
+void TabbedPlotWidget::on_stylesheetChanged(QString theme)
 {
-  int idx = tabWidget()->tabBar()->currentIndex();
-  PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(idx));
-
-  QFileDialog saveDialog(this);
-  saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-  saveDialog.selectFile(currentTab()->name());
-
-  QStringList filters;
-  filters << "png (*.png)"
-          << "jpg (*.jpg *.jpeg)"
-          << "svg (*.svg)";
-
-  saveDialog.setNameFilters(filters);
-  saveDialog.exec();
-
-  if (saveDialog.result() == QDialog::Accepted && !saveDialog.selectedFiles().empty())
-  {
-    QString fileName = saveDialog.selectedFiles().first();
-
-    QFileInfo fileinfo(fileName);
-    if (fileinfo.suffix().isEmpty())
-    {
-      auto filter = saveDialog.selectedNameFilter();
-      if (filter == filters[0])
-      {
-        fileName.append(".png");
-      }
-      else if (filter == filters[1])
-      {
-        fileName.append(".jpg");
-      }
-      else if (filter == filters[2])
-      {
-        fileName.append(".svg");
-      }
-    }
-    //saveTabImage(fileName, matrix);
-  }
-}*/
-
-/*void TabbedPlotWidget::saveTabImage(QString fileName, PlotDocker *matrix)
-{
-  bool is_svg = (QFileInfo(fileName).suffix().toLower() == "svg");
-
-  QPixmap pixmap(1200, 900);
-  QRect documentRect(0, 0, 1200, 900);
-
-  QSvgGenerator generator;
-  QPainter* painter = nullptr;
-
-  if (is_svg)
-  {
-    generator.setFileName(fileName);
-    generator.setResolution(80);
-    generator.setViewBox(documentRect);
-    painter = new QPainter(&generator);
-  }
-  else
-  {
-    painter = new QPainter(&pixmap);
-  }
-
-  if (fileName.isEmpty())
-  {
-    return;
-  }
-
-  QwtPlotRenderer rend;
-
-  int delta_X = pixmap.width() / matrix->colsCount();
-  int delta_Y = pixmap.height() / matrix->rowsCount();
-
-  for (unsigned c = 0; c < matrix->colsCount(); c++)
-  {
-    for (unsigned r = 0; r < matrix->rowsCount(); r++)
-    {
-      PlotWidget* widget = matrix->plotAt(r, c);
-      bool tracker_enabled = widget->isTrackerEnabled();
-      if (tracker_enabled)
-      {
-        widget->enableTracker(false);
-        widget->replot();
-      }
-
-      QRect rect(delta_X * c, delta_Y * r, delta_X, delta_Y);
-      rend.render(widget, painter, rect);
-
-      if (tracker_enabled)
-      {
-        widget->enableTracker(true);
-        widget->replot();
-      }
-    }
-  }
-  painter->end();
-  if (!is_svg)
-  {
-    pixmap.save(fileName);
-  }
-}
-*/
-
-void TabbedPlotWidget::on_stylesheetChanged(QString style_dir)
-{
-  // TODO
-  _buttonAddTab->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
-  //ui->pushButtonShowLabel->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
-  //_button_link_horizontal->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
+  _buttonAddTab->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", theme));
 }
 
-/*
-
-void TabbedPlotWidget::onMoveWidgetIntoNewTab(QString plot_name)
-{
-  int src_row, src_col;
-  PlotDocker* src_matrix = nullptr;
-  PlotWidget* source = nullptr;
-
-  for (int t = 0; t < tabWidget()->count(); t++)
-  {
-    PlotDocker* matrix = static_cast<PlotDocker*>(tabWidget()->widget(t));
-
-    for (unsigned row = 0; row < matrix->rowsCount(); row++)
-    {
-      for (unsigned col = 0; col < matrix->colsCount(); col++)
-      {
-        PlotWidget* plot = matrix->plotAt(row, col);
-        if (plot->windowTitle() == plot_name)
-        {
-          src_matrix = matrix;
-          src_row = row;
-          src_col = col;
-          source = plot;
-          break;
-        }
-      }
-    }
-  }
-
-  addTab();
-  PlotDocker* dst_matrix = currentTab();
-  PlotWidget* destination = dst_matrix->plotAt(0, 0);
-
-  src_matrix->gridLayout()->removeWidget(source);
-  dst_matrix->gridLayout()->removeWidget(destination);
-
-  src_matrix->gridLayout()->addWidget(destination, src_row, src_col);
-  dst_matrix->gridLayout()->addWidget(source, 0, 0);
-  source->changeBackgroundColor(Qt::white);
-  destination->changeBackgroundColor(Qt::white);
-
-  src_matrix->removeEmpty();
-  src_matrix->updateLayout();
-  dst_matrix->updateLayout();
-  emit undoableChange();
-}*/
 
 void TabbedPlotWidget::on_addTabButton_pressed()
 {

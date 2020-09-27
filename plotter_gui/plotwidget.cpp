@@ -293,21 +293,20 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   }
 
   QSettings settings;
-  QString theme = settings.value("Preferences::theme", "style_light").toString();
+  QString theme = settings.value("StyleSheet::theme", "light").toString();
 
-  _action_removeAllCurves->setIcon( LoadSvgIcon(":/resources/svg/remove_red.svg") );
-  _action_edit->setIcon( LoadSvgIcon(":/resources/svg/pencil-edit.svg") );
-  _action_formula->setIcon( LoadSvgIcon(":/resources/svg/Fx.svg") );
-  _action_split_horizontal->setIcon( LoadSvgIcon(":/resources/svg/add_column.svg") );
-  _action_split_vertical->setIcon( LoadSvgIcon(":/resources/svg/add_row.svg") );
-  _action_zoomOutMaximum->setIcon( LoadSvgIcon(":/resources/svg/zoom_max.svg") );
-  _action_zoomOutHorizontally->setIcon( LoadSvgIcon(":/resources/svg/zoom_horizontal.svg") );
-  _action_zoomOutVertically->setIcon( LoadSvgIcon(":/resources/svg/zoom_vertical.svg") );
-  _action_saveToFile->setIcon( LoadSvgIcon(":/resources/svg/save.svg") );
-  _action_clipboard->setIcon( LoadSvgIcon(":/resources/svg/copy.svg") );
+  _action_removeAllCurves->setIcon( LoadSvgIcon(":/resources/svg/remove_red.svg", theme) );
+  _action_edit->setIcon( LoadSvgIcon(":/resources/svg/pencil-edit.svg", theme) );
+  _action_formula->setIcon( LoadSvgIcon(":/resources/svg/Fx.svg", theme) );
+  _action_split_horizontal->setIcon( LoadSvgIcon(":/resources/svg/add_column.svg", theme) );
+  _action_split_vertical->setIcon( LoadSvgIcon(":/resources/svg/add_row.svg", theme) );
+  _action_zoomOutMaximum->setIcon( LoadSvgIcon(":/resources/svg/zoom_max.svg", theme) );
+  _action_zoomOutHorizontally->setIcon( LoadSvgIcon(":/resources/svg/zoom_horizontal.svg", theme) );
+  _action_zoomOutVertically->setIcon( LoadSvgIcon(":/resources/svg/zoom_vertical.svg", theme) );
+  _action_saveToFile->setIcon( LoadSvgIcon(":/resources/svg/save.svg", theme) );
+  _action_clipboard->setIcon( LoadSvgIcon(":/resources/svg/copy.svg", theme) );
 
   QMenu menu(this);
-  menu.setStyleSheet("QMenu {icon-size; 36px; }");
 
   menu.addAction(_action_edit);
   menu.addAction(_action_formula);

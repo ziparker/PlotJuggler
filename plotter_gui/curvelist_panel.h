@@ -68,7 +68,7 @@ public slots:
 
   void clearSelections();
 
-  void on_stylesheetChanged(QString style_dir);
+  void on_stylesheetChanged(QString theme);
 
   void refreshValues();
 

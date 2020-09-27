@@ -9,7 +9,7 @@
 #include "PlotJuggler/transform_function.h"
 
 namespace Ui {
-class plotwidget_editor;
+class PlotWidgetEditor;
 }
 
 class EditorRowWidget: public QWidget
@@ -76,7 +76,7 @@ private slots:
   void on_listWidget_itemSelectionChanged();
 
 private:
-  Ui::plotwidget_editor *ui;
+  Ui::PlotWidgetEditor *ui;
 
   color_widgets::ColorWheel* _color_wheel;
   color_widgets::ColorPreview* _color_preview;

@@ -14,8 +14,7 @@ PlotLegend::PlotLegend(QwtPlot* parent) : _parent_plot(parent), _collapsed(false
 
   setMaxColumns(1);
   setAlignmentInCanvas(Qt::Alignment(Qt::AlignTop | Qt::AlignRight));
-  setBackgroundMode(QwtPlotLegendItem::BackgroundMode::LegendBackground);
-  setBorderPen( QPen(Qt::red,1) );
+  setBackgroundMode(QwtPlotLegendItem::BackgroundMode::LegendBackground);;
   setBorderRadius(0);
 
   setMargin(2);
@@ -26,8 +25,6 @@ PlotLegend::PlotLegend(QwtPlot* parent) : _parent_plot(parent), _collapsed(false
   font.setPointSize(9);
   setFont(font);
   setVisible(true);
-
-  setBackgroundBrush(QBrush(QColor(255, 255, 255, 150), Qt::SolidPattern));
 
   this->attach(parent);
 }

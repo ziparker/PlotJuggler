@@ -8,7 +8,7 @@
 #include <QDebug>
 #include <QInputDialog>
 #include <QLineEdit>
-
+#include "svg_util.h"
 
 class SplittableComponentsFactory : public ads::CDockComponentsFactory
 {
@@ -252,6 +252,15 @@ void PlotDocker::replot()
   }
 }
 
+void PlotDocker::on_stylesheetChanged(QString theme)
+{
+  for (int index = 0; index < plotCount(); index++)
+  {
+    auto dock_widget = static_cast<DockWidget*>( dockArea(index)->currentDockWidget());
+    dock_widget->toolBar()->on_stylesheetChanged(theme);
+  }
+}
+
 DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   ads::CDockWidget("Plot", parent), _datamap(datamap)
 {
@@ -303,8 +312,6 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
                    } );
 
   this->layout()->setMargin(10);
-
-  //setStyleSheet("border: 0px;");
 }
 
 DockWidget* DockWidget::splitHorizontal()
@@ -352,10 +359,8 @@ DraggableToolbar *DockWidget::toolBar()
   return _toolbar;
 }
 
-static void setButtonIcon(QPushButton* button, const QString& file)
+static void setButtonIcon(QPushButton* button, QIcon icon)
 {
-  QIcon icon(file);
-  icon.addPixmap(icon.pixmap(92));
   button->setIcon(icon);
   button->setText("");
 }
@@ -368,10 +373,9 @@ DraggableToolbar::DraggableToolbar(ads::CDockWidget* parent) :
 {
   ui->setupUi(this);
 
-  setButtonIcon(ui->buttonFullscreen, ":/resources/svg/fullscreen.svg");
-  setButtonIcon(ui->buttonClose,  ":/resources/svg/close-button.svg");
-  setButtonIcon(ui->buttonSplitHorizontal,  ":/resources/svg/add_column.svg");
-  setButtonIcon(ui->buttonSplitVertical,  ":/resources/svg/add_row.svg");
+  QSettings settings;
+  QString theme = settings.value("StyleSheet::theme", "light").toString();
+  on_stylesheetChanged(theme);
 
   ui->buttonFullscreen->setVisible( false );
   ui->buttonSplitHorizontal->setVisible( false );
@@ -445,6 +449,14 @@ bool DraggableToolbar::eventFilter(QObject *object, QEvent *event)
   else{
     return QObject::eventFilter(object,event);
   }
+}
+
+void DraggableToolbar::on_stylesheetChanged(QString theme)
+{
+  setButtonIcon(ui->buttonFullscreen, LoadSvgIcon(":/resources/svg/fullscreen.svg", theme));
+  setButtonIcon(ui->buttonClose, LoadSvgIcon( ":/resources/svg/close-button.svg", theme));
+  setButtonIcon(ui->buttonSplitHorizontal,  LoadSvgIcon(":/resources/svg/add_column.svg", theme));
+  setButtonIcon(ui->buttonSplitVertical,  LoadSvgIcon(":/resources/svg/add_row.svg", theme));
 }
 
 void DraggableToolbar::leaveEvent(QEvent *ev)

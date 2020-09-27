@@ -23,12 +23,12 @@ inline QIcon LoadSvgIcon(QString filename, QString style_name = "light")
 
   if( style_name.contains("light") )
   {
-    svg_data.replace("#000000", "#222222");
-    svg_data.replace("#ffffff", "#cccccc");
+    svg_data.replace("#000000", "#111111");
+    svg_data.replace("#ffffff", "#dddddd");
   }
   else{
-    svg_data.replace("#000000", "#cccccc");
-    svg_data.replace("#ffffff", "#222222");
+    svg_data.replace("#000000", "#dddddd");
+    svg_data.replace("#ffffff", "#111111");
   }
 
   QByteArray content(svg_data);

@@ -322,11 +322,11 @@ void CurveListPanel::clearSelections()
   _tree_view->clearSelection();
 }
 
-void CurveListPanel::on_stylesheetChanged(QString style_dir)
+void CurveListPanel::on_stylesheetChanged(QString theme)
 {
-  _style_dir = style_dir;
-  ui->buttonAddCustom->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", style_dir));
-  ui->buttonEditCustom->setIcon(LoadSvgIcon(":/resources/svg/pencil-edit.svg", style_dir));
+  _style_dir = theme;
+  ui->buttonAddCustom->setIcon(LoadSvgIcon(":/resources/svg/add_tab.svg", theme));
+  ui->buttonEditCustom->setIcon(LoadSvgIcon(":/resources/svg/pencil-edit.svg", theme));
 }
 
 void CurveListPanel::on_checkBoxShowValues_toggled(bool show)

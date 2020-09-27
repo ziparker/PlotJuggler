@@ -68,7 +68,7 @@ public slots:
 
   void onPlotAdded(PlotWidget* plot);
 
-  void onPlotTabAdded(PlotDocker* matrix);
+  void onPlotTabAdded(PlotDocker* docker);
 
   void onPlotZoomChanged(PlotWidget* modified_plot, QRectF new_range);
 
@@ -186,9 +186,10 @@ private:
 
   void buildDummyData();
 
+  void loadStyleSheet(QString file_path);
+
 signals:
   void requestRemoveCurveByName(const std::string& name);
-  void activateStreamingMode(bool active);
   void activateTracker(bool active);
   void stylesheetChanged(QString style_name);
 

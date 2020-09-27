@@ -39,6 +39,7 @@
 #include "transforms/function_editor.h"
 #include "utils.h"
 #include "svg_util.h"
+#include "stylesheet.h"
 
 #include "ui_aboutdialog.h"
 #include "ui_support_dialog.h"
@@ -241,9 +242,8 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   connect(_function_editor, &FunctionEditorWidget::accept,
           this, &MainWindow::onCustomPlotCreated);
 
-  QString theme = settings.value("Preferences::theme", "style_light").toString();
-  emit stylesheetChanged(theme);
-
+  QString style_dir = settings.value("Preferences::theme", "style_light").toString();
+  loadStyleSheet(tr(":/%1/stylesheet.qss").arg(style_dir));
 }
 
 MainWindow::~MainWindow()
@@ -686,9 +686,12 @@ void MainWindow::onPlotZoomChanged(PlotWidget* modified_plot, QRectF new_range)
   onUndoableChange();
 }
 
-void MainWindow::onPlotTabAdded(PlotDocker* matrix)
+void MainWindow::onPlotTabAdded(PlotDocker* docker)
 {
-  connect(matrix, &PlotDocker::plotWidgetAdded, this, &MainWindow::onPlotAdded);
+  connect(docker, &PlotDocker::plotWidgetAdded, this, &MainWindow::onPlotAdded);
+
+  connect( this, &MainWindow::stylesheetChanged, docker, &PlotDocker::on_stylesheetChanged);
+
   // TODO  connect(matrix, &PlotMatrix::undoableChange, this, &MainWindow::onUndoableChange);
 }
 
@@ -1235,16 +1238,67 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
   return true;
 }
 
+
+void MainWindow::on_buttonStreamingPause_toggled(bool paused)
+{
+  if (!_active_streamer_plugin)
+  {
+    paused = true;
+  }
+
+  ui->pushButtonRemoveTimeOffset->setEnabled(paused);
+  ui->widgetPlay->setEnabled(paused);
+
+  if (!paused && ui->pushButtonPlay->isChecked())
+  {
+    ui->pushButtonPlay->setChecked(false);
+  }
+
+  forEachWidget([&](PlotWidget* plot) {
+    plot->enableTracker(paused);
+    plot->setZoomEnabled(paused);
+  });
+
+  if (!paused)
+  {
+    _replot_timer->start();
+    updateTimeOffset();
+  }
+  else
+  {
+    _replot_timer->stop();
+    updateDataAndReplot(true);
+    onUndoableChange();
+  }
+}
+
+void MainWindow::on_streamingToggled()
+{
+  if (_active_streamer_plugin)
+  {
+    bool prev_state = ui->buttonStreamingPause->isChecked();
+    ui->buttonStreamingPause->setChecked(!prev_state);
+  }
+}
+
+
 void MainWindow::stopStreamingPlugin()
 {
   ui->comboStreaming->setEnabled(true);
   ui->buttonStreamingStart->setText("Start");
-  ui->buttonStreamingPause->setChecked(false);
   ui->buttonStreamingPause->setEnabled(false);
   ui->labelStreamingAnimation->setHidden(true);
-  ui->pushButtonRemoveTimeOffset->setEnabled(true);
 
-  _replot_timer->stop();
+  // force the cleanups typically done in on_buttonStreamingPause_toggled
+  if(  ui->buttonStreamingPause->isChecked() )
+  {
+    // Will call on_buttonStreamingPause_toggled
+    ui->buttonStreamingPause->setChecked(false);
+  }
+  else{
+    // call it manually
+    on_buttonStreamingPause_toggled(true);
+  }
 
   if( _active_streamer_plugin ) {
     _active_streamer_plugin->shutdown();
@@ -1256,7 +1310,7 @@ void MainWindow::stopStreamingPlugin()
     ui->actionDeleteAllData->setToolTip("");
   }
 
-  // reset this.
+  // reset max range.
   for (auto& it : _mapped_plot_data.numeric)
   {
     it.second.setMaximumRangeX(std::numeric_limits<double>::max());
@@ -1281,28 +1335,21 @@ void MainWindow::startStreamingPlugin(QString streamer_name)
     return;
   }
 
-  if (_data_streamer.size() == 1)
+  auto it = _data_streamer.find(streamer_name);
+  if (it != _data_streamer.end())
   {
-    _active_streamer_plugin = _data_streamer.begin()->second;
+    _active_streamer_plugin = it->second;
   }
-  else if (_data_streamer.size() > 1)
+  else
   {
-    auto it = _data_streamer.find(streamer_name);
-    if (it != _data_streamer.end())
-    {
-      _active_streamer_plugin = it->second;
-    }
-    else
-    {
-      qDebug() << "Error. The streamer " << streamer_name << " can't be loaded";
-      return;
-    }
+    qDebug() << "Error. The streamer " << streamer_name << " can't be loaded";
+    return;
   }
 
   bool started = false;
   try
   {
-    // TODO data sources
+    // TODO data sources (argument to _active_streamer_plugin->start()
     started = _active_streamer_plugin && _active_streamer_plugin->start(nullptr);
   }
   catch (std::runtime_error& err)
@@ -1321,7 +1368,6 @@ void MainWindow::startStreamingPlugin(QString streamer_name)
     ui->actionClearBuffer->setEnabled(true);
     ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
 
-    ui->pushButtonRemoveTimeOffset->setEnabled(false);
 
     ui->buttonStreamingStart->setText("Stop");
     ui->buttonStreamingPause->setEnabled(true);
@@ -1331,35 +1377,54 @@ void MainWindow::startStreamingPlugin(QString streamer_name)
 
     // force start
     on_buttonStreamingPause_toggled(false);
+    // this will force the update the max buffer size values
     on_streamingSpinBox_valueChanged(ui->streamingSpinBox->value());
   }
   else
   {
+    QSignalBlocker block( ui->buttonStreamingStart );
+    ui->buttonStreamingStart->setChecked(false);
     qDebug() << "Failed to launch the streamer";
   }
 }
 
-void MainWindow::on_stylesheetChanged(QString style_dir)
+void MainWindow::loadStyleSheet(QString file_path)
 {
-  QFile styleFile(tr(":/%1/stylesheet.qss").arg(style_dir));
+  QFile styleFile(file_path);
   styleFile.open(QFile::ReadOnly);
-  dynamic_cast<QApplication*>(QCoreApplication::instance())->setStyleSheet(styleFile.readAll());
+  try{
+    QString theme = SetApplicationStyleSheet( styleFile.readAll() );
 
-  ui->pushButtonLoadDatafile->setIcon(LoadSvgIcon(":/resources/svg/save.svg", style_dir));
-  ui->buttonStreamingPause->setIcon(LoadSvgIcon(":/resources/svg/pause.svg", style_dir));
+    forEachWidget([&](PlotWidget* plot) {
+        plot->replot();
+    });
 
-  ui->pushButtonZoomOut->setIcon(LoadSvgIcon(":/resources/svg/zoom_max.svg", style_dir));
-  ui->playbackLoop->setIcon(LoadSvgIcon(":/resources/svg/loop.svg", style_dir));
-  ui->pushButtonPlay->setIcon(LoadSvgIcon(":/resources/svg/play_arrow.svg", style_dir));
-  ui->pushButtonUseDateTime->setIcon(LoadSvgIcon(":/resources/svg/datetime.svg", style_dir));
-  ui->pushButtonActivateGrid->setIcon(LoadSvgIcon(":/resources/svg/grid.svg", style_dir));
-  ui->pushButtonRatio->setIcon(LoadSvgIcon(":/resources/svg/ratio.svg", style_dir));
+    emit stylesheetChanged(theme);
+  }
+  catch( std::runtime_error& err )
+  {
+    QMessageBox::warning(this, tr("Error loading StyleSheet"), tr(err.what()));
+  }
+}
 
-  ui->pushButtonLink->setIcon(LoadSvgIcon(":/resources/svg/link.svg", style_dir));
-  ui->pushButtonRemoveTimeOffset->setIcon(LoadSvgIcon(":/resources/svg/t0.svg", style_dir));
-  ui->pushButtonLegend->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", style_dir));
 
-  ui->buttonStreamingOptions->setIcon(LoadSvgIcon(":/resources/svg/settings_cog.svg", style_dir));
+void MainWindow::on_stylesheetChanged(QString theme)
+{
+  ui->pushButtonLoadDatafile->setIcon(LoadSvgIcon(":/resources/svg/save.svg", theme));
+  ui->buttonStreamingPause->setIcon(LoadSvgIcon(":/resources/svg/pause.svg", theme));
+
+  ui->pushButtonZoomOut->setIcon(LoadSvgIcon(":/resources/svg/zoom_max.svg", theme));
+  ui->playbackLoop->setIcon(LoadSvgIcon(":/resources/svg/loop.svg", theme));
+  ui->pushButtonPlay->setIcon(LoadSvgIcon(":/resources/svg/play_arrow.svg", theme));
+  ui->pushButtonUseDateTime->setIcon(LoadSvgIcon(":/resources/svg/datetime.svg", theme));
+  ui->pushButtonActivateGrid->setIcon(LoadSvgIcon(":/resources/svg/grid.svg", theme));
+  ui->pushButtonRatio->setIcon(LoadSvgIcon(":/resources/svg/ratio.svg", theme));
+
+  ui->pushButtonLink->setIcon(LoadSvgIcon(":/resources/svg/link.svg", theme));
+  ui->pushButtonRemoveTimeOffset->setIcon(LoadSvgIcon(":/resources/svg/t0.svg", theme));
+  ui->pushButtonLegend->setIcon(LoadSvgIcon(":/resources/svg/legend.svg", theme));
+
+  ui->buttonStreamingOptions->setIcon(LoadSvgIcon(":/resources/svg/settings_cog.svg", theme));
 }
 
 void MainWindow::loadPluginState(const QDomElement& root)
@@ -1764,99 +1829,6 @@ void MainWindow::updateTimeOffset()
   }
 }
 
-/*void MainWindow::onSwapPlots(PlotWidget* source, PlotWidget* destination)
-{
-  if (!source || !destination)
-    return;
-
-  PlotDocker* src_matrix = nullptr;
-  PlotDocker* dst_matrix = nullptr;
-  QPoint src_pos;
-  QPoint dst_pos;
-
-  forEachWidget([&](PlotWidget* plot, PlotDocker* matrix, int row, int col) {
-    if (plot == source)
-    {
-      src_matrix = matrix;
-      src_pos.setX(row);
-      src_pos.setY(col);
-    }
-    else if (plot == destination)
-    {
-      dst_matrix = matrix;
-      dst_pos.setX(row);
-      dst_pos.setY(col);
-    }
-  });
-
-  if (src_matrix && dst_matrix)
-  {
-    src_matrix->gridLayout()->removeWidget(source);
-    dst_matrix->gridLayout()->removeWidget(destination);
-
-    src_matrix->gridLayout()->addWidget(destination, src_pos.x(), src_pos.y());
-    dst_matrix->gridLayout()->addWidget(source, dst_pos.x(), dst_pos.y());
-
-    src_matrix->updateLayout();
-    if (src_matrix != dst_matrix)
-    {
-      dst_matrix->updateLayout();
-    }
-    source->changeBackgroundColor(Qt::white);
-    destination->changeBackgroundColor(Qt::white);
-  }
-  onUndoableChange();
-}*/
-
-void MainWindow::on_buttonStreamingPause_toggled(bool paused)
-{
-  if (!_active_streamer_plugin)
-  {
-    paused = true;
-  }
-
-  ui->pushButtonRemoveTimeOffset->setEnabled(paused);
-  ui->widgetPlay->setEnabled(paused);
-
-  if (!paused && ui->pushButtonPlay->isChecked())
-  {
-    ui->pushButtonPlay->setChecked(false);
-  }
-
-  forEachWidget([&](PlotWidget* plot) { plot->enableTracker(paused); });
-
-  emit activateStreamingMode(!paused);
-
-  if (_active_streamer_plugin && !paused)
-  {
-    _replot_timer->start();
-    updateTimeOffset();
-  }
-  else
-  {
-    _replot_timer->stop();
-    updateDataAndReplot(true);
-    onUndoableChange();
-  }
-}
-
-void MainWindow::on_streamingToggled()
-{
-  if (ui->buttonStreamingStart->isEnabled())
-  {
-    bool streaming = ui->buttonStreamingStart->isChecked();
-    ui->buttonStreamingStart->setChecked(!streaming);
-  }
-  else
-  {
-    if (ui->pushButtonPlay->isEnabled())
-    {
-      bool playing = ui->pushButtonPlay->isChecked();
-      ui->pushButtonPlay->setChecked(!playing);
-    }
-  }
-}
-
 void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
 {
   bool data_updated = false;
@@ -1885,7 +1857,6 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
 
   const bool is_streaming_active = isStreamingActive();
 
-
   if( data_updated )
   {
     for (auto& custom_it : _custom_plots)
@@ -1897,12 +1868,10 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
     forEachWidget([](PlotWidget* plot) {
       plot->updateCurves();
     });
+
+    _animated_streaming_movie->start();
+    _animated_streaming_timer->start(300);
   }
-
-  forEachWidget([is_streaming_active](PlotWidget* plot) {
-    plot->setZoomEnabled(!is_streaming_active);
-  });
-
 
   //--------------------------------
   // trigger again the execution of this callback if steaming == true
@@ -2690,16 +2659,16 @@ void MainWindow::on_actionDeleteAllData_triggered()
 void MainWindow::on_actionPreferences_triggered()
 {
   QSettings settings;
-  QString prev_theme = settings.value("Preferences::theme", "style_light").toString();
+  QString prev_style = settings.value("Preferences::theme", "style_light").toString();
 
   PreferencesDialog dialog;
   dialog.exec();
 
-  QString theme = settings.value("Preferences::theme", "style_light").toString();
+  QString style_dir = settings.value("Preferences::theme", "style_light").toString();
 
-  if (theme != prev_theme)
+  if (style_dir != prev_style)
   {
-    emit stylesheetChanged(theme);
+    loadStyleSheet(tr(":/%1/stylesheet.qss").arg(style_dir));
   }
 }
 
@@ -2720,11 +2689,7 @@ void MainWindow::on_actionLoadStyleSheet_triggered()
     return;
   }
 
-  QFile file(fileName);
-  if( file.open(QFile::ReadOnly) )
-  {
-    dynamic_cast<QApplication*>(QCoreApplication::instance())->setStyleSheet(file.readAll());
-  }
+  loadStyleSheet(fileName);
 
   directory_path = QFileInfo(fileName).absolutePath();
   settings.setValue("MainWindow.loadStyleSheetDirectory", directory_path);
