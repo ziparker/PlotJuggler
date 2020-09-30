@@ -123,7 +123,11 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   connect(ui->timeSlider, &RealSlider::realValueChanged, this, &MainWindow::onTimeSlider_valueChanged);
 
   connect(ui->playbackRate, &QDoubleSpinBox::editingFinished, this, [this]() { ui->playbackRate->clearFocus(); });
+
   connect(ui->playbackStep, &QDoubleSpinBox::editingFinished, this, [this]() { ui->playbackStep->clearFocus(); });
+
+  connect(ui->pushButtonLoadDatafile, &QPushButton::clicked,
+          this, &MainWindow::on_actionLoadData_triggered);
 
   _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, _mapped_plot_data, this);
 
@@ -238,6 +242,9 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
           this, [this]() {
     ui->widgetStack->setCurrentIndex(0);
   });
+
+  connect(this, &MainWindow::stylesheetChanged,
+          _function_editor, &FunctionEditorWidget::on_stylesheetChanged);
 
   connect(_function_editor, &FunctionEditorWidget::accept,
           this, &MainWindow::onCustomPlotCreated);
@@ -1413,7 +1420,7 @@ void MainWindow::loadStyleSheet(QString file_path)
 
 void MainWindow::on_stylesheetChanged(QString theme)
 {
-  ui->pushButtonLoadDatafile->setIcon(LoadSvgIcon(":/resources/svg/save.svg", theme));
+  ui->pushButtonLoadDatafile->setIcon(LoadSvgIcon(":/resources/svg/import.svg", theme));
   ui->buttonStreamingPause->setIcon(LoadSvgIcon(":/resources/svg/pause.svg", theme));
 
   ui->pushButtonZoomOut->setIcon(LoadSvgIcon(":/resources/svg/zoom_max.svg", theme));
@@ -2086,6 +2093,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value());
   settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param);
   settings.setValue("MainWindow.splitterWidth", ui->mainSplitter->sizes()[0]);
+  settings.sync();
 
   // clean up all the plugins
   for (auto& it : _data_loader)
@@ -2804,3 +2812,17 @@ void MainWindow::on_buttonStreamingOptions_clicked()
   menu->show();
 }
 
+
+void MainWindow::on_buttonHideFileFrame_clicked()
+{
+  bool hidden = !ui->frameFile->isHidden();
+  ui->buttonHideFileFrame->setText( hidden ? "+" : " -");
+  ui->frameFile->setHidden( hidden );
+}
+
+void MainWindow::on_buttonHideStreamingFrame_clicked()
+{
+  bool hidden = !ui->frameStreaming->isHidden();
+  ui->buttonHideStreamingFrame->setText( hidden ? "+" : " -");
+  ui->frameStreaming->setHidden( hidden );
+}

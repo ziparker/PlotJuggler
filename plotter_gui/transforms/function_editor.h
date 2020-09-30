@@ -43,6 +43,9 @@ public:
 
   bool eventFilter(QObject *obj, QEvent *event) override;
 
+public slots:
+  void on_stylesheetChanged(QString theme);
+  
 private slots:
 
   void on_snippetsListSaved_currentRowChanged(int currentRow);

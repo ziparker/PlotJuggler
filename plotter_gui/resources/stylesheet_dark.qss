@@ -2,9 +2,9 @@
 
 theme: dark
 
-widget_background: #223344
-main_background: #223344
-dark_background: #112233
+widget_background: #333333
+main_background: #404040
+dark_background: #444444
 
 default_text:  #F0F0F0
 disabled_text: #777777
@@ -360,14 +360,9 @@ QAbstractSpinBox::down-arrow:hover {
 }
 
 QAbstractSpinBox:hover {
-  border: 1px solid #148CD2;
-  color: #F0F0F0;
+  border: 1px solid ${border_hover};
 }
 
-QAbstractSpinBox:selected {
-  background: #1464A0;
-  color: #687279;
-}
 
 
 /* QRadioButton ----------------------------------------------------------- */
@@ -763,7 +758,7 @@ QWidget#widgetLabelLoad,
 QWidget#widgetLabelStreaming,
 QWidget#widgetLabelTimeseries
 {
-    background-color: #102030;
+    background-color: #2a2a2a;
     border: 1px solid black;
 }
 

@@ -360,13 +360,7 @@ QAbstractSpinBox::down-arrow:hover {
 }
 
 QAbstractSpinBox:hover {
-  border: 1px solid #148CD2;
-  color: #F0F0F0;
-}
-
-QAbstractSpinBox:selected {
-  background: #1464A0;
-  color: #687279;
+  border: 1px solid ${border_hover};
 }
 
 
@@ -773,6 +767,12 @@ QWidget#widgetLabelStreaming QLabel,
 QWidget#widgetLabelTimeseries QLabel
 {
     color: #FFFFFF;
+}
+
+QPushButton#buttonHideFileFrame,
+QPushButton#buttonHideStreamingFrame {
+    color: #FFFFFF;
+    background-color: transparent;
 }
 
 

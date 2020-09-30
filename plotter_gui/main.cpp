@@ -14,6 +14,7 @@
 #include "PlotJuggler/transform_function.h"
 #include "transforms/first_derivative.h"
 #include "transforms/scale_transform.h"
+#include "transforms/moving_average_filter.h"
 
 #include "new_release_dialog.h"
 
@@ -82,14 +83,16 @@ int main(int argc, char* argv[])
 {
   QApplication app(argc, argv);
 
-  app.setOrganizationName("IcarusTechnology");
-  app.setApplicationName("PlotJuggler");
+  QCoreApplication::setOrganizationName("PlotJuggler");
+  QCoreApplication::setApplicationName("PlotJuggler-3");
+  QSettings::setDefaultFormat(QSettings::IniFormat);
 
   app.setApplicationVersion(VERSION_STRING);
 
   //---------------------------
   TransformFactory::registerTransform<FirstDerivative>( FirstDerivative().name() );
   TransformFactory::registerTransform<ScaleTransform>( ScaleTransform().name() );
+  TransformFactory::registerTransform<MovingAverageFilter>( MovingAverageFilter().name() );
 
   //---------------------------
 

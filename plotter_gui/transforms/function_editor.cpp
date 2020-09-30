@@ -59,10 +59,13 @@
 //};
 
 
-
-
-
-
+void FunctionEditorWidget::on_stylesheetChanged(QString theme)
+{
+  ui->pushButtonDeleteCurves->setIcon(LoadSvgIcon(":/resources/svg/remove_red.svg", theme));
+  ui->buttonLoadFunctions->setIcon(LoadSvgIcon(":/resources/svg/import.svg", theme));
+  ui->buttonSaveFunctions->setIcon(LoadSvgIcon(":/resources/svg/export.svg", theme));
+  ui->buttonSaveCurrent->setIcon(LoadSvgIcon(":/resources/svg/save.svg", theme));
+}
 
 FunctionEditorWidget::FunctionEditorWidget(PlotDataMapRef& plotMapData,
                                            const CustomPlotMap& mapped_custom_plots,
@@ -87,10 +90,8 @@ FunctionEditorWidget::FunctionEditorWidget(PlotDataMapRef& plotMapData,
   ui->mathEquation->setFont(fixedFont);
   ui->snippetPreview->setFont(fixedFont);
 
-  ui->pushButtonDeleteCurves->setIcon(LoadSvgIcon(":/resources/svg/remove_red.svg", "light"));
-  ui->buttonLoadFunctions->setIcon(LoadSvgIcon(":/resources/svg/import.svg", "light"));
-  ui->buttonSaveFunctions->setIcon(LoadSvgIcon(":/resources/svg/export.svg", "light"));
-  ui->buttonSaveCurrent->setIcon(LoadSvgIcon(":/resources/svg/save.svg", "light"));
+  auto theme = settings.value("StyleSheet:theme", "ligth").toString();
+  on_stylesheetChanged(theme);
 
   QPalette palette = ui->listAdditionalSources->palette();
   palette.setBrush(QPalette::Highlight, palette.brush(QPalette::Base));

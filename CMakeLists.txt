@@ -133,6 +133,7 @@ include_directories(
     ./3rdparty/color_widgets/include
     ./3rdparty/fmt/include
     ./3rdparty/marl/include
+    ./3rdparty/
     ./3rdparty/sol
     ./3rdparty/lua-5.3.4/src
     ./3rdparty/Qt-Advanced-Docking/include

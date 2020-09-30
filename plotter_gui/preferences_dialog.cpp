@@ -35,4 +35,5 @@ void PreferencesDialog::on_buttonBox_accepted()
   settings.setValue("Preferences::theme", ui->comboBoxTheme->currentIndex() == 1 ? "dark" : "light");
   settings.setValue("Preferences::remember_color", ui->checkBoxRememberColor->isChecked());
   settings.setValue("Preferences::use_plot_color_index", ui->radioLocalColorIndex->isChecked());
+  settings.sync();
 }
