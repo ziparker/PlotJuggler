@@ -709,7 +709,6 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
   plot->activateGrid(ui->pushButtonActivateGrid->isChecked());
   plot->enableTracker(!isStreamingActive());
   plot->configureTracker(_tracker_param);
-
 }
 
 void MainWindow::onPlotZoomChanged(PlotWidget* modified_plot, QRectF new_range)
@@ -1397,6 +1396,7 @@ void MainWindow::startStreamingPlugin(QString streamer_name)
   else
   {
     qDebug() << "Error. The streamer " << streamer_name << " can't be loaded";
+    _active_streamer_plugin = nullptr;
     return;
   }
 
@@ -1410,6 +1410,7 @@ void MainWindow::startStreamingPlugin(QString streamer_name)
   {
     QMessageBox::warning(this, tr("Exception from the plugin"),
                          tr("The plugin thrown the following exception: \n\n %1\n").arg(err.what()));
+    _active_streamer_plugin = nullptr;
     return;
   }
   if (started)
@@ -1421,7 +1422,6 @@ void MainWindow::startStreamingPlugin(QString streamer_name)
 
     ui->actionClearBuffer->setEnabled(true);
     ui->actionDeleteAllData->setToolTip("Stop streaming to be able to delete the data");
-
 
     ui->buttonStreamingStart->setText("Stop");
     ui->buttonStreamingPause->setEnabled(true);
@@ -1439,6 +1439,7 @@ void MainWindow::startStreamingPlugin(QString streamer_name)
     QSignalBlocker block( ui->buttonStreamingStart );
     ui->buttonStreamingStart->setChecked(false);
     qDebug() << "Failed to launch the streamer";
+    _active_streamer_plugin = nullptr;
   }
 }
 
