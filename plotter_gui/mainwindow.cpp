@@ -214,6 +214,22 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   //  ui->widgetOptions->setVisible(ui->pushButtonOptions->isChecked());
 
+  if( settings.value("MainWindow.hiddenFileFrame", false).toBool() )
+  {
+    ui->buttonHideFileFrame->setText("+");
+    ui->frameFile->setHidden(true);
+  }
+  if( settings.value("MainWindow.hiddenStreamingFrame", false).toBool() )
+  {
+    ui->buttonHideStreamingFrame->setText("+");
+    ui->frameStreaming->setHidden(true);
+  }
+  if( settings.value("MainWindow.hiddenPublishersFrame", false).toBool() )
+  {
+    ui->buttonHidePublishersFrame->setText("+");
+    ui->framePublishers->setHidden(true);
+  }
+
   //----------------------------------------------------------
   QIcon trackerIconA, trackerIconB, trackerIconC;
 
@@ -374,10 +390,6 @@ void MainWindow::initializeActions()
   connect(open_menu_shortcut, &QShortcut::activated,
           [this]() { ui->menuFile->exec(ui->menuBar->mapToGlobal(QPoint(0, 25))); });
 
-  QShortcut* open_publish_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_P), this);
-  connect(open_publish_shortcut, &QShortcut::activated,
-          [this]() { ui->menuPublishers->exec(ui->menuBar->mapToGlobal(QPoint(140, 25))); });
-
   QShortcut* open_help_shortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_H), this);
   connect(open_help_shortcut, &QShortcut::activated,
           [this]() { ui->menuHelp->exec(ui->menuBar->mapToGlobal(QPoint(230, 25))); });
@@ -463,24 +475,51 @@ void MainWindow::initializePlugins(QString directory_name)
         }
         else
         {
-          ui->menuPublishers->setEnabled(true);
-
           _state_publisher.insert(std::make_pair(plugin_name, publisher));
-          QAction* activatePublisher = new QAction(tr("Start: ") + plugin_name, this);
-          activatePublisher->setProperty("starter_button", true);
-          activatePublisher->setCheckable(true);
-          activatePublisher->setChecked(false);
 
-          ui->menuPublishers->addSeparator();
-          ui->menuPublishers->addSection(plugin_name);
-          ui->menuPublishers->addAction(activatePublisher);
-          publisher->setParentMenu(ui->menuPublishers, activatePublisher);
+          ui->layoutPublishers->setColumnStretch(0, 1.0);
 
-          connect(activatePublisher, &QAction::toggled, this,
+          int row = _state_publisher.size() -1;
+          auto label = new QLabel(plugin_name, ui->framePublishers);
+          ui->layoutPublishers->addWidget(label, row, 0);
+
+          auto start_checkbox = new QCheckBox(ui->framePublishers);
+          ui->layoutPublishers->addWidget(start_checkbox, row, 1);
+          start_checkbox->setFocusPolicy( Qt::FocusPolicy::NoFocus );
+
+          connect(start_checkbox, &QCheckBox::toggled, this,
                   [=](bool enable) { publisher->setEnabled(enable); });
 
-          connect(publisher, &StatePublisher::connectionClosed, this,
-                  [=]() { activatePublisher->setChecked(false); });
+          connect(publisher, &StatePublisher::closed, start_checkbox,
+                  [=]() {start_checkbox->setChecked(false);} );
+
+          if( publisher->availableActions().empty() )
+          {
+            QFrame* empty = new QFrame(ui->framePublishers);
+            empty->setFixedSize({22,22});
+            ui->layoutPublishers->addWidget(empty, row, 2);
+          }
+          else{
+            auto options_button = new QPushButton(ui->framePublishers);
+            options_button->setFlat(true);
+            options_button->setFixedSize({22,22});
+            ui->layoutPublishers->addWidget(options_button, row, 2);
+
+            options_button->setIcon( LoadSvgIcon(":/resources/svg/settings_cog.svg", "light"));
+            options_button->setIconSize( {16,16} );
+
+            auto optionsMenu = [=]()
+            {
+              PopupMenu* menu = new PopupMenu(options_button, this);
+              for(auto action: publisher->availableActions()) {
+                menu->addAction(action);
+              }
+              menu->exec();
+            };
+
+            connect( options_button, &QPushButton::clicked,
+                     options_button, optionsMenu);
+          }
         }
       }
       else if (streamer)
@@ -494,7 +533,7 @@ void MainWindow::initializePlugins(QString directory_name)
         {
           _data_streamer.insert(std::make_pair(plugin_name, streamer));
 
-          connect(streamer, &DataStreamer::connectionClosed, this,
+          connect(streamer, &DataStreamer::closed, this,
                   [this]() { this->stopStreamingPlugin(); } );
 
           connect(streamer, &DataStreamer::clearBuffers,
@@ -536,7 +575,7 @@ void MainWindow::initializePlugins(QString directory_name)
                                             ui->comboStreaming->itemText(0)).toString();
     ui->comboStreaming->setCurrentText(streaming_name);
 
-    bool contains_options = !_data_streamer.at(streaming_name)->addActionsToParentMenu().empty();
+    bool contains_options = !_data_streamer.at(streaming_name)->availableActions().empty();
     ui->buttonStreamingOptions->setEnabled(contains_options);
   }
 }
@@ -971,13 +1010,18 @@ void MainWindow::deleteAllData()
   _loaded_datafiles.clear();
 
   bool stopped = false;
-  for (QAction* action : ui->menuPublishers->actions())
+
+  for(int idx = 0; idx < ui->layoutPublishers->count(); idx++)
   {
-    auto is_start_button = action->property("starter_button");
-    if (is_start_button.isValid() && is_start_button.toBool() && action->isChecked())
+    QLayoutItem * item = ui->layoutPublishers->itemAt(idx);
+    if(dynamic_cast<QWidgetItem *>(item))
     {
-      action->setChecked(false);
-      stopped = true;
+      if( auto checkbox = dynamic_cast<QCheckBox *>(item->widget())) {
+        if( checkbox->isChecked() ) {
+          checkbox->setChecked(false);
+          stopped = true;
+        }
+      }
     }
   }
 
@@ -2093,7 +2137,10 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value());
   settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param);
   settings.setValue("MainWindow.splitterWidth", ui->mainSplitter->sizes()[0]);
-  settings.sync();
+
+  settings.setValue("MainWindow.hiddenFileFrame", ui->frameFile->isHidden());
+  settings.setValue("MainWindow.hiddenStreamingFrame", ui->frameStreaming->isHidden());
+  settings.setValue("MainWindow.hiddenPublishersFrame", ui->framePublishers->isHidden());
 
   // clean up all the plugins
   for (auto& it : _data_loader)
@@ -2432,7 +2479,6 @@ void MainWindow::on_actionLoadLayout_triggered()
 }
 
 void MainWindow::on_actionSaveLayout_triggered()
-
 {
   QDomDocument doc = xmlSaveState();
 
@@ -2754,7 +2800,7 @@ void MainWindow::on_comboStreaming_currentIndexChanged(const QString &current_te
   QSettings settings;
   settings.setValue("MainWindow.previousStreamingPlugin", current_text );
   auto streamer = _data_streamer.at( current_text );
-  ui->buttonStreamingOptions->setEnabled( !streamer->addActionsToParentMenu().empty() );
+  ui->buttonStreamingOptions->setEnabled( !streamer->availableActions().empty() );
 }
 
 void MainWindow::on_buttonStreamingStart_clicked()
@@ -2806,7 +2852,7 @@ void MainWindow::on_buttonStreamingOptions_clicked()
   auto streamer = _data_streamer.at( ui->comboStreaming->currentText() );
 
   PopupMenu* menu = new PopupMenu(ui->buttonStreamingOptions, this);
-  for( auto action: streamer->addActionsToParentMenu() ) {
+  for( auto action: streamer->availableActions() ) {
     menu->addAction(action);
   }
   menu->show();
@@ -2825,4 +2871,11 @@ void MainWindow::on_buttonHideStreamingFrame_clicked()
   bool hidden = !ui->frameStreaming->isHidden();
   ui->buttonHideStreamingFrame->setText( hidden ? "+" : " -");
   ui->frameStreaming->setHidden( hidden );
+}
+
+void MainWindow::on_buttonHidePublishersFrame_clicked()
+{
+  bool hidden = !ui->framePublishers->isHidden();
+  ui->buttonHidePublishersFrame->setText( hidden ? "+" : " -");
+  ui->framePublishers->setHidden( hidden );
 }

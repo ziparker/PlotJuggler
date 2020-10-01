@@ -50,8 +50,6 @@ void RosoutPublisher::setEnabled(bool to_enable)
       _log_window->close();
     }
   }
-
-  StatePublisher::setEnabled(_enabled);
 }
 
 void RosoutPublisher::onWindowClosed()
@@ -71,7 +69,7 @@ void RosoutPublisher::onWindowClosed()
   }
   _enabled = false;
 
-  emit connectionClosed();
+  emit closed();
 }
 
 std::vector<const PlotDataAny*> RosoutPublisher::findRosoutTimeseries()

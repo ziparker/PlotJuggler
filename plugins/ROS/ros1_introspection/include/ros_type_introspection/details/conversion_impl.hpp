@@ -196,7 +196,7 @@ inline void checkLowerLimit(const From& from)
 template <typename From, typename To>
 inline void checkTruncation(const From& from)
 {
-  if( from != static_cast<From>(static_cast<To>( from))){
+  if(!std::isnan(from) && from != static_cast<From>(static_cast<To>( from))){
     throw RangeException("Floating point truncated");
   }
 }

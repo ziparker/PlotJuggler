@@ -48,7 +48,8 @@ public:
   virtual void play(double interval) override;
 
 public slots:
-  virtual void setEnabled(bool enabled) override;
+
+  void setEnabled(bool enabled) override;
 
   void filterDialog();
 

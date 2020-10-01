@@ -316,12 +316,12 @@ void PlotwidgetEditor::on_pushButtonReset_clicked()
   ui->lineLimitMax->setText(QString::number(limits.max));
 }
 
-void PlotwidgetEditor::on_lineLimitMax_editingFinished()
+void PlotwidgetEditor::on_lineLimitMax_textChanged(const QString &)
 {
    updateLimits();
 }
 
-void PlotwidgetEditor::on_lineLimitMin_editingFinished()
+void PlotwidgetEditor::on_lineLimitMin_textChanged(const QString &)
 {
    updateLimits();
 }

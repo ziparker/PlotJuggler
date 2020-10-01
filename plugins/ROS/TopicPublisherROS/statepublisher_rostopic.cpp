@@ -21,10 +21,19 @@
 #include <QMessageBox>
 #include "publisher_select_dialog.h"
 
-TopicPublisherROS::TopicPublisherROS() : _enabled(false), _node(nullptr), _publish_clock(true)
+TopicPublisherROS::TopicPublisherROS() :
+  _enabled(false)
+, _node(nullptr)
+, _publish_clock(true)
 {
   QSettings settings;
   _publish_clock = settings.value("TopicPublisherROS/publish_clock", true).toBool();
+
+  _select_topics_to_publish = new QAction(QString("Select topics to be published"));
+  connect(_select_topics_to_publish, &QAction::triggered,
+          this, &TopicPublisherROS::filterDialog);
+
+  _available_actions.push_back(_select_topics_to_publish);
 }
 
 TopicPublisherROS::~TopicPublisherROS()
@@ -32,15 +41,9 @@ TopicPublisherROS::~TopicPublisherROS()
   _enabled = false;
 }
 
-void TopicPublisherROS::setParentMenu(QMenu* menu, QAction* action)
+const std::vector<QAction *> &TopicPublisherROS::availableActions()
 {
-  StatePublisher::setParentMenu(menu, action);
-
-  _enable_self_action = menu->actions().back();
-
-  _select_topics_to_publish = new QAction(QString("Select topics to be published"), _menu);
-  _menu->addAction(_select_topics_to_publish);
-  connect(_select_topics_to_publish, &QAction::triggered, this, &TopicPublisherROS::filterDialog);
+  return _available_actions;
 }
 
 void TopicPublisherROS::setEnabled(bool to_enable)
@@ -83,9 +86,9 @@ void TopicPublisherROS::setEnabled(bool to_enable)
 
     _tf_broadcaster.reset();
     _tf_static_broadcaster.reset();
-  }
 
-  StatePublisher::setEnabled(_enabled);
+    emit closed();
+  }
 }
 
 void TopicPublisherROS::filterDialog(bool autoconfirm)
@@ -338,7 +341,7 @@ void TopicPublisherROS::updateState(double current_time)
     QMessageBox::warning(nullptr, tr("Disconnected!"),
                          "The roscore master cannot be detected.\n"
                          "The publisher will be disabled.");
-    _enable_self_action->setChecked(false);
+    emit closed();
     return;
   }
 
@@ -410,7 +413,7 @@ void TopicPublisherROS::play(double current_time)
     QMessageBox::warning(nullptr, tr("Disconnected!"),
                          "The roscore master cannot be detected.\n"
                          "The publisher will be disabled.");
-    _enable_self_action->setChecked(false);
+    emit closed();
     return;
   }
 

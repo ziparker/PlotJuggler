@@ -21,19 +21,6 @@ public:
 
   virtual ~StatePublisher() = default;
 
-  virtual void setEnabled(bool enabled)
-  {
-    auto prev = _action->blockSignals(true);
-    _action->setChecked(enabled);
-    _action->blockSignals(prev);
-  }
-
-  virtual void setParentMenu(QMenu* parent_menu, QAction* parent_action)
-  {
-    _menu = parent_menu;
-    _action = parent_action;
-  }
-
   virtual QWidget* embeddedWidget()
   {
     return nullptr;
@@ -44,12 +31,13 @@ public:
     _datamap = datamap;
   }
 
+public slots:
+  virtual void setEnabled(bool enabled) = 0;
+
 signals:
-  void connectionClosed();
+  void closed();
 
 protected:
-  QMenu* _menu;
-  QAction* _action;
   const PlotDataMapRef* _datamap;
 };
 

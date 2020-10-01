@@ -63,7 +63,10 @@
          <height>0</height>
         </size>
        </property>
-       <layout class="QVBoxLayout" name="leftLayout" stretch="0,0,0,0,0">
+       <layout class="QVBoxLayout" name="leftLayout" stretch="0,0,0,0,0,0,0">
+        <property name="spacing">
+         <number>2</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>
@@ -342,13 +345,13 @@
             <number>0</number>
            </property>
            <property name="topMargin">
-            <number>0</number>
+            <number>6</number>
            </property>
            <property name="rightMargin">
             <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>9</number>
+            <number>6</number>
            </property>
            <item>
             <widget class="QFrame" name="streamingFrameTop">
@@ -356,8 +359,14 @@
               <property name="leftMargin">
                <number>6</number>
               </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
               <property name="rightMargin">
                <number>6</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
               </property>
               <item>
                <widget class="QComboBox" name="comboStreaming">
@@ -514,8 +523,8 @@
               <widget class="QLabel" name="labelStreamingAnimation">
                <property name="minimumSize">
                 <size>
-                 <width>28</width>
-                 <height>28</height>
+                 <width>30</width>
+                 <height>30</height>
                 </size>
                </property>
                <property name="maximumSize">
@@ -569,13 +578,13 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>30</height>
+                 <height>26</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>30</height>
+                 <height>26</height>
                 </size>
                </property>
                <property name="focusPolicy">
@@ -607,6 +616,118 @@
                </property>
               </widget>
              </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="widgetLabelPublishers" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>22</height>
+           </size>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>Publishers</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="buttonHidePublishersFrame">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>18</width>
+               <height>18</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>18</width>
+               <height>18</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hide/Show&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>-</string>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="framePublishers">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <property name="leftMargin">
+            <number>6</number>
+           </property>
+           <property name="topMargin">
+            <number>6</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
+           </property>
+           <item>
+            <layout class="QGridLayout" name="layoutPublishers">
+             <property name="horizontalSpacing">
+              <number>2</number>
+             </property>
+             <property name="verticalSpacing">
+              <number>4</number>
+             </property>
             </layout>
            </item>
           </layout>
@@ -1480,17 +1601,6 @@
     <addaction name="actionPreferences"/>
     <addaction name="actionExit"/>
    </widget>
-   <widget class="QMenu" name="menuPublishers">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="toolTip">
-     <string>Publisher plugins (ALT+P)</string>
-    </property>
-    <property name="title">
-     <string>Publishers</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="toolTip">
      <string>Help (ALT+H)</string>
@@ -1523,7 +1633,6 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuData"/>
-   <addaction name="menuPublishers"/>
    <addaction name="menuTools"/>
    <addaction name="menuHelp"/>
   </widget>

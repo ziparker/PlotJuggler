@@ -268,16 +268,19 @@ QMenu {
     border: 1px solid ${border_default};
 }
 
+QMenu::icon {
+    padding-left: 6px;
+}
+
 QMenu::item {
     background-color: transparent;
     padding: 2px 25px 2px 25px;
     color: ${default_text};
     border: 1px solid transparent;
     margin: 2px;
-    margin-left: 6px;
-    margin-right: 6px;
+    margin-left: 0px;
+    margin-right: 0px;
 }
-
 
 QMenu::item:selected {
     background: ${border_hover};
@@ -756,6 +759,7 @@ QWidget#leftMainWindowFrame
 
 QWidget#widgetLabelLoad,
 QWidget#widgetLabelStreaming,
+QWidget#widgetLabelPublishers,
 QWidget#widgetLabelTimeseries
 {
     background-color: #2a2a2a;
@@ -764,9 +768,17 @@ QWidget#widgetLabelTimeseries
 
 QWidget#widgetLabelLoad QLabel,
 QWidget#widgetLabelStreaming QLabel,
+QWidget#widgetLabelPublishers QLabel,
 QWidget#widgetLabelTimeseries QLabel
 {
     color: #FFFFFF;
+}
+
+QPushButton#buttonHideFileFrame,
+QPushButton#buttonHidePublishersFrame,
+QPushButton#buttonHideStreamingFrame {
+    color: #FFFFFF;
+    background-color: transparent;
 }
 
 

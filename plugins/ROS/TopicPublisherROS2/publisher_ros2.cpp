@@ -129,8 +129,6 @@ void TopicPublisherROS2::setEnabled(bool to_enable)
     _tf_broadcaster.reset();
     _tf_static_broadcaster.reset();
   }
-
-  StatePublisher::setEnabled(_enabled);
 }
 
 void TopicPublisherROS2::filterDialog()
@@ -391,3 +389,4 @@ void TopicPublisherROS2::play(double current_time)
     _previous_play_index = current_index;
   }
 }
+

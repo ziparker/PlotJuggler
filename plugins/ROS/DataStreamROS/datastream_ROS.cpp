@@ -25,7 +25,8 @@
 #include "shape_shifter_factory.hpp"
 
 DataStreamROS::DataStreamROS() : DataStreamer(), _node(nullptr)
-  , _action_saveIntoRosbag(nullptr), _prev_clock_time(0)
+, _action_saveIntoRosbag(nullptr)
+, _prev_clock_time(0)
 {
   _running = false;
   _periodic_timer = new QTimer();
@@ -35,6 +36,8 @@ DataStreamROS::DataStreamROS() : DataStreamer(), _node(nullptr)
 
   _action_saveIntoRosbag = new QAction(QString("Save cached value in a rosbag"));
   connect(_action_saveIntoRosbag, &QAction::triggered, this, [this]() { DataStreamROS::saveIntoRosbag(); });
+
+  _available_actions.push_back( _action_saveIntoRosbag );
 }
 
 void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr& msg, const std::string& topic_name)
@@ -176,7 +179,7 @@ void DataStreamROS::timerCallback()
 
       if (!_node)
       {
-        emit connectionClosed();
+        emit closed();
         return;
       }
       _parser.reset( new CompositeParser(dataMap()) );
@@ -190,7 +193,7 @@ void DataStreamROS::timerCallback()
     else if (ret == 0)
     {
       this->shutdown();
-      emit connectionClosed();
+      emit closed();
     }
   }
 }
@@ -436,9 +439,9 @@ bool DataStreamROS::xmlLoadState(const QDomElement& parent_element)
   return true;
 }
 
-std::vector<QAction*> DataStreamROS::addActionsToParentMenu()
+const std::vector<QAction *> &DataStreamROS::availableActions()
 {
-  return {_action_saveIntoRosbag};
+  return _available_actions;
 }
 
 void DataStreamROS::saveDefaultSettings()

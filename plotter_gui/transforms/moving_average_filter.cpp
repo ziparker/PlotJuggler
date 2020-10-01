@@ -32,20 +32,24 @@ void MovingAverageFilter::calculate(PlotData *dst_data)
   _buffer.resize( std::min( int(ui->spinBoxSamples->value()), int(dataSource()->size())) );
   _ring_view = nonstd::ring_span<double>(_buffer.begin(), _buffer.end());
 
-  for(size_t i=0; i < _ring_view.size(); i++)
+  const auto p1 = dataSource()->at(0);
+
+  for(size_t i=0; i < _buffer.size(); i++)
   {
-    const auto& p = dataSource()->at(i);
-    _ring_view.push_back(p.y);
+    _ring_view.push_back(p1.y);
   }
+  double total = p1.y * _ring_view.size();
 
-  dst_data->pushBack( dataSource()->at(0) );
-
+  dst_data->pushBack( p1 );
   for(size_t i=1; i < dataSource()->size(); i++)
   {
     const auto& p = dataSource()->at(i);
-    _ring_view.push_back(p.y);
 
-    double total = std::accumulate( _ring_view.begin(), _ring_view.end(), 0.0 );
+    total -= _ring_view.front();
+    _ring_view.pop_front();
+    _ring_view.push_back( p.y );
+    total += _ring_view.back();
+
     dst_data->pushBack({p.x, total / _ring_view.size() });
   }
 }

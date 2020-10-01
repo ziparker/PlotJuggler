@@ -270,5 +270,6 @@
         <file>style_light/branch_open_pressed.png</file>
         <file>resources/stylesheet_light.qss</file>
         <file>resources/stylesheet_dark.qss</file>
+        <file>resources/svg/right-arrow.svg</file>
     </qresource>
 </RCC>

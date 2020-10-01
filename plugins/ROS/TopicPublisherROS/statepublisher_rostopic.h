@@ -35,9 +35,9 @@ public:
     return _enabled;
   }
 
-  void setParentMenu(QMenu* menu, QAction* action) override;
-
   virtual void play(double interval) override;
+
+  const std::vector<QAction*>& availableActions() override;
 
 public slots:
   virtual void setEnabled(bool enabled) override;
@@ -48,8 +48,11 @@ private:
   void broadcastTF(double current_time);
 
   std::map<std::string, ros::Publisher> _publishers;
+
   bool _enabled;
+
   ros::NodeHandlePtr _node;
+
   bool _publish_clock;
 
   std::shared_ptr<tf2_ros::TransformBroadcaster> _tf_broadcaster;
@@ -57,7 +60,6 @@ private:
 
   ros::Publisher _clock_publisher;
 
-  QAction* _enable_self_action;
   QAction* _select_topics_to_publish;
 
   std::unordered_map<std::string, bool> _topics_to_publish;
@@ -67,6 +69,8 @@ private:
   double previous_time;
 
   int _previous_play_index;
+
+  std::vector<QAction*> _available_actions;
 
   void publishAnyMsg(const rosbag::MessageInstance& msg_instance);
 };

@@ -52,7 +52,7 @@ signals:
   void dataReceived();
 
   // Stopping a plugin from the "inside"
-  void connectionClosed();
+  void closed();
 
 private:
   std::mutex _mutex;

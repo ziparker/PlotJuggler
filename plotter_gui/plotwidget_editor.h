@@ -65,15 +65,15 @@ private slots:
 
   void on_pushButtonReset_clicked();
 
-  void on_lineLimitMax_editingFinished();
-
-  void on_lineLimitMin_editingFinished();
-
   void on_pushButtonCancel_pressed();
 
   void on_pushButtonSave_pressed();
 
   void on_listWidget_itemSelectionChanged();
+
+  void on_lineLimitMin_textChanged(const QString &text);
+
+  void on_lineLimitMax_textChanged(const QString &text);
 
 private:
   Ui::PlotWidgetEditor *ui;

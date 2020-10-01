@@ -237,6 +237,7 @@ private slots:
   void on_pushButtonLoadRecent_clicked();
   void on_buttonHideFileFrame_clicked();
   void on_buttonHideStreamingFrame_clicked();
+  void on_buttonHidePublishersFrame_clicked();
 };
 
 class PopupMenu : public QMenu

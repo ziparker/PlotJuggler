@@ -40,7 +40,7 @@ public:
 
   virtual bool xmlLoadState(const QDomElement& parent_element) override;
 
-  virtual std::vector<QAction*>  addActionsToParentMenu() override;
+  virtual const std::vector<QAction*>& availableActions() override;
 
 private:
   void topicCallback(const RosIntrospection::ShapeShifter::ConstPtr& msg, const std::string& topic_name);
@@ -72,6 +72,8 @@ private:
   int _received_msg_count;
 
   QAction* _action_saveIntoRosbag;
+
+  std::vector<QAction*> _available_actions;
 
   std::map<std::string, int> _msg_index;
 
