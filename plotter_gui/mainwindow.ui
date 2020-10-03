@@ -248,7 +248,7 @@
                <property name="maximumSize">
                 <size>
                  <width>24</width>
-                 <height>22</height>
+                 <height>24</height>
                 </size>
                </property>
                <property name="toolTip">
@@ -259,8 +259,8 @@
                </property>
                <property name="iconSize">
                 <size>
-                 <width>14</width>
-                 <height>14</height>
+                 <width>12</width>
+                 <height>12</height>
                 </size>
                </property>
                <property name="flat">
@@ -388,8 +388,8 @@
                </property>
                <property name="iconSize">
                 <size>
-                 <width>14</width>
-                 <height>14</height>
+                 <width>12</width>
+                 <height>12</height>
                 </size>
                </property>
                <property name="flat">
@@ -533,6 +533,11 @@
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the streaming plugin.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
@@ -566,8 +571,8 @@
                 </property>
                 <property name="iconSize">
                  <size>
-                  <width>20</width>
-                  <height>20</height>
+                  <width>16</width>
+                  <height>16</height>
                  </size>
                 </property>
                 <property name="flat">
@@ -1825,11 +1830,6 @@
    </property>
    <property name="toolTip">
     <string>Save each tab as a separate image.</string>
-   </property>
-  </action>
-  <action name="actionLoadDummyData">
-   <property name="text">
-    <string>Load Dummy Data</string>
    </property>
   </action>
   <action name="actionFunctionEditor">

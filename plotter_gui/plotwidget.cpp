@@ -1938,7 +1938,7 @@ bool PlotWidget::isZoomEnabled() const
 }
 
 void PlotWidget::replot()
-{
+{ 
   if (_zoomer)
   {
     _zoomer->setZoomBase(false);

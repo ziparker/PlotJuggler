@@ -166,15 +166,15 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   this->setMenuBar(ui->menuBar);
   ui->menuBar->setNativeMenuBar(false);
 
-  if (_test_option)
-  {
-    connect(ui->actionLoadDummyData, &QAction::triggered, this, &MainWindow::buildDummyData);
-    buildDummyData();
-  }
-  else
-  {
-    ui->actionLoadDummyData->setVisible(false);
-  }
+//  if (_test_option)
+//  {
+//    connect(ui->actionLoadDummyData, &QAction::triggered, this, &MainWindow::buildDummyData);
+//    buildDummyData();
+//  }
+//  else
+//  {
+//    ui->actionLoadDummyData->setVisible(false);
+//  }
 
   bool file_loaded = false;
   if (commandline_parser.isSet("datafile"))
@@ -501,7 +501,7 @@ void MainWindow::initializePlugins(QString directory_name)
           else{
             auto options_button = new QPushButton(ui->framePublishers);
             options_button->setFlat(true);
-            options_button->setFixedSize({22,22});
+            options_button->setFixedSize({24,24});
             ui->layoutPublishers->addWidget(options_button, row, 2);
 
             options_button->setIcon( LoadSvgIcon(":/resources/svg/settings_cog.svg", "light"));
