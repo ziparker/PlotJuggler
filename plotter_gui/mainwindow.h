@@ -150,6 +150,9 @@ private:
 
   LabelStatus _labels_status;
 
+  QMenu* _recent_data_files;
+  QMenu* _recent_layout_files;
+
   void initializeActions();
   void initializePlugins(QString subdir_name);
 
@@ -194,9 +197,7 @@ signals:
   void stylesheetChanged(QString style_name);
 
 public slots:
-  void on_actionLoadData_triggered();
-  void on_actionLoadLayout_triggered();
-  void on_actionSaveLayout_triggered();
+
   void on_actionLoadDummyData_triggered();
 
   void on_actionFunctionEditor_triggered();
@@ -234,10 +235,15 @@ private slots:
 
   void on_buttonStreamingStart_clicked();
   void on_buttonStreamingOptions_clicked();
-  void on_pushButtonLoadRecent_clicked();
   void on_buttonHideFileFrame_clicked();
   void on_buttonHideStreamingFrame_clicked();
   void on_buttonHidePublishersFrame_clicked();
+
+  void on_buttonRecentData_clicked();
+  void on_buttonRecentLayout_clicked();
+  void on_pushButtonLoadLayout_clicked();
+  void on_pushButtonSaveLayout_clicked();
+  void on_pushButtonLoadDatafile_clicked();
 };
 
 class PopupMenu : public QMenu

@@ -61,6 +61,8 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   , _tracker_time(0)
   , _tracker_param(CurveTracker::VALUE)
   , _labels_status(LabelStatus::RIGHT)
+  , _recent_data_files(new QMenu())
+  ,_recent_layout_files(new QMenu())
 {
   QLocale::setDefault(QLocale::c());  // set as default
 
@@ -125,9 +127,6 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   connect(ui->playbackRate, &QDoubleSpinBox::editingFinished, this, [this]() { ui->playbackRate->clearFocus(); });
 
   connect(ui->playbackStep, &QDoubleSpinBox::editingFinished, this, [this]() { ui->playbackStep->clearFocus(); });
-
-  connect(ui->pushButtonLoadDatafile, &QPushButton::clicked,
-          this, &MainWindow::on_actionLoadData_triggered);
 
   _main_tabbed_widget = new TabbedPlotWidget("Main Window", this, _mapped_plot_data, this);
 
@@ -919,7 +918,7 @@ void MainWindow::onDeleteMultipleCurves(const std::vector<std::string>& curve_na
 
 void MainWindow::updateRecentDataMenu(QStringList new_filenames)
 {
-  QMenu* menu = ui->menuRecentData;
+  QMenu* menu = _recent_data_files;
 
   QAction* separator = nullptr;
   QStringList prev_filenames;
@@ -957,7 +956,7 @@ void MainWindow::updateRecentDataMenu(QStringList new_filenames)
 
 void MainWindow::updateRecentLayoutMenu(QStringList new_filenames)
 {
-  QMenu* menu = ui->menuRecentLayout;
+  QMenu* menu = _recent_layout_files;
 
   QAction* separator = nullptr;
   QStringList prev_filenames;
@@ -1468,12 +1467,18 @@ void MainWindow::on_stylesheetChanged(QString theme)
   ui->pushButtonLoadDatafile->setIcon(LoadSvgIcon(":/resources/svg/import.svg", theme));
   ui->buttonStreamingPause->setIcon(LoadSvgIcon(":/resources/svg/pause.svg", theme));
 
+  ui->buttonRecentData->setIcon(LoadSvgIcon(":/resources/svg/right-arrow.svg", theme));
+  ui->buttonRecentLayout->setIcon(LoadSvgIcon(":/resources/svg/right-arrow.svg", theme));
+
   ui->pushButtonZoomOut->setIcon(LoadSvgIcon(":/resources/svg/zoom_max.svg", theme));
   ui->playbackLoop->setIcon(LoadSvgIcon(":/resources/svg/loop.svg", theme));
   ui->pushButtonPlay->setIcon(LoadSvgIcon(":/resources/svg/play_arrow.svg", theme));
   ui->pushButtonUseDateTime->setIcon(LoadSvgIcon(":/resources/svg/datetime.svg", theme));
   ui->pushButtonActivateGrid->setIcon(LoadSvgIcon(":/resources/svg/grid.svg", theme));
   ui->pushButtonRatio->setIcon(LoadSvgIcon(":/resources/svg/ratio.svg", theme));
+
+  ui->pushButtonLoadLayout->setIcon(LoadSvgIcon(":/resources/svg/import.svg", theme));
+  ui->pushButtonSaveLayout->setIcon(LoadSvgIcon(":/resources/svg/export.svg", theme));
 
   ui->pushButtonLink->setIcon(LoadSvgIcon(":/resources/svg/link.svg", theme));
   ui->pushButtonRemoveTimeOffset->setIcon(LoadSvgIcon(":/resources/svg/t0.svg", theme));
@@ -2403,7 +2408,7 @@ void MainWindow::on_actionSaveAllPlotTabs_triggered()
   }
 }*/
 
-void MainWindow::on_actionLoadData_triggered()
+void MainWindow::on_pushButtonLoadDatafile_clicked()
 {
   if (_data_loader.empty())
   {
@@ -2459,7 +2464,7 @@ void MainWindow::on_actionLoadData_triggered()
   }
 }
 
-void MainWindow::on_actionLoadLayout_triggered()
+void MainWindow::on_pushButtonLoadLayout_clicked()
 {
   QSettings settings;
 
@@ -2479,7 +2484,7 @@ void MainWindow::on_actionLoadLayout_triggered()
   settings.setValue("MainWindow.lastLayoutDirectory", directory_path);
 }
 
-void MainWindow::on_actionSaveLayout_triggered()
+void MainWindow::on_pushButtonSaveLayout_clicked()
 {
   QDomDocument doc = xmlSaveState();
 
@@ -2645,7 +2650,7 @@ void MainWindow::on_actionFunctionEditor_triggered()
 
 void MainWindow::on_actionClearRecentData_triggered()
 {
-  QMenu* menu = ui->menuRecentData;
+  QMenu* menu = _recent_data_files;
   for (QAction* action : menu->actions())
   {
     if (action->isSeparator())
@@ -2661,7 +2666,7 @@ void MainWindow::on_actionClearRecentData_triggered()
 
 void MainWindow::on_actionClearRecentLayout_triggered()
 {
-  QMenu* menu = ui->menuRecentLayout;
+  QMenu* menu = _recent_layout_files;
   for (QAction* action : menu->actions())
   {
     if (action->isSeparator())
@@ -2838,11 +2843,11 @@ void PopupMenu::closeEvent(QCloseEvent *)
   _w->setAttribute(Qt::WA_UnderMouse, false);
 }
 
-void MainWindow::on_pushButtonLoadRecent_clicked()
+void MainWindow::on_buttonRecentData_clicked()
 {
-  PopupMenu* menu = new PopupMenu(ui->pushButtonLoadRecent, this);
+  PopupMenu* menu = new PopupMenu(ui->buttonRecentData, this);
 
-  for(auto action: ui->menuRecentData->actions()) {
+  for(auto action: _recent_data_files->actions()) {
     menu->addAction(action);
   }
   menu->exec();
@@ -2880,3 +2885,14 @@ void MainWindow::on_buttonHidePublishersFrame_clicked()
   ui->buttonHidePublishersFrame->setText( hidden ? "+" : " -");
   ui->framePublishers->setHidden( hidden );
 }
+
+void MainWindow::on_buttonRecentLayout_clicked()
+{
+  PopupMenu* menu = new PopupMenu(ui->buttonRecentLayout, this);
+
+  for(auto action: _recent_layout_files->actions()) {
+    menu->addAction(action);
+  }
+  menu->exec();
+}
+
