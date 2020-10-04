@@ -271,19 +271,18 @@ bool CurvesView::eventFilterBase(QObject* object, QEvent* event)
         }
         mimeData->setData("curveslist/new_XY_axis", mdata);
 
-        QPixmap cursor(QSize(160, 30));
+        QPixmap cursor(QSize(80, 30));
         cursor.fill(Qt::transparent);
 
         QPainter painter;
         painter.begin(&cursor);
-        painter.setPen(QColor(22, 22, 22));
 
-        QString text("Create a XY curve");
+        QString text("XY");
         painter.setFont(QFont("Arial", 14));
 
         painter.setBackground(Qt::transparent);
         painter.setPen(table_widget->palette().foreground().color());
-        painter.drawText(QRect(0, 0, 160, 30), Qt::AlignHCenter | Qt::AlignVCenter, text);
+        painter.drawText(QRect(0, 0, 80, 30), Qt::AlignCenter, text);
         painter.end();
 
         drag->setDragCursor(cursor, Qt::MoveAction);

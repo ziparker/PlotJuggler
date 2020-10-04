@@ -43,9 +43,9 @@ public:
 
   bool xmlLoadState(QDomElement& element);
 
-  PlotData::RangeTime getMaximumRangeX() const;
+  Range getMaximumRangeX() const;
 
-  PlotData::RangeValue getMaximumRangeY(PlotData::RangeTime range_X) const;
+  Range getMaximumRangeY(Range range_X) const;
 
   void setZoomRectangle(QRectF rect, bool emit_signal);
 
@@ -99,9 +99,9 @@ public:
 
   std::map<std::string, QColor> getCurveColors() const;
 
-  void setCustomAxisLimits(PlotData::RangeValue range);
+  void setCustomAxisLimits(Range range);
 
-  PlotData::RangeValue customAxisLimit() const;
+  Range customAxisLimit() const;
 
 protected:
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -235,15 +235,15 @@ private:
 
   void setDefaultRangeX();
 
-  DataSeriesBase* createCurveXY(const PlotData* data_x, const PlotData* data_y);
+  QwtSeriesWrapper* createCurveXY(const PlotData* data_x, const PlotData* data_y);
 
-  DataSeriesBase* createTimeSeries(const QString& transform_ID, const PlotData* data);
+  QwtSeriesWrapper* createTimeSeries(const QString& transform_ID, const PlotData* data);
 
   double _time_offset;
 
   bool _xy_mode;
 
-  PlotData::RangeValue _custom_Y_limits;
+  Range _custom_Y_limits;
 
   TransformSelector* _transform_select_dialog;
 

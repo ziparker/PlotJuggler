@@ -3,19 +3,17 @@
 #include <cstdlib>
 
 PointSeriesXY::PointSeriesXY(const PlotData* x_axis, const PlotData* y_axis)
-  : DataSeriesBase(&_cached_curve), _x_axis(x_axis), _y_axis(y_axis), _cached_curve("")
+  : QwtSeriesWrapper(&_cached_curve),
+    _x_axis(x_axis),
+    _y_axis(y_axis),
+    _cached_curve("")
 {
   updateCache();
 }
 
-PlotData::RangeTimeOpt PointSeriesXY::getVisualizationRangeX()
+size_t PointSeriesXY::size() const
 {
-  if (this->size() < 2)
-    return PlotData::RangeTimeOpt();
-  else
-  {
-    return PlotData::RangeTimeOpt({ _bounding_box.left(), _bounding_box.right() });
-  }
+  return _cached_curve.size();
 }
 
 nonstd::optional<QPointF> PointSeriesXY::sampleFromTime(double t)
@@ -34,10 +32,9 @@ nonstd::optional<QPointF> PointSeriesXY::sampleFromTime(double t)
   return QPointF(p.x, p.y);
 }
 
-PlotData::RangeValueOpt PointSeriesXY::getVisualizationRangeY(PlotData::RangeTime range_X)
+RangeOpt PointSeriesXY::getVisualizationRangeY(Range)
 {
-  // TODO: improve?
-  return PlotData::RangeValueOpt({ _bounding_box.bottom(), _bounding_box.top() });
+  return _cached_curve.rangeY();
 }
 
 bool PointSeriesXY::updateCache()
@@ -51,43 +48,28 @@ bool PointSeriesXY::updateCache()
 
   if (data_size == 0)
   {
-    _bounding_box = QRectF();
     _cached_curve.clear();
     return true;
   }
-
-  double min_y = (std::numeric_limits<double>::max());
-  double max_y = (-std::numeric_limits<double>::max());
-  double min_x = (std::numeric_limits<double>::max());
-  double max_x = (-std::numeric_limits<double>::max());
-
-  _cached_curve.resize(data_size);
 
   const double EPS = std::numeric_limits<double>::epsilon();
 
   for (size_t i = 0; i < data_size; i++)
   {
-    if (Abs(_x_axis->at(i).x - _y_axis->at(i).x) > EPS)
+    if (std::abs(_x_axis->at(i).x - _y_axis->at(i).x) > EPS)
     {
-      _bounding_box = QRectF();
       _cached_curve.clear();
       throw std::runtime_error("X and Y axis don't share the same time axis");
     }
 
     const QPointF p(_x_axis->at(i).y, _y_axis->at(i).y);
+    _cached_curve.pushBack( { p.x(), p.y() } );
 
-    _cached_curve.at(i) = { p.x(), p.y() };
-
-    min_x = std::min(min_x, p.x());
-    max_x = std::max(max_x, p.x());
-    min_y = std::min(min_y, p.y());
-    max_y = std::max(max_y, p.y());
   }
-
-  _bounding_box.setLeft(min_x);
-  _bounding_box.setRight(max_x);
-  _bounding_box.setBottom(min_y);
-  _bounding_box.setTop(max_y);
-
   return true;
+}
+
+RangeOpt PointSeriesXY::getVisualizationRangeX()
+{
+  return _cached_curve.rangeX();
 }

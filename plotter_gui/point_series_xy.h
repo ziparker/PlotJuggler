@@ -1,9 +1,9 @@
 #ifndef POINT_SERIES_H
 #define POINT_SERIES_H
 
-#include "series_data.h"
+#include "timeseries_qwt.h"
 
-class PointSeriesXY : public DataSeriesBase
+class PointSeriesXY : public QwtSeriesWrapper
 {
 public:
   PointSeriesXY(const PlotData* x_axis, const PlotData* y_axis);
@@ -14,18 +14,15 @@ public:
     return QPointF(p.x, p.y);
   }
 
-  QRectF boundingRect() const override
-  {
-    return _bounding_box;
-  }
-
-  PlotData::RangeTimeOpt getVisualizationRangeX() override;
+  size_t size() const override;
 
   nonstd::optional<QPointF> sampleFromTime(double t) override;
 
-  PlotData::RangeValueOpt getVisualizationRangeY(PlotData::RangeTime range_X) override;
+  RangeOpt getVisualizationRangeY(Range range_X) override;
 
   bool updateCache() override;
+
+  RangeOpt getVisualizationRangeX() override;
 
   const PlotData* dataX() const
   {
@@ -39,7 +36,7 @@ public:
 protected:
   const PlotData* _x_axis;
   const PlotData* _y_axis;
-  PlotData _cached_curve;
+  PlotDataBase<double> _cached_curve;
 };
 
 #endif  // POINT_SERIES_H

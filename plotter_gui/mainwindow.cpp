@@ -166,15 +166,10 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   this->setMenuBar(ui->menuBar);
   ui->menuBar->setNativeMenuBar(false);
 
-//  if (_test_option)
-//  {
-//    connect(ui->actionLoadDummyData, &QAction::triggered, this, &MainWindow::buildDummyData);
-//    buildDummyData();
-//  }
-//  else
-//  {
-//    ui->actionLoadDummyData->setVisible(false);
-//  }
+  if (_test_option)
+  {
+    buildDummyData();
+  }
 
   bool file_loaded = false;
   if (commandline_parser.isSet("datafile"))

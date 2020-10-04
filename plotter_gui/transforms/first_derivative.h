@@ -13,7 +13,7 @@ public:
 
   ~FirstDerivative() override;
 
-  const char* name() const override { return "1st Derivative"; }
+  const char* name() const override { return "Derivative"; }
 
   void calculate(PlotData* dst_data) override;
 

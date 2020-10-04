@@ -70,7 +70,7 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
 
   auto ylimits = _plotwidget->customAxisLimit();
   auto range_x = _plotwidget->getMaximumRangeX();
-  PlotData::RangeValue suggested_limits = _plotwidget->getMaximumRangeY(range_x);
+  Range suggested_limits = _plotwidget->getMaximumRangeY(range_x);
 
   if( ylimits.min != -MAX_DOUBLE)
   {
@@ -248,7 +248,7 @@ void PlotwidgetEditor::updateLimits()
     std::swap(ymin, ymax);
   }
 
-  PlotData::RangeValue range;
+  Range range;
   range.min = ymin;
   range.max = ymax;
   _plotwidget->setCustomAxisLimits(range);
@@ -303,14 +303,14 @@ void PlotwidgetEditor::on_checkBoxMin_toggled(bool checked)
 
 void PlotwidgetEditor::on_pushButtonReset_clicked()
 {
-  PlotData::RangeValue no_limits;
+  Range no_limits;
   no_limits.min = -MAX_DOUBLE;
   no_limits.max = +MAX_DOUBLE;
 
   _plotwidget->setCustomAxisLimits(no_limits);
 
   auto range_x = _plotwidget->getMaximumRangeX();
-  PlotData::RangeValue limits = _plotwidget->getMaximumRangeY(range_x);
+  Range limits = _plotwidget->getMaximumRangeY(range_x);
 
   ui->lineLimitMin->setText(QString::number(limits.min));
   ui->lineLimitMax->setText(QString::number(limits.max));

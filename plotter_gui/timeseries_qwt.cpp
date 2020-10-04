@@ -5,26 +5,19 @@
 #include <QPushButton>
 #include <QString>
 
-TimeSeries::TimeSeries(const PlotData* source_data)
-  : DataSeriesBase(&_dst_data),
-  _source_data(source_data),
-  _dst_data(source_data->name())
+RangeOpt QwtTimeseries::getVisualizationRangeY(Range range_X)
 {
-}
-
-PlotData::RangeValueOpt TimeSeries::getVisualizationRangeY(PlotData::RangeTime range_X)
-{
-  int first_index = plotData()->getIndexFromX(range_X.min);
-  int last_index = plotData()->getIndexFromX(range_X.max);
+  int first_index = _ts_data->getIndexFromX(range_X.min);
+  int last_index  = _ts_data->getIndexFromX(range_X.max);
 
   if (first_index > last_index || first_index < 0 || last_index < 0)
   {
-    return PlotData::RangeValueOpt();
+    return {};
   }
 
   if (first_index == 0 && last_index == plotData()->size() - 1)
   {
-    return PlotData::RangeValueOpt({ _bounding_box.bottom(), _bounding_box.top() });
+    return _ts_data->rangeY();
   }
 
   double min_y = (std::numeric_limits<double>::max());
@@ -36,26 +29,35 @@ PlotData::RangeValueOpt TimeSeries::getVisualizationRangeY(PlotData::RangeTime r
     min_y = std::min(min_y, Y);
     max_y = std::max(max_y, Y);
   }
-  return PlotData::RangeValueOpt({ min_y, max_y });
+  return Range{ min_y, max_y };
 }
 
-nonstd::optional<QPointF> TimeSeries::sampleFromTime(double t)
+nonstd::optional<QPointF> QwtTimeseries::sampleFromTime(double t)
 {
-  int index = plotData()->getIndexFromX(t);
+  int index = _ts_data->getIndexFromX(t);
   if (index < 0)
   {
-    return nonstd::optional<QPointF>();
+    return {};
   }
   const auto& p = plotData()->at(size_t(index));
   return QPointF(p.x, p.y);
 }
 
-TimeSeriesTransformPtr TimeSeries::transform()
+
+TransformedTimeseries::TransformedTimeseries(const PlotData* source_data)
+  : QwtTimeseries(&_dst_data),
+  _source_data(source_data),
+  _dst_data(source_data->name())
+{
+}
+
+
+TimeSeriesTransformPtr TransformedTimeseries::transform()
 {
   return _transform;
 }
 
-void TimeSeries::setTransform(QString transform_ID)
+void TransformedTimeseries::setTransform(QString transform_ID)
 {
   if( transformName() == transform_ID)
   {
@@ -71,7 +73,7 @@ void TimeSeries::setTransform(QString transform_ID)
   }
 }
 
-bool TimeSeries::updateCache()
+bool TransformedTimeseries::updateCache()
 {
   if( _transform )
   {
@@ -85,12 +87,62 @@ bool TimeSeries::updateCache()
       _dst_data.pushBack( _source_data->at(i) );
     }
   }
-  calculateBoundingBox();
   return true;
 }
 
-QString TimeSeries::transformName()
+QString TransformedTimeseries::transformName()
 {
   return ( !_transform ) ? QString() : _transform->name();
 }
 
+QRectF QwtSeriesWrapper::boundingRect() const
+{
+  if( size() == 0 )
+  {
+    return {};
+  }
+  auto range_x = plotData()->rangeX().value();
+  auto range_y = plotData()->rangeY().value();
+
+  QRectF box;
+  box.setLeft(range_x.min - _time_offset);
+  box.setRight(range_x.max - _time_offset);
+  box.setTop(range_y.max);
+  box.setBottom(range_y.min);
+  return box;
+}
+
+
+QPointF QwtSeriesWrapper::sample(size_t i) const
+{
+  const auto& p = _data->at(i);
+  return QPointF(p.x - _time_offset, p.y);
+}
+
+size_t QwtSeriesWrapper::size() const
+{
+  return _data->size();
+}
+
+void QwtSeriesWrapper::setTimeOffset(double offset)
+{
+  _time_offset = offset;
+}
+
+RangeOpt QwtSeriesWrapper::getVisualizationRangeX()
+{
+  if (this->size() < 2){
+    return {};
+  }
+  else
+  {
+    auto range = _data->rangeX().value();
+    return RangeOpt({ range.min - _time_offset,
+                      range.max - _time_offset });
+  }
+}
+
+const PlotDataBase<double> *QwtSeriesWrapper::plotData() const
+{
+  return _data;
+}

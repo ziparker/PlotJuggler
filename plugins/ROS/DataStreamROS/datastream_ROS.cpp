@@ -239,7 +239,7 @@ void DataStreamROS::saveIntoRosbag()
       for (int i = 0; i < plotdata.size(); i++)
       {
         const auto& point = plotdata.at(i);
-        const PlotDataAny::TimeType msg_time = point.x;
+        const double msg_time = point.x;
         const nonstd::any& type_erased_buffer = point.y;
 
         if (type_erased_buffer.type() != typeid(std::vector<uint8_t>))

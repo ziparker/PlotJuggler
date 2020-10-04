@@ -402,9 +402,15 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curv
     name_x = dialog.nameX().toStdString();
     name_y = dialog.nameY().toStdString();
 
-    if (!ok || name.empty() || _curve_list.count(name) != 0)
+    if (!ok)
     {
-      int ret = QMessageBox::warning(this, "Missing name", "The name is missing or invalid. Try again or abort.",
+      return false;
+    }
+
+    if (name.empty() || _curve_list.count(name) != 0)
+    {
+      int ret = QMessageBox::warning(this, "Missing name",
+                                     "The name is missing or invalid. Try again or abort.",
                                      QMessageBox::Abort | QMessageBox::Retry, QMessageBox::Retry);
       if (ret == QMessageBox::Abort)
       {
@@ -711,7 +717,7 @@ QDomElement PlotWidget::xmlSaveState(QDomDocument& doc) const
       curve_el.setAttribute("curve_y", QString::fromStdString(curve_xy->dataY()->name()));
     }
     else{
-      TimeSeries* ts = dynamic_cast<TimeSeries*>(curve->data());
+      auto ts = dynamic_cast<TransformedTimeseries*>(curve->data());
       if(ts && ts->transform())
       {
         QDomElement transform_el = doc.createElement("transform");
@@ -778,7 +784,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
         curve->setPen(color, 1.3);
         added_curve_names.insert(curve_name_std);
 
-        TimeSeries* ts = dynamic_cast<TimeSeries*>(curve->data());
+        auto ts = dynamic_cast<TransformedTimeseries*>(curve->data());
         QDomElement transform_el = curve_element.firstChildElement("transform");
         if( transform_el.isNull() == false )
         {
@@ -1059,7 +1065,7 @@ void PlotWidget::reloadPlotData()
       QString transform_name;
       if( !isXYPlot() )
       {
-        TimeSeries* ts = dynamic_cast<TimeSeries*>(curve->data());
+        auto ts = dynamic_cast<TransformedTimeseries*>(curve->data());
         transform_name = ts->transformName();
       }
       auto data_series = createTimeSeries(transform_name, &data);
@@ -1109,7 +1115,7 @@ void PlotWidget::setTrackerPosition(double abs_time)
     for (auto& it : _curve_list)
     {
       auto& name = it.first;
-      auto series = static_cast<DataSeriesBase*>(it.second->data());
+      auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
       auto pointXY = series->sampleFromTime(abs_time);
       if (pointXY)
       {
@@ -1133,7 +1139,7 @@ void PlotWidget::on_changeTimeOffset(double offset)
   {
     for (auto& it : _curve_list)
     {
-      auto series = static_cast<DataSeriesBase*>(it.second->data());
+      auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
       series->setTimeOffset(_time_offset);
     }
     if (!isXYPlot())
@@ -1167,7 +1173,7 @@ void PlotWidget::on_changeDateTimeScale(bool enable)
   }
 }
 
-PlotData::RangeTime PlotWidget::getMaximumRangeX() const
+Range PlotWidget::getMaximumRangeX() const
 {
   double left = std::numeric_limits<double>::max();
   double right = -std::numeric_limits<double>::max();
@@ -1177,7 +1183,7 @@ PlotData::RangeTime PlotWidget::getMaximumRangeX() const
     if (!it.second->isVisible())
       continue;
 
-    auto series = static_cast<DataSeriesBase*>(it.second->data());
+    auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
     const auto max_range_X = series->getVisualizationRangeX();
     if (!max_range_X)
       continue;
@@ -1200,11 +1206,11 @@ PlotData::RangeTime PlotWidget::getMaximumRangeX() const
   right = right + margin;
   left = left - margin;
 
-  return PlotData::RangeTime({ left, right });
+  return Range({ left, right });
 }
 
 // TODO report failure for empty dataset
-PlotData::RangeValue PlotWidget::getMaximumRangeY(PlotData::RangeTime range_X) const
+Range PlotWidget::getMaximumRangeY(Range range_X) const
 {
   double top = -std::numeric_limits<double>::max();
   double bottom = std::numeric_limits<double>::max();
@@ -1214,7 +1220,7 @@ PlotData::RangeValue PlotWidget::getMaximumRangeY(PlotData::RangeTime range_X) c
     if (!it.second->isVisible())
       continue;
 
-    auto series = static_cast<DataSeriesBase*>(it.second->data());
+    auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
 
     const auto max_range_X = series->getVisualizationRangeX();
     if (!max_range_X){
@@ -1281,14 +1287,14 @@ PlotData::RangeValue PlotWidget::getMaximumRangeY(PlotData::RangeTime range_X) c
     bottom -= margin;
   }
 
-  return PlotData::RangeValue({ bottom, top });
+  return Range({ bottom, top });
 }
 
 void PlotWidget::updateCurves()
 {
   for (auto& it : _curve_list)
   {
-    auto series = static_cast<DataSeriesBase*>(it.second->data());
+    auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
     bool res = series->updateCache();
     // TODO check res and do something if false.
   }
@@ -1605,14 +1611,14 @@ void PlotWidget::on_savePlotToFile()
   }
 }
 
-void PlotWidget::setCustomAxisLimits(PlotData::RangeValue range)
+void PlotWidget::setCustomAxisLimits(Range range)
 {
   _custom_Y_limits = range;
   on_zoomOutVertical_triggered(false);
   replot();
 }
 
-PlotData::RangeValue PlotWidget::customAxisLimit() const
+Range PlotWidget::customAxisLimit() const
 {
   return _custom_Y_limits;
 }
@@ -1853,9 +1859,9 @@ void PlotWidget::setDefaultRangeX()
   }
 }
 
-DataSeriesBase* PlotWidget::createCurveXY(const PlotData* data_x, const PlotData* data_y)
+QwtSeriesWrapper* PlotWidget::createCurveXY(const PlotData* data_x, const PlotData* data_y)
 {
-  DataSeriesBase* output = nullptr;
+  QwtSeriesWrapper* output = nullptr;
 
   try
   {
@@ -1878,9 +1884,9 @@ DataSeriesBase* PlotWidget::createCurveXY(const PlotData* data_x, const PlotData
   return output;
 }
 
-DataSeriesBase* PlotWidget::createTimeSeries(const QString& transform_ID, const PlotData* data)
+QwtSeriesWrapper* PlotWidget::createTimeSeries(const QString& transform_ID, const PlotData* data)
 {
-  DataSeriesBase* output = new TimeSeries(data);
+  QwtTimeseries* output = new TransformedTimeseries(data);
 
   // TODO transform_ID ??
 
