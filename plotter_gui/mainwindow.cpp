@@ -567,9 +567,17 @@ void MainWindow::initializePlugins(QString directory_name)
     QSettings settings;
     QString streaming_name = settings.value("MainWindow.previousStreamingPlugin",
                                             ui->comboStreaming->itemText(0)).toString();
+
+    auto streamer_it = _data_streamer.find(streaming_name);
+    if( streamer_it == _data_streamer.end() )
+    {
+      streamer_it = _data_streamer.begin();
+      streaming_name = streamer_it->first;
+    }
+
     ui->comboStreaming->setCurrentText(streaming_name);
 
-    bool contains_options = !_data_streamer.at(streaming_name)->availableActions().empty();
+    bool contains_options = !streamer_it->second->availableActions().empty();
     ui->buttonStreamingOptions->setEnabled(contains_options);
   }
 }

@@ -38,7 +38,7 @@ ScaleTransform::~ScaleTransform()
 }
 
 const char *ScaleTransform::name() const {
-  return "Scale";
+  return "Scale/Offset";
 }
 
 void ScaleTransform::calculate(PlotData *dst_data)

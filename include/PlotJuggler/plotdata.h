@@ -175,9 +175,7 @@ public:
       }
       _range_x_dirty = false;
     }
-    else{
-      return _range_x;
-    }
+    return _range_x;
   }
 
   RangeOpt rangeY() const
@@ -196,9 +194,7 @@ public:
       }
       _range_y_dirty = false;
     }
-    else{
-      return _range_y;
-    }
+    return _range_y;
   }
 
   void pushBack(const Point &p)

@@ -1783,8 +1783,6 @@
      <string>Tools</string>
     </property>
     <addaction name="separator"/>
-    <addaction name="actionFunctionEditor"/>
-    <addaction name="actionSaveAllPlotTabs"/>
     <addaction name="actionLoadStyleSheet"/>
    </widget>
    <addaction name="menuFile"/>
@@ -1822,19 +1820,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
-   </property>
-  </action>
-  <action name="actionSaveAllPlotTabs">
-   <property name="text">
-    <string>Save all plot tabs as images</string>
-   </property>
-   <property name="toolTip">
-    <string>Save each tab as a separate image.</string>
-   </property>
-  </action>
-  <action name="actionFunctionEditor">
-   <property name="text">
-    <string>Open Function Editor</string>
    </property>
   </action>
   <action name="actionCheatsheet">
