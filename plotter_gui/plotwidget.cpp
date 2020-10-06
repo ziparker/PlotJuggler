@@ -23,6 +23,7 @@
 #include <QtXml/QDomElement>
 #include "qwt_scale_widget.h"
 #include "qwt_plot_canvas.h"
+#include "qwt_plot_opengl_canvas.h"
 #include "qwt_scale_engine.h"
 #include "qwt_scale_map.h"
 #include "qwt_plot_layout.h"
@@ -41,6 +42,7 @@
 #include "plotwidget_transforms.h"
 
 int PlotWidget::global_color_index = 0;
+
 
 QColor PlotWidget::getColorHint(PlotData* data)
 {
@@ -148,10 +150,15 @@ PlotWidget::PlotWidget(PlotDataMapRef& datamap, QWidget* parent)
   this->sizePolicy().setHorizontalPolicy(QSizePolicy::Expanding);
   this->sizePolicy().setVerticalPolicy(QSizePolicy::Expanding);
 
-  QwtPlotCanvas* canvas = new QwtPlotCanvas(this);
+  auto canvas = new QwtPlotOpenGLCanvas();
 
   canvas->setFrameStyle(QFrame::NoFrame);
-  canvas->setPaintAttribute(QwtPlotCanvas::BackingStore, true);
+
+  canvas->setFrameStyle( QFrame::Box | QFrame::Plain );
+  canvas->setLineWidth( 1 );
+  canvas->setPalette( Qt::white );
+
+ // canvas->setPaintAttribute(QwtPlotCanvas::BackingStore, true);
 
   this->setCanvas(canvas);
   this->setCanvasBackground(Qt::white);

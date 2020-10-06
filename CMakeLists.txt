@@ -83,7 +83,8 @@ find_package(Qt5 REQUIRED COMPONENTS
     Concurrent
     Qml
     Xml
-    Svg)
+    Svg
+    OpenGL)
 
 find_package(Qt5Svg REQUIRED)
 
@@ -99,6 +100,7 @@ set( QT_LINK_LIBRARIES
     Qt5::MultimediaWidgets
     Qt5::Qml
     Qt5::Svg
+    Qt5::OpenGL
     )
 
 if( NOT Qt5WebSockets_FOUND)
@@ -128,6 +130,7 @@ include_directories(
     ${Qt5Multimedia_INCLUDE_DIRS}
     ${Qt5MultimediaWidgets_INCLUDE_DIRS}
     ${Qt5Svg_INCLUDE_DIRS}
+    ${Qt5OpenGL_INCLUDE_DIRS}
     ./include
     ./3rdparty/qwt/src
     ./3rdparty/color_widgets/include

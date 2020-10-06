@@ -39,6 +39,8 @@ RangeOpt PointSeriesXY::getVisualizationRangeY(Range)
 
 bool PointSeriesXY::updateCache()
 {
+  _cached_curve.clear();
+
   if (_x_axis == nullptr)
   {
     throw std::runtime_error("the X axis is null");
@@ -48,7 +50,6 @@ bool PointSeriesXY::updateCache()
 
   if (data_size == 0)
   {
-    _cached_curve.clear();
     return true;
   }
 
@@ -58,13 +59,11 @@ bool PointSeriesXY::updateCache()
   {
     if (std::abs(_x_axis->at(i).x - _y_axis->at(i).x) > EPS)
     {
-      _cached_curve.clear();
       throw std::runtime_error("X and Y axis don't share the same time axis");
     }
 
     const QPointF p(_x_axis->at(i).y, _y_axis->at(i).y);
     _cached_curve.pushBack( { p.x(), p.y() } );
-
   }
   return true;
 }
