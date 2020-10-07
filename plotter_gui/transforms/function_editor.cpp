@@ -556,7 +556,6 @@ void FunctionEditorWidget::on_pushButtonCreate_clicked()
   {
     std::string new_plot_name = getName().toStdString();
 
-
     if (_editor_mode == CREATE && _custom_plots.count(new_plot_name) != 0)
     {
       QMessageBox msgBox(this);

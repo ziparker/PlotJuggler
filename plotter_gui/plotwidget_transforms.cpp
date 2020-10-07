@@ -172,6 +172,7 @@ void DialogTransformEditor::on_listTransforms_itemSelectionChanged()
 
     ui->lineEditAlias->setText("");
     ui->lineEditAlias->setEnabled(false);
+    qwt_curve->setTitle( curve_name );
   }
   else{
     ts->setTransform(transform_ID);

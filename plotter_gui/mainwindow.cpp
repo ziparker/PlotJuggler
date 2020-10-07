@@ -2273,16 +2273,23 @@ void MainWindow::onCustomPlotCreated(CustomPlotPtr custom_plot)
   if (custom_it == _custom_plots.end())
   {
     _custom_plots.insert({ name, custom_plot });
+    _curvelist_widget->addCustom( QString::fromStdString(name) );
+    onUpdateLeftTableValues();
   }
   else{
     custom_it->second = custom_plot;
   }
 
-  _curvelist_widget->addCustom( QString::fromStdString(name) );
-
-  onUpdateLeftTableValues();
-  updateDataAndReplot(true);
   _function_editor->clear();
+
+  // update plots
+  forEachWidget([&](PlotWidget* plot) {
+    if (plot->curveList().count(name) != 0)
+    {
+      plot->updateCurves();
+      plot->replot();
+    }
+  });
 }
 
 void MainWindow::on_actionReportBug_triggered()

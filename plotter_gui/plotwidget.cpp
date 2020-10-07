@@ -767,8 +767,19 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
 
   static bool warning_message_shown = false;
 
-  bool curve_added = false;
+  // removeAllCurves simplified
+  for (auto& it : _curve_list)
+  {
+    it.second->detach();
+  }
+  for (auto& it : _point_marker)
+  {
+    it.second->detach();
+  }
+  _curve_list.clear();
+  _point_marker.clear();
 
+  // insert curves
   for (QDomElement curve_element = plot_widget.firstChildElement("curve"); !curve_element.isNull();
        curve_element = curve_element.nextSiblingElement("curve"))
   {
@@ -785,8 +796,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
       }
       else
       {
-        auto added = addCurve(curve_name_std);
-        curve_added = curve_added || added;
+        addCurve(curve_name_std);
         auto& curve = _curve_list[curve_name_std];
         curve->setPen(color, 1.3);
         added_curve_names.insert(curve_name_std);
@@ -816,8 +826,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
       }
       else
       {
-        auto added = addCurveXY(curve_x, curve_y, curve_name);
-        curve_added = curve_added || added;
+        addCurveXY(curve_x, curve_y, curve_name);
         _curve_list[curve_name_std]->setPen(color, 1.3);
         added_curve_names.insert(curve_name_std);
       }
@@ -832,29 +841,8 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
     }
   }
 
-  bool curve_removed = true;
-
-  while (curve_removed)
-  {
-    curve_removed = false;
-    for (auto& it : _curve_list)
-    {
-      auto curve_name = it.first;
-      if (added_curve_names.find(curve_name) == added_curve_names.end())
-      {
-        removeCurve(curve_name);
-        curve_removed = true;
-        break;
-      }
-    }
-  }
-
-  if (curve_removed || curve_added)
-  {
-    _tracker->redraw();
-    // replot();
-    emit curveListChanged();
-  }
+  _tracker->redraw();
+  emit curveListChanged();
 
   //-----------------------------------------
 
@@ -1305,6 +1293,7 @@ void PlotWidget::updateCurves()
     bool res = series->updateCache();
     // TODO check res and do something if false.
   }
+  updateMaximumZoomArea();
 }
 
 std::map<std::string, QColor> PlotWidget::getCurveColors() const
