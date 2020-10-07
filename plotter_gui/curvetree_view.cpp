@@ -27,7 +27,7 @@ CurveTreeView::CurveTreeView(CurveListPanel* parent) : QTreeWidget(parent), Curv
   viewport()->installEventFilter(this);
   setSelectionMode(ExtendedSelection);
   setSelectionBehavior(QAbstractItemView::SelectRows);
-  setFocusPolicy(Qt::NoFocus);
+  setFocusPolicy(Qt::ClickFocus);
 
   header()->setVisible(false);
   header()->setStretchLastSection(true);
@@ -40,6 +40,20 @@ CurveTreeView::CurveTreeView(CurveListPanel* parent) : QTreeWidget(parent), Curv
               expandChildren(item);
             }
           });
+
+  connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, [this]()
+  {
+    if (getSelectedNames().empty())
+    {
+      // this looks nicer
+      clearFocus();
+      setFocusPolicy(Qt::NoFocus);
+    }
+    else {
+      // this focus policy is needed to allow CurveListPanel::keyPressEvent to be called
+      setFocusPolicy(Qt::ClickFocus);
+    }
+  });
 }
 
 void CurveTreeView::addItem(const QString& item_name)

@@ -18,14 +18,15 @@ CurveTableView::CurveTableView(CurveListPanel* parent) : QTableWidget(parent), C
   viewport()->installEventFilter(this);
 
   setSelectionBehavior(QAbstractItemView::SelectRows);
-  setFocusPolicy(Qt::NoFocus);
+  setSelectionMode(ExtendedSelection);
+  setFocusPolicy(Qt::ClickFocus);
 
   verticalHeader()->setVisible(false);
   horizontalHeader()->setVisible(false);
 
   horizontalHeader()->setStretchLastSection(true);
 
-  setColumnWidth(1, 120);
+  setColumnWidth(1, 100);
 
   setHorizontalHeaderItem(0, new QTableWidgetItem("Time series"));
   setHorizontalHeaderItem(1, new QTableWidgetItem("Current value"));
@@ -64,9 +65,7 @@ void CurveTableView::addItem(const QString& item_name)
 void CurveTableView::refreshColumns()
 {
   sortByColumn(0, Qt::AscendingOrder);
-  horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-  horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-  setColumnWidth(1, 120);
+  setViewResizeEnabled(true);
 }
 
 std::vector<std::string> CurveTableView::getSelectedNames()
@@ -161,18 +160,16 @@ bool CurveTableView::applyVisibilityFilter(const QString& search_string)
 
 void CurveTableView::setViewResizeEnabled(bool enable)
 {
+  verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
   if (enable)
   {
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-    setColumnWidth(1, 120);
-    verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
   }
   else
   {
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-    verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
   }
 }
 
@@ -187,6 +184,10 @@ void CurveTableView::hideValuesColumn(bool hide)
   {
     showColumn(1);
   }
+}
+
+CurvesView::CurvesView(CurveListPanel *parent) : _parent_panel(parent)
+{
 }
 
 bool CurvesView::eventFilterBase(QObject* object, QEvent* event)

@@ -87,6 +87,8 @@ private:
 
   QString _style_dir;
 
+  bool _column_width_dirty;
+
 signals:
 
   void hiddenItemsChanged();

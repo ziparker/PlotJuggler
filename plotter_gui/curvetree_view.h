@@ -47,9 +47,8 @@ public:
     return { _hidden_count, _leaf_count };
   }
 
-  void setViewResizeEnabled(bool enable) override
-  {
-  }
+  void setViewResizeEnabled(bool) override
+  { }
 
   virtual void hideValuesColumn(bool hide) override;
 

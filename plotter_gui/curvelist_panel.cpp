@@ -29,8 +29,11 @@ CurveListPanel::CurveListPanel(const CustomPlotMap& mapped_math_plots, QWidget* 
   , _custom_view(new CurveTableView(this))
   , _tree_view(new CurveTreeView(this))
   , _custom_plots(mapped_math_plots)
+  , _column_width_dirty (true)
 {
   ui->setupUi(this);
+
+  setFocusPolicy(Qt::ClickFocus);
 
   _tree_view->setObjectName("curveTreeView");
   _custom_view->setObjectName("curveCustomView");
@@ -53,8 +56,8 @@ CurveListPanel::CurveListPanel(const CustomPlotMap& mapped_math_plots, QWidget* 
   ui->splitter->setStretchFactor(0, 5);
   ui->splitter->setStretchFactor(1, 1);
 
-  connect(_custom_view->selectionModel(), &QItemSelectionModel::selectionChanged, this,
-          &CurveListPanel::onCustomSelectionChanged);
+  connect(_custom_view->selectionModel(), &QItemSelectionModel::selectionChanged,
+          this, &CurveListPanel::onCustomSelectionChanged);
 
   connect(_custom_view->verticalScrollBar(), &QScrollBar::valueChanged, this, &CurveListPanel::refreshValues);
 
@@ -79,18 +82,20 @@ void CurveListPanel::clear()
 void CurveListPanel::addCurve(const QString& item_name)
 {
   _tree_view->addItem(item_name);
+  _column_width_dirty = true;
 }
 
 void CurveListPanel::addCustom(const QString& item_name)
 {
   _custom_view->addItem(item_name);
+  _column_width_dirty = true;
 }
 
 void CurveListPanel::refreshColumns()
 {
   _tree_view->refreshColumns();
   _custom_view->refreshColumns();
-
+  _column_width_dirty = false;
   updateFilter();
 }
 
@@ -200,7 +205,11 @@ void CurveListPanel::refreshValues()
         table->item(row, 1)->setText(FormattedNumber(val.value()));
       }
     }
-    //  table->setViewResizeEnabled(true);
+    if(_column_width_dirty)
+    {
+      _column_width_dirty = false;
+      table->setViewResizeEnabled(true);
+    }
   }
   //------------------------------------
   for (CurveTreeView* tree_view : {_tree_view})
@@ -299,7 +308,7 @@ void CurveListPanel::on_buttonAddCustom_clicked()
 
 void CurveListPanel::onCustomSelectionChanged(const QItemSelection&, const QItemSelection&)
 {
-  auto selected = _custom_view->getSelectedNames();
+  auto selected = _custom_view->getSelectedNames(); 
 
   bool enabled = (selected.size() == 1);
   ui->buttonEditCustom->setEnabled(enabled);
