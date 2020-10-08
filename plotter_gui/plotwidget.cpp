@@ -341,21 +341,24 @@ PlotWidget::~PlotWidget()
 }
 
 
-bool PlotWidget::addCurve(const std::string& name, QColor color )
+PlotWidget::CurveInfo* PlotWidget::addCurve(const std::string& name, QColor color )
 {
   auto it = _mapped_data.numeric.find(name);
   if (it == _mapped_data.numeric.end())
   {
-    return false;
+    return nullptr;
   }
 
-  if (_curve_list.find(name) != _curve_list.end())
+  const auto qname = QString::fromStdString(name);
+
+  // title is the same of src_name, unless a transform was applied
+  auto curve_it = curveFromTitle(qname);
+  if (curve_it)
   {
-    return false;
+    return nullptr; //TODO FIXME
   }
 
   PlotData& data = it->second;
-  const auto qname = QString::fromStdString(name);
 
   auto curve = new QwtPlotCurve(qname);
   try
@@ -369,7 +372,7 @@ bool PlotWidget::addCurve(const std::string& name, QColor color )
   catch (std::exception& ex)
   {
     QMessageBox::warning(this, "Exception!", ex.what());
-    return false;
+    return nullptr;
   }
 
   if( color == Qt::transparent ){
@@ -381,21 +384,24 @@ bool PlotWidget::addCurve(const std::string& name, QColor color )
   curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
 
   curve->attach(this);
-  _curve_list.insert(std::make_pair(name, curve));
 
   auto marker = new QwtPlotMarker;
-  _point_marker.insert(std::make_pair(name, marker));
   marker->attach(this);
   marker->setVisible(isXYPlot());
 
   QwtSymbol* sym = new QwtSymbol(QwtSymbol::Ellipse, Qt::red, QPen(Qt::black), QSize(8, 8));
-
   marker->setSymbol(sym);
 
-  return true;
+  CurveInfo curve_info;
+  curve_info.curve = curve;
+  curve_info.marker = marker;
+  curve_info.src_name = name;
+  _curve_list.push_back( curve_info );
+
+  return &(_curve_list.back());
 }
 
-bool PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curve_name)
+PlotWidget::CurveInfo *PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curve_name)
 {
   std::string name = curve_name.toStdString();
 
@@ -404,24 +410,26 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curv
     SuggestDialog dialog(name_x, name_y, this);
 
     bool ok = (dialog.exec() == QDialog::Accepted);
-    QString text = dialog.suggestedName();
-    name = text.toStdString();
+    curve_name = dialog.suggestedName();
+    name = curve_name.toStdString();
     name_x = dialog.nameX().toStdString();
     name_y = dialog.nameY().toStdString();
 
     if (!ok)
     {
-      return false;
+      return nullptr;
     }
 
-    if (name.empty() || _curve_list.count(name) != 0)
+    auto curve_it = curveFromTitle(curve_name);
+
+    if (name.empty() || curve_it )
     {
       int ret = QMessageBox::warning(this, "Missing name",
-                                     "The name is missing or invalid. Try again or abort.",
+                                     "The name of the curve is missing or exist already. Try again or abort.",
                                      QMessageBox::Abort | QMessageBox::Retry, QMessageBox::Retry);
       if (ret == QMessageBox::Abort)
       {
-        return false;
+        return nullptr;
       }
       name.clear();
     }
@@ -441,14 +449,15 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curv
   }
   PlotData& data_y = it->second;
 
-  if (_curve_list.find(name) != _curve_list.end())
+  auto curve_it = curveFromTitle(curve_name);
+  if (curve_it)
   {
-    return false;
+    return nullptr;
   }
 
   const auto qname = QString::fromStdString(name);
-
   auto curve = new QwtPlotCurve(qname);
+
   try
   {
     auto plot_qwt = createCurveXY(&data_x, &data_y);
@@ -460,9 +469,8 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curv
   catch (std::exception& ex)
   {
     QMessageBox::warning(this, "Exception!", ex.what());
-    return false;
+    return nullptr;
   }
-
 
   QColor color = getColorHint(nullptr);
 
@@ -472,51 +480,62 @@ bool PlotWidget::addCurveXY(std::string name_x, std::string name_y, QString curv
   curve->setRenderHint(QwtPlotItem::RenderAntialiased, true);
 
   curve->attach(this);
-  _curve_list.insert(std::make_pair(name, curve));
 
   auto marker = new QwtPlotMarker;
-  _point_marker.insert(std::make_pair(name, marker));
   marker->attach(this);
   marker->setVisible(isXYPlot());
-
   QwtSymbol* sym = new QwtSymbol(QwtSymbol::Ellipse, Qt::red, QPen(Qt::black), QSize(8, 8));
-
   marker->setSymbol(sym);
 
-  return true;
+  CurveInfo curve_info;
+  curve_info.curve = curve;
+  curve_info.marker = marker;
+  curve_info.src_name = name;
+  _curve_list.push_back( curve_info );
+
+  return &(_curve_list.back());
 }
 
-void PlotWidget::removeCurve(const std::string& curve_name)
+void PlotWidget::removeCurve(const QString &title)
+{
+  auto it = std::find_if(_curve_list.begin(), _curve_list.end(),
+                         [&title](const PlotWidget::CurveInfo& info)
+  {
+    return info.curve->title() == title;
+  });
+
+  if (it != _curve_list.end())
+  {
+    it->curve->detach();
+    it->marker->detach();
+
+    _curve_list.erase(it);
+
+    _tracker->redraw();
+    emit curveListChanged();
+  }
+}
+
+void PlotWidget::onSourceDataRemoved(const std::string& src_name)
 {
   bool deleted = false;
 
   for (auto it = _curve_list.begin(); it != _curve_list.end();)
   {
-    PointSeriesXY* curve_xy = dynamic_cast<PointSeriesXY*>(it->second->data());
+    PointSeriesXY* curve_xy = dynamic_cast<PointSeriesXY*>(it->curve->data());
     bool remove_curve_xy =
-        curve_xy && (curve_xy->dataX()->name() == curve_name || curve_xy->dataY()->name() == curve_name);
+        curve_xy && (curve_xy->dataX()->name() == src_name || curve_xy->dataY()->name() == src_name);
 
-    if (it->first == curve_name || remove_curve_xy)
+    if (it->src_name == src_name || remove_curve_xy)
     {
       deleted = true;
-      auto& curve = it->second;
-      curve->detach();
 
-      auto marker_it = _point_marker.find(it->first);
-      if (marker_it != _point_marker.end())
-      {
-        auto marker = marker_it->second;
-        if (marker)
-        {
-          marker->detach();
-        }
-        _point_marker.erase(marker_it);
-      }
+      it->curve->detach();
+      it->marker->detach();
 
       it = _curve_list.erase(it);
     }
-    else
-    {
+    else {
       it++;
     }
   }
@@ -533,9 +552,46 @@ bool PlotWidget::isEmpty() const
   return _curve_list.empty();
 }
 
-const std::map<std::string, QwtPlotCurve*>& PlotWidget::curveList() const
+const std::list<PlotWidget::CurveInfo>& PlotWidget::curveList() const
 {
   return _curve_list;
+}
+
+std::list<PlotWidget::CurveInfo>& PlotWidget::curveList()
+{
+  return _curve_list;
+}
+
+PlotWidget::CurveInfo *PlotWidget::curveFromTitle(const QString &title)
+{
+  auto it = std::find_if(_curve_list.begin(), _curve_list.end(),
+                         [&title](const PlotWidget::CurveInfo& info)
+  {
+    return info.curve->title() == title;
+  });
+
+  if( it == _curve_list.end()){
+    return nullptr;
+  }
+  else{
+    return &(*it);
+  }
+}
+
+const PlotWidget::CurveInfo *PlotWidget::curveFromTitle(const QString &title) const
+{
+  auto it = std::find_if(_curve_list.begin(), _curve_list.end(),
+                         [&title](const PlotWidget::CurveInfo& info)
+  {
+    return info.curve->title() == title;
+  });
+
+  if( it == _curve_list.end()){
+    return nullptr;
+  }
+  else{
+    return &(*it);
+  }
 }
 
 void PlotWidget::dragEnterEvent(QDragEnterEvent* event)
@@ -612,7 +668,7 @@ void PlotWidget::dropEvent(QDropEvent*)
 
     for (const auto& curve_name : _dragging.curves)
     {
-      bool added = addCurve(curve_name.toStdString());
+      bool added = addCurve(curve_name.toStdString()) != nullptr;
       curves_changed = curves_changed || added;
     }
   }
@@ -649,16 +705,12 @@ void PlotWidget::removeAllCurves()
 {
   for (auto& it : _curve_list)
   {
-    it.second->detach();
-  }
-  for (auto& it : _point_marker)
-  {
-    it.second->detach();
+    it.curve->detach();
+    it.marker->detach();
   }
 
   setModeXY(false);
   _curve_list.clear();
-  _point_marker.clear();
   _tracker->redraw();
 
   emit curveListChanged();
@@ -709,8 +761,8 @@ QDomElement PlotWidget::xmlSaveState(QDomDocument& doc) const
 
   for (auto& it : _curve_list)
   {
-    auto& name = it.first;
-    QwtPlotCurve* curve = it.second;
+    auto& name = it.src_name;
+    QwtPlotCurve* curve = it.curve;
     QDomElement curve_el = doc.createElement("curve");
     curve_el.setAttribute("name", QString::fromStdString(name));
     curve_el.setAttribute("color", curve->pen().color().name());
@@ -770,14 +822,10 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
   // removeAllCurves simplified
   for (auto& it : _curve_list)
   {
-    it.second->detach();
-  }
-  for (auto& it : _point_marker)
-  {
-    it.second->detach();
+    it.curve->detach();
+    it.marker->detach();
   }
   _curve_list.clear();
-  _point_marker.clear();
 
   // insert curves
   for (QDomElement curve_element = plot_widget.firstChildElement("curve"); !curve_element.isNull();
@@ -796,8 +844,12 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
       }
       else
       {
-        addCurve(curve_name_std);
-        auto& curve = _curve_list[curve_name_std];
+        auto curve_it = addCurve(curve_name_std, color);
+        if( ! curve_it )
+        {
+          continue;
+        }
+        auto &curve = curve_it->curve;
         curve->setPen(color, 1.3);
         added_curve_names.insert(curve_name_std);
 
@@ -826,8 +878,12 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
       }
       else
       {
-        addCurveXY(curve_x, curve_y, curve_name);
-        _curve_list[curve_name_std]->setPen(color, 1.3);
+        auto curve_it = addCurveXY(curve_x, curve_y, curve_name);
+        if( ! curve_it )
+        {
+          continue;
+        }
+        curve_it->curve->setPen(color, 1.3);
         added_curve_names.insert(curve_name_std);
       }
     }
@@ -950,7 +1006,6 @@ void PlotWidget::rescaleEqualAxisScaling()
 
   const double data_ratio = (x2 - x1) / (y2 - y1);
   const double canvas_ratio = canvas_rect.width() / canvas_rect.height();
-  const double max_ratio = fabs(_max_zoom_rect.width() / _max_zoom_rect.height());
 
   QRectF rect(QPointF(x1, y2), QPointF(x2, y1));
 
@@ -1044,14 +1099,13 @@ void PlotWidget::reloadPlotData()
 
   int visible = 0;
 
-  for (auto& curve_it : _curve_list)
+  for (auto& it : _curve_list)
   {
-    if (curve_it.second->isVisible()){
+    if (it.curve->isVisible()){
       visible++;
     }
 
-    auto& curve = curve_it.second;
-    const auto& curve_name = curve_it.first;
+    const auto& curve_name = it.src_name;
 
     auto data_it = _mapped_data.numeric.find(curve_name);
     if (data_it != _mapped_data.numeric.end())
@@ -1060,11 +1114,11 @@ void PlotWidget::reloadPlotData()
       QString transform_name;
       if( !isXYPlot() )
       {
-        auto ts = dynamic_cast<TransformedTimeseries*>(curve->data());
+        auto ts = dynamic_cast<TransformedTimeseries*>(it.curve->data());
         transform_name = ts->transformName();
       }
       auto data_series = createTimeSeries(transform_name, &data);
-      curve->setData(data_series);
+      it.curve->setData(data_series);
     }
   }
 
@@ -1109,12 +1163,11 @@ void PlotWidget::setTrackerPosition(double abs_time)
   {
     for (auto& it : _curve_list)
     {
-      auto& name = it.first;
-      auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
+      auto series = dynamic_cast<QwtSeriesWrapper*>(it.curve->data());
       auto pointXY = series->sampleFromTime(abs_time);
       if (pointXY)
       {
-        _point_marker[name]->setValue(pointXY.value());
+        it.marker->setValue(pointXY.value());
       }
     }
   }
@@ -1134,7 +1187,7 @@ void PlotWidget::on_changeTimeOffset(double offset)
   {
     for (auto& it : _curve_list)
     {
-      auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
+      auto series = dynamic_cast<QwtSeriesWrapper*>(it.curve->data());
       series->setTimeOffset(_time_offset);
     }
     if (!isXYPlot())
@@ -1175,10 +1228,10 @@ Range PlotWidget::getMaximumRangeX() const
 
   for (auto& it : _curve_list)
   {
-    if (!it.second->isVisible())
+    if (!it.curve->isVisible())
       continue;
 
-    auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
+    auto series = dynamic_cast<QwtSeriesWrapper*>(it.curve->data());
     const auto max_range_X = series->getVisualizationRangeX();
     if (!max_range_X)
       continue;
@@ -1212,10 +1265,10 @@ Range PlotWidget::getMaximumRangeY(Range range_X) const
 
   for (auto& it : _curve_list)
   {
-    if (!it.second->isVisible())
+    if (!it.curve->isVisible())
       continue;
 
-    auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
+    auto series = dynamic_cast<QwtSeriesWrapper*>(it.curve->data());
 
     const auto max_range_X = series->getVisualizationRangeX();
     if (!max_range_X){
@@ -1289,37 +1342,38 @@ void PlotWidget::updateCurves()
 {
   for (auto& it : _curve_list)
   {
-    auto series = dynamic_cast<QwtSeriesWrapper*>(it.second->data());
+    auto series = dynamic_cast<QwtSeriesWrapper*>(it.curve->data());
     bool res = series->updateCache();
     // TODO check res and do something if false.
   }
   updateMaximumZoomArea();
 }
 
-std::map<std::string, QColor> PlotWidget::getCurveColors() const
+std::map<QString, QColor> PlotWidget::getCurveColors() const
 {
-  std::map<std::string, QColor> color_by_name;
+  std::map<QString, QColor> color_by_name;
 
   for (auto& it : _curve_list)
   {
-    const auto& curve_name = it.first;
-    auto& curve = it.second;
-    color_by_name.insert( {curve_name, curve->pen().color()} );
+    color_by_name.insert( {it.curve->title().text(), it.curve->pen().color()} );
   }
   return color_by_name;
 }
 
-void PlotWidget::on_changeCurveColor(const std::string& curve_name, QColor new_color)
+void PlotWidget::on_changeCurveColor(const QString& curve_name, QColor new_color)
 {
-  auto it = _curve_list.find(curve_name);
-  if (it != _curve_list.end())
+  for(auto& it: _curve_list)
   {
-    auto& curve = it->second;
-    if (curve->pen().color() != new_color)
+    if (it.curve->title() == curve_name)
     {
-      curve->setPen(new_color, 1.3);
+      auto& curve = it.curve;
+      if (curve->pen().color() != new_color)
+      {
+        curve->setPen(new_color, 1.3);
+      }
+      replot();
+      break;
     }
-    replot();
   }
 }
 
@@ -1328,7 +1382,7 @@ void PlotWidget::changeCurveStyle(QwtPlotCurve::CurveStyle style)
   _curve_style = style;
   for (auto& it : _curve_list)
   {
-    auto& curve = it.second;
+    auto& curve = it.curve;
     curve->setPen(curve->pen().color(), (_curve_style == QwtPlotCurve::Dots) ? 4.0 : 1.3);
     curve->setStyle(_curve_style);
   }
@@ -1749,12 +1803,11 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
           auto clicked_item = _legend->processMousePressEvent(mouse_event);
           if (clicked_item)
           {
-            for (const auto& curve_it : _curve_list)
+            for (auto& it : _curve_list)
             {
-              if (clicked_item == curve_it.second)
+              if (clicked_item == it.curve)
               {
-                auto& curve = _curve_list.at(curve_it.first);
-                curve->setVisible(!curve->isVisible());
+                it.curve->setVisible(!it.curve->isVisible());
                 _tracker->redraw();
                 on_zoomOutVertical_triggered();
                 replot();

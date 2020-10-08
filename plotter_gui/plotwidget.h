@@ -29,6 +29,14 @@ class PlotWidget : public QwtPlot
   Q_OBJECT
 
 public:
+
+  struct CurveInfo
+  {
+    std::string src_name;
+    QwtPlotCurve* curve;
+    QwtPlotMarker* marker;
+  };
+
   PlotWidget(PlotDataMapRef& datamap, QWidget* parent = nullptr);
 
   void setContextMenuEnabled(bool enabled);
@@ -37,7 +45,13 @@ public:
 
   bool isEmpty() const;
 
-  const std::map<std::string, QwtPlotCurve*>& curveList() const;
+  const std::list<CurveInfo> &curveList() const;
+
+  std::list<CurveInfo> &curveList();
+
+  CurveInfo* curveFromTitle(const QString &title);
+
+  const CurveInfo* curveFromTitle(const QString &title) const;
 
   QDomElement xmlSaveState(QDomDocument& doc) const;
 
@@ -60,7 +74,7 @@ public:
     return _legend;
   }
 
-  bool addCurve(const std::string& name, QColor color = Qt::transparent);
+  CurveInfo* addCurve(const std::string& name, QColor color = Qt::transparent);
 
   void setLegendSize(int size);
 
@@ -97,11 +111,13 @@ public:
     return _curve_style;
   }
 
-  std::map<std::string, QColor> getCurveColors() const;
+  std::map<QString, QColor> getCurveColors() const;
 
   void setCustomAxisLimits(Range range);
 
   Range customAxisLimit() const;
+
+  void removeCurve(const QString& title);
 
 protected:
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -131,7 +147,7 @@ public slots:
 
   void updateCurves();
 
-  void removeCurve(const std::string& name);
+  void onSourceDataRemoved(const std::string &src_name);
 
   void removeAllCurves();
 
@@ -159,7 +175,7 @@ public slots:
 
   void on_changeDateTimeScale(bool enable);
 
-  void on_changeCurveColor(const std::string& curve_name, QColor new_color);
+  void on_changeCurveColor(const QString &curve_name, QColor new_color);
 
 private slots:
 
@@ -180,8 +196,7 @@ private slots:
   void on_externallyResized(const QRectF& new_rect);
 
 private:
-  std::map<std::string, QwtPlotCurve*> _curve_list;
-  std::map<std::string, QwtPlotMarker*> _point_marker;
+  std::list<CurveInfo> _curve_list;
 
   QAction* _action_removeAllCurves;
   QAction* _action_edit;
@@ -225,7 +240,7 @@ private:
 
   DragInfo _dragging;
 
-  bool addCurveXY(std::string name_x, std::string name_y, QString curve_name = "");
+  CurveInfo* addCurveXY(std::string name_x, std::string name_y, QString curve_name = "");
 
   void buildActions();
 

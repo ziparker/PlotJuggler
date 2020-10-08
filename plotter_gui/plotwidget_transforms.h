@@ -50,6 +50,7 @@ private:
     QLabel* _text;
     QColor _color;
   };
+
 };
 
 #endif // PLOTWIDGET_TRANSFORMS_H

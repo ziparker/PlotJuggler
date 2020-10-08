@@ -86,8 +86,6 @@ private:
 
   std::set<QWidget*> _connected_transform_widgets;
 
-  std::map<QString, QwtPlotCurve*> _alias_to_curve;
-
   void setupColorWidget();
   void setupTable();
   void updateLimits();

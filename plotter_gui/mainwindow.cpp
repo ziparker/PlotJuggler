@@ -683,7 +683,7 @@ void MainWindow::onPlotAdded(PlotWidget* plot)
 
   // TODO connect(plot, &PlotWidget::swapWidgetsRequested, this, &MainWindow::onSwapPlots);
 
-  connect(this, &MainWindow::requestRemoveCurveByName, plot, &PlotWidget::removeCurve);
+  connect(this, &MainWindow::dataSourceRemoved, plot, &PlotWidget::onSourceDataRemoved);
 
   connect(plot, &PlotWidget::curveListChanged, this, [this]() {
     updateTimeOffset();
@@ -904,7 +904,7 @@ void MainWindow::onDeleteMultipleCurves(const std::vector<std::string>& curve_na
       continue;
     }
 
-    emit requestRemoveCurveByName(curve_name);
+    emit dataSourceRemoved(curve_name);
     _mapped_plot_data.numeric.erase(plot_curve);
 
     auto custom_it = _custom_plots.find(curve_name);
@@ -1587,7 +1587,7 @@ std::tuple<double, double, int> MainWindow::calculateVisibleRangeX()
   forEachWidget([&](PlotWidget* widget) {
     for (auto& it : widget->curveList())
     {
-      const auto& curve_name = it.first;
+      const auto& curve_name = it.src_name;
 
       auto plot_it = _mapped_plot_data.numeric.find(curve_name);
       if (plot_it == _mapped_plot_data.numeric.end())
@@ -2284,7 +2284,15 @@ void MainWindow::onCustomPlotCreated(CustomPlotPtr custom_plot)
 
   // update plots
   forEachWidget([&](PlotWidget* plot) {
-    if (plot->curveList().count(name) != 0)
+
+    const auto& curves = plot->curveList();
+    auto it = std::find_if(curves.begin(), curves.end(),
+                           [&name](const PlotWidget::CurveInfo& info)
+    {
+      return info.src_name == name;
+    });
+
+    if (it != curves.end())
     {
       plot->updateCurves();
       plot->replot();

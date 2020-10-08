@@ -54,17 +54,17 @@ DialogTransformEditor::DialogTransformEditor(PlotWidget* plotwidget) :
 
 void DialogTransformEditor::setupTable()
 {
-  std::map<std::string, QColor> colors = _plotwidget->getCurveColors();
+  std::map<QString, QColor> colors = _plotwidget->getCurveColors();
 
   int row = 0;
   for (auto& it : colors)
   {
-    auto text = QString::fromStdString(it.first);
+    auto name = it.first;
     auto color = it.second;
     auto item = new QListWidgetItem();
     //  item->setForeground(color);
     ui->listCurves->addItem( item );
-    auto plot_row = new RowWidget(text, color) ;
+    auto plot_row = new RowWidget(name, color) ;
     item->setSizeHint( plot_row->sizeHint() );
     ui->listCurves->setItemWidget(item, plot_row );
 
@@ -110,8 +110,8 @@ void DialogTransformEditor::on_listCurves_itemSelectionChanged()
   auto row_widget = dynamic_cast<RowWidget*>(  ui->listCurves->itemWidget(item) );
   auto curve_name = row_widget->text();
 
-  QwtPlotCurve* qwt_curve = _plotwidget->curveList().at(curve_name.toStdString());
-  auto ts = dynamic_cast<TransformedTimeseries*>( qwt_curve->data() );
+  auto curve_it = _plotwidget->curveFromTitle(curve_name);
+  auto ts = dynamic_cast<TransformedTimeseries*>( curve_it->curve->data() );
 
   int transform_row = 0;
   if( ts->transform() )
@@ -159,8 +159,9 @@ void DialogTransformEditor::on_listTransforms_itemSelectionChanged()
   }
   QString transform_ID = selected_transforms.front()->text();
 
-  QwtPlotCurve* qwt_curve = _plotwidget->curveList().at(curve_name.toStdString());
-  auto ts = dynamic_cast<TransformedTimeseries*>( qwt_curve->data() );
+  auto curve_it = _plotwidget->curveFromTitle(curve_name);
+  auto qwt_curve = curve_it->curve;
+  auto ts = dynamic_cast<TransformedTimeseries*>( curve_it->curve->data() );
 
   QSignalBlocker block(ui->lineEditAlias);
 
@@ -238,10 +239,11 @@ void DialogTransformEditor::on_lineEditAlias_editingFinished()
 
   QString curve_name = row_widget->text();
 
-  QwtPlotCurve* qwt_curve = _plotwidget->curveList().at(curve_name.toStdString());
-  qwt_curve->setTitle( ui->lineEditAlias->text() );
+  auto curve_it = _plotwidget->curveFromTitle(curve_name);
+  auto ts = dynamic_cast<TransformedTimeseries*>( curve_it->curve->data() );
 
-  auto ts = dynamic_cast<TransformedTimeseries*>( qwt_curve->data() );
+  curve_it->curve->setTitle( ui->lineEditAlias->text() );
+
   if( ts && ts->transform() )
   {
     ts->transform()->setAlias(ui->lineEditAlias->text());

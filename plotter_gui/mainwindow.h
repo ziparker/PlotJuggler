@@ -192,7 +192,7 @@ private:
   void loadStyleSheet(QString file_path);
 
 signals:
-  void requestRemoveCurveByName(const std::string& name);
+  void dataSourceRemoved(const std::string& name);
   void activateTracker(bool active);
   void stylesheetChanged(QString style_name);
 

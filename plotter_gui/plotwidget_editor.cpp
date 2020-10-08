@@ -122,7 +122,7 @@ void PlotwidgetEditor::onColorChanged(QColor c)
       row_widget->setColor( c );
     }
 
-    _plotwidget->on_changeCurveColor( item->data(Qt::UserRole).toString().toStdString(), c );
+    _plotwidget->on_changeCurveColor( item->data(Qt::UserRole).toString(), c );
   }
 }
 
@@ -166,9 +166,9 @@ void PlotwidgetEditor::onDeleteRow(QWidget* w)
     if( widget == w )
     {
       QString curve = dynamic_cast<EditorRowWidget*>(w)->text();
-      qDebug() << "delete " << curve;
+
       ui->listWidget->takeItem(row);
-      _plotwidget->removeCurve(curve.toStdString());
+      _plotwidget->removeCurve(curve);
       widget->deleteLater();
       row_count--;
       break;
@@ -193,19 +193,16 @@ void PlotwidgetEditor::disableWidgets()
 
 void PlotwidgetEditor::setupTable()
 {
-  std::map<std::string, QColor> colors = _plotwidget->getCurveColors();
+  std::map<QString, QColor> colors = _plotwidget->getCurveColors();
 
   int row = 0;
   for (auto& it : colors)
   {
-    auto curve_it = _plotwidget->curveList().find( it.first );
-    auto alias = curve_it->second->title().text();
-    _alias_to_curve.insert( std::make_pair(alias, curve_it->second) );
-
+    auto alias = it.first;
     auto color = it.second;
     auto item = new QListWidgetItem();
     // even if it is not visible, we store here the original name (not alias)
-    item->setData(Qt::UserRole, QString::fromStdString(it.first) );
+    item->setData(Qt::UserRole, it.first );
 
     ui->listWidget->addItem( item );
     auto plot_row = new EditorRowWidget(alias, color) ;
