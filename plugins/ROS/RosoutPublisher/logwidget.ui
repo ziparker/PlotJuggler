@@ -40,6 +40,12 @@
      <property name="sortingEnabled">
       <bool>false</bool>
      </property>
+     <attribute name="horizontalHeaderCascadingSectionResizes">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderCascadingSectionResizes">
+      <bool>true</bool>
+     </attribute>
     </widget>
    </item>
    <item>
@@ -448,8 +454,6 @@
    </property>
   </action>
  </widget>
- <resources>
-  <include location="../../../plotter_gui/resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

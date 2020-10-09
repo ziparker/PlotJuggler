@@ -271,5 +271,7 @@
         <file>resources/stylesheet_light.qss</file>
         <file>resources/stylesheet_dark.qss</file>
         <file>resources/svg/right-arrow.svg</file>
+        <file>resources/svg/plot_image.svg</file>
+        <file>resources/svg/paste.svg</file>
     </qresource>
 </RCC>

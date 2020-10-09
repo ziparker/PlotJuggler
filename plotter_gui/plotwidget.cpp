@@ -287,8 +287,14 @@ void PlotWidget::buildActions()
   _action_saveToFile = new QAction("&Save plot to file", this);
   connect(_action_saveToFile, &QAction::triggered, this, &PlotWidget::on_savePlotToFile);
 
-  _action_clipboard = new QAction("&Copy to clipboard", this);
-  connect(_action_clipboard, &QAction::triggered, this, &PlotWidget::on_copyToClipboard);
+  _action_copy = new QAction("&Copy", this);
+  connect(_action_copy, &QAction::triggered, this, &PlotWidget::on_copyAction_triggered);
+
+  _action_paste = new QAction("&Paste", this);
+  connect(_action_paste, &QAction::triggered, this, &PlotWidget::on_pasteAction_triggered);
+
+  _action_image_to_clipboard = new QAction("&Copy image to clipboard", this);
+  connect(_action_image_to_clipboard, &QAction::triggered, this, &PlotWidget::on_copyToClipboard);
 
 }
 
@@ -310,8 +316,10 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   _action_zoomOutMaximum->setIcon( LoadSvgIcon(":/resources/svg/zoom_max.svg", theme) );
   _action_zoomOutHorizontally->setIcon( LoadSvgIcon(":/resources/svg/zoom_horizontal.svg", theme) );
   _action_zoomOutVertically->setIcon( LoadSvgIcon(":/resources/svg/zoom_vertical.svg", theme) );
+  _action_copy->setIcon( LoadSvgIcon(":/resources/svg/copy.svg", theme) );
+  _action_paste->setIcon( LoadSvgIcon(":/resources/svg/paste.svg", theme) );
   _action_saveToFile->setIcon( LoadSvgIcon(":/resources/svg/save.svg", theme) );
-  _action_clipboard->setIcon( LoadSvgIcon(":/resources/svg/copy.svg", theme) );
+  _action_image_to_clipboard->setIcon( LoadSvgIcon(":/resources/svg/plot_image.svg", theme) );
 
   QMenu menu(this);
 
@@ -327,8 +335,21 @@ void PlotWidget::canvasContextMenuTriggered(const QPoint& pos)
   menu.addSeparator();
   menu.addAction(_action_removeAllCurves);
   menu.addSeparator();
-  menu.addAction(_action_clipboard);
+  menu.addAction(_action_copy);
+  menu.addAction(_action_paste);
+  menu.addAction(_action_image_to_clipboard);
   menu.addAction(_action_saveToFile);
+
+  // check the clipboard
+  QClipboard *clipboard = QGuiApplication::clipboard();
+  QString clipboard_text = clipboard->text();
+  QDomDocument doc;
+  bool valid_clipbaord =
+      ( !clipboard_text.isEmpty() && // not empty
+      doc.setContent(clipboard_text) && // valid xml
+      doc.firstChildElement().tagName() == "PlotWidgetClipBoard");
+
+  _action_paste->setEnabled(valid_clipbaord);
 
   _action_removeAllCurves->setEnabled(!_curve_list.empty());
   _action_formula->setEnabled(!_curve_list.empty() && !isXYPlot());
@@ -1697,6 +1718,41 @@ void PlotWidget::on_copyToClipboard()
   {
     this->enableTracker(true);
     replot();
+  }
+}
+
+void PlotWidget::on_copyAction_triggered()
+{
+  QDomDocument doc;
+  auto root = doc.createElement("PlotWidgetClipBoard");
+  auto el = xmlSaveState(doc);
+  doc.appendChild(root);
+  root.appendChild(el);
+
+  QClipboard *clipboard = QGuiApplication::clipboard();
+  clipboard->setText( doc.toString() );
+}
+
+void PlotWidget::on_pasteAction_triggered()
+{
+  QClipboard *clipboard = QGuiApplication::clipboard();
+  QString clipboard_text = clipboard->text();
+
+  QDomDocument doc;
+  bool valid = doc.setContent(clipboard_text);
+  if( !valid ){
+    return;
+  }
+  auto root = doc.firstChildElement();
+  if( root.tagName() !=  "PlotWidgetClipBoard")
+  {
+    return;
+  }
+  else{
+    auto el = root.firstChildElement();
+    xmlLoadState(el);
+    clipboard->setText("");
+    emit undoableChange();
   }
 }
 

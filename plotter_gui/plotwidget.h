@@ -187,6 +187,10 @@ private slots:
 
   void on_copyToClipboard();
 
+  void on_copyAction_triggered();
+
+  void on_pasteAction_triggered();
+
 private slots:
 
   void canvasContextMenuTriggered(const QPoint& pos);
@@ -208,7 +212,9 @@ private:
   QAction* _action_zoomOutHorizontally;
   QAction* _action_zoomOutVertically;
   QAction* _action_saveToFile;
-  QAction* _action_clipboard;
+  QAction* _action_copy;
+  QAction* _action_paste;
+  QAction* _action_image_to_clipboard;
 
   PlotZoomer* _zoomer;
   PlotMagnifier* _magnifier;
