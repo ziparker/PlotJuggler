@@ -236,14 +236,14 @@ void TopicPublisherROS2::broadcastTF(double current_time)
      {
        const nonstd::any& any_value = tf_data->at(index).y;
 
-       const bool isRosbagMessage = (any_value.type() == typeid(SerializedMessagePtr));
+       const bool isRosbagMessage = (any_value.type() == typeid(MessageRefPtr));
 
        if (!isRosbagMessage)
        {
          continue;
        }
 
-       const auto& msg_instance = nonstd::any_cast<SerializedMessagePtr>(any_value);
+       const auto& msg_instance = nonstd::any_cast<MessageRefPtr>(any_value);
 
        auto tf_type_support = rosidl_typesupport_cpp::get_message_type_support_handle<tf2_msgs::msg::TFMessage>();
        tf2_msgs::msg::TFMessage tf_msg;
@@ -340,9 +340,9 @@ void TopicPublisherROS2::updateState(double current_time)
 
     const auto& any_value = plot_any.at(last_index).y;
 
-    if (any_value.type() == typeid(SerializedMessagePtr))
+    if (any_value.type() == typeid(MessageRefPtr))
     {
-      const auto& msg_instance = nonstd::any_cast<SerializedMessagePtr>(any_value);
+      const auto& msg_instance = nonstd::any_cast<MessageRefPtr>(any_value);
       publisher_it->second->publish(msg_instance->serialized_data);
     }
   }
@@ -373,9 +373,9 @@ void TopicPublisherROS2::play(double current_time)
     for (int index = _previous_play_index + 1; index <= current_index; index++)
     {
       const auto& any_value = consecutive_msg.at(index).y;
-      if (any_value.type() == typeid(SerializedMessagePtr))
+      if (any_value.type() == typeid(MessageRefPtr))
       {
-        const auto& msg_instance = nonstd::any_cast<SerializedMessagePtr>(any_value);
+        const auto& msg_instance = nonstd::any_cast<MessageRefPtr>(any_value);
 
         auto publisher_it = _publishers.find(msg_instance->topic_name);
         if (publisher_it == _publishers.end())

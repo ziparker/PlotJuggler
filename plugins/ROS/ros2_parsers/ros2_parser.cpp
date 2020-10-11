@@ -158,7 +158,7 @@ void CompositeParser::registerMessageType(const std::string& topic_name, const s
   _parsers.insert({ topic_name, parser });
 }
 
-bool CompositeParser::parseMessage(const std::string& topic_name, const SerializedMessage* serialized_msg,
+bool CompositeParser::parseMessage(const std::string& topic_name, const MessageRef* serialized_msg,
                                    double timestamp)
 {
   auto it = _parsers.find(topic_name);

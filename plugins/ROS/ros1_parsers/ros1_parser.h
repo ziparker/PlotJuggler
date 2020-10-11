@@ -2,6 +2,7 @@
 
 #include "ros_type_introspection/ros_introspection.hpp"
 #include "PlotJuggler/plotdata.h"
+#include "PlotJuggler/messageparser_base.h"
 
 //----------------------------------
 
@@ -11,17 +12,14 @@ enum LargeArrayPolicy : bool
   KEEP_LARGE_ARRAYS = false
 };
 
-using SerializedMessage = RosIntrospection::Span<uint8_t>;
-
-class MessageParserBase
+class RosMessageParser: public MessageParser
 {
 public:
-  MessageParserBase(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : _use_header_stamp(false), _topic_name(topic_name), _plot_data(plot_data)
+  RosMessageParser(const std::string& topic_name, PlotDataMapRef& plot_data)
+    : _use_header_stamp(false)
   {
+    init(topic_name, &plot_data);
   }
-
-  virtual ~MessageParserBase() = default;
 
   virtual void setUseHeaderStamp(bool use);
 
@@ -29,26 +27,28 @@ public:
   {
   }
 
-  virtual bool parseMessage(const SerializedMessage serialized_msg, double timestamp) = 0;
-
-  static PlotData& getSeries(PlotDataMapRef& plot_data, const std::string key);
+  bool parseMessage(const MessageRef serialized_msg, double timestamp) override;
 
 protected:
   bool _use_header_stamp;
-  const std::string _topic_name;
-  PlotDataMapRef& _plot_data;
 };
 
 template <typename T>
-class BuiltinMessageParser : public MessageParserBase
+class BuiltinMessageParser : public RosMessageParser
 {
 public:
   BuiltinMessageParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : MessageParserBase(topic_name, plot_data)
+    : RosMessageParser(topic_name, plot_data)
   {
   }
 
-  virtual bool parseMessage(SerializedMessage serialized_msg, double timestamp) override
+  virtual const std::string& formatName() const override
+  {
+    static std::string name = ros::message_traits::DataType<T>::value();
+    return name;
+  }
+
+  virtual bool parseMessage(MessageRef serialized_msg, double timestamp) override
   {
     T msg;
     ros::serialization::IStream is(const_cast<uint8_t*>(serialized_msg.data()), serialized_msg.size());
@@ -62,20 +62,26 @@ public:
 protected:
 };
 
-class IntrospectionParser : public MessageParserBase
+class IntrospectionParser : public RosMessageParser
 {
 public:
   IntrospectionParser(const std::string& topic_name, const std::string& topic_type, const std::string& definition,
                       PlotDataMapRef& plot_data)
-    : MessageParserBase(topic_name, plot_data), _max_size(999)
+    : RosMessageParser(topic_name, plot_data), _max_size(999)
   {
     auto type = RosIntrospection::ROSType(topic_type);
     _parser.registerMessageDefinition(topic_name, type, definition);
   }
 
+  virtual const std::string& formatName() const override
+  {
+    static std::string name = "IntrospectionParser";
+    return name;
+  }
+
   void setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size) override;
 
-  virtual bool parseMessage(SerializedMessage serialized_msg, double timestamp) override;
+  virtual bool parseMessage(MessageRef serialized_msg, double timestamp) override;
 
 private:
   RosIntrospection::Parser _parser;
@@ -95,10 +101,11 @@ public:
 
   void registerMessageType(const std::string& topic_name, const std::string& topic_type, const std::string& definition);
 
-  bool parseMessage(const std::string& topic_name, SerializedMessage serialized_msg, double timestamp);
+  bool parseMessage(const std::string& topic_name, MessageRef serialized_msg, double timestamp);
 
 private:
-  std::unordered_map<std::string, std::shared_ptr<MessageParserBase>> _parsers;
+
+  std::map<std::string, std::shared_ptr<RosMessageParser>> _parsers;
 
   LargeArrayPolicy _discard_policy;
 

@@ -38,7 +38,7 @@ public:
       const auto& names = it->second;
       for (const auto& sample : msg.samples)
       {
-        auto& series = getSeries(_plot_data, _prefix + std::to_string(sample.name_index));
+        auto& series = getSeries(_prefix + std::to_string(sample.name_index));
         series.pushBack({ sample.stamp, sample.value });
       }
     }
@@ -47,7 +47,7 @@ public:
       const auto& names = it->second;
       for (const auto& sample : msg.samples)
       {
-        auto& series = getSeries(_plot_data, _prefix + names[sample.name_index]);
+        auto& series = getSeries(_prefix + names[sample.name_index]);
         series.pushBack({ sample.stamp, sample.value });
       }
     }

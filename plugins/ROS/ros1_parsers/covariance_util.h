@@ -13,8 +13,16 @@ public:
     {
       for (int j = i; j < N; j++)
       {
-        auto str = fmt::format("{}[{},{}]", prefix, i, j);
-        _data.push_back(&MessageParserBase::getSeries(plot_data, str));
+
+        auto key = fmt::format("{}[{},{}]", prefix, i, j);
+
+        auto plot_pair = plot_data.numeric.find(key);
+        if (plot_pair == plot_data.numeric.end())
+        {
+          plot_pair = plot_data.addNumeric(key);
+        }
+        auto plot_data = &(plot_pair->second);
+        _data.push_back(plot_data);
       }
     }
   }
@@ -33,4 +41,5 @@ public:
 
 private:
   std::vector<PlotData*> _data;
+
 };

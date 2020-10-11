@@ -12,13 +12,13 @@ public:
   TwistMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data)
     : BuiltinMessageParser<geometry_msgs::Twist>(topic_name, plot_data)
   {
-    _data.push_back(&getSeries(plot_data, topic_name + "/linear/x"));
-    _data.push_back(&getSeries(plot_data, topic_name + "/linear/y"));
-    _data.push_back(&getSeries(plot_data, topic_name + "/linear/z"));
+    _data.push_back(&getSeries(topic_name + "/linear/x"));
+    _data.push_back(&getSeries(topic_name + "/linear/y"));
+    _data.push_back(&getSeries(topic_name + "/linear/z"));
 
-    _data.push_back(&getSeries(plot_data, topic_name + "/angular/x"));
-    _data.push_back(&getSeries(plot_data, topic_name + "/angular/y"));
-    _data.push_back(&getSeries(plot_data, topic_name + "/angular/z"));
+    _data.push_back(&getSeries(topic_name + "/angular/x"));
+    _data.push_back(&getSeries(topic_name + "/angular/y"));
+    _data.push_back(&getSeries(topic_name + "/angular/z"));
   }
 
   void parseMessageImpl(const geometry_msgs::Twist& msg, double timestamp) override
@@ -42,8 +42,8 @@ public:
   TwistStampedMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data)
     : BuiltinMessageParser<geometry_msgs::TwistStamped>(topic_name, plot_data), _twist_parser(topic_name, plot_data)
   {
-    _data.emplace_back(&getSeries(plot_data, topic_name + "/header/seq"));
-    _data.emplace_back(&getSeries(plot_data, topic_name + "/header/stamp"));
+    _data.emplace_back(&getSeries(topic_name + "/header/seq"));
+    _data.emplace_back(&getSeries(topic_name + "/header/stamp"));
   }
 
   void parseMessageImpl(const geometry_msgs::TwistStamped& msg, double timestamp) override

@@ -7,20 +7,12 @@
 #include "tf_msg.h"
 #include "plotjuggler_msgs.h"
 
-void MessageParserBase::setUseHeaderStamp(bool use)
+void RosMessageParser::setUseHeaderStamp(bool use)
 {
   _use_header_stamp = use;
 }
 
-PlotData& MessageParserBase::getSeries(PlotDataMapRef& plot_data, const std::string key)
-{
-  auto plot_pair = plot_data.numeric.find(key);
-  if (plot_pair == plot_data.numeric.end())
-  {
-    plot_pair = plot_data.addNumeric(key);
-  }
-  return plot_pair->second;
-}
+
 
 //-------------------------------------
 void IntrospectionParser::setMaxArrayPolicy(LargeArrayPolicy discard_policy, size_t max_size)
@@ -29,9 +21,10 @@ void IntrospectionParser::setMaxArrayPolicy(LargeArrayPolicy discard_policy, siz
   _max_size = max_size;
 }
 
-bool IntrospectionParser::parseMessage(SerializedMessage serialized_msg, double timestamp)
+bool IntrospectionParser::parseMessage(MessageRef serialized_msg, double timestamp)
 {
-  _parser.deserializeIntoFlatContainer(_topic_name, serialized_msg, &_flat_msg, _max_size);
+  RosIntrospection::Span<uint8_t> span( serialized_msg.data(), serialized_msg.size() );
+  _parser.deserializeIntoFlatContainer(_topic_name, span, &_flat_msg, _max_size);
 
   if (_use_header_stamp)
   {
@@ -70,7 +63,7 @@ bool IntrospectionParser::parseMessage(SerializedMessage serialized_msg, double 
     const auto& key = it.first;
     double value = it.second.convert<double>();
 
-    auto& series = getSeries(_plot_data, key);
+    auto& series = getSeries(key);
 
     if (!std::isnan(value) && !std::isinf(value))
     {
@@ -113,7 +106,7 @@ void CompositeParser::registerMessageType(const std::string& topic_name,
                                           const std::string& topic_type,
                                           const std::string& definition)
 {
-  std::shared_ptr<MessageParserBase> parser;
+  std::shared_ptr<RosMessageParser> parser;
   if (_parsers.count(topic_name) > 0)
   {
     return;
@@ -203,7 +196,7 @@ void CompositeParser::registerMessageType(const std::string& topic_name,
   _parsers.insert({ topic_name, parser });
 }
 
-bool CompositeParser::parseMessage(const std::string& topic_name, SerializedMessage serialized_msg, double timestamp)
+bool CompositeParser::parseMessage(const std::string& topic_name, MessageRef serialized_msg, double timestamp)
 {
   auto it = _parsers.find(topic_name);
   if (it == _parsers.end())

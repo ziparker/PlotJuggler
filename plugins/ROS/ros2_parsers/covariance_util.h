@@ -17,7 +17,7 @@ public:
       for (int j = i; j < N; j++)
       {
         auto str = fmt::format("{}[{},{}]", prefix, i, j);
-        _data.push_back(&MessageParserBase::getSeries(plot_data, str));
+        _data.push_back(&RosMessageParser::getSeries(plot_data, str));
       }
     }
   }

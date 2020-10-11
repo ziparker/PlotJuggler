@@ -69,15 +69,21 @@ struct Serializer<::PalStatisticsValues_>
 
 static std::unordered_map<uint32_t, std::vector<std::string>> _stored_pal_statistics_names;
 
-class PalStatisticsNamesParser : public MessageParserBase
+class PalStatisticsNamesParser : public RosMessageParser
 {
 public:
   PalStatisticsNamesParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : MessageParserBase(topic_name, plot_data)
+    : RosMessageParser(topic_name, plot_data)
   {
   }
 
-  virtual bool parseMessage(SerializedMessage msg, double timestamp) override
+  virtual const std::string& formatName() const override
+  {
+    static std::string name = "pal_statistics_msgs/StatisticsNames";
+    return name;
+  }
+
+  virtual bool parseMessage(MessageRef msg, double timestamp) override
   {
     PalStatisticsNames_ pal_names;
     ros::serialization::IStream is(const_cast<uint8_t*>(msg.data()), msg.size());
@@ -88,15 +94,21 @@ public:
 };
 
 //-----------------------------------------------------
-class PalStatisticsValuesParser : public MessageParserBase
+class PalStatisticsValuesParser : public RosMessageParser
 {
 public:
   PalStatisticsValuesParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : MessageParserBase(topic_name, plot_data)
+    : RosMessageParser(topic_name, plot_data)
   {
   }
 
-  virtual bool parseMessage(SerializedMessage msg, double timestamp) override
+  virtual const std::string& formatName() const override
+  {
+    static std::string name = "pal_statistics_msgs/StatisticsValues";
+    return name;
+  }
+
+  virtual bool parseMessage(MessageRef msg, double timestamp) override
   {
     PalStatisticsValues_ pal_msg;
     ros::serialization::IStream is(const_cast<uint8_t*>(msg.data()), msg.size());
@@ -124,7 +136,7 @@ public:
       const auto& name = names[index];
       if (index >= values.size())
       {
-        values.emplace_back(&getSeries(_plot_data, fmt::format("{}/{}",_topic_name, name)));
+        values.emplace_back(&getSeries(fmt::format("{}/{}",_topic_name, name)));
       }
       values[index]->pushBack({ timestamp, pal_msg.values[index] });
     }

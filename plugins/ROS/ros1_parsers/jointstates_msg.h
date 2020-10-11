@@ -9,8 +9,8 @@ public:
   JointStateMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data)
     : BuiltinMessageParser<sensor_msgs::JointState>(topic_name, plot_data)
   {
-    _data.emplace_back(&getSeries(plot_data, topic_name + "/header/seq"));
-    _data.emplace_back(&getSeries(plot_data, topic_name + "/header/stamp"));
+    _data.emplace_back(&getSeries(topic_name + "/header/seq"));
+    _data.emplace_back(&getSeries(topic_name + "/header/stamp"));
   }
 
   void parseMessageImpl(const sensor_msgs::JointState& msg, double timestamp) override
@@ -27,19 +27,19 @@ public:
 
       if (msg.name.size() == msg.position.size())
       {
-        auto& series = getSeries(_plot_data, prefix + "/position");
+        auto& series = getSeries(prefix + "/position");
         series.pushBack({ timestamp, msg.position[i] });
       }
 
       if (msg.name.size() == msg.velocity.size())
       {
-        auto& series = getSeries(_plot_data, prefix + "/velocity");
+        auto& series = getSeries(prefix + "/velocity");
         series.pushBack({ timestamp, msg.velocity[i] });
       }
 
       if (msg.name.size() == msg.effort.size())
       {
-        auto& series = getSeries(_plot_data, prefix + "/effort");
+        auto& series = getSeries(prefix + "/effort");
         series.pushBack({ timestamp, msg.effort[i] });
       }
     }

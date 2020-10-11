@@ -94,7 +94,7 @@ void DataStreamROS::topicCallback(const RosIntrospection::ShapeShifter::ConstPtr
   }
   _prev_clock_time = msg_time;
 
-  SerializedMessage buffer_view(buffer);
+  MessageRef buffer_view(buffer);
 
   // before pushing, lock the mutex
   std::lock_guard<std::mutex> lock(mutex());

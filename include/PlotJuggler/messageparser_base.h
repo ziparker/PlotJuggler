@@ -1,36 +1,39 @@
-#ifndef MESSAGEPARSER_TEMPLATE_H
-#define MESSAGEPARSER_TEMPLATE_H
+#pragma once
 
 #include <QtPlugin>
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#include <map>
+#include <set>
 #include "PlotJuggler/plotdata.h"
 
 class MessageRef
 {
 public:
-  explicit MessageRef(const uint8_t* first_ptr, size_t size) : _first_ptr(first_ptr), _size(size)
+  explicit MessageRef(uint8_t* first_ptr, size_t size) : _first_ptr(first_ptr), _size(size)
   {
   }
 
-  explicit MessageRef(const std::vector<uint8_t>& vect) : _first_ptr(vect.data()), _size(vect.size())
+  explicit MessageRef(std::vector<uint8_t>& vect) : _first_ptr(vect.data()), _size(vect.size())
   {
   }
 
-  const uint8_t* data() const
-  {
+  const uint8_t* data() const {
     return _first_ptr;
   }
 
-  size_t size() const
-  {
+  uint8_t* data() {
+    return _first_ptr;
+  }
+
+  size_t size() const {
     return _size;
   }
 
 private:
-  const uint8_t* _first_ptr;
+  uint8_t* _first_ptr;
   size_t _size;
 };
 
@@ -46,42 +49,34 @@ private:
 class MessageParser
 {
 public:
-  virtual ~MessageParser()
+  MessageParser(): _plot_data(nullptr)  {
+
+  }
+  virtual ~MessageParser() = default;
+
+  void init(const std::string& topic_name, PlotDataMapRef* plot_data)
   {
+    _topic_name = topic_name;
+    _plot_data = plot_data;
   }
 
-  virtual const std::unordered_set<std::string>& getCompatibleKeys() const = 0;
+  virtual const std::string& formatName() const = 0;
 
-  virtual void pushMessageRef(const std::string& key, const MessageRef& msg, double timestamp) = 0;
-
-  virtual void extractData(PlotDataMapRef& destination, const std::string& prefix) = 0;
+  virtual bool parseMessage(const MessageRef serialized_msg, double timestamp) = 0;
 
 protected:
-  static void appendData(PlotDataMapRef& destination_plot_map, const std::string& field_name, PlotData& in_data)
+
+  std::string _topic_name;
+  PlotDataMapRef* _plot_data;
+
+  PlotData& getSeries(const std::string& key)
   {
-    if (in_data.size() == 0)
+    auto plot_pair = _plot_data->numeric.find(key);
+    if (plot_pair == _plot_data->numeric.end())
     {
-      return;
+      plot_pair = _plot_data->addNumeric(key);
     }
-    auto plot_pair = destination_plot_map.numeric.find(field_name);
-    if ((plot_pair == destination_plot_map.numeric.end()))
-    {
-      plot_pair = destination_plot_map.addNumeric(field_name);
-      plot_pair->second.swapData(in_data);
-    }
-    else
-    {
-      PlotData& plot_data = plot_pair->second;
-      for (size_t i = 0; i < in_data.size(); i++)
-      {
-        double val = in_data[i].y;
-        if (!std::isnan(val) && !std::isinf(val))
-        {
-          plot_data.pushBack(in_data[i]);
-        }
-      }
-    }
-    in_data.clear();
+    return plot_pair->second;
   }
 };
 
@@ -92,4 +87,54 @@ Q_DECLARE_INTERFACE(MessageParser, MessageParser_iid)
 
 QT_END_NAMESPACE
 
-#endif
+
+using MessageParserPtr = std::shared_ptr<MessageParser>;
+
+class MessageParserFactory
+{
+public:
+
+private:
+  MessageParserFactory() {}
+  MessageParserFactory(const MessageParserFactory&) = delete;
+  MessageParserFactory& operator=(const MessageParserFactory&) = delete;
+
+  std::map<std::string, std::function<MessageParserPtr()>> creators_;
+  std::set<std::string> names_;
+
+  static MessageParserFactory& get()
+  {
+    static MessageParserFactory instance_;
+    return instance_;
+  }
+
+public:
+
+  static const std::set<std::string>& registeredFormats()
+  {
+    return get().names_;
+  }
+
+  template <typename T> static void registerParser()
+  {
+    T temp;
+    std::string name = temp.formatName();
+    get().names_.insert(name);
+    get().creators_[name] = [](){ return std::make_shared<T>(); };
+  }
+
+  static MessageParserPtr create(const std::string& name,
+                                 const std::string& topic_name,
+                                 PlotDataMapRef& plot_data )
+  {
+    auto it = get().creators_.find(name);
+    if( it == get().creators_.end())
+    {
+      return {};
+    }
+    auto creator = it->second();
+    creator->init(topic_name, &plot_data);
+    return creator;
+  }
+};
+

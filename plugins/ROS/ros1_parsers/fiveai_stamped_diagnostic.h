@@ -69,12 +69,6 @@ public:
     return temp;
   }
 
-  const std::unordered_set<std::string>& getCompatibleKeys() const override
-  {
-    static std::unordered_set<std::string> temp = { getCompatibleKey() };
-    return temp;
-  }
-
   virtual void pushMessageRef(const std::string&, const MessageRef& msg, double timestamp) override
   {
     NodeDiagnostics_ diagnostic;

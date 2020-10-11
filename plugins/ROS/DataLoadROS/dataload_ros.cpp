@@ -231,7 +231,9 @@ bool DataLoadROS::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_map)
     ros::serialization::OStream stream(buffer.data(), msg_size);
     msg_instance.write(stream);
 
-    ros_parser.parseMessage(topic_name, buffer, msg_time);
+    MessageRef msg_serialized(buffer.data(), buffer.size());
+
+    ros_parser.parseMessage(topic_name, msg_serialized, msg_time);
   }
 
   qDebug() << "The loading operation took" << timer.elapsed() << "milliseconds";

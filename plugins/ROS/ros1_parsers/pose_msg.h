@@ -15,9 +15,9 @@ public:
     : BuiltinMessageParser<geometry_msgs::Pose>(topic_name, plot_data)
     , _quat_parser(topic_name + "/orientation", plot_data)
   {
-    _data.push_back(&getSeries(plot_data, topic_name + "/position/x"));
-    _data.push_back(&getSeries(plot_data, topic_name + "/position/y"));
-    _data.push_back(&getSeries(plot_data, topic_name + "/position/z"));
+    _data.push_back(&getSeries(topic_name + "/position/x"));
+    _data.push_back(&getSeries(topic_name + "/position/y"));
+    _data.push_back(&getSeries(topic_name + "/position/z"));
   }
 
   void parseMessageImpl(const geometry_msgs::Pose& msg, double timestamp) override
@@ -40,8 +40,8 @@ public:
   PoseStampedMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data)
     : BuiltinMessageParser<geometry_msgs::PoseStamped>(topic_name, plot_data), _pose_parser(topic_name, plot_data)
   {
-    _data.emplace_back(&getSeries(plot_data, topic_name + "/header/seq"));
-    _data.emplace_back(&getSeries(plot_data, topic_name + "/header/stamp"));
+    _data.emplace_back(&getSeries(topic_name + "/header/seq"));
+    _data.emplace_back(&getSeries(topic_name + "/header/stamp"));
   }
 
   void parseMessageImpl(const geometry_msgs::PoseStamped& msg, double timestamp) override
@@ -88,8 +88,8 @@ public:
     : BuiltinMessageParser<geometry_msgs::PoseWithCovarianceStamped>(topic_name, plot_data)
     , _pose_cov_parser(topic_name, plot_data)
   {
-    _data.emplace_back(&getSeries(plot_data, topic_name + "/header/seq"));
-    _data.emplace_back(&getSeries(plot_data, topic_name + "/header/stamp"));
+    _data.emplace_back(&getSeries(topic_name + "/header/seq"));
+    _data.emplace_back(&getSeries(topic_name + "/header/stamp"));
   }
 
   void parseMessageImpl(const geometry_msgs::PoseWithCovarianceStamped& msg, double timestamp) override
