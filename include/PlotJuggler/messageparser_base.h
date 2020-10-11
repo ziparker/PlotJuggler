@@ -12,13 +12,13 @@
 class MessageRef
 {
 public:
-  explicit MessageRef(uint8_t* first_ptr, size_t size) : _first_ptr(first_ptr), _size(size)
-  {
-  }
+  explicit MessageRef(uint8_t* first_ptr, size_t size) :
+    _first_ptr(first_ptr), _size(size)
+  { }
 
-  explicit MessageRef(std::vector<uint8_t>& vect) : _first_ptr(vect.data()), _size(vect.size())
-  {
-  }
+  explicit MessageRef(std::vector<uint8_t>& vect) :
+    _first_ptr(vect.data()), _size(vect.size())
+  { }
 
   const uint8_t* data() const {
     return _first_ptr;
@@ -49,10 +49,15 @@ private:
 class MessageParser
 {
 public:
-  MessageParser(): _plot_data(nullptr)  {
+  MessageParser(): _plot_data(nullptr), _use_message_stamp(false)  {
 
   }
   virtual ~MessageParser() = default;
+
+  virtual void setUseMessageStamp(bool use)
+  {
+    _use_message_stamp = use;
+  }
 
   void init(const std::string& topic_name, PlotDataMapRef* plot_data)
   {
@@ -60,7 +65,7 @@ public:
     _plot_data = plot_data;
   }
 
-  virtual const std::string& formatName() const = 0;
+  virtual const char* formatName() const = 0;
 
   virtual bool parseMessage(const MessageRef serialized_msg, double timestamp) = 0;
 
@@ -68,6 +73,7 @@ protected:
 
   std::string _topic_name;
   PlotDataMapRef* _plot_data;
+  bool _use_message_stamp;
 
   PlotData& getSeries(const std::string& key)
   {

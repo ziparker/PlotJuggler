@@ -16,21 +16,13 @@ class RosMessageParser: public MessageParser
 {
 public:
   RosMessageParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : _use_header_stamp(false)
   {
     init(topic_name, &plot_data);
   }
 
-  virtual void setUseHeaderStamp(bool use);
+  virtual void setMaxArrayPolicy(LargeArrayPolicy, size_t)
+  { }
 
-  virtual void setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size)
-  {
-  }
-
-  bool parseMessage(const MessageRef serialized_msg, double timestamp) override;
-
-protected:
-  bool _use_header_stamp;
 };
 
 template <typename T>
@@ -42,10 +34,9 @@ public:
   {
   }
 
-  virtual const std::string& formatName() const override
+  virtual const char* formatName() const override
   {
-    static std::string name = ros::message_traits::DataType<T>::value();
-    return name;
+    return ros::message_traits::DataType<T>::value();
   }
 
   virtual bool parseMessage(MessageRef serialized_msg, double timestamp) override
@@ -73,10 +64,9 @@ public:
     _parser.registerMessageDefinition(topic_name, type, definition);
   }
 
-  virtual const std::string& formatName() const override
+  virtual const char* formatName() const override
   {
-    static std::string name = "IntrospectionParser";
-    return name;
+    return "IntrospectionParser";
   }
 
   void setMaxArrayPolicy(LargeArrayPolicy policy, size_t max_size) override;

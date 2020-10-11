@@ -21,7 +21,7 @@ public:
     for (const auto& trans : msg.transforms)
     {
       double header_stamp = trans.header.stamp.toSec();
-      timestamp = (BaseParser::_use_header_stamp && header_stamp > 0) ? header_stamp : timestamp;
+      timestamp = (BaseParser::_use_message_stamp && header_stamp > 0) ? header_stamp : timestamp;
 
       std::string prefix;
       if (trans.header.frame_id.empty())

@@ -13,9 +13,13 @@ find_package(Qt5 REQUIRED COMPONENTS WebSockets )
 SET( SRC
     datastreamserver.cpp
     ../../include/PlotJuggler/datastreamer_base.h
+    ../nlohmann_parsers.cpp
     )
 
 add_library(DataStreamWebSocket SHARED ${SRC} ${UI_SRC}  )
-target_link_libraries(DataStreamWebSocket  ${Qt5Widgets_LIBRARIES} Qt5::WebSockets Qt5::Xml)
+target_link_libraries(DataStreamWebSocket
+    ${Qt5Widgets_LIBRARIES}
+    Qt5::WebSockets
+    fmt::fmt-header-only)
 
 

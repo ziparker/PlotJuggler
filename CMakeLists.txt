@@ -84,11 +84,10 @@ find_package(Qt5 REQUIRED COMPONENTS
     Qml
     Xml
     Svg
-    OpenGL)
+    OpenGL
+    WebSockets)
 
 find_package(Qt5Svg REQUIRED)
-
-find_package(Qt5 QUIET COMPONENTS WebSockets)
 
 set( QT_LINK_LIBRARIES
     Qt5::Core
@@ -101,13 +100,8 @@ set( QT_LINK_LIBRARIES
     Qt5::Qml
     Qt5::Svg
     Qt5::OpenGL
+    Qt5::WebSockets
     )
-
-if( NOT Qt5WebSockets_FOUND)
-    message(STATUS "Can't find Qt5WebSockets in your system. Have you tried [sudo apt-get install libqt5websockets5-dev] ?")
-else()
-    set( QT_LINK_LIBRARIES ${QT_LINK_LIBRARIES} Qt5::WebSockets)
-endif()
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to RelWithDebInfo")
@@ -176,16 +170,7 @@ add_subdirectory( plotter_gui )
 add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataLoadULog )
 add_subdirectory( plugins/DataStreamSample )
-
-if (Qt5Widgets_VERSION VERSION_LESS 5.3.0)
-    message(STATUS "Minimum Qt5 version for DataStreamWebSocket plugin is 5.3. Skipping plugins/DataStreamWebSocket")
-else()
-    if( NOT Qt5WebSockets_FOUND)
-        message(STATUS "Qt5WebSockets not found. Skipping plugins/DataStreamWebSocket")
-    else()
-        add_subdirectory( plugins/DataStreamWebSocket )
-    endif()
-endif()
+add_subdirectory( plugins/DataStreamWebSocket )
 
 add_subdirectory( plugins/ROS )
 

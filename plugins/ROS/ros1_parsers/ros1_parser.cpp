@@ -7,14 +7,7 @@
 #include "tf_msg.h"
 #include "plotjuggler_msgs.h"
 
-void RosMessageParser::setUseHeaderStamp(bool use)
-{
-  _use_header_stamp = use;
-}
 
-
-
-//-------------------------------------
 void IntrospectionParser::setMaxArrayPolicy(LargeArrayPolicy discard_policy, size_t max_size)
 {
   _parser.setMaxArrayPolicy(static_cast<RosIntrospection::Parser::MaxArrayPolicy>(discard_policy));
@@ -26,7 +19,7 @@ bool IntrospectionParser::parseMessage(MessageRef serialized_msg, double timesta
   RosIntrospection::Span<uint8_t> span( serialized_msg.data(), serialized_msg.size() );
   _parser.deserializeIntoFlatContainer(_topic_name, span, &_flat_msg, _max_size);
 
-  if (_use_header_stamp)
+  if (_use_message_stamp)
   {
     for (const auto& it : _flat_msg.value)
     {
@@ -88,7 +81,7 @@ void CompositeParser::setUseHeaderStamp(bool use)
   _use_header_stamp = use;
   for (auto it : _parsers)
   {
-    it.second->setUseHeaderStamp(use);
+    it.second->setUseMessageStamp(use);
   }
 }
 
@@ -192,7 +185,7 @@ void CompositeParser::registerMessageType(const std::string& topic_name,
   }
 
   parser->setMaxArrayPolicy(_discard_policy, _max_array_size);
-  parser->setUseHeaderStamp(_use_header_stamp);
+  parser->setUseMessageStamp(_use_header_stamp);
   _parsers.insert({ topic_name, parser });
 }
 

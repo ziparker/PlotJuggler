@@ -77,10 +77,9 @@ public:
   {
   }
 
-  virtual const std::string& formatName() const override
+  virtual const char* formatName() const override
   {
-    static std::string name = "pal_statistics_msgs/StatisticsNames";
-    return name;
+    return "pal_statistics_msgs/StatisticsNames";
   }
 
   virtual bool parseMessage(MessageRef msg, double timestamp) override
@@ -102,10 +101,9 @@ public:
   {
   }
 
-  virtual const std::string& formatName() const override
+  virtual const char* formatName() const override
   {
-    static std::string name = "pal_statistics_msgs/StatisticsValues";
-    return name;
+    return "pal_statistics_msgs/StatisticsValues";
   }
 
   virtual bool parseMessage(MessageRef msg, double timestamp) override
@@ -117,7 +115,7 @@ public:
     auto& values = _data[pal_msg.names_version];
 
     double header_stamp = pal_msg.header.stamp.toSec();
-    timestamp = (_use_header_stamp && header_stamp > 0) ? header_stamp : timestamp;
+    timestamp = (_use_message_stamp && header_stamp > 0) ? header_stamp : timestamp;
 
     auto names_it = _stored_pal_statistics_names.find(pal_msg.names_version);
     if (names_it == _stored_pal_statistics_names.end())

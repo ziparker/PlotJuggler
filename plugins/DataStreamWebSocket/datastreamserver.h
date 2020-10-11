@@ -39,7 +39,7 @@ public:
     return _running;
   }
 
-  virtual ~DataStreamServer();
+  virtual ~DataStreamServer() override;
 
   virtual const char* name() const override
   {
