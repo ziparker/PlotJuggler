@@ -399,6 +399,9 @@ void MainWindow::initializePlugins(QString directory_name)
 {
   static std::set<QString> loaded_plugins;
 
+  qDebug() << "Loading compatible plugins from directory: " << directory_name;
+  int loaded_count = 0;
+
   QDir pluginsDir(directory_name);
 
   for (const QString& filename : pluginsDir.entryList(QDir::Files))
@@ -424,6 +427,7 @@ void MainWindow::initializePlugins(QString directory_name)
       DataStreamer* streamer = qobject_cast<DataStreamer*>(plugin);
 
       QString plugin_name;
+
       if (loader){
         plugin_name = loader->name();
       }
@@ -437,6 +441,7 @@ void MainWindow::initializePlugins(QString directory_name)
       if (loaded_plugins.find(plugin_name) == loaded_plugins.end())
       {
         loaded_plugins.insert(plugin_name);
+        loaded_count++;
       }
       else
       {
@@ -580,6 +585,7 @@ void MainWindow::initializePlugins(QString directory_name)
     bool contains_options = !streamer_it->second->availableActions().empty();
     ui->buttonStreamingOptions->setEnabled(contains_options);
   }
+qDebug() << "Number of plugins loaded: " << loaded_count << "\n";
 }
 
 void MainWindow::buildDummyData()

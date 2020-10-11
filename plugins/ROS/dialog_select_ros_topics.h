@@ -37,8 +37,6 @@ public:
 
   ~DialogSelectRosTopics() override;
 
-  void closeEvent(QCloseEvent *event) override;
-
   Configuration getResult() const;
 
 public slots:
