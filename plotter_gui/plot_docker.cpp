@@ -329,6 +329,8 @@ DockWidget* DockWidget::splitHorizontal()
 
   connect(this, &DockWidget::undoableChange, parent_docker, &PlotDocker::undoableChange);
 
+  this->undoableChange();
+
   return new_widget;
 }
 
@@ -345,6 +347,8 @@ DockWidget* DockWidget::splitVertical()
   parent_docker->plotWidgetAdded( new_widget->plotWidget() );
 
   connect(this, &DockWidget::undoableChange, parent_docker, &PlotDocker::undoableChange);
+
+  this->undoableChange();
 
   return new_widget;
 }

@@ -246,8 +246,11 @@ void PlotWidget::buildActions()
           [=]()
           {
             auto editor_dialog = new DialogTransformEditor(this);
-            editor_dialog->exec();
+            int res = editor_dialog->exec();
             editor_dialog->deleteLater();
+            if( res == QDialog::Accepted){
+              emit undoableChange();
+            }
           } );
 
   _action_split_horizontal = new  QAction("&Split Horizontally", this);
