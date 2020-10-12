@@ -25,7 +25,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 class WebsocketServer : public DataStreamer
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID "fr.upmc.isir.stech.plotjugglerplugins.DataStreamerServer")
+  Q_PLUGIN_METADATA(IID "facontidavide.PlotJuggler3.DataStreamer")
   Q_INTERFACES(DataStreamer)
 
 public:

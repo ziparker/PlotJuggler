@@ -198,9 +198,6 @@ signals:
 
 public slots:
 
-  void on_actionLoadDummyData_triggered();
-
-  void on_actionFunctionEditor_triggered();
   void on_actionClearRecentData_triggered();
   void on_actionClearRecentLayout_triggered();
 

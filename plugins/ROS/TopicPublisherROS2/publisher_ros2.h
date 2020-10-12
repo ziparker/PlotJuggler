@@ -23,8 +23,7 @@ using MessageRefPtr = std::shared_ptr<rosbag2_storage::SerializedBagMessage>;
 class TopicPublisherROS2 : public StatePublisher
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID "com.icarustechnology.PlotJuggler.StatePublisher"
-                        "../statepublisher.json")
+  Q_PLUGIN_METADATA(IID "facontidavide.PlotJuggler3.StatePublisher")
   Q_INTERFACES(StatePublisher)
 
 public:

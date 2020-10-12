@@ -13,8 +13,7 @@
 class DataStreamROS2 : public DataStreamer
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID "com.icarustechnology.PlotJuggler.ROS2DataStreamer"
-                        "../datastreamer.json")
+  Q_PLUGIN_METADATA(IID "facontidavide.PlotJuggler3.ROS2DataStreamer")
   Q_INTERFACES(DataStreamer)
 
 public:

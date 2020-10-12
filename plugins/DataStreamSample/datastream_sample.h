@@ -7,8 +7,7 @@
 class DataStreamSample : public DataStreamer
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID "com.icarustechnology.PlotJuggler.DataStreamer"
-                        "../datastreamer.json")
+  Q_PLUGIN_METADATA(IID "facontidavide.PlotJuggler3.DataStreamer")
   Q_INTERFACES(DataStreamer)
 
 public:

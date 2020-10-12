@@ -2662,16 +2662,6 @@ void MainWindow::onActionFullscreenTriggered()
   }
 }
 
-void MainWindow::on_actionLoadDummyData_triggered()
-{
-  buildDummyData();
-}
-
-void MainWindow::on_actionFunctionEditor_triggered()
-{
-  ui->widgetStack->setCurrentIndex(1);
-}
-
 void MainWindow::on_actionClearRecentData_triggered()
 {
   QMenu* menu = _recent_data_files;
