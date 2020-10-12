@@ -16,9 +16,12 @@
 #include "transforms/scale_transform.h"
 #include "transforms/moving_average_filter.h"
 
+#include "plugins/nlohmann_parsers.h"
 #include "new_release_dialog.h"
 
 static QString VERSION_STRING = QString("%1.%2.%3").arg(PJ_MAJOR_VERSION).arg(PJ_MINOR_VERSION).arg(PJ_PATCH_VERSION);
+
+std::unique_ptr<MessageParserFactory> _global_message_parsers_factory_;
 
 inline int GetVersionNumber(QString str)
 {
@@ -90,9 +93,15 @@ int main(int argc, char* argv[])
   app.setApplicationVersion(VERSION_STRING);
 
   //---------------------------
-  TransformFactory::registerTransform<FirstDerivative>( FirstDerivative().name() );
-  TransformFactory::registerTransform<ScaleTransform>( ScaleTransform().name() );
-  TransformFactory::registerTransform<MovingAverageFilter>( MovingAverageFilter().name() );
+  TransformFactory::registerTransform<FirstDerivative>();
+  TransformFactory::registerTransform<ScaleTransform>();
+  TransformFactory::registerTransform<MovingAverageFilter>();
+
+  MessageParserFactory::registerParser<JSON_Parser>();
+  MessageParserFactory::registerParser<BSON_Parser>();
+  MessageParserFactory::registerParser<MessagePack_Parser>();
+  MessageParserFactory::registerParser<CBOR_Parser>();
+  MessageParserFactory::registerParser<UBJSON_Parser>();
 
   //---------------------------
 

@@ -37,6 +37,7 @@ SET( PLOTTER_SRC
     curvetree_view.cpp
     main.cpp
     mainwindow.cpp
+    messageparser_base.cpp
     menubar.cpp
     new_release_dialog.cpp
     plotlegend.cpp
@@ -77,6 +78,8 @@ SET( PLOTTER_SRC
     ../include/PlotJuggler/selectlistdialog.h
     ../include/PlotJuggler/datastreamer_base.h
     ../include/PlotJuggler/statepublisher_base.h
+
+    ../plugins/nlohmann_parsers.cpp
     )
 
 add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC} ${BACKWARD_ENABLE})
@@ -89,7 +92,8 @@ target_link_libraries(PlotJuggler PUBLIC
     ${QT_LINK_LIBRARIES}
     colorwidgets
     qwt_static
-    lua_static )
+    lua_static
+    fmt::fmt-header-only )
 
 target_link_libraries(PlotJuggler PRIVATE qt_advanced_docking)
 

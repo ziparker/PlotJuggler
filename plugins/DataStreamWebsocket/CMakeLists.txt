@@ -7,13 +7,12 @@ add_definitions(-DQT_WEBSOCKETS)
 
 find_package(Qt5 REQUIRED COMPONENTS WebSockets )
 
-#QT5_WRAP_UI ( UI_SRC  ../common/selectlistdialog.ui  )
+QT5_WRAP_UI ( UI_SRC  websocket_server.ui  )
 
 
 SET( SRC
-    datastreamserver.cpp
+    websocket_server.cpp
     ../../include/PlotJuggler/datastreamer_base.h
-    ../nlohmann_parsers.cpp
     )
 
 add_library(DataStreamWebSocket SHARED ${SRC} ${UI_SRC}  )

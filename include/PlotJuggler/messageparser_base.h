@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtPlugin>
+#include <QApplication>
 #include <array>
 #include <unordered_map>
 #include <unordered_set>
@@ -96,45 +97,38 @@ QT_END_NAMESPACE
 
 using MessageParserPtr = std::shared_ptr<MessageParser>;
 
-class MessageParserFactory
+class MessageParserFactory: public QObject
 {
-public:
-
 private:
-  MessageParserFactory() {}
   MessageParserFactory(const MessageParserFactory&) = delete;
   MessageParserFactory& operator=(const MessageParserFactory&) = delete;
 
   std::map<std::string, std::function<MessageParserPtr()>> creators_;
   std::set<std::string> names_;
 
-  static MessageParserFactory& get()
-  {
-    static MessageParserFactory instance_;
-    return instance_;
-  }
+  static MessageParserFactory* instance();
 
 public:
+  MessageParserFactory() {}
 
-  static const std::set<std::string>& registeredFormats()
-  {
-    return get().names_;
+  static const std::set<std::string>& registeredFormats() {
+    return instance()->names_;
   }
 
   template <typename T> static void registerParser()
   {
     T temp;
     std::string name = temp.formatName();
-    get().names_.insert(name);
-    get().creators_[name] = [](){ return std::make_shared<T>(); };
+    instance()->names_.insert(name);
+    instance()->creators_[name] = [](){ return std::make_shared<T>(); };
   }
 
   static MessageParserPtr create(const std::string& name,
                                  const std::string& topic_name,
                                  PlotDataMapRef& plot_data )
   {
-    auto it = get().creators_.find(name);
-    if( it == get().creators_.end())
+    auto it = instance()->creators_.find(name);
+    if( it == instance()->creators_.end())
     {
       return {};
     }
@@ -143,4 +137,25 @@ public:
     return creator;
   }
 };
+
+Q_DECLARE_OPAQUE_POINTER(MessageParserFactory *)
+Q_DECLARE_METATYPE(MessageParserFactory *)
+Q_GLOBAL_STATIC(MessageParserFactory, _message_parser_ptr_from_macro)
+
+inline MessageParserFactory* MessageParserFactory::instance()
+{
+  static MessageParserFactory * _ptr(nullptr);
+  if (!qApp->property("MessageParserFactory").isValid() && !_ptr) {
+    _ptr = _message_parser_ptr_from_macro;
+    qApp->setProperty("MessageParserFactory", QVariant::fromValue(_ptr));
+  }
+  else if (!_ptr) {
+    _ptr = qvariant_cast<MessageParserFactory *>(qApp->property("MessageParserFactory"));
+  }
+  else if (!qApp->property("MessageParserFactory").isValid()) {
+    qApp->setProperty("MessageParserFactory", QVariant::fromValue(_ptr));
+  }
+  return _ptr;
+}
+
 

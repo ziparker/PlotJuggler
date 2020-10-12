@@ -170,7 +170,7 @@ add_subdirectory( plotter_gui )
 add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataLoadULog )
 add_subdirectory( plugins/DataStreamSample )
-add_subdirectory( plugins/DataStreamWebSocket )
+add_subdirectory( plugins/DataStreamWebsocket )
 
 add_subdirectory( plugins/ROS )
 

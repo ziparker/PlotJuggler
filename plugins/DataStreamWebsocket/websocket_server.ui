@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>291</width>
-    <height>183</height>
+    <width>293</width>
+    <height>232</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,36 +46,13 @@
     </widget>
    </item>
    <item>
-    <widget class="QComboBox" name="comboBoxProtocol">
-     <item>
-      <property name="text">
-       <string>JSON</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>BSON</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>CBOR</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>MessagePack</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>UBJSON</string>
-      </property>
-     </item>
-    </widget>
+    <widget class="QComboBox" name="comboBoxProtocol"/>
    </item>
    <item>
     <widget class="QCheckBox" name="checkBoxTimestamp">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If checked &lt;span style=&quot; font-weight:600;&quot;&gt;and&lt;/span&gt; if one of the root field is named &amp;quot;timestamp&amp;quot;, that value will be used.&lt;/p&gt;&lt;p&gt;Otherwise, the timestamp will be the timewhen the message was received.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="text">
       <string>If present use the field &quot;timestamp&quot;</string>
      </property>
@@ -93,6 +70,13 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

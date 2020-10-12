@@ -20,15 +20,16 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 #include <QtPlugin>
 #include <thread>
 #include "PlotJuggler/datastreamer_base.h"
+#include "PlotJuggler/messageparser_base.h"
 
-class DataStreamServer : public DataStreamer
+class WebsocketServer : public DataStreamer
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID "fr.upmc.isir.stech.plotjugglerplugins.DataStreamerServer")
   Q_INTERFACES(DataStreamer)
 
 public:
-  DataStreamServer();
+  WebsocketServer();
 
   virtual bool start(QStringList*) override;
 
@@ -39,7 +40,7 @@ public:
     return _running;
   }
 
-  virtual ~DataStreamServer() override;
+  virtual ~WebsocketServer() override;
 
   virtual const char* name() const override
   {
@@ -52,11 +53,11 @@ public:
   }
 
 private:
-  quint16 _port;
+  bool _running;
   QList<QWebSocket*> _clients;
   QWebSocketServer _server;
+  MessageParserPtr _parser;
 
-  bool _running;
 
 private slots:
   void onNewConnection();

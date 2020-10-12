@@ -39,7 +39,7 @@ DialogTransformEditor::DialogTransformEditor(PlotWidget* plotwidget) :
 
   ui->listCurves->setStyleSheet("QListView::item:selected { background: #ddeeff; }");
 
-  auto names = TransformFactory::registeredNames();
+  auto names = TransformFactory::registeredTransforms();
 
   for(const auto& name: names)
   {
@@ -49,7 +49,6 @@ DialogTransformEditor::DialogTransformEditor(PlotWidget* plotwidget) :
   if( ui->listCurves->count() != 0 ){
     ui->listCurves->item(0)->setSelected(true);
   }
-
 }
 
 void DialogTransformEditor::setupTable()
