@@ -99,7 +99,7 @@ bool WebsocketServer::start(QStringList*)
     // save back to service
     settings.setValue("WebsocketServer::protocol", protocol);
     settings.setValue("WebsocketServer::port", port);
-    settings.setValue("WebsocketServer::use_timestamp", false);
+    settings.setValue("WebsocketServer::use_timestamp", use_timestamp);
 
     _parser = MessageParserFactory::create(protocol.toStdString(), "", dataMap());
     _parser->setUseMessageStamp(use_timestamp);

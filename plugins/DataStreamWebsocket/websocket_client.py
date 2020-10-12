@@ -19,7 +19,7 @@ while True:
     data = {
         "timestamp": time,
         "test_data": {
-            "cos": math.cos(time)
+            "cos": math.cos(time),
             "sin": math.sin(time)
         }
     }
