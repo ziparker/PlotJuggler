@@ -5,9 +5,26 @@
 
 class QuaternionMsgParser : public BuiltinMessageParser<geometry_msgs::Quaternion>
 {
+
+private:
+  std::vector<PlotData*> _data;
+  double _pitch_offset;
+  double _roll_offset;
+  double _yaw_offset;
+
+  double _prev_pitch;
+  double _prev_roll;
+  double _prev_yaw;
+
 public:
   QuaternionMsgParser(const std::string& topic_name, PlotDataMapRef& plot_data)
-    : BuiltinMessageParser<geometry_msgs::Quaternion>(topic_name, plot_data)
+    : BuiltinMessageParser<geometry_msgs::Quaternion>(topic_name, plot_data),
+      _pitch_offset(0.0),
+      _roll_offset(0.0),
+      _yaw_offset(0.0),
+      _prev_pitch(0.0),
+      _prev_roll(0.0),
+      _prev_yaw(0.0)
   {
     _data.push_back(&getSeries(topic_name + "/x"));
     _data.push_back(&getSeries(topic_name + "/y"));
@@ -61,12 +78,38 @@ public:
     yaw = std::atan2(siny_cosp, cosy_cosp);
 
     const double RAD_TO_DEG = 180.0 / M_PI;
+    const double WRAP_ANGLE = M_PI*2.0;
+    const double WRAP_THRESHOLD = M_PI*1.95;
 
-    _data[4]->pushBack({ timestamp, RAD_TO_DEG * roll });
-    _data[5]->pushBack({ timestamp, RAD_TO_DEG * pitch });
-    _data[6]->pushBack({ timestamp, RAD_TO_DEG * yaw });
+    //--------- wrap ------
+    if( (roll - _prev_roll) > WRAP_THRESHOLD ) {
+      _roll_offset -= WRAP_ANGLE;
+    }
+    else if( (_prev_roll - roll) > WRAP_THRESHOLD ) {
+      _roll_offset += WRAP_ANGLE;
+    }
+    _prev_roll = roll;
+
+    if( (pitch - _prev_pitch) > WRAP_THRESHOLD ) {
+      _pitch_offset -= WRAP_ANGLE;
+    }
+    else if( (_prev_pitch - pitch) > WRAP_THRESHOLD ) {
+      _pitch_offset += WRAP_ANGLE;
+    }
+    _prev_pitch = pitch;
+
+    if( (yaw - _prev_yaw) > WRAP_THRESHOLD ) {
+      _yaw_offset -= WRAP_ANGLE;
+    }
+    else if( (_prev_yaw - yaw) > WRAP_THRESHOLD ) {
+      _yaw_offset += WRAP_ANGLE;
+    }
+    _prev_yaw = yaw;
+    //---------------
+
+    _data[4]->pushBack({ timestamp, RAD_TO_DEG * (roll + _roll_offset)});
+    _data[5]->pushBack({ timestamp, RAD_TO_DEG * (pitch + _pitch_offset) });
+    _data[6]->pushBack({ timestamp, RAD_TO_DEG * (yaw + _yaw_offset)});
   }
 
-private:
-  std::vector<PlotData*> _data;
 };
