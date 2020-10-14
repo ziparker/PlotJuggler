@@ -289,21 +289,24 @@ DockWidget::DockWidget(PlotDataMapRef& datamap, QWidget *parent):
   connect(plot_widget, &PlotWidget::splitVertical,
           this, &DockWidget::splitVertical);
 
-  auto FullscreenAction = [=](bool is_fullscreen) {
+  auto FullscreenAction = [=]() {
     PlotDocker* parent_docker = static_cast<PlotDocker*>( dockManager() );
+
+    this->toolBar()->toggleFullscreen();
+    bool fullscreen =  this->toolBar()->isFullscreen();
+
     for(int i = 0; i < parent_docker->dockAreaCount(); i++ )
     {
       auto area = parent_docker->dockArea(i);
       if (area != dockAreaWidget())
       {
-        area->setVisible(!is_fullscreen);
+        area->setVisible(!fullscreen);
       }
-      this->toolBar()->buttonClose()->setHidden(is_fullscreen);
-      this->toolBar()->toggleFullscreen(is_fullscreen);
+      this->toolBar()->buttonClose()->setHidden(fullscreen);
     }
   };
 
-  QObject::connect(_toolbar->buttonFullscreen(), &QPushButton::toggled, FullscreenAction );
+  QObject::connect(_toolbar->buttonFullscreen(), &QPushButton::clicked, FullscreenAction );
 
   QObject::connect(_toolbar->buttonClose(), &QPushButton::pressed, [=]()
                    {
@@ -396,11 +399,14 @@ DraggableToolbar::~DraggableToolbar()
   delete ui;
 }
 
-void DraggableToolbar::toggleFullscreen(bool is_fullscreen)
+void DraggableToolbar::toggleFullscreen()
 {
-  _fullscreen_mode = is_fullscreen;
-  ui->buttonClose->setHidden(is_fullscreen);
-  if( is_fullscreen ){
+  _fullscreen_mode = !_fullscreen_mode;
+
+  setButtonIcon(ui->buttonFullscreen, _fullscreen_mode ? _collapse_icon : _expand_icon );
+
+  ui->buttonClose->setHidden(_fullscreen_mode);
+  if( _fullscreen_mode ){
     ui->buttonSplitHorizontal->setVisible( false );
     ui->buttonSplitVertical->setVisible( false );
   }
@@ -457,7 +463,9 @@ bool DraggableToolbar::eventFilter(QObject *object, QEvent *event)
 
 void DraggableToolbar::on_stylesheetChanged(QString theme)
 {
-  setButtonIcon(ui->buttonFullscreen, LoadSvgIcon(":/resources/svg/fullscreen.svg", theme));
+  _expand_icon = LoadSvgIcon(":/resources/svg/expand.svg", theme);
+  _collapse_icon = LoadSvgIcon(":/resources/svg/collapse.svg", theme);
+  setButtonIcon(ui->buttonFullscreen, _fullscreen_mode ? _collapse_icon : _expand_icon );
   setButtonIcon(ui->buttonClose, LoadSvgIcon( ":/resources/svg/close-button.svg", theme));
   setButtonIcon(ui->buttonSplitHorizontal,  LoadSvgIcon(":/resources/svg/add_column.svg", theme));
   setButtonIcon(ui->buttonSplitVertical,  LoadSvgIcon(":/resources/svg/add_row.svg", theme));

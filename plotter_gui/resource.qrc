@@ -273,5 +273,7 @@
         <file>resources/svg/right-arrow.svg</file>
         <file>resources/svg/plot_image.svg</file>
         <file>resources/svg/paste.svg</file>
+        <file>resources/svg/collapse.svg</file>
+        <file>resources/svg/expand.svg</file>
     </qresource>
 </RCC>

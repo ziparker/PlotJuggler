@@ -28,7 +28,11 @@ public:
   QPushButton* buttonSplitHorizontal() { return ui->buttonSplitHorizontal; }
   QPushButton* buttonSplitVertical() { return ui->buttonSplitVertical; }
 
-  void toggleFullscreen(bool is_fullscreen);
+  void toggleFullscreen();
+
+  bool isFullscreen() const{
+    return _fullscreen_mode;
+  }
 
   bool eventFilter(QObject* object,QEvent* event) override;
 
@@ -46,6 +50,9 @@ private:
   ads::CDockWidget* _parent;
   Ui::DraggableToolbar *ui;
   bool _fullscreen_mode;
+
+  QIcon _expand_icon;
+  QIcon _collapse_icon;
 };
 
 class DockWidget: public ads::CDockWidget
