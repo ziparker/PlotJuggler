@@ -1,11 +1,11 @@
 name: plotjuggler
 version: 2.8.4
-summary: Visualize timeseries like a pro
+summary: The time series visualization tool that you deserve.
 description: |
   QT5 based application to display time series in plots,
-  using an intuitive "drag and drop" interface..
+  using an intuitive "drag and drop" interface.
 
-grade: devel
+grade: stable
 confinement: strict
 base: core18
 
