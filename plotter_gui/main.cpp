@@ -101,7 +101,6 @@ int main(int argc, char* argv[])
   MessageParserFactory::registerParser<BSON_Parser>();
   MessageParserFactory::registerParser<MessagePack_Parser>();
   MessageParserFactory::registerParser<CBOR_Parser>();
-  MessageParserFactory::registerParser<UBJSON_Parser>();
 
   //---------------------------
 

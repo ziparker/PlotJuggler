@@ -19,7 +19,7 @@ public:
 
   virtual bool isRunning() const override;
 
-  virtual ~DataStreamSample();
+  virtual ~DataStreamSample() override;
 
   virtual const char* name() const override
   {

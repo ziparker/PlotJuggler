@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include "PlotJuggler/plotdata.h"
 #include "PlotJuggler/pj_plugin.h"
+#include "PlotJuggler/messageparser_base.h"
 
 namespace PJ {
 
@@ -14,12 +15,18 @@ namespace PJ {
  * Important. To avoid problems with thread safety, it is important that ANY update to
  * dataMap(), which share its elements with the main application, is protected by the mutex()
  *
- * This includes in particular the periodic updates.
+ * In particular the periodic updates.
  */
 class DataStreamer : public PlotJugglerPlugin
 {
   Q_OBJECT
 public:
+
+  virtual void setAvailableParsers(const std::unordered_map<std::string, MessageParserPtr>* parsers )
+  {
+    _loaded_parsers = parsers;
+  }
+
   virtual bool start(QStringList*) = 0;
 
   virtual void shutdown() = 0;
@@ -60,6 +67,7 @@ private:
   std::mutex _mutex;
   PlotDataMapRef _data_map;
   QAction* _start_streamer;
+  const std::unordered_map<std::string, MessageParserPtr>* _loaded_parsers;
 };
 
 inline void DataStreamer::setMaximumRange(double range)

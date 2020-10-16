@@ -6,7 +6,7 @@
 #include <QDoubleSpinBox>
 #include "PlotJuggler/transform_function.h"
 #include "ui_moving_average_filter.h"
-#include "nonstd/ring_span.hpp"
+#include "PlotJuggler/ring_span.hpp"
 
 using namespace PJ;
 

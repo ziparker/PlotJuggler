@@ -31,18 +31,6 @@ public:
                     double timestamp) override;
 };
 
-class UBJSON_Parser: public NlohmannParser
-{
-public:
-
-  const char* formatName() const override{
-    return "UBJSON";
-  }
-
-  bool parseMessage(const MessageRef msg,
-                    double timestamp) override;
-};
-
 class CBOR_Parser: public NlohmannParser
 {
 public:
@@ -59,7 +47,7 @@ class BSON_Parser: public NlohmannParser
 {
 public:
 
-  const char* formatName() const override{
+  const char* formatName()const override{
     return "BSON";
   }
 

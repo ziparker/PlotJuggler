@@ -50,14 +50,6 @@ bool JSON_Parser::parseMessage(const MessageRef msg,
     return parseMessageImpl(timestamp);
 }
 
-bool UBJSON_Parser::parseMessage(const MessageRef msg,
-                                 double timestamp)
-{
-    _json = nlohmann::json::from_ubjson( msg.data(),
-                                         msg.data()+msg.size()).flatten();
-    return parseMessageImpl(timestamp);
-}
-
 bool CBOR_Parser::parseMessage(const MessageRef msg,
                                double timestamp)
 {
