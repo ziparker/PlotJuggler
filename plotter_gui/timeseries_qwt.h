@@ -5,6 +5,9 @@
 #include "qwt_series_data.h"
 #include "PlotJuggler/transform_function.h"
 
+using namespace PJ;
+
+
 // wrapper to PlotData inclduing a time offset
 class QwtSeriesWrapper: public QwtSeriesData<QPointF>
 {

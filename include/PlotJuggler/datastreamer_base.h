@@ -6,6 +6,8 @@
 #include "PlotJuggler/plotdata.h"
 #include "PlotJuggler/pj_plugin.h"
 
+namespace PJ {
+
 /**
  * @brief The DataStreamer base class to create your own plugin.
  *
@@ -60,14 +62,6 @@ private:
   QAction* _start_streamer;
 };
 
-QT_BEGIN_NAMESPACE
-
-#define DataStream_iid "com.icarustechnology.PlotJuggler.DataStreamer"
-
-Q_DECLARE_INTERFACE(DataStreamer, DataStream_iid)
-
-QT_END_NAMESPACE
-
 inline void DataStreamer::setMaximumRange(double range)
 {
   std::lock_guard<std::mutex> lock(mutex());
@@ -80,5 +74,13 @@ inline void DataStreamer::setMaximumRange(double range)
     it.second.setMaximumRangeX(range);
   }
 }
+
+}
+
+
+QT_BEGIN_NAMESPACE
+#define DataStream_iid "facontidavide.PlotJuggler3.DataStreamer"
+Q_DECLARE_INTERFACE(PJ::DataStreamer, DataStream_iid)
+QT_END_NAMESPACE
 
 #endif

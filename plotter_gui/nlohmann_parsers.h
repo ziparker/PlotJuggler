@@ -4,6 +4,9 @@
 #include "nlohmann/json.hpp"
 #include "PlotJuggler/messageparser_base.h"
 
+using namespace PJ;
+
+
 class NlohmannParser: public MessageParser
 {
 public:
@@ -24,7 +27,8 @@ public:
     return "JSON";
   }
 
-  bool parseMessage(const MessageRef msg, double timestamp) override;
+  bool parseMessage(const MessageRef msg,
+                    double timestamp) override;
 };
 
 class UBJSON_Parser: public NlohmannParser
@@ -35,7 +39,8 @@ public:
     return "UBJSON";
   }
 
-  bool parseMessage(const MessageRef msg, double timestamp) override;
+  bool parseMessage(const MessageRef msg,
+                    double timestamp) override;
 };
 
 class CBOR_Parser: public NlohmannParser
@@ -46,7 +51,8 @@ public:
     return "CBOR";
   }
 
-  bool parseMessage(const MessageRef msg, double timestamp) override;
+  bool parseMessage(const MessageRef msg, double
+                    timestamp) override;
 };
 
 class BSON_Parser: public NlohmannParser
@@ -57,7 +63,8 @@ public:
     return "BSON";
   }
 
-  bool parseMessage(const MessageRef msg, double timestamp) override;
+  bool parseMessage(const MessageRef msg,
+                    double timestamp) override;
 };
 
 class MessagePack_Parser: public NlohmannParser
@@ -68,7 +75,8 @@ public:
     return "MessagePack";
   }
 
-  bool parseMessage(const MessageRef msg, double timestamp) override;
+  bool parseMessage(const MessageRef msg,
+                    double timestamp) override;
 };
 
 

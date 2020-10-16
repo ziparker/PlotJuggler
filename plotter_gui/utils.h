@@ -4,6 +4,8 @@
 #include <QObject>
 #include "PlotJuggler/plotdata.h"
 
+using namespace PJ;
+
 class MonitoredValue : public QObject
 {
   Q_OBJECT

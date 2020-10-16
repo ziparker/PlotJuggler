@@ -8,6 +8,9 @@
 #include "ui_moving_average_filter.h"
 #include "nonstd/ring_span.hpp"
 
+using namespace PJ;
+
+
 namespace Ui {
 class MovingAverageFilter;
 }

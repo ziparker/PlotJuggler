@@ -9,6 +9,9 @@
 #include <map>
 #include <set>
 #include "PlotJuggler/plotdata.h"
+#include "PlotJuggler/pj_plugin.h"
+
+namespace PJ {
 
 class MessageRef
 {
@@ -47,7 +50,7 @@ private:
  * You push one or more raw messages using the method pushMessageRef()
  * Once you have done, the result can be copied using plotData()
  */
-class MessageParser
+class MessageParser: public PlotJugglerPlugin
 {
 public:
   MessageParser(): _plot_data(nullptr), _use_message_stamp(false)  {
@@ -68,6 +71,11 @@ public:
 
   virtual const char* formatName() const = 0;
 
+  const char* name() const{
+    static std::string _name = std::string("Parser: ") + formatName();
+    return _name.c_str();
+  }
+
   virtual bool parseMessage(const MessageRef serialized_msg, double timestamp) = 0;
 
 protected:
@@ -86,14 +94,6 @@ protected:
     return plot_pair->second;
   }
 };
-
-QT_BEGIN_NAMESPACE
-
-#define MessageParser_iid "com.icarustechnology.PlotJuggler.MessageParser"
-Q_DECLARE_INTERFACE(MessageParser, MessageParser_iid)
-
-QT_END_NAMESPACE
-
 
 using MessageParserPtr = std::shared_ptr<MessageParser>;
 
@@ -138,11 +138,13 @@ public:
   }
 };
 
-Q_DECLARE_OPAQUE_POINTER(MessageParserFactory *)
-Q_DECLARE_METATYPE(MessageParserFactory *)
-Q_GLOBAL_STATIC(MessageParserFactory, _message_parser_ptr_from_macro)
+} // end namespace
 
-inline MessageParserFactory* MessageParserFactory::instance()
+Q_DECLARE_OPAQUE_POINTER(PJ::MessageParserFactory *)
+Q_DECLARE_METATYPE(PJ::MessageParserFactory *)
+Q_GLOBAL_STATIC(PJ::MessageParserFactory, _message_parser_ptr_from_macro)
+
+inline PJ::MessageParserFactory* PJ::MessageParserFactory::instance()
 {
   static MessageParserFactory * _ptr(nullptr);
   if (!qApp->property("MessageParserFactory").isValid() && !_ptr) {
@@ -159,3 +161,7 @@ inline MessageParserFactory* MessageParserFactory::instance()
 }
 
 
+QT_BEGIN_NAMESPACE
+#define MessageParser_iid "facontidavide.PlotJuggler3.MessageParser"
+Q_DECLARE_INTERFACE(PJ::MessageParser, MessageParser_iid)
+QT_END_NAMESPACE

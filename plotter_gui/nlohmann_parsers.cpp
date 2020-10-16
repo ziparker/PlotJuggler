@@ -27,42 +27,47 @@ bool NlohmannParser::parseMessageImpl(double timestamp)
         else{
             continue;
         }
-        key = fmt::format("{}{}", _topic_name, el.key() );
+        key = fmt::format("{}/{}", _topic_name, el.key() );
         auto plot_data = &(getSeries(key));
         plot_data->pushBack( {timestamp, value} );
     }
     return true;
 }
 
-bool MessagePack_Parser::parseMessage(const MessageRef msg, double timestamp)
+bool MessagePack_Parser::parseMessage(const MessageRef msg,
+                                      double timestamp)
 {
     _json = nlohmann::json::from_msgpack( msg.data(),
                                           msg.data() + msg.size() ).flatten();
     return parseMessageImpl(timestamp);
 }
 
-bool JSON_Parser::parseMessage(const MessageRef msg, double timestamp)
+bool JSON_Parser::parseMessage(const MessageRef msg,
+                               double timestamp)
 {
     _json = nlohmann::json::parse( msg.data(),
                                    msg.data()+ msg.size()).flatten();
     return parseMessageImpl(timestamp);
 }
 
-bool UBJSON_Parser::parseMessage(const MessageRef msg, double timestamp)
+bool UBJSON_Parser::parseMessage(const MessageRef msg,
+                                 double timestamp)
 {
     _json = nlohmann::json::from_ubjson( msg.data(),
                                          msg.data()+msg.size()).flatten();
     return parseMessageImpl(timestamp);
 }
 
-bool CBOR_Parser::parseMessage(const MessageRef msg, double timestamp)
+bool CBOR_Parser::parseMessage(const MessageRef msg,
+                               double timestamp)
 {
     _json = nlohmann::json::from_cbor( msg.data(),
                                        msg.data()+ msg.size() ).flatten();
     return parseMessageImpl(timestamp);
 }
 
-bool BSON_Parser::parseMessage(const MessageRef msg, double timestamp)
+bool BSON_Parser::parseMessage(const MessageRef msg,
+                               double timestamp)
 {
     _json = nlohmann::json::from_bson( msg.data(),
                                        msg.data()+ msg.size() ).flatten();

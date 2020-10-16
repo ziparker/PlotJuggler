@@ -4,6 +4,8 @@
 #include <QWidget>
 #include "PlotJuggler/transform_function.h"
 
+using namespace PJ;
+
 namespace Ui {
 class ScaleTransform;
 }

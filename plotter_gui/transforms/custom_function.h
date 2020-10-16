@@ -8,6 +8,8 @@
 #include <QString>
 #include "PlotJuggler/plotdata.h"
 
+using namespace PJ;
+
 class CustomFunction;
 
 typedef std::shared_ptr<CustomFunction> CustomPlotPtr;

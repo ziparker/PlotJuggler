@@ -22,11 +22,13 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 #include "PlotJuggler/datastreamer_base.h"
 #include "PlotJuggler/messageparser_base.h"
 
-class WebsocketServer : public DataStreamer
+using namespace PJ;
+
+class WebsocketServer : public PJ::DataStreamer
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID "facontidavide.PlotJuggler3.DataStreamer")
-  Q_INTERFACES(DataStreamer)
+  Q_INTERFACES(PJ::DataStreamer)
 
 public:
   WebsocketServer();
@@ -56,7 +58,7 @@ private:
   bool _running;
   QList<QWebSocket*> _clients;
   QWebSocketServer _server;
-  MessageParserPtr _parser;
+  PJ::MessageParserPtr _parser;
 
 
 private slots:

@@ -4,11 +4,11 @@ include_directories( ./ ../  ../../include  ../../common)
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 
-QT5_WRAP_UI ( UI_SRC  ../../include/PlotJuggler/selectlistdialog.ui  )
+QT5_WRAP_UI ( UI_SRC  ../selectlistdialog.ui  )
 
 SET( SRC
     dataload_csv.cpp
-    ../../include/PlotJuggler/selectlistdialog.h
+    ../selectlistdialog.h
     ../../include/PlotJuggler/dataloader_base.h
     )
 

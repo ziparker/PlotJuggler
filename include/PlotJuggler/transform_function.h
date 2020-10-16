@@ -5,6 +5,8 @@
 #include "PlotJuggler/plotdata.h"
 #include "PlotJuggler/pj_plugin.h"
 
+namespace PJ {
+
 class TimeSeriesTransform : public PlotJugglerPlugin
 {
   Q_OBJECT
@@ -44,14 +46,9 @@ protected:
   QString _alias;
 };
 
-QT_BEGIN_NAMESPACE
-#define TimeSeriesTransform_iid "com.icarustechnology.PlotJuggler.TimeSeriesTransform"
-Q_DECLARE_INTERFACE(TimeSeriesTransform, TimeSeriesTransform_iid)
-QT_END_NAMESPACE
+using TimeSeriesTransformPtr = std::shared_ptr<TimeSeriesTransform>;
 
 ///------ The factory to create instances of a SeriesTransform -------------
-
-using TimeSeriesTransformPtr = std::shared_ptr<TimeSeriesTransform>;
 
 class TransformFactory: public QObject
 {
@@ -92,11 +89,13 @@ public:
   }
 };
 
-Q_DECLARE_OPAQUE_POINTER(TransformFactory *)
-Q_DECLARE_METATYPE(TransformFactory *)
-Q_GLOBAL_STATIC(TransformFactory, _transform_factory_ptr_from_macro)
+} // end namespace
 
-inline TransformFactory* TransformFactory::instance()
+Q_DECLARE_OPAQUE_POINTER(PJ::TransformFactory *)
+Q_DECLARE_METATYPE(PJ::TransformFactory *)
+Q_GLOBAL_STATIC(PJ::TransformFactory, _transform_factory_ptr_from_macro)
+
+inline PJ::TransformFactory* PJ::TransformFactory::instance()
 {
   static TransformFactory * _ptr(nullptr);
   if (!qApp->property("TransformFactory").isValid() && !_ptr) {
@@ -111,4 +110,10 @@ inline TransformFactory* TransformFactory::instance()
   }
   return _ptr;
 }
+
+
+QT_BEGIN_NAMESPACE
+#define TimeSeriesTransform_iid "facontidavide.PlotJuggler3.TimeSeriesTransform"
+Q_DECLARE_INTERFACE(PJ::TimeSeriesTransform, TimeSeriesTransform_iid)
+QT_END_NAMESPACE
 

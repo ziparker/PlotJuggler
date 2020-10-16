@@ -7,6 +7,8 @@
 #include <QDomDocument>
 #include "PlotJuggler/plotdata.h"
 
+namespace PJ {
+
 class PlotJugglerPlugin : public QObject
 {
 public:
@@ -51,5 +53,6 @@ public:
   }
 };
 
+}
 
 #endif  // PJ_PLUGIN_H

@@ -10,11 +10,13 @@
 
 #include "MQTTAsync.h"
 
-class DataStreamMQTT : public DataStreamer
+using namespace PJ;
+
+class DataStreamMQTT : public PJ::DataStreamer
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID "facontidavide.PlotJuggler3.DataStreamer")
-  Q_INTERFACES(DataStreamer)
+  Q_INTERFACES(PJ::DataStreamer)
 
 public:
   DataStreamMQTT();
@@ -47,7 +49,7 @@ public:
   QString _protocol;
   QString _topic_filter;
   int _qos;
-  std::unordered_map<std::string, MessageParserPtr> _parsers;
+  std::unordered_map<std::string, PJ::MessageParserPtr> _parsers;
 
   bool _protocol_issue;
   QTimer _protocol_issue_timer;

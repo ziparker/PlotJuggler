@@ -16,22 +16,12 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
     message(STATUS "PlotJuggler is being built using CATKIN. ROS plugins will be compiled")
     message(STATUS "---------------------------------------------------------------------")
 
-    set(ROS_DEPENDENCIES
-        rosbag_storage
-        roscpp
-        roscpp_serialization
-        tf
-        tf2_ros
-        diagnostic_msgs
-        nav_msgs
-        sensor_msgs
-        plotjuggler_msgs )
-
     find_package(catkin REQUIRED COMPONENTS ${ROS_DEPENDENCIES} )
 
     catkin_package(
-        INCLUDE_DIRS
-        CATKIN_DEPENDS ${ROS_DEPENDENCIES}  )
+        INCLUDE_DIRS  include
+        LIBRARIES  plotjuggler_plugin_base
+    )
 
 elseif( DEFINED ENV{AMENT_PREFIX_PATH})
     set(COMPILING_WITH_AMENT 1)
@@ -115,7 +105,6 @@ ENDIF()
 
 include_directories(
     ${Qt5Core_INCLUDE_DIRS}
-    ${Qt5Gui_INCLUDE_DIRS}
     ${Qt5Widgets_INCLUDE_DIRS}
     ${Qt5Concurrent_INCLUDE_DIRS}
     ${Qt5PrintSupport_INCLUDE_DIRS}
@@ -129,7 +118,6 @@ include_directories(
     ./3rdparty/qwt/src
     ./3rdparty/color_widgets/include
     ./3rdparty/fmt/include
-    ./3rdparty/marl/include
     ./3rdparty/
     ./3rdparty/sol
     ./3rdparty/lua-5.3.4/src
@@ -142,6 +130,12 @@ if(COMPILING_WITH_CATKIN)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
+    set(CMAKE_INSTALL_PREFIX ${CATKIN_DEVEL_PREFIX}/)
+
+    install(DIRECTORY include/
+          DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+          PATTERN ".svn" EXCLUDE
+        )
 
 elseif(COMPILING_WITH_AMENT)
     find_package(ament_cmake REQUIRED)
@@ -165,6 +159,19 @@ add_subdirectory( 3rdparty/Qt-Advanced-Docking )
 add_subdirectory( 3rdparty/qwt/src )
 add_subdirectory( 3rdparty/lua-5.3.4 )
 
+qt5_wrap_cpp(PLOTJUGGLER_BASE_MOCS
+  include/PlotJuggler/dataloader_base.h
+  include/PlotJuggler/datastreamer_base.h
+  include/PlotJuggler/statepublisher_base.h
+  include/PlotJuggler/transform_function.h
+)
+
+add_library( plotjuggler_plugin_base STATIC ${PLOTJUGGLER_BASE_MOCS})
+target_link_libraries( plotjuggler_plugin_base PRIVATE
+    ${Qt5Widgets_LIBRARIES}
+    ${catkin_LIBRARIES}
+    fmt::fmt-header-only )
+
 add_subdirectory( plotter_gui )
 
 add_subdirectory( plugins/DataLoadCSV )
@@ -172,8 +179,6 @@ add_subdirectory( plugins/DataLoadULog )
 add_subdirectory( plugins/DataStreamSample )
 add_subdirectory( plugins/DataStreamWebsocket )
 add_subdirectory( plugins/DataStreamMQTT )
-
-add_subdirectory( plugins/ROS )
 
 if(COMPILING_WITH_AMENT)
     ament_package()

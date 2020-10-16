@@ -9,6 +9,8 @@
 #include <thread>
 #include <math.h>
 
+using namespace PJ;
+
 DataStreamSample::DataStreamSample()
 {
   for (int i = 0; i < 150; i++)

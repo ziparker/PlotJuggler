@@ -23,12 +23,10 @@ QT5_WRAP_UI ( UI_SRC
     transforms/first_derivative.ui
     transforms/moving_average_filter.ui
 
-    ../include/PlotJuggler/selectlistdialog.ui
+    plugins/selectlistdialog.ui
     )
 
 SET( PLOTTER_SRC
-
-    ../include/PlotJuggler/transform_function.h
 
     customtracker.cpp
 
@@ -74,12 +72,12 @@ SET( PLOTTER_SRC
     realslider.h
     utils.h
 
+    ../include/PlotJuggler/transform_function.h
     ../include/PlotJuggler/plotdata.h
-    ../include/PlotJuggler/selectlistdialog.h
     ../include/PlotJuggler/datastreamer_base.h
     ../include/PlotJuggler/statepublisher_base.h
 
-    ../plugins/nlohmann_parsers.cpp
+    nlohmann_parsers.cpp
     )
 
 add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC} ${BACKWARD_ENABLE})

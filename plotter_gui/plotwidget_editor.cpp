@@ -22,12 +22,7 @@ PlotwidgetEditor::PlotwidgetEditor(PlotWidget *plotwidget, QWidget *parent) :
 
   installEventFilter(this);
 
-//  setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
-
-  QPalette pal = palette();
-  pal.setColor(QPalette::Background, Qt::white);
-  ui->framePlotPreview->setAutoFillBackground(true);
-  ui->framePlotPreview->setPalette(pal);
+//  setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
 
   setupColorWidget();
 

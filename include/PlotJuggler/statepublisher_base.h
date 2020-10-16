@@ -9,6 +9,8 @@
 #include "PlotJuggler/plotdata.h"
 #include "PlotJuggler/pj_plugin.h"
 
+namespace PJ {
+
 class StatePublisher : public PlotJugglerPlugin
 {
   Q_OBJECT
@@ -41,12 +43,11 @@ protected:
   const PlotDataMapRef* _datamap;
 };
 
+}
+
 QT_BEGIN_NAMESPACE
-
-#define StatePublisher_iid "com.icarustechnology.PlotJuggler.StatePublisher"
-
-Q_DECLARE_INTERFACE(StatePublisher, StatePublisher_iid)
-
+#define StatePublisher_iid "facontidavide.PlotJuggler3.StatePublisher"
+Q_DECLARE_INTERFACE(PJ::StatePublisher, StatePublisher_iid)
 QT_END_NAMESPACE
 
 #endif

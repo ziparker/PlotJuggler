@@ -5,6 +5,7 @@
 #include "PlotJuggler/transform_function.h"
 #include "ui_first_derivative.h"
 
+using namespace PJ;
 
 class FirstDerivative: public TimeSeriesTransform
 {

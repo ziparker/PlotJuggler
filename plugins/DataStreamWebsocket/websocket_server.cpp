@@ -107,7 +107,7 @@ bool WebsocketServer::start(QStringList*)
   settings.setValue("WebsocketServer::port", port);
   settings.setValue("WebsocketServer::use_timestamp", use_timestamp);
 
-  _parser = MessageParserFactory::create(protocol.toStdString(), "", dataMap());
+  _parser = MessageParserFactory::create(protocol.toStdString(), {}, dataMap());
   _parser->setUseMessageStamp(use_timestamp);
 
   if ( _server.listen(QHostAddress::Any, port))
@@ -156,7 +156,7 @@ void WebsocketServer::processMessage(QString message)
   MessageRef msg ( reinterpret_cast<uint8_t*>(bmsg.data()), bmsg.size() );
 
   try {
-    _parser->parseMessage( msg, timestamp);
+    _parser->parseMessage(msg, timestamp);
   } catch (std::exception& err)
   {
     QMessageBox::warning(nullptr,

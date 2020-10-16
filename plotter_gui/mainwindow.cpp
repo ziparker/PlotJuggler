@@ -33,7 +33,6 @@
 #include "mainwindow.h"
 #include "curvelist_panel.h"
 #include "tabbedplotwidget.h"
-#include "PlotJuggler/selectlistdialog.h"
 #include "PlotJuggler/plotdata.h"
 #include "qwt_plot_canvas.h"
 #include "transforms/function_editor.h"

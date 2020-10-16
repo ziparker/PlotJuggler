@@ -16,6 +16,8 @@
 #include <cstdlib>
 #include <unordered_map>
 
+namespace PJ {
+
 struct Range
 {
   double min;
@@ -478,7 +480,8 @@ typedef struct
 
 //-----------------------------------
 template <typename Value>
-inline void AddPrefixToPlotData(const std::string& prefix, std::unordered_map<std::string, Value>& data)
+inline void AddPrefixToPlotData(const std::string& prefix,
+                                std::unordered_map<std::string, Value>& data)
 {
   if (prefix.empty()){
     return;
@@ -553,5 +556,6 @@ inline nonstd::optional<Value> TimeseriesBase<Value>::getYfromX(double x) const
   return _points.at(index).y;
 }
 
+} // end namespace
 
 #endif  // PLOTDATA_H

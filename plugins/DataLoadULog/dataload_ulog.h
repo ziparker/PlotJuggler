@@ -5,18 +5,21 @@
 #include <QWidget>
 #include "PlotJuggler/dataloader_base.h"
 
-class DataLoadULog : public DataLoader
+using namespace PJ;
+
+class DataLoadULog : public PJ::DataLoader
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID "facontidavide.PlotJuggler3.DataLoader")
-  Q_INTERFACES(DataLoader)
+  Q_INTERFACES(PJ::DataLoader)
 
 public:
   DataLoadULog();
 
   const std::vector<const char*>& compatibleFileExtensions() const override;
 
-  bool readDataFromFile(FileLoadInfo* fileload_info, PlotDataMapRef& destination) override;
+  bool readDataFromFile(PJ::FileLoadInfo* fileload_info,
+                        PlotDataMapRef& destination) override;
 
   ~DataLoadULog() override;
 

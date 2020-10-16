@@ -12,7 +12,7 @@ class StatePublisherZMQ : public QObject, StatePublisher
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID "facontidavide.PlotJuggler3.StatePublisher")
-  Q_INTERFACES(StatePublisher)
+  Q_INTERFACES(PJ::StatePublisher)
 
 public:
   StatePublisherZMQ();
