@@ -179,6 +179,7 @@ add_subdirectory( plugins/DataLoadULog )
 add_subdirectory( plugins/DataStreamSample )
 add_subdirectory( plugins/DataStreamWebsocket )
 add_subdirectory( plugins/DataStreamMQTT )
+add_subdirectory( plugins/DataStreamUDP )
 
 if(COMPILING_WITH_AMENT)
     ament_package()

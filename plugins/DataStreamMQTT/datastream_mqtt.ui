@@ -147,10 +147,34 @@
     <widget class="QComboBox" name="comboBoxProtocol"/>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxUseTimestamp">
-     <property name="text">
-      <string>Use field &quot;timestamp&quot; if present</string>
+    <widget class="QWidget" name="widgetOptions" native="true">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
+     <layout class="QVBoxLayout" name="layoutOptions">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>6</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>6</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Protocol options:</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

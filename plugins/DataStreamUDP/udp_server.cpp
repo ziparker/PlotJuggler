@@ -12,7 +12,7 @@ NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "websocket_server.h"
+#include "udp_server.h"
 #include <QTextStream>
 #include <QFile>
 #include <QMessageBox>
@@ -24,15 +24,16 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 #include <QIntValidator>
 #include <QMessageBox>
 #include <chrono>
+#include <QNetworkDatagram>
 
-#include "ui_websocket_server.h"
+#include "ui_udp_server.h"
 
-class WebsocketDialog: public QDialog
+class UdpServerDialog: public QDialog
 {
 public:
-  WebsocketDialog():
+  UdpServerDialog():
     QDialog(nullptr),
-    ui(new Ui::WebSocketDialog)
+    ui(new Ui::UDPServerDialog)
   {
     ui->setupUi(this);
     ui->lineEditPort->setValidator( new QIntValidator() );
@@ -41,27 +42,24 @@ public:
     connect( ui->buttonBox, &QDialogButtonBox::rejected,
              this, &QDialog::reject );
   }
-  ~WebsocketDialog()
+  ~UdpServerDialog()
   {
     delete ui;
   }
-  Ui::WebSocketDialog* ui;
+  Ui::UDPServerDialog* ui;
 };
 
-WebsocketServer::WebsocketServer() :
-  _running(false),
-  _server("plotJuggler", QWebSocketServer::NonSecureMode)
+UDP_Server::UDP_Server() :
+  _running(false)
 {
-  connect(&_server, &QWebSocketServer::newConnection,
-          this, &WebsocketServer::onNewConnection);
 }
 
-WebsocketServer::~WebsocketServer()
+UDP_Server::~UDP_Server()
 {
   shutdown();
 }
 
-bool WebsocketServer::start(QStringList*)
+bool UDP_Server::start(QStringList*)
 {
   if (_running)
   {
@@ -70,14 +68,14 @@ bool WebsocketServer::start(QStringList*)
 
   if( !availableParsers() )
   {
-    QMessageBox::warning(nullptr,tr("Websocket Server"), tr("No available MessageParsers"),  QMessageBox::Ok);
+    QMessageBox::warning(nullptr,tr("UDP Server"), tr("No available MessageParsers"),  QMessageBox::Ok);
     _running = false;
     return false;
   }
 
   bool ok = false;
 
-  WebsocketDialog* dialog = new WebsocketDialog();
+  UdpServerDialog* dialog = new UdpServerDialog();
 
   for( const auto& it: *availableParsers())
   {
@@ -86,8 +84,8 @@ bool WebsocketServer::start(QStringList*)
 
   // load previous values
   QSettings settings;
-  QString protocol = settings.value("WebsocketServer::protocol", "JSON").toString();
-  int port = settings.value("WebsocketServer::port", 9876).toInt();
+  QString protocol = settings.value("UDP_Server::protocol", "JSON").toString();
+  int port = settings.value("UDP_Server::port", 9876).toInt();
 
   dialog->ui->lineEditPort->setText( QString::number(port) );
 
@@ -127,18 +125,24 @@ bool WebsocketServer::start(QStringList*)
   _parser = parser_creator->createInstance({}, dataMap());
 
   // save back to service
-  settings.setValue("WebsocketServer::protocol", protocol);
-  settings.setValue("WebsocketServer::port", port);
+  settings.setValue("UDP_Server::protocol", protocol);
+  settings.setValue("UDP_Server::port", port);
 
-  if ( _server.listen(QHostAddress::Any, port))
+  _udp_socket = new QUdpSocket();
+  _udp_socket->bind(QHostAddress::LocalHost, port);
+
+  connect(_udp_socket, &QUdpSocket::readyRead,
+          this, &UDP_Server::processMessage);
+
+  if ( _udp_socket )
   {
-    qDebug() << "Websocket listening on port" << port;
+    qDebug() << "UDP listening on port" << port;
     _running = true;
   }
   else
   {
-    QMessageBox::warning(nullptr,tr("Websocket Server"),
-                         tr("Couldn't open websocket on port %1").arg(port),
+    QMessageBox::warning(nullptr,tr("UDP Server"),
+                         tr("Couldn't bind UDP port %1").arg(port),
                          QMessageBox::Ok);
     _running = false;
   }
@@ -146,59 +150,46 @@ bool WebsocketServer::start(QStringList*)
   return _running;
 }
 
-void WebsocketServer::shutdown()
+void UDP_Server::shutdown()
 {
-  if (_running)
+  if (_running && _udp_socket)
   {
-    socketDisconnected();
-    _server.close();
+    _udp_socket->deleteLater();
     _running = false;
   }
 }
 
-void WebsocketServer::onNewConnection()
+void UDP_Server::processMessage()
 {
-  QWebSocket* pSocket = _server.nextPendingConnection();
-  connect(pSocket, &QWebSocket::textMessageReceived, this, &WebsocketServer::processMessage);
-  connect(pSocket, &QWebSocket::disconnected, this, &WebsocketServer::socketDisconnected);
-  _clients << pSocket;
-}
+  while (_udp_socket->hasPendingDatagrams()) {
 
-void WebsocketServer::processMessage(QString message)
-{
-  std::lock_guard<std::mutex> lock(mutex());
+    QNetworkDatagram datagram = _udp_socket->receiveDatagram();
 
-  using namespace std::chrono;
-  auto ts = high_resolution_clock::now().time_since_epoch();
-  double timestamp = 1e-6* double( duration_cast<microseconds>(ts).count() );
+    std::lock_guard<std::mutex> lock(mutex());
 
-  QByteArray bmsg = message.toLocal8Bit();
-  MessageRef msg ( reinterpret_cast<uint8_t*>(bmsg.data()), bmsg.size() );
+    using namespace std::chrono;
+    auto ts = high_resolution_clock::now().time_since_epoch();
+    double timestamp = 1e-6* double( duration_cast<microseconds>(ts).count() );
 
-  try {
-    _parser->parseMessage(msg, timestamp);
-  } catch (std::exception& err)
-  {
-    QMessageBox::warning(nullptr,
-                         tr("Websocket Server"),
-                         tr("Problem parsing the message. Websocket Server will be stopped.\n%1").arg(err.what()),
-                         QMessageBox::Ok);
-    shutdown();
-    emit closed();
-    return;
+    MessageRef msg ( reinterpret_cast<uint8_t*>(datagram.data().data()), datagram.data().size() );
+
+    try {
+      // important use the mutex to protect any access to the data
+      _parser->parseMessage(msg, timestamp);
+    } catch (std::exception& err)
+    {
+      QMessageBox::warning(nullptr,
+                           tr("UDP Server"),
+                           tr("Problem parsing the message. UDP Server will be stopped.\n%1").arg(err.what()),
+                           QMessageBox::Ok);
+      shutdown();
+      // notify the GUI
+      emit closed();
+      return;
+    }
   }
+  // notify the GUI
   emit dataReceived();
   return;
 }
 
-void WebsocketServer::socketDisconnected()
-{
-  QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
-  if (pClient)
-  {
-    disconnect(pClient, &QWebSocket::textMessageReceived, this, &WebsocketServer::processMessage);
-    disconnect(pClient, &QWebSocket::disconnected, this, &WebsocketServer::socketDisconnected);
-    _clients.removeAll(pClient);
-    pClient->deleteLater();
-  }
-}

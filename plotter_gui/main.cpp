@@ -97,10 +97,10 @@ int main(int argc, char* argv[])
   TransformFactory::registerTransform<ScaleTransform>();
   TransformFactory::registerTransform<MovingAverageFilter>();
 
-  MessageParserFactory::registerParser<JSON_Parser>();
-  MessageParserFactory::registerParser<BSON_Parser>();
-  MessageParserFactory::registerParser<MessagePack_Parser>();
-  MessageParserFactory::registerParser<CBOR_Parser>();
+//  MessageParserFactory::registerParser<JSON_Parser>();
+//  MessageParserFactory::registerParser<BSON_Parser>();
+//  MessageParserFactory::registerParser<MessagePack_Parser>();
+//  MessageParserFactory::registerParser<CBOR_Parser>();
 
   //---------------------------
 

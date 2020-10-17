@@ -13,6 +13,17 @@
 
 namespace PJ {
 
+/*
+ * A messgaeParser is a clas that is able to convert a message received by
+ * a DataStreamer plugin into data in PlotDataMapRef.
+ *
+ * - Each data Source has its own instance of MessageParser
+ * - MessageParser objects are created by MessageParserCreator.
+ * - The actual plugin created here is the MessageParserCreator.
+ * - Each DataStreamer plugin has its own set of MessageParserCreator
+ *
+ * */
+
 class MessageRef
 {
 public:
@@ -50,46 +61,27 @@ private:
  * You push one or more raw messages using the method pushMessageRef()
  * Once you have done, the result can be copied using plotData()
  */
-class MessageParser: public PlotJugglerPlugin
+class MessageParser
 {
 public:
-  MessageParser(): _plot_data(nullptr), _use_message_stamp(false)  {
-
-  }
+  MessageParser(const std::string& topic_name,
+                PlotDataMapRef& plot_data): _plot_data(plot_data), _topic_name(topic_name)
+  { }
   virtual ~MessageParser() = default;
 
-  virtual void setUseMessageStamp(bool use)
-  {
-    _use_message_stamp = use;
-  }
-
-  void init(const std::string& topic_name, PlotDataMapRef* plot_data)
-  {
-    _topic_name = topic_name;
-    _plot_data = plot_data;
-  }
-
-  virtual const char* formatName() const = 0;
-
-  const char* name() const{
-    static std::string _name = std::string("Parser: ") + formatName();
-    return _name.c_str();
-  }
-
-  virtual bool parseMessage(const MessageRef serialized_msg, double timestamp) = 0;
-
+  virtual bool parseMessage(const MessageRef serialized_msg,
+                            double timestamp) = 0;
 protected:
 
+  PlotDataMapRef& _plot_data;
   std::string _topic_name;
-  PlotDataMapRef* _plot_data;
-  bool _use_message_stamp;
 
   PlotData& getSeries(const std::string& key)
   {
-    auto plot_pair = _plot_data->numeric.find(key);
-    if (plot_pair == _plot_data->numeric.end())
+    auto plot_pair = _plot_data.numeric.find(key);
+    if (plot_pair == _plot_data.numeric.end())
     {
-      plot_pair = _plot_data->addNumeric(key);
+      plot_pair = _plot_data.addNumeric(key);
     }
     return plot_pair->second;
   }
@@ -97,71 +89,21 @@ protected:
 
 using MessageParserPtr = std::shared_ptr<MessageParser>;
 
-class MessageParserFactory: public QObject
+//------------- This is the actual plugin interface --------------
+class MessageParserCreator : public PlotJugglerPlugin
 {
-private:
-  MessageParserFactory(const MessageParserFactory&) = delete;
-  MessageParserFactory& operator=(const MessageParserFactory&) = delete;
-
-  std::map<std::string, std::function<MessageParserPtr()>> creators_;
-  std::set<std::string> names_;
-
-  static MessageParserFactory* instance();
-
 public:
-  MessageParserFactory() {}
 
-  static const std::set<std::string>& registeredFormats() {
-    return instance()->names_;
-  }
-
-  template <typename T> static void registerParser()
-  {
-    T temp;
-    std::string name = temp.formatName();
-    instance()->names_.insert(name);
-    instance()->creators_[name] = [](){ return std::make_shared<T>(); };
-  }
-
-  static MessageParserPtr create(const std::string& name,
-                                 const std::string& topic_name,
-                                 PlotDataMapRef& plot_data )
-  {
-    auto it = instance()->creators_.find(name);
-    if( it == instance()->creators_.end())
-    {
-      return {};
-    }
-    auto creator = it->second();
-    creator->init(topic_name, &plot_data);
-    return creator;
-  }
+  virtual MessageParserPtr createInstance(const std::string& topic_name, PlotDataMapRef& data) = 0;
 };
+//----------------------------------------------------------------
+
+using MessageParserFactory = std::map<QString, std::shared_ptr<MessageParserCreator>>;
 
 } // end namespace
 
-Q_DECLARE_OPAQUE_POINTER(PJ::MessageParserFactory *)
-Q_DECLARE_METATYPE(PJ::MessageParserFactory *)
-Q_GLOBAL_STATIC(PJ::MessageParserFactory, _message_parser_ptr_from_macro)
-
-inline PJ::MessageParserFactory* PJ::MessageParserFactory::instance()
-{
-  static MessageParserFactory * _ptr(nullptr);
-  if (!qApp->property("MessageParserFactory").isValid() && !_ptr) {
-    _ptr = _message_parser_ptr_from_macro;
-    qApp->setProperty("MessageParserFactory", QVariant::fromValue(_ptr));
-  }
-  else if (!_ptr) {
-    _ptr = qvariant_cast<MessageParserFactory *>(qApp->property("MessageParserFactory"));
-  }
-  else if (!qApp->property("MessageParserFactory").isValid()) {
-    qApp->setProperty("MessageParserFactory", QVariant::fromValue(_ptr));
-  }
-  return _ptr;
-}
-
 
 QT_BEGIN_NAMESPACE
-#define MessageParser_iid "facontidavide.PlotJuggler3.MessageParser"
-Q_DECLARE_INTERFACE(PJ::MessageParser, MessageParser_iid)
+#define MessageParserCreator_iid "facontidavide.PlotJuggler3.MessageParserCreator"
+Q_DECLARE_INTERFACE(PJ::MessageParserCreator, MessageParserCreator_iid)
 QT_END_NAMESPACE

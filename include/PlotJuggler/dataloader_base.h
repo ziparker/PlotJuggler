@@ -36,6 +36,8 @@ public:
 protected:
 };
 
+using DataLoaderPtr = std::shared_ptr<DataLoader>;
+
 }
 
 QT_BEGIN_NAMESPACE

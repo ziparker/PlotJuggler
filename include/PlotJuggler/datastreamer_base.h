@@ -22,10 +22,7 @@ class DataStreamer : public PlotJugglerPlugin
   Q_OBJECT
 public:
 
-  virtual void setAvailableParsers(const std::unordered_map<std::string, MessageParserPtr>* parsers )
-  {
-    _loaded_parsers = parsers;
-  }
+  DataStreamer(): _available_parsers(nullptr) {}
 
   virtual bool start(QStringList*) = 0;
 
@@ -52,6 +49,20 @@ public:
     return _data_map;
   }
 
+  void setAvailableParsers(MessageParserFactory* parsers )
+  {
+    _available_parsers = parsers;
+  }
+
+  MessageParserFactory* availableParsers()
+  {
+    if( _available_parsers && _available_parsers->empty() )
+    {
+      return nullptr;
+    }
+    return _available_parsers;
+  }
+
 signals:
 
   // Request to clear previous data
@@ -67,7 +78,7 @@ private:
   std::mutex _mutex;
   PlotDataMapRef _data_map;
   QAction* _start_streamer;
-  const std::unordered_map<std::string, MessageParserPtr>* _loaded_parsers;
+  MessageParserFactory* _available_parsers;
 };
 
 inline void DataStreamer::setMaximumRange(double range)
@@ -82,6 +93,8 @@ inline void DataStreamer::setMaximumRange(double range)
     it.second.setMaximumRangeX(range);
   }
 }
+
+using DataStreamerPtr = std::shared_ptr<DataStreamer>;
 
 }
 

@@ -43,6 +43,9 @@ protected:
   const PlotDataMapRef* _datamap;
 };
 
+using StatePublisherPtr = std::shared_ptr<StatePublisher>;
+
+
 }
 
 QT_BEGIN_NAMESPACE

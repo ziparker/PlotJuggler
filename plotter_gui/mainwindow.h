@@ -108,10 +108,12 @@ private:
   PlotDataMapRef _mapped_plot_data;
   CustomPlotMap _custom_plots;
 
-  std::map<QString, DataLoader*> _data_loader;
-  std::map<QString, StatePublisher*> _state_publisher;
-  std::map<QString, DataStreamer*> _data_streamer;
-  DataStreamer* _active_streamer_plugin;
+  std::map<QString, DataLoaderPtr> _data_loader;
+  std::map<QString, StatePublisherPtr> _state_publisher;
+  std::map<QString, DataStreamerPtr> _data_streamer;
+  std::map<QString, std::shared_ptr<MessageParserCreator>> _message_parser_factory;
+
+  std::shared_ptr<DataStreamer> _active_streamer_plugin;
 
   std::deque<QDomDocument> _undo_states;
   std::deque<QDomDocument> _redo_states;
@@ -152,6 +154,7 @@ private:
 
   QMenu* _recent_data_files;
   QMenu* _recent_layout_files;
+
 
   void initializeActions();
   void initializePlugins(QString subdir_name);

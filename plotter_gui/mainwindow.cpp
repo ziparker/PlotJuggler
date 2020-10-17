@@ -44,6 +44,7 @@
 #include "ui_support_dialog.h"
 #include "cheatsheet/video_cheatsheet.h"
 #include "preferences_dialog.h"
+#include "nlohmann_parsers.h"
 
 
 MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* parent)
@@ -263,6 +264,13 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
     theme = "light";
   }
   loadStyleSheet(tr(":/resources/stylesheet_%1.qss").arg(theme));
+
+  // builtin messageParsers
+  _message_parser_factory.insert( {"JSON", std::make_shared<JSON_ParserCreator>() });
+  _message_parser_factory.insert( {"CBOR", std::make_shared<CBOR_ParserCreator>() });
+  _message_parser_factory.insert( {"BSON", std::make_shared<BSON_ParserCreator>() });
+  _message_parser_factory.insert( {"MessagePack", std::make_shared<MessagePack_ParserCreator>() });
+
 }
 
 MainWindow::~MainWindow()
@@ -424,16 +432,20 @@ void MainWindow::initializePlugins(QString directory_name)
       DataLoader* loader = qobject_cast<DataLoader*>(plugin);
       StatePublisher* publisher = qobject_cast<StatePublisher*>(plugin);
       DataStreamer* streamer = qobject_cast<DataStreamer*>(plugin);
+      MessageParserCreator* message_parser =  qobject_cast<MessageParserCreator*>(plugin);
 
       QString plugin_name;
 
       if (loader){
         plugin_name = loader->name();
       }
-      if (publisher){
+      else if (publisher){
         plugin_name = publisher->name();
       }
-      if (streamer){
+      else if (streamer){
+        plugin_name = streamer->name();
+      }
+      else if (message_parser){
         plugin_name = streamer->name();
       }
 
@@ -520,6 +532,10 @@ void MainWindow::initializePlugins(QString directory_name)
           }
         }
       }
+      else if (message_parser)
+      {
+        _message_parser_factory.insert( std::make_pair(plugin_name, message_parser ) );
+      }
       else if (streamer)
       {
         qDebug() << filename << ": is a DataStreamer plugin";
@@ -530,6 +546,8 @@ void MainWindow::initializePlugins(QString directory_name)
         else
         {
           _data_streamer.insert(std::make_pair(plugin_name, streamer));
+
+          streamer->setAvailableParsers( &_message_parser_factory );
 
           connect(streamer, &DataStreamer::closed, this,
                   [this]() { this->stopStreamingPlugin(); } );
@@ -584,7 +602,7 @@ void MainWindow::initializePlugins(QString directory_name)
     bool contains_options = !streamer_it->second->availableActions().empty();
     ui->buttonStreamingOptions->setEnabled(contains_options);
   }
-qDebug() << "Number of plugins loaded: " << loaded_count << "\n";
+  qDebug() << "Number of plugins loaded: " << loaded_count << "\n";
 }
 
 void MainWindow::buildDummyData()
@@ -1179,13 +1197,13 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
 
   const QString extension = QFileInfo(info.filename).suffix().toLower();
 
-  typedef std::map<QString, DataLoader*>::iterator MapIterator;
+  typedef std::map<QString, DataLoaderPtr>::iterator MapIterator;
 
   std::vector<MapIterator> compatible_loaders;
 
-  for (MapIterator it = _data_loader.begin(); it != _data_loader.end(); ++it)
+  for (auto it = _data_loader.begin(); it != _data_loader.end(); ++it)
   {
-    DataLoader* data_loader = it->second;
+    DataLoaderPtr data_loader = it->second;
     std::vector<const char*> extensions = data_loader->compatibleFileExtensions();
 
     for (auto& ext : extensions)
@@ -1198,7 +1216,7 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
     }
   }
 
-  DataLoader* dataloader = nullptr;
+  DataLoaderPtr dataloader;
 
   if (compatible_loaders.size() == 1)
   {
@@ -1520,7 +1538,7 @@ void MainWindow::loadPluginState(const QDomElement& root)
     }
     if (_state_publisher.find(plugin_name) != _state_publisher.end())
     {
-      StatePublisher* publisher = _state_publisher[plugin_name];
+      StatePublisherPtr publisher = _state_publisher[plugin_name];
       publisher->xmlLoadState(plugin_elem);
 
       if (_autostart_publishers && plugin_elem.attribute("status") == "active")
@@ -1547,7 +1565,7 @@ QDomElement MainWindow::savePluginState(QDomDocument& doc)
 
   for (auto& it : _data_loader)
   {
-    const DataLoader* dataloader = it.second;
+    const DataLoaderPtr dataloader = it.second;
     QDomElement plugin_elem = dataloader->xmlSaveState(doc);
     if (!plugin_elem.isNull())
     {
@@ -1558,7 +1576,7 @@ QDomElement MainWindow::savePluginState(QDomDocument& doc)
 
   for (auto& it : _data_streamer)
   {
-    const DataStreamer* datastreamer = it.second;
+    const DataStreamerPtr datastreamer = it.second;
     QDomElement plugin_elem = datastreamer->xmlSaveState(doc);
     if (!plugin_elem.isNull())
     {
@@ -1569,7 +1587,7 @@ QDomElement MainWindow::savePluginState(QDomDocument& doc)
 
   for (auto& it : _state_publisher)
   {
-    const StatePublisher* state_publisher = it.second;
+    const StatePublisherPtr state_publisher = it.second;
     QDomElement plugin_elem = state_publisher->xmlSaveState(doc);
     if (!plugin_elem.isNull())
     {
@@ -1746,7 +1764,7 @@ bool MainWindow::loadLayoutFromFile(QString filename)
       const QString plugin_name = plugin_elem.nodeName();
       if (_state_publisher.find(plugin_name) != _state_publisher.end())
       {
-        StatePublisher* publisher = _state_publisher[plugin_name];
+        StatePublisherPtr publisher = _state_publisher[plugin_name];
 
         if (plugin_elem.attribute("status") == "active")
         {
@@ -2156,19 +2174,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("MainWindow.hiddenStreamingFrame", ui->frameStreaming->isHidden());
   settings.setValue("MainWindow.hiddenPublishersFrame", ui->framePublishers->isHidden());
 
-  // clean up all the plugins
-  for (auto& it : _data_loader)
-  {
-    delete it.second;
-  }
-  for (auto& it : _state_publisher)
-  {
-    delete it.second;
-  }
-  for (auto& it : _data_streamer)
-  {
-    delete it.second;
-  }
 }
 
 void MainWindow::onAddCustomPlot(const std::string& plot_name)
@@ -2447,7 +2452,7 @@ void MainWindow::on_pushButtonLoadDatafile_clicked()
 
   for (auto& it : _data_loader)
   {
-    DataLoader* loader = it.second;
+    DataLoaderPtr loader = it.second;
     for (QString extension : loader->compatibleFileExtensions())
     {
       extensions.insert(extension.toLower());

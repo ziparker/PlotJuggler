@@ -86,12 +86,8 @@ int MessageArrived(void *context, char *topicName,
   auto it = _this->_parsers.find(topicName);
   if( it == _this->_parsers.end() )
   {
-    auto parser = MessageParserFactory::create(
-          _this->_protocol.toStdString(),
-          topicName,
-          _this->dataMap());
-
-    it = _this->_parsers.insert( {topicName,parser} ).first;
+    auto parser = _this->availableParsers()->at( _this->_protocol )->createInstance({}, _this->dataMap());
+    it = _this->_parsers.insert( {topicName, parser} ).first;
   }
   auto& parser = it->second;
 
@@ -206,12 +202,39 @@ bool DataStreamMQTT::start(QStringList *)
     return _running;
   }
 
+  if( !availableParsers() )
+  {
+    QMessageBox::warning(nullptr,tr("Websocket Server"), tr("No available MessageParsers"),  QMessageBox::Ok);
+    _running = false;
+    return false;
+  }
+
   MQTT_Dialog* dialog = new MQTT_Dialog();
 
-  for( const auto& name: MessageParserFactory::registeredFormats())
+  for( const auto& it: *availableParsers())
   {
-    dialog->ui->comboBoxProtocol->addItem( QString::fromStdString(name) );
+    dialog->ui->comboBoxProtocol->addItem( it.first );
   }
+
+  std::shared_ptr<MessageParserCreator> parser_creator;
+
+  connect(dialog->ui->comboBoxProtocol, qOverload<const QString &>( &QComboBox::currentIndexChanged), this,
+          [&](QString protocol)
+  {
+    auto layout = dialog->ui->layoutOptions;
+
+    if( parser_creator ){
+      QWidget*  prev_widget = parser_creator->optionsWidget();
+      prev_widget->setVisible(false);
+      layout->removeWidget(prev_widget);
+    }
+    parser_creator = availableParsers()->at( protocol );
+
+    if( parser_creator->optionsWidget() ){
+      parser_creator->optionsWidget()->setVisible(true);
+      layout->addWidget( parser_creator->optionsWidget() );
+    }
+  });
 
   // load previous values
   QSettings settings;
@@ -219,13 +242,11 @@ bool DataStreamMQTT::start(QStringList *)
   _protocol = settings.value("DataStreamMQTT::protocol", "JSON").toString();
   _topic_filter = settings.value("DataStreamMQTT::filter").toString();
   _qos = settings.value("DataStreamMQTT::qos", 0).toInt();
-  bool use_timestamp = settings.value("DataStreamMQTT::use_timestamp", false).toBool();
   QString username = settings.value("DataStreamMQTT::username", "").toString();
   QString password = settings.value("DataStreamMQTT::password", "").toString();
 
   dialog->ui->lineEditAddress->setText( address );
   dialog->ui->comboBoxProtocol->setCurrentText(_protocol);
-  dialog->ui->checkBoxUseTimestamp->setChecked(use_timestamp);
   dialog->ui->lineEditTopicFilter->setText( _topic_filter );
   dialog->ui->comboBoxQoS->setCurrentIndex(_qos);
   dialog->ui->lineEditUsername->setText(username);
@@ -238,7 +259,6 @@ bool DataStreamMQTT::start(QStringList *)
 
   address = dialog->ui->lineEditAddress->text();
   _protocol = dialog->ui->comboBoxProtocol->currentText();
-  use_timestamp = dialog->ui->checkBoxUseTimestamp->isChecked();
   _topic_filter = dialog->ui->lineEditTopicFilter->text();
   _qos = dialog->ui->comboBoxQoS->currentIndex();
   QString cliend_id = dialog->ui->lineEditClientID->text();
@@ -251,7 +271,6 @@ bool DataStreamMQTT::start(QStringList *)
   settings.setValue("DataStreamMQTT::address", address);
   settings.setValue("DataStreamMQTT::filter", _topic_filter);
   settings.setValue("DataStreamMQTT::protocol", _protocol);
-  settings.setValue("DataStreamMQTT::use_timestamp", use_timestamp);
   settings.setValue("DataStreamMQTT::qos", _qos);
   settings.setValue("DataStreamMQTT::username", username);
   settings.setValue("DataStreamMQTT::password", password);
