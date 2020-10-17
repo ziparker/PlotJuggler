@@ -1100,6 +1100,17 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
 
   if (remove_old)
   {
+    for (auto& it : _mapped_plot_data.numeric)
+    {
+      qDebug() << QString::fromStdString(it.first);
+    }
+    qDebug() << "----------";
+    for (auto& it : new_data.numeric)
+    {
+      qDebug() << QString::fromStdString(it.first);
+    }
+    qDebug() << "--------------------";
+
     std::vector<std::string> old_plots_to_delete;
 
     for (auto& it : _mapped_plot_data.numeric)
@@ -1141,6 +1152,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
   {
     _curvelist_widget->refreshColumns();
   }
+
 }
 
 bool MainWindow::isStreamingActive() const
@@ -1917,7 +1929,7 @@ void MainWindow::updateTimeOffset()
 
 void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
 {
-  bool data_updated = false;
+  bool data_updated_by_streamer = false;
 
   if (_active_streamer_plugin)
   {
@@ -1927,7 +1939,7 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
       std::lock_guard<std::mutex> lock(_active_streamer_plugin->mutex());
       auto res = MoveData(_active_streamer_plugin->dataMap(), _mapped_plot_data);
       curvelist_added = res.first;
-      data_updated = res.second;
+      data_updated_by_streamer = res.second;
     }
 
     for (const auto& str : curvelist_added)
@@ -1943,18 +1955,18 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
 
   const bool is_streaming_active = isStreamingActive();
 
-  if( data_updated )
+  for (auto& custom_it : _custom_plots)
   {
-    for (auto& custom_it : _custom_plots)
-    {
-      auto* dst_plot = &_mapped_plot_data.numeric.at(custom_it.first);
-      custom_it.second->calculate(_mapped_plot_data, dst_plot);
-    }
+    auto* dst_plot = &_mapped_plot_data.numeric.at(custom_it.first);
+    custom_it.second->calculate(_mapped_plot_data, dst_plot);
+  }
 
-    forEachWidget([](PlotWidget* plot) {
-      plot->updateCurves();
-    });
+  forEachWidget([](PlotWidget* plot) {
+    plot->updateCurves();
+  });
 
+  if( data_updated_by_streamer )
+  {
     _animated_streaming_movie->start();
     _animated_streaming_timer->start(300);
   }
@@ -1974,7 +1986,7 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
     updateTimeSlider();
   }
   //--------------------------------
-  if( data_updated )
+  if( data_updated_by_streamer )
   {
     for (const auto& it : TabbedPlotWidget::instances())
     {
@@ -1993,6 +2005,11 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
         matrix->zoomOut();  // includes replot
       }
     }
+  }
+  else{
+    forEachWidget([](PlotWidget* plot) {
+      plot->replot();
+    });
   }
 }
 
@@ -2272,6 +2289,7 @@ void MainWindow::onCustomPlotCreated(CustomPlotPtr custom_plot)
     return;
   }
   ui->widgetStack->setCurrentIndex(0);
+  _function_editor->clear();
 
   // keep data for reference
   auto custom_it = _custom_plots.find(name);

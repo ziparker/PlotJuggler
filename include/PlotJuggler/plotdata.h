@@ -161,7 +161,7 @@ public:
     return _points.end();
   }
 
-  RangeOpt rangeX() const
+  virtual RangeOpt rangeX() const
   {
     if( _points.empty() ){
       return nonstd::nullopt;
@@ -261,9 +261,10 @@ public:
 
 protected:
   std::string _name;
-  std::deque<Point> _points;
   QColor _color_hint;
 
+  // when everything is mutable, nothing is const :(
+  std::deque<Point> _points;
   mutable Range _range_x;
   mutable Range _range_y;
   mutable bool _range_x_dirty;
@@ -338,6 +339,8 @@ public:
     {
       return;  // skip
     }
+    bool need_sorting = false;
+
     if( _points.empty() )
     {
       _range_x_dirty = false;
@@ -347,12 +350,23 @@ public:
       _range_y.min = p.y;
       _range_y.max = p.y;
     }
-    else {
+    else{
       if( p.x < this->back().x ){
-        throw std::runtime_error( "Time in Timeseries is not monotonic" );
+        need_sorting = true;
       }
-      _range_x.max = p.x;
     }
+
+    if( need_sorting ) {
+      auto it = std::upper_bound(_points.begin(), _points.end(), p,
+                                 [](const Point& a, const Point& b) { return a.x < b.x; });
+
+      _points.insert(it, p);
+    }
+    else{
+      _points.emplace_back(p);
+    }
+
+    _range_x.max = p.x;
 
     if( !_range_y_dirty )
     {
@@ -366,8 +380,22 @@ public:
         _range_y_dirty = true;
       }
     }
-    _points.emplace_back(p);
+
     trimRange();
+  }
+
+  RangeOpt rangeX() const override
+  {
+    if( _points.empty() ){
+      return nonstd::nullopt;
+    }
+    if( _range_x_dirty )
+    {
+      _range_x.min = _points.front().x;
+      _range_x.max = _points.back().x;
+      _range_x_dirty = false;
+    }
+    return _range_x;
   }
 
 private:
@@ -445,9 +473,11 @@ inline void TimeseriesBase<nonstd::any>::pushBack(Point&& p)
   }
   else {
     if( p.x < this->back().x ){
-      throw std::runtime_error( "Time in Timeseries is not monotonic" );
+      _range_x_dirty = true;
     }
-    _range_x.max = p.x;
+    if( !_range_x_dirty ){
+      _range_x.max = p.x;
+    }
   }
 
   _points.emplace_back(p);

@@ -85,7 +85,11 @@ PlotData::Point LuaCustomFunction::calculatePoint(const PlotData& src_data,
     break;
   default:
     throw std::runtime_error("Lua Engine : maximum number of additional source is 8");
+  }
 
+  if( !result.valid() )
+  {
+    throw std::runtime_error("Lua Engine : invalid function (missing variable?)");
   }
 
   if (result.return_count() == 2)

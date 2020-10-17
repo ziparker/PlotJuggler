@@ -15,6 +15,7 @@
 #include "transforms/first_derivative.h"
 #include "transforms/scale_transform.h"
 #include "transforms/moving_average_filter.h"
+#include "transforms/outlier_removal.h"
 
 #include "nlohmann_parsers.h"
 #include "new_release_dialog.h"
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
   TransformFactory::registerTransform<FirstDerivative>();
   TransformFactory::registerTransform<ScaleTransform>();
   TransformFactory::registerTransform<MovingAverageFilter>();
-
+  TransformFactory::registerTransform<OutlierRemovalFilter>();
   //---------------------------
 
   QCommandLineParser parser;

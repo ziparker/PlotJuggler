@@ -596,6 +596,10 @@ void FunctionEditorWidget::on_pushButtonCreate_clicked()
 
 void FunctionEditorWidget::on_pushButtonCancel_pressed()
 {
+  if( _editor_mode == MODIFY )
+  {
+    clear();
+  }
   closed();
 }
 

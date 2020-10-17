@@ -1,27 +1,26 @@
 #pragma once
 
-#include <QRadioButton>
-#include <QSpinBox>
+#include <QWidget>
 #include <QDoubleSpinBox>
 #include "PlotJuggler/transform_function.h"
-#include "ui_moving_average_filter.h"
+#include "ui_outlier_removal.h"
 #include "PlotJuggler/ring_span.hpp"
 
 using namespace PJ;
 
 
 namespace Ui {
-class MovingAverageFilter;
+class OutlierRemovalFilter;
 }
 
-class MovingAverageFilter: public TimeSeriesTransform
+class OutlierRemovalFilter: public TimeSeriesTransform
 {
 public:
-  explicit MovingAverageFilter();
+  explicit OutlierRemovalFilter();
 
-  ~MovingAverageFilter() override;
+  ~OutlierRemovalFilter() override;
 
-  const char* name() const override { return "Moving Average"; }
+  const char* name() const override { return "Outlier Removal"; }
 
   void calculate(PlotData* dst_data) override;
 
@@ -33,9 +32,8 @@ public:
 
 
 private:
-  Ui::MovingAverageFilter *ui;
+  Ui::OutlierRemovalFilter *ui;
   QWidget *_widget;
   std::vector<double> _buffer;
   nonstd::ring_span_lite::ring_span<double> _ring_view;
 };
-
