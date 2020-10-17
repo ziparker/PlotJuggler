@@ -2169,11 +2169,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("MainWindow.streamingBufferValue", ui->streamingSpinBox->value());
   settings.setValue("MainWindow.timeTrackerSetting", (int)_tracker_param);
   settings.setValue("MainWindow.splitterWidth", ui->mainSplitter->sizes()[0]);
-
-  settings.setValue("MainWindow.hiddenFileFrame", ui->frameFile->isHidden());
-  settings.setValue("MainWindow.hiddenStreamingFrame", ui->frameStreaming->isHidden());
-  settings.setValue("MainWindow.hiddenPublishersFrame", ui->framePublishers->isHidden());
-
 }
 
 void MainWindow::onAddCustomPlot(const std::string& plot_name)
@@ -2888,6 +2883,9 @@ void MainWindow::on_buttonHideFileFrame_clicked()
   bool hidden = !ui->frameFile->isHidden();
   ui->buttonHideFileFrame->setText( hidden ? "+" : " -");
   ui->frameFile->setHidden( hidden );
+
+  QSettings settings;
+  settings.setValue("MainWindow.hiddenFileFrame", hidden);
 }
 
 void MainWindow::on_buttonHideStreamingFrame_clicked()
@@ -2895,6 +2893,9 @@ void MainWindow::on_buttonHideStreamingFrame_clicked()
   bool hidden = !ui->frameStreaming->isHidden();
   ui->buttonHideStreamingFrame->setText( hidden ? "+" : " -");
   ui->frameStreaming->setHidden( hidden );
+
+  QSettings settings;
+  settings.setValue("MainWindow.hiddenStreamingFrame", hidden);
 }
 
 void MainWindow::on_buttonHidePublishersFrame_clicked()
@@ -2902,6 +2903,9 @@ void MainWindow::on_buttonHidePublishersFrame_clicked()
   bool hidden = !ui->framePublishers->isHidden();
   ui->buttonHidePublishersFrame->setText( hidden ? "+" : " -");
   ui->framePublishers->setHidden( hidden );
+
+  QSettings settings;
+  settings.setValue("MainWindow.hiddenPublishersFrame", hidden);
 }
 
 void MainWindow::on_buttonRecentLayout_clicked()

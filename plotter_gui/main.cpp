@@ -90,17 +90,21 @@ int main(int argc, char* argv[])
   QCoreApplication::setApplicationName("PlotJuggler-3");
   QSettings::setDefaultFormat(QSettings::IniFormat);
 
+  QSettings settings;
+
+  if( !settings.isWritable() )
+  {
+    qDebug() << "ERROR: the file [" << settings.fileName() <<
+                "] is not writable. This may happen when you run PlotJuggler with sudo. "
+                "Change the permissions of the file (\"sudo chmod 666 <file_name>\"on linux)";
+  }
+
   app.setApplicationVersion(VERSION_STRING);
 
   //---------------------------
   TransformFactory::registerTransform<FirstDerivative>();
   TransformFactory::registerTransform<ScaleTransform>();
   TransformFactory::registerTransform<MovingAverageFilter>();
-
-//  MessageParserFactory::registerParser<JSON_Parser>();
-//  MessageParserFactory::registerParser<BSON_Parser>();
-//  MessageParserFactory::registerParser<MessagePack_Parser>();
-//  MessageParserFactory::registerParser<CBOR_Parser>();
 
   //---------------------------
 
