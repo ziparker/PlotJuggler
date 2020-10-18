@@ -164,7 +164,7 @@ target_link_libraries( plotjuggler_plugin_base PRIVATE
     ${catkin_LIBRARIES}
     fmt::fmt-header-only )
 
-add_subdirectory( plotter_gui )
+add_subdirectory( src )
 
 add_subdirectory( plugins/DataLoadCSV )
 add_subdirectory( plugins/DataLoadULog )
