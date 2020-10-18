@@ -1,11 +1,7 @@
 ![PlotJuggler](docs/plotjuggler3_banner.svg)
 
-| ROS (Kinetic / Melodic)  | ROS2 (Eloquent) | Windows (Mingw)  |
-|---------------------|-----------|-----------|
-| ![CI](https://github.com/facontidavide/PlotJuggler/workflows/ros1/badge.svg) | ![CI](https://github.com/facontidavide/PlotJuggler/workflows/ros2/badge.svg) | ![CI](https://github.com/facontidavide/PlotJuggler/workflows/win/badge.svg) |
 
-[![Join the chat at https://gitter.im/PlotJuggler/Lobby](https://badges.gitter.im/PlotJuggler/Lobby.svg)](https://gitter.im/PlotJuggler/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=I%20use%20PlotJuggler%20and%20it%20is%20amazing%0D%0A&url=https://github.com/facontidavide/PlotJuggler&via=facontidavide&hashtags=dataviz,plotjuggler,GoROS,PX4)
+ ![CI](https://github.com/facontidavide/PlotJuggler/workflows/ros1/badge.svg) ![CI](https://github.com/facontidavide/PlotJuggler/workflows/ros2/badge.svg) ![CI](https://github.com/facontidavide/PlotJuggler/workflows/win/badge.svg) [![Join the chat at https://gitter.im/PlotJuggler/Lobby](https://badges.gitter.im/PlotJuggler/Lobby.svg)](https://gitter.im/PlotJuggler/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=I%20use%20PlotJuggler%20and%20it%20is%20amazing%0D%0A&url=https://github.com/facontidavide/PlotJuggler&via=facontidavide&hashtags=dataviz,plotjuggler,GoROS,PX4)
 
 # PlotJuggler 3.0.0
 
@@ -27,7 +23,7 @@ To see what PlotJuggler can do for you, take a look at [this 5 minutes video of 
 ![PlotJuggler](docs/plotjuggler3.gif)
 
 
-## Data source (file and streaming)
+## Data sources (file and streaming)
 
 - Load CSV files.
 - Load ULog (PX4).
