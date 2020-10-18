@@ -23,6 +23,7 @@ QT5_WRAP_UI ( UI_SRC
     transforms/first_derivative.ui
     transforms/moving_average_filter.ui
     transforms/outlier_removal.ui
+    transforms/integral_transform.ui
 
     plugins/selectlistdialog.ui
     )
@@ -62,6 +63,7 @@ SET( PLOTTER_SRC
     transforms/lua_custom_function.cpp
     transforms/moving_average_filter.cpp
     transforms/outlier_removal.cpp
+    transforms/integral_transform.cpp
 
     transforms/first_derivative.cpp
     transforms/scale_transform.cpp
