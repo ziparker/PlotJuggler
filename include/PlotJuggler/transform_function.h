@@ -13,17 +13,53 @@ class TimeSeriesTransform : public PlotJugglerPlugin
 public:
 
   TimeSeriesTransform(): _src_data(nullptr)
-  { }
+  {
+    init();
+  }
+
+  virtual ~TimeSeriesTransform() {}
 
   void setDataSource(const PlotData *src_data){
     _src_data = src_data;
   }
 
-  virtual ~TimeSeriesTransform() {}
+  virtual void init()
+  {
+    _last_timestamp = - std::numeric_limits<double>::max();
+  }
 
   virtual const char* name() const = 0;
 
-  virtual void calculate(PlotData* dst_data) = 0;
+  void calculate(PlotData* dst_data)
+  {
+    if (_src_data->size() == 0)
+    {
+      return;
+    }
+    dst_data->setMaximumRangeX( _src_data->maximumRangeX());
+    if (dst_data->size() != 0)
+    {
+      _last_timestamp = dst_data->back().x;
+    }
+
+    int pos = _src_data->getIndexFromX( _last_timestamp );
+    size_t index = pos < 0 ? 0 : static_cast<size_t>(pos);
+
+    while(index < _src_data->size())
+    {
+      const auto& in_point = _src_data->at(index);
+
+      if (in_point.x >= _last_timestamp)
+      {
+        auto out_point = calculateNextPoint(index);
+        if (out_point){
+          dst_data->pushBack( out_point.value() );
+        }
+        _last_timestamp = in_point.x;
+      }
+      index++;
+    }
+  }
 
   const PlotData* dataSource() const{
     return _src_data;
@@ -44,6 +80,10 @@ protected:
 
   const PlotData *_src_data;
   QString _alias;
+  double _last_timestamp;
+
+  virtual nonstd::optional<PlotData::Point>
+  calculateNextPoint(size_t index) = 0;
 };
 
 using TimeSeriesTransformPtr = std::shared_ptr<TimeSeriesTransform>;

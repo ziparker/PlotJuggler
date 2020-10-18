@@ -595,6 +595,14 @@ PlotWidget::CurveInfo *PlotWidget::curveFromTitle(const QString &title)
   });
 
   if( it == _curve_list.end()){
+    it = std::find_if(_curve_list.begin(), _curve_list.end(),
+                      [&title](const PlotWidget::CurveInfo& info)
+    {
+      return info.src_name == title.toStdString();
+    });
+  }
+
+  if( it == _curve_list.end()){
     return nullptr;
   }
   else{
@@ -611,11 +619,17 @@ const PlotWidget::CurveInfo *PlotWidget::curveFromTitle(const QString &title) co
   });
 
   if( it == _curve_list.end()){
+    it = std::find_if(_curve_list.begin(), _curve_list.end(),
+                      [&title](const PlotWidget::CurveInfo& info)
+    {
+      return info.src_name == title.toStdString();
+    });
+  }
+
+  if( it == _curve_list.end()){
     return nullptr;
   }
-  else{
-    return &(*it);
-  }
+  return &(*it);
 }
 
 void PlotWidget::dragEnterEvent(QDragEnterEvent* event)
@@ -883,7 +897,7 @@ bool PlotWidget::xmlLoadState(QDomElement& plot_widget)
         {
           ts->setTransform( transform_el.attribute("name") );
           ts->transform()->xmlLoadState(transform_el);
-          ts->updateCache();
+          ts->updateCache(true);
           auto alias = transform_el.attribute("alias");
           ts->transform()->setAlias( alias );
           curve->setTitle( alias );
@@ -1367,7 +1381,7 @@ void PlotWidget::updateCurves()
   for (auto& it : _curve_list)
   {
     auto series = dynamic_cast<QwtSeriesWrapper*>(it.curve->data());
-    bool res = series->updateCache();
+    bool res = series->updateCache(false);
     // TODO check res and do something if false.
   }
   updateMaximumZoomArea();
@@ -1994,19 +2008,10 @@ QwtSeriesWrapper* PlotWidget::createCurveXY(const PlotData* data_x, const PlotDa
 
 QwtSeriesWrapper* PlotWidget::createTimeSeries(const QString& transform_ID, const PlotData* data)
 {
-  QwtTimeseries* output = new TransformedTimeseries(data);
-
-  // TODO transform_ID ??
-
-/*  auto custom_it = _snippets.find(transform_ID);
-  if (custom_it != _snippets.end())
-  {
-    const auto& snippet = custom_it->second;
-    output = new CustomTimeseries(data, snippet, _mapped_data);
-  }*/
-
+  TransformedTimeseries* output = new TransformedTimeseries(data);
+  output->setTransform(transform_ID);
   output->setTimeOffset(_time_offset);
-  output->updateCache();
+  output->updateCache(true);
   return output;
 }
 

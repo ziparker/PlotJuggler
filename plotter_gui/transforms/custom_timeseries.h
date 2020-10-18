@@ -12,7 +12,7 @@ public:
                    const SnippetData& snippet,
                    PlotDataMapRef& mapped_data);
 
-  bool updateCache() override;
+  bool updateCache(bool reset_old_data) override;
 
 private:
   std::unique_ptr<CustomFunction> _transform;

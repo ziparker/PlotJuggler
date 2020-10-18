@@ -167,7 +167,7 @@ void DialogTransformEditor::on_listTransforms_itemSelectionChanged()
   if( transform_ID.isEmpty() || transform_ID == ui->listTransforms->item(0)->text() )
   {
     ts->setTransform({});
-    ts->updateCache();
+    ts->updateCache(true);
     ui->stackedWidgetArguments->setCurrentIndex(0);
 
     ui->lineEditAlias->setText("");
@@ -176,7 +176,7 @@ void DialogTransformEditor::on_listTransforms_itemSelectionChanged()
   }
   else{
     ts->setTransform(transform_ID);
-    ts->updateCache();
+    ts->updateCache(true);
     ui->lineEditAlias->setEnabled(true);
 
     QString curve_title = qwt_curve->title().text();
@@ -202,7 +202,7 @@ void DialogTransformEditor::on_listTransforms_itemSelectionChanged()
     {
       connect( ts->transform().get(), &TimeSeriesTransform::parametersChanged,
               this, [=]() {
-                ts->updateCache();
+                ts->updateCache(true);
                 _plotwidget->zoomOut(false);
               });
       _connected_transform_widgets.insert(widget);

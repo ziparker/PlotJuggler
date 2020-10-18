@@ -42,29 +42,27 @@ FirstDerivative::~FirstDerivative()
   delete _widget;
 }
 
-void FirstDerivative::calculate(PlotData *dst_data)
+nonstd::optional<PlotData::Point>
+FirstDerivative::calculateNextPoint(size_t index)
 {
-  dst_data->clear();
-
-  if(!dataSource() || dataSource()->size() < 2)
+  if( index == 0)
   {
-    return;
+    return {};
   }
 
-  double prev_x = dataSource()->front().x;
-  double prev_y = dataSource()->front().y;
+  const auto& prev = dataSource()->at(index-1);
+  const auto& p = dataSource()->at(index);
 
-  for(size_t i=1; i < dataSource()->size(); i++)
+  double dt = (_dT == 0.0) ? (p.x - prev.x) : _dT;
+
+  if( dt <= 0 )
   {
-    const auto& p = dataSource()->at(i);
-
-    double dt = (_dT == 0.0) ? (p.x - prev_x) : _dT;
-
-    double der = (p.y - prev_y) / dt;
-    dst_data->pushBack({prev_x, der});
-    prev_x = p.x;
-    prev_y = p.y;
+    return {};
   }
+
+  double der = (p.y - prev.y) / dt;
+  PlotData::Point out = {prev.x, der};
+  return out;
 }
 
 QWidget *FirstDerivative::optionsWidget()

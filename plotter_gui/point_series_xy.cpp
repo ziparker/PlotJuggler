@@ -8,7 +8,7 @@ PointSeriesXY::PointSeriesXY(const PlotData* x_axis, const PlotData* y_axis)
     _y_axis(y_axis),
     _cached_curve("")
 {
-  updateCache();
+  updateCache(true);
 }
 
 size_t PointSeriesXY::size() const
@@ -37,8 +37,10 @@ RangeOpt PointSeriesXY::getVisualizationRangeY(Range)
   return _cached_curve.rangeY();
 }
 
-bool PointSeriesXY::updateCache()
+bool PointSeriesXY::updateCache(bool reset_old_data)
 {
+  // TODO use reset_old_data
+
   _cached_curve.clear();
 
   if (_x_axis == nullptr)

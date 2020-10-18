@@ -20,7 +20,7 @@ public:
 
   RangeOpt getVisualizationRangeY(Range range_X) override;
 
-  bool updateCache() override;
+  bool updateCache(bool reset_old_data) override;
 
   RangeOpt getVisualizationRangeX() override;
 

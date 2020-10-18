@@ -22,8 +22,6 @@
 
 static QString VERSION_STRING = QString("%1.%2.%3").arg(PJ_MAJOR_VERSION).arg(PJ_MINOR_VERSION).arg(PJ_PATCH_VERSION);
 
-std::unique_ptr<MessageParserFactory> _global_message_parsers_factory_;
-
 inline int GetVersionNumber(QString str)
 {
   QStringList online_version = str.split('.');

@@ -20,8 +20,6 @@ public:
 
   const char* name() const override;
 
-  void calculate(PlotData* dst_data) override;
-
   QWidget* optionsWidget() override;
 
   bool xmlSaveState(QDomDocument& doc, QDomElement& parent_element) const override;
@@ -31,6 +29,9 @@ public:
 private:
   QWidget *_widget;
   Ui::ScaleTransform *ui;
+
+  nonstd::optional<PlotData::Point>
+  calculateNextPoint(size_t index) override;
 };
 
 #endif // SCALE_TRANSFORM_H

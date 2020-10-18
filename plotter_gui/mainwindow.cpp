@@ -1100,17 +1100,6 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
 
   if (remove_old)
   {
-    for (auto& it : _mapped_plot_data.numeric)
-    {
-      qDebug() << QString::fromStdString(it.first);
-    }
-    qDebug() << "----------";
-    for (auto& it : new_data.numeric)
-    {
-      qDebug() << QString::fromStdString(it.first);
-    }
-    qDebug() << "--------------------";
-
     std::vector<std::string> old_plots_to_delete;
 
     for (auto& it : _mapped_plot_data.numeric)

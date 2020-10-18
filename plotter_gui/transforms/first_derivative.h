@@ -16,8 +16,6 @@ public:
 
   const char* name() const override { return "Derivative"; }
 
-  void calculate(PlotData* dst_data) override;
-
   QWidget* optionsWidget() override;
 
   bool xmlSaveState(QDomDocument& doc, QDomElement& parent_element) const override;
@@ -27,10 +25,13 @@ public:
   void on_buttonCompute_clicked();
 
 private:
+  nonstd::optional<PlotData::Point>
+  calculateNextPoint(size_t index) override;
 
   QWidget *_widget;
   Ui::FirstDerivariveForm* ui;
   double _dT;
+
 };
 
 #endif // FIRST_DERIVATIVE_H

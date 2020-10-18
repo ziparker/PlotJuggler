@@ -22,7 +22,7 @@ public:
 
   void setTimeOffset(double offset);
 
-  virtual bool updateCache() = 0;
+  virtual bool updateCache(bool reset_old_data) = 0;
 
   size_t size() const override;
 
@@ -67,7 +67,7 @@ public:
 
   void setTransform(QString transform_ID);
 
-  virtual bool updateCache() override;
+  virtual bool updateCache(bool reset_old_data) override;
 
   QString transformName();
 

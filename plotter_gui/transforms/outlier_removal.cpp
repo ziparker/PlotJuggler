@@ -4,7 +4,7 @@
 OutlierRemovalFilter::OutlierRemovalFilter():
   ui(new Ui::OutlierRemovalFilter),
   _widget(new QWidget()),
-  _buffer(5),
+  _buffer(4),
   _ring_view( _buffer.begin(), _buffer.end() )
 {
   ui->setupUi(_widget);
@@ -19,63 +19,6 @@ OutlierRemovalFilter::~OutlierRemovalFilter()
   delete _widget;
 }
 
-void OutlierRemovalFilter::calculate(PlotData *dst_data)
-{
-  dst_data->clear();
-
-  const size_t N = dataSource()->size();
-
-  if ( N < 5 )
-  {
-    for(size_t i=0; i < N; i++)
-    {
-      const auto& p = dataSource()->at(i);
-      dst_data->pushBack(p);
-    }
-  }
-  else{
-
-    // add the first 2 points
-    dst_data->pushBack( dataSource()->at(0) );
-    dst_data->pushBack( dataSource()->at(1) );
-
-    // fill the beginning of the ring
-    for(size_t i=0; i < 4; i++)
-    {
-      const auto& p = dataSource()->at(i);
-      _ring_view.push_back(p.y);
-    }
-
-    for(size_t i=5; i < N; i++)
-    {
-      const auto& p = dataSource()->at(i);
-      _ring_view.push_back(p.y);
-
-      bool is_outlier = false;
-
-      double d1 = (_ring_view[1] -  _ring_view[2]);
-      double d2 = (_ring_view[2] -  _ring_view[3]);
-      if( d1*d2 < 0 ) // spike
-      {
-        double left  = std::abs(_ring_view[0] -  _ring_view[1]);
-        double right = std::abs(_ring_view[3] -  _ring_view[4]);
-        double thresh = std::max( left, right ) * ui->spinBoxFactor->value();
-
-        double jump = std::max(std::abs(d1), std::abs(d2));
-        if( jump > thresh )
-        {
-          is_outlier = true;
-        }
-      }
-      if( !is_outlier ){
-        dst_data->pushBack( dataSource()->at(i-2) );
-      }
-    }
-    // add the last 2 points
-    dst_data->pushBack( dataSource()->at( N-2) );
-    dst_data->pushBack( dataSource()->at( N-1) );
-  }
-}
 
 QWidget *OutlierRemovalFilter::optionsWidget()
 {
@@ -95,4 +38,44 @@ bool OutlierRemovalFilter::xmlLoadState(const QDomElement &parent_element)
   QDomElement widget_el = parent_element.firstChildElement("options");
   ui->spinBoxFactor->setValue( widget_el.attribute("value", "100.0").toDouble() );
   return true;
+}
+
+nonstd::optional<PJ::PlotData::Point>
+OutlierRemovalFilter::calculateNextPoint(size_t index)
+{
+  const auto& p = dataSource()->at(index);
+  _ring_view.push_back(p.y);
+
+  if( index <= 2 )
+  {
+    return p;
+  }
+
+  if( index == 3 ) // skip this
+  {
+    return {};
+  }
+
+  double d1 = (_ring_view[1] -  _ring_view[2]);
+  double d2 = (_ring_view[2] -  _ring_view[3]);
+  if( d1*d2 < 0 ) // spike
+  {
+    double min_y = _ring_view[0];
+    double max_y = _ring_view[0];
+
+    min_y = std::min(min_y, _ring_view[1]);
+    min_y = std::min(min_y, _ring_view[3]);
+
+    max_y = std::max(max_y, _ring_view[1]);
+    max_y = std::max(max_y, _ring_view[3]);
+
+    double thresh = (max_y - min_y) * ui->spinBoxFactor->value();
+
+    double jump = std::max(std::abs(d1), std::abs(d2));
+    if( jump > thresh )
+    {
+      return {};
+    }
+  }
+  return dataSource()->at(index-1);
 }

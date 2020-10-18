@@ -22,18 +22,18 @@ public:
 
   const char* name() const override { return "Outlier Removal"; }
 
-  void calculate(PlotData* dst_data) override;
-
   QWidget* optionsWidget() override;
 
   bool xmlSaveState(QDomDocument& doc, QDomElement& parent_element) const override;
 
   bool xmlLoadState(const QDomElement& parent_element) override;
 
-
 private:
   Ui::OutlierRemovalFilter *ui;
   QWidget *_widget;
   std::vector<double> _buffer;
   nonstd::ring_span_lite::ring_span<double> _ring_view;
+
+  nonstd::optional<PlotData::Point>
+  calculateNextPoint(size_t index) override;
 };

@@ -41,20 +41,6 @@ const char *ScaleTransform::name() const {
   return "Scale/Offset";
 }
 
-void ScaleTransform::calculate(PlotData *dst_data)
-{
-  dst_data->clear();
-  double off_x = ui->lineEditTimeOffset->text().toDouble();
-  double off_y = ui->lineEditValueOffset->text().toDouble();
-  double scale = ui->lineEditValueScale->text().toDouble();
-
-  for(size_t i=0; i < dataSource()->size(); i++)
-  {
-    const auto& p = dataSource()->at(i);
-    dst_data->pushBack({p.x + off_x, scale * p.y + off_y});
-  }
-}
-
 QWidget *ScaleTransform::optionsWidget()
 {
   return _widget;
@@ -78,4 +64,15 @@ bool ScaleTransform::xmlLoadState(const QDomElement &parent_element)
   ui->lineEditValueOffset->setText( widget_el.attribute("value_offset") );
   ui->lineEditValueScale->setText( widget_el.attribute("value_scale") );
   return true;
+}
+
+nonstd::optional<PlotData::Point> ScaleTransform::calculateNextPoint(size_t index)
+{
+  double off_x = ui->lineEditTimeOffset->text().toDouble();
+  double off_y = ui->lineEditValueOffset->text().toDouble();
+  double scale = ui->lineEditValueScale->text().toDouble();
+
+  const auto& p = dataSource()->at(index);
+  PlotData::Point out = {p.x + off_x, scale * p.y + off_y};
+  return out;
 }

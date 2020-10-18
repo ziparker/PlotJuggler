@@ -21,9 +21,9 @@ public:
 
   ~MovingAverageFilter() override;
 
-  const char* name() const override { return "Moving Average"; }
+  void init() override;
 
-  void calculate(PlotData* dst_data) override;
+  const char* name() const override { return "Moving Average"; }
 
   QWidget* optionsWidget() override;
 
@@ -31,11 +31,13 @@ public:
 
   bool xmlLoadState(const QDomElement& parent_element) override;
 
-
 private:
   Ui::MovingAverageFilter *ui;
   QWidget *_widget;
-  std::vector<double> _buffer;
-  nonstd::ring_span_lite::ring_span<double> _ring_view;
+  std::vector<PlotData::Point> _buffer;
+  nonstd::ring_span_lite::ring_span<PlotData::Point> _ring_view;
+
+  nonstd::optional<PlotData::Point>
+  calculateNextPoint(size_t index) override;
 };
 

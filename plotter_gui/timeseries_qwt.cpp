@@ -49,6 +49,7 @@ TransformedTimeseries::TransformedTimeseries(const PlotData* source_data)
   _source_data(source_data),
   _dst_data(source_data->name())
 {
+
 }
 
 
@@ -68,15 +69,21 @@ void TransformedTimeseries::setTransform(QString transform_ID)
     _transform.reset();
   }
   else{
+    _dst_data.clear();
     _transform = TransformFactory::create(transform_ID.toStdString());
     _transform->setDataSource( _source_data );
   }
 }
 
-bool TransformedTimeseries::updateCache()
+bool TransformedTimeseries::updateCache(bool reset_old_data)
 {
   if( _transform )
   {
+    if( reset_old_data )
+    {
+      _dst_data.clear();
+      _transform->init();
+    }
     _transform->calculate( &_dst_data );
   }
   else{
