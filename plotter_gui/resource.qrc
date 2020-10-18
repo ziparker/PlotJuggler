@@ -273,5 +273,8 @@
         <file>cheatsheet/img/tutorial_tracker.png</file>
         <file>cheatsheet/img/tutorial_xy_drag.png</file>
         <file>cheatsheet/img/tutorial_zoom.png</file>
+        <file>cheatsheet/img/tutorial_search.png</file>
+        <file>cheatsheet/img/tutorial_custom.png</file>
+        <file>cheatsheet/img/tutorial_layout.png</file>
     </qresource>
 </RCC>

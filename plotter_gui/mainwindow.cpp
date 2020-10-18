@@ -44,7 +44,7 @@
 #include "ui_support_dialog.h"
 #include "preferences_dialog.h"
 #include "nlohmann_parsers.h"
-
+#include "cheatsheet/cheatsheet_dialog.h"
 
 MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* parent)
   : QMainWindow(parent)
@@ -2337,14 +2337,12 @@ void MainWindow::on_actionCheatsheet_triggered()
 {
   QSettings settings;
 
-//  dialog->restoreGeometry(settings.value("Cheatsheet.geometry").toByteArray());
-//  dialog->setAttribute(Qt::WA_DeleteOnClose);
-//  dialog->show();
+  CheatsheetDialog *dialog = new CheatsheetDialog(this);
+  dialog->restoreGeometry(settings.value("Cheatsheet.geometry").toByteArray());
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  dialog->exec();
 
-//  connect(dialog, &QDialog::finished, this, [dialog]() {
-//    QSettings settings;
-//    settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
-//  });
+  settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
 }
 
 void MainWindow::on_actionSupportPlotJuggler_triggered()

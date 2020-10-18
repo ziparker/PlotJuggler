@@ -26,9 +26,13 @@ QT5_WRAP_UI ( UI_SRC
     transforms/integral_transform.ui
 
     plugins/selectlistdialog.ui
+
+    cheatsheet/cheatsheet_dialog.ui
     )
 
 SET( PLOTTER_SRC
+
+    cheatsheet/cheatsheet_dialog.cpp
 
     customtracker.cpp
 
