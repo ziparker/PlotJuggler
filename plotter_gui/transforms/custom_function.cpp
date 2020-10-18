@@ -5,8 +5,6 @@
 #include <QMessageBox>
 #include <QElapsedTimer>
 #include "lua_custom_function.h"
-#include "qml_custom_function.h"
-
 
 CustomFunction::CustomFunction(const SnippetData& snippet):
   _snippet(snippet)

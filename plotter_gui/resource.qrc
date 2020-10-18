@@ -111,15 +111,6 @@
         <file>style_dark/window_undock_disabled.png</file>
         <file>style_dark/window_undock_focus.png</file>
         <file>style_dark/window_undock_pressed.png</file>
-        <file>cheatsheet/video/cheatsheet-drag-drop.mp4</file>
-        <file>cheatsheet/video/cheatsheet-pan-view.mp4</file>
-        <file>cheatsheet/video/cheatsheet-remove-column.mp4</file>
-        <file>cheatsheet/video/cheatsheet-resize-font.mp4</file>
-        <file>cheatsheet/video/cheatsheet-swap.mp4</file>
-        <file>cheatsheet/video/cheatsheet-tracker.mp4</file>
-        <file>cheatsheet/video/cheatsheet-xy.mp4</file>
-        <file>cheatsheet/video/cheatsheet-zoom-area.mp4</file>
-        <file>cheatsheet/video/cheatsheet-zoom-in-out.mp4</file>
         <file>resources/memes/meme_00.jpg</file>
         <file>resources/memes/meme_01.jpg</file>
         <file>resources/memes/meme_02.jpg</file>
@@ -275,5 +266,12 @@
         <file>resources/svg/paste.svg</file>
         <file>resources/svg/collapse.svg</file>
         <file>resources/svg/expand.svg</file>
+        <file>cheatsheet/img/tutorial_drag_drop.png</file>
+        <file>cheatsheet/img/tutorial_filter.png</file>
+        <file>cheatsheet/img/tutorial_font_size.png</file>
+        <file>cheatsheet/img/tutorial_split.png</file>
+        <file>cheatsheet/img/tutorial_tracker.png</file>
+        <file>cheatsheet/img/tutorial_xy_drag.png</file>
+        <file>cheatsheet/img/tutorial_zoom.png</file>
     </qresource>
 </RCC>

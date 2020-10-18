@@ -27,7 +27,6 @@
 
 #include "lua_custom_function.h"
 #include "svg_util.h"
-#include "qml_custom_function.h"
 
 //class Highlighter : public QSyntaxHighlighter
 //{

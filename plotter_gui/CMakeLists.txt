@@ -68,8 +68,6 @@ SET( PLOTTER_SRC
     transforms/first_derivative.cpp
     transforms/scale_transform.cpp
 
-    cheatsheet/video_cheatsheet.cpp
-
     utils.cpp
 
     mainwindow.h

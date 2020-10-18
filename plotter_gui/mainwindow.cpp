@@ -42,7 +42,6 @@
 
 #include "ui_aboutdialog.h"
 #include "ui_support_dialog.h"
-#include "cheatsheet/video_cheatsheet.h"
 #include "preferences_dialog.h"
 #include "nlohmann_parsers.h"
 
@@ -2338,15 +2337,14 @@ void MainWindow::on_actionCheatsheet_triggered()
 {
   QSettings settings;
 
-  HelpVideo* dialog = new HelpVideo(this);
-  dialog->restoreGeometry(settings.value("Cheatsheet.geometry").toByteArray());
-  dialog->setAttribute(Qt::WA_DeleteOnClose);
-  dialog->show();
+//  dialog->restoreGeometry(settings.value("Cheatsheet.geometry").toByteArray());
+//  dialog->setAttribute(Qt::WA_DeleteOnClose);
+//  dialog->show();
 
-  connect(dialog, &QDialog::finished, this, [dialog]() {
-    QSettings settings;
-    settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
-  });
+//  connect(dialog, &QDialog::finished, this, [dialog]() {
+//    QSettings settings;
+//    settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
+//  });
 }
 
 void MainWindow::on_actionSupportPlotJuggler_triggered()

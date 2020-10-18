@@ -1,7 +1,6 @@
 #include "custom_timeseries.h"
 #include <QSettings>
 #include "lua_custom_function.h"
-#include "qml_custom_function.h"
 
 //CustomTimeseries::CustomTimeseries(const PlotData* source_data, const SnippetData& snippet, PlotDataMapRef& mapped_data)
 //  : TimeseriesQwt(source_data, &_cached_data), _mapped_data(mapped_data)
