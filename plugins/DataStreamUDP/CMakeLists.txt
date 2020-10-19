@@ -14,8 +14,7 @@ SET( SRC udp_server.cpp
 add_library(DataStreamUDP SHARED ${SRC} ${UI_SRC}  )
 
 target_link_libraries(DataStreamUDP
-    ${Qt5Widgets_LIBRARIES}
-    fmt::fmt-header-only)
+    ${Qt5Widgets_LIBRARIES})
 
 
 

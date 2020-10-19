@@ -37,8 +37,6 @@ endif()
 
 cmake_policy (SET CMP0020 NEW)
 
-add_subdirectory( 3rdparty/fmt )
-
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTOUIC ON)
@@ -107,13 +105,12 @@ include_directories(
     ${Qt5Svg_INCLUDE_DIRS}
     ${Qt5OpenGL_INCLUDE_DIRS}
     ./include
-    ./3rdparty/qwt/src
-    ./3rdparty/color_widgets/include
-    ./3rdparty/fmt/include
     ./3rdparty/
-    ./3rdparty/sol
-    ./3rdparty/lua-5.3.4/src
+    ./3rdparty/color_widgets/include
     ./3rdparty/Qt-Advanced-Docking/include
+    ./3rdparty/qwt/src
+    ./3rdparty/lua-5.3.4/src
+    ./3rdparty/sol
 )
 
 #########################  INSTALL ####################################
@@ -161,8 +158,7 @@ qt5_wrap_cpp(PLOTJUGGLER_BASE_MOCS
 add_library( plotjuggler_plugin_base STATIC ${PLOTJUGGLER_BASE_MOCS})
 target_link_libraries( plotjuggler_plugin_base PRIVATE
     ${Qt5Widgets_LIBRARIES}
-    ${catkin_LIBRARIES}
-    fmt::fmt-header-only )
+    ${catkin_LIBRARIES} )
 
 add_subdirectory( src )
 

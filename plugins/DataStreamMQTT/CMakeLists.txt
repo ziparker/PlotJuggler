@@ -17,8 +17,7 @@ add_library(DataStreamMQTT SHARED ${SRC} ${UI_SRC}  )
 
 target_link_libraries(DataStreamMQTT
     ${Qt5Widgets_LIBRARIES}
-    paho-mqtt3c-static paho-mqtt3a-static
-    fmt::fmt-header-only)
+    paho-mqtt3c-static paho-mqtt3a-static)
 
 
 

@@ -1,4 +1,6 @@
 #include "nlohmann_parsers.h"
+
+#define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
 bool NlohmannParser::parseMessageImpl(double timestamp)

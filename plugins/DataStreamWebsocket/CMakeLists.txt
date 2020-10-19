@@ -23,8 +23,7 @@ else()
 
     target_link_libraries(DataStreamWebSocket
         ${Qt5Widgets_LIBRARIES}
-        Qt5::WebSockets
-        fmt::fmt-header-only)
+        Qt5::WebSockets)
 
 endif()
 

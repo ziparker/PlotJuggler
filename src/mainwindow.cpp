@@ -29,6 +29,7 @@
 #include <QTextStream>
 #include <QWindow>
 #include <QHeaderView>
+#include <QStandardPaths>
 
 #include "mainwindow.h"
 #include "curvelist_panel.h"
@@ -145,7 +146,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   initializeActions();
   initializePlugins(QCoreApplication::applicationDirPath());
-  initializePlugins("/usr/local/PlotJuggler/plugins");
+  initializePlugins( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler" );
 
   _undo_timer.start();
 
