@@ -72,7 +72,7 @@ find_package(Qt5 REQUIRED COMPONENTS
     OpenGL
     WebSockets)
 
-find_package(Qt5Svg REQUIRED)
+find_package(Lua REQUIRED)
 
 set( QT_LINK_LIBRARIES
     Qt5::Core
@@ -104,12 +104,12 @@ include_directories(
     ${Qt5WebSockets_INCLUDE_DIRS}
     ${Qt5Svg_INCLUDE_DIRS}
     ${Qt5OpenGL_INCLUDE_DIRS}
+    ${LUA_INCLUDE_DIR}
     ./include
     ./3rdparty/
     ./3rdparty/color_widgets/include
     ./3rdparty/Qt-Advanced-Docking/include
     ./3rdparty/qwt/src
-    ./3rdparty/lua-5.3.4/src
     ./3rdparty/sol
 )
 
@@ -146,7 +146,6 @@ endif()
 add_subdirectory( 3rdparty/color_widgets )
 add_subdirectory( 3rdparty/Qt-Advanced-Docking )
 add_subdirectory( 3rdparty/qwt/src )
-add_subdirectory( 3rdparty/lua-5.3.4 )
 
 qt5_wrap_cpp(PLOTJUGGLER_BASE_MOCS
   include/PlotJuggler/dataloader_base.h

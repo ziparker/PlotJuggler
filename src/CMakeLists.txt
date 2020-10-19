@@ -96,7 +96,7 @@ target_link_libraries(PlotJuggler PUBLIC
     ${QT_LINK_LIBRARIES}
     colorwidgets
     qwt_static
-    lua_static )
+    ${LUA_LIBRARIES} )
 
 target_link_libraries(PlotJuggler PRIVATE qt_advanced_docking)
 
