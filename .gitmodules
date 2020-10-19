@@ -1,0 +1,6 @@
+[submodule "3rdparty/lua"]
+	path = 3rdparty/lua
+	url = https://github.com/lua/lua.git
+[submodule "3rdparty/paho.mqtt.c"]
+	path = 3rdparty/paho.mqtt.c
+	url = https://github.com/eclipse/paho.mqtt.c.git

@@ -72,8 +72,6 @@ find_package(Qt5 REQUIRED COMPONENTS
     OpenGL
     WebSockets)
 
-find_package(Lua REQUIRED)
-
 set( QT_LINK_LIBRARIES
     Qt5::Core
     Qt5::Widgets
@@ -104,13 +102,14 @@ include_directories(
     ${Qt5WebSockets_INCLUDE_DIRS}
     ${Qt5Svg_INCLUDE_DIRS}
     ${Qt5OpenGL_INCLUDE_DIRS}
-    ${LUA_INCLUDE_DIR}
     ./include
     ./3rdparty/
     ./3rdparty/color_widgets/include
     ./3rdparty/Qt-Advanced-Docking/include
+    ./3rdparty/paho.mqtt.c/src
     ./3rdparty/qwt/src
     ./3rdparty/sol
+    ./3rdparty/lua-5.3.4/src
 )
 
 #########################  INSTALL ####################################
@@ -158,6 +157,14 @@ add_library( plotjuggler_plugin_base STATIC ${PLOTJUGGLER_BASE_MOCS})
 target_link_libraries( plotjuggler_plugin_base PRIVATE
     ${Qt5Widgets_LIBRARIES}
     ${catkin_LIBRARIES} )
+
+add_subdirectory( 3rdparty/lua-5.3.4 )
+
+SET(PAHO_ENABLE_TESTING FALSE CACHE BOOL "Build tests and run" FORCE)
+SET(PAHO_ENABLE_CPACK FALSE CACHE BOOL "Enable CPack" FORCE)
+SET(PAHO_BUILD_STATIC TRUE CACHE BOOL "Build static library" FORCE)
+SET(PAHO_BUILD_SHARED FALSE CACHE BOOL "Build shared library" FORCE)
+add_subdirectory( 3rdparty/paho.mqtt.c )
 
 add_subdirectory( src )
 

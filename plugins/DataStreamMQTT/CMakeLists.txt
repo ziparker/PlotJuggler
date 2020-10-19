@@ -3,8 +3,6 @@ include_directories(
     ../../include
     paho.mqtt.c/src)
 
-add_subdirectory(paho.mqtt.c)
-
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 
