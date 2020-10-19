@@ -36,9 +36,16 @@ To see what PlotJuggler can do for you, take a look at [this 5 minutes video of 
 
 ## Transform and analyze your data
 PlotJuggler makes it easy to visualize data but also to analyze it.
-You can easily manipulate your time series using a simple function editor or a more flexible (but still very intuitive) scripting language based on **Lua**.
+You can easily manipulate your time series using a simple and extendable Transform Editor.
 
-![](docs/curve_editor.png)
+![](docs/function_editor.png)
+
+Alternatively, you may use the Custom Function Editor, that allows you to create Multipl-input / Single-output functions
+using a scripting language based on [Lua](https://www.tutorialspoint.com/lua/index.htm). 
+
+If you are not familiar with Lua, don't be afraid, you won't need more than 5 minutes to learn it ;)
+
+![](docs/custom_editor.png)
 
 
 ## Just "Download and Run" 
