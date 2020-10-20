@@ -15,10 +15,10 @@ Noteworthy features:
 - Save the visualization layout and configurations to re-use them later.
 - Fast **OpenGL** visualization.
 - Can handle **thousands** of timeseries and **millions** of data points.
-- Transformations to  the data using a simple editor: derivative, moving average, integral, etc…
+- Transform your data using a simple editor: derivative, moving average, integral, etc…
 - PlotJuggler can be easily extended using __plugins__.
 
-To see what PlotJuggler can do for you, take a look at [this 5 minutes video of PlotJuggler](https://vimeo.com/214389001) 
+To see what PlotJuggler can do for you, take a look at [this 5 minutes video](https://vimeo.com/214389001) 
 
 ![PlotJuggler](docs/plotjuggler3.gif)
 
@@ -27,20 +27,20 @@ To see what PlotJuggler can do for you, take a look at [this 5 minutes video of 
 
 - Load CSV files.
 - Load ULog (PX4).
-- Accepts many streaming sources: MQTT, Websockets, ZeroMQ, UDP, etc.
+- Subscribe to many different streaming sources: MQTT, Websockets, ZeroMQ, UDP, **ROS**, etc.
 - Understands data formats such as JSON, CBOR, BSON, Message Pack, etc.
-- Open Rosbags abd subscribe to ROS topics (both ROS1 and ROS2).
-- Easily add your custom data source and formats...
+- Open Rosbags and subscribe to ROS topics (both ROS1 and ROS2).
+- Easily add your custom data source and/or formats...
 
 ![](docs/data_sources.svg)
 
 ## Transform and analyze your data
 PlotJuggler makes it easy to visualize data but also to analyze it.
-You can easily manipulate your time series using a simple and extendable Transform Editor.
+You can manipulate your time series using a simple and extendable Transform Editor.
 
 ![](docs/function_editor.png)
 
-Alternatively, you may use the Custom Function Editor, that allows you to create Multipl-input / Single-output functions
+Alternatively, you may use the Custom Function Editor, that allows you to create Multi-input / Single-output functions
 using a scripting language based on [Lua](https://www.tutorialspoint.com/lua/index.htm). 
 
 If you are not familiar with Lua, don't be afraid, you won't need more than 5 minutes to learn it ;)
@@ -52,18 +52,19 @@ If you are not familiar with Lua, don't be afraid, you won't need more than 5 mi
 
 On Linux, the simplest way to install PlotJuggler is through **snaps**:
 
-[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-white.svg)](https://snapcraft.io/plotjuggler)`
+![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-white.svg)](https://snapcraft.io/plotjuggler)
     
-**Windows Installer**: [PlotJuggler_WIN_Installer-2.8.4.exe](https://github.com/facontidavide/PlotJuggler/releases/download/2.8.4/PlotJuggler_WIN_Installer-2.8.4.exe)
+**Windows Installer**: 
+[PlotJuggler_WIN_Installer-2.8.4.exe](https://github.com/facontidavide/PlotJuggler/releases/download/2.8.4/PlotJuggler_WIN_Installer-2.8.4.exe)
 
 ## How to build
 
 Clone the repository as usual:
 
-      git clone https://github.com/facontidavide/PlotJuggler.git
+    git clone --recurse-submodules https://github.com/plotJuggler/PlotJuggler.git
 
 The only binary dependency that you need installed in your system is Qt5. 
-On Ubuntu the debians can be installed with the command:
+On Ubuntu, the debians can be installed with the the command:
 
     sudo apt -y install qtbase5-dev libqt5svg5-dev libqt5websockets5-dev libqt5opengl5-dev
     
@@ -78,7 +79,7 @@ Then compile using cmake (qmake is NOT supported):
      make
      sudo make install
  
- Note: the plugins need to be installed in the same folder of the executable or in __/usr/local/lib/PlotJuggler/__.
+Note: the plugins need to be installed in the same folder of the executable.
 
 ## Note for ROS users
 
@@ -88,16 +89,16 @@ To install PlotJuggler, just type:
        
 And run it with:
 
-    rosrun plotjuggler PlotJuggler  
+    roslaunch plotjuggler_ros plotjuggler.launch
 
-Since version 3.x ROS is supported through the plugins that can be found in this repository:
+Since version 3.x, ROS plugins have been moved to a separate repository:
 
 https://github.com/PlotJuggler/plotjuggler-ros-plugins
 
-Refer to the instructions in the latter repository if you want to compile it fromn source.
+Refer to the instructions in the this repository if you want to compile PJ and its ROS plugins from source.
 
 
-# If you like PlotJuggler...
+# If you like PlotJuggler, support it.
 
 PlotJuggler required a lot of work to be developed; my goal is to build the most 
 intuitive and powerfull tool to visualize data and timeseries.
@@ -105,12 +106,11 @@ intuitive and powerfull tool to visualize data and timeseries.
 If you find PlotJuggler useful, consider making a donation on [PayPal](https://www.paypal.me/facontidavide) or become a 
 [Github Sponsor](https://github.com/sponsors/facontidavide).
 
-
 If you use PlotJuggler at work, your company can support the development of those specific features they need.
 
 [Contact me](https://www.plotjuggler.io/support) for more details.
 
 
-# Stargazers over time
+# Stargazers
 
 [![Stargazers over time](https://starchart.cc/facontidavide/PlotJuggler.svg)](https://starchart.cc/facontidavide/PlotJuggler)
