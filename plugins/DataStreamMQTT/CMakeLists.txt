@@ -17,6 +17,17 @@ target_link_libraries(DataStreamMQTT
     ${Qt5Widgets_LIBRARIES}
     paho-mqtt3c-static paho-mqtt3a-static)
 
+if(COMPILING_WITH_CATKIN)
+    install(TARGETS DataStreamMQTT
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} )
+elseif(COMPILING_WITH_AMENT)
+    install(TARGETS DataStreamMQTT
+            DESTINATION  lib/${PROJECT_NAME} )
+else()
+    install(TARGETS DataLoadCSV DESTINATION bin  )
+endif()
 
 
 
