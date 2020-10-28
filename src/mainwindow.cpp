@@ -529,6 +529,12 @@ void MainWindow::initializePlugins(QString directory_name)
 
             connect( options_button, &QPushButton::clicked,
                      options_button, optionsMenu);
+
+            connect( this, &MainWindow::stylesheetChanged,
+                     options_button, [=](QString style)
+            {
+              options_button->setIcon( LoadSvgIcon(":/resources/svg/settings_cog.svg", style));
+            });
           }
         }
       }

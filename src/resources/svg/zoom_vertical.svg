@@ -11,8 +11,8 @@
    viewBox="0 0 512 512"
    version="1.1"
    id="svg984"
-   sodipodi:docname="zoom_max.svg"
-   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+   sodipodi:docname="zoom_vertical.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
   <metadata
      id="metadata990">
     <rdf:RDF>
@@ -41,7 +41,7 @@
      id="namedview986"
      showgrid="false"
      inkscape:zoom="0.828125"
-     inkscape:cx="130.70644"
+     inkscape:cx="-58.878466"
      inkscape:cy="278.24047"
      inkscape:window-x="67"
      inkscape:window-y="27"
@@ -50,28 +50,16 @@
      inkscape:document-rotation="0" />
   <title
      id="title980">Expand</title>
-  <g
-     id="g1210"
-     transform="translate(1.3075619,-0.46130601)">
-    <path
-       fill="none"
-       stroke="currentColor"
-       stroke-linecap="round"
-       stroke-linejoin="round"
-       stroke-width="32"
-       d="M 200,110 254.92347,36.963908 310,110 m -55.08247,-60.317424 0.16493,150.778734"
-       id="path982"
-       style="stroke-width:28.1295;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-       sodipodi:nodetypes="ccccc" />
-    <path
-       fill="none"
-       stroke="currentColor"
-       stroke-linecap="round"
-       stroke-linejoin="round"
-       stroke-width="32"
-       d="M 200,404.06475 254.92347,477.10084 310,404.06475 m -55.08247,60.31742 0.16493,-153.92086"
-       id="path982-5"
-       style="stroke-width:28.1295;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
-       sodipodi:nodetypes="ccccc" />
-  </g>
+  <path
+     inkscape:connector-curvature="0"
+     sodipodi:nodetypes="ccccc"
+     style="fill:none;stroke:#000000;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path982"
+     d="m 201.30756,109.53869 54.92347,-73.036088 55.07653,73.036088 M 256.22509,49.22127 256.39002,200" />
+  <path
+     inkscape:connector-curvature="0"
+     sodipodi:nodetypes="ccccc"
+     style="fill:none;stroke:#000000;stroke-width:30;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="path982-5"
+     d="m 201.30756,403.60344 54.92347,73.03609 55.07653,-73.03609 M 256.22509,463.92086 256.39002,310" />
 </svg>
