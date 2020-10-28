@@ -52,7 +52,7 @@ If you are not familiar with Lua, don't be afraid, you won't need more than 5 mi
 
 On Linux, the simplest way to install PlotJuggler is through **snaps**:
 
-![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-white.svg)](https://snapcraft.io/plotjuggler)
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-white.svg)](https://snapcraft.io/plotjuggler)
     
 **Windows Installer**: 
 [PlotJuggler_WIN_Installer-2.8.4.exe](https://github.com/facontidavide/PlotJuggler/releases/download/2.8.4/PlotJuggler_WIN_Installer-2.8.4.exe)
