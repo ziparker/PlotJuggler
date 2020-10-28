@@ -211,7 +211,8 @@ PlotWidget::PlotWidget(PlotDataMapRef& datamap, QWidget* parent)
 
   this->canvas()->setMouseTracking(true);
 
-  setDefaultRangeX();
+  setAxisScale(xBottom, 0.0, 1.0);
+  setAxisScale(yLeft, 0.0, 1.0);
 
   _custom_Y_limits.min = (-MAX_DOUBLE);
   _custom_Y_limits.max = (MAX_DOUBLE);
@@ -1228,7 +1229,7 @@ void PlotWidget::on_changeTimeOffset(double offset)
       auto series = dynamic_cast<QwtSeriesWrapper*>(it.curve->data());
       series->setTimeOffset(_time_offset);
     }
-    if (!isXYPlot())
+    if (!isXYPlot() && !_curve_list.empty())
     {
       QRectF rect = canvasBoundingRect();
       double delta = prev_offset - offset;
@@ -1962,7 +1963,7 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
 
 void PlotWidget::setDefaultRangeX()
 {
-  if (_mapped_data.numeric.size() > 0)
+  if (!_curve_list.empty())
   {
     double min = std::numeric_limits<double>::max();
     double max = -std::numeric_limits<double>::max();
@@ -1978,6 +1979,9 @@ void PlotWidget::setDefaultRangeX()
       }
     }
     setAxisScale(xBottom, min - _time_offset, max - _time_offset);
+  }
+  else{
+    setAxisScale(xBottom, 0.0, 1.0);
   }
 }
 
