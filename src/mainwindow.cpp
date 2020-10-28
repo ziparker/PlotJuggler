@@ -2340,10 +2340,9 @@ void MainWindow::on_actionCheatsheet_triggered()
 
   CheatsheetDialog *dialog = new CheatsheetDialog(this);
   dialog->restoreGeometry(settings.value("Cheatsheet.geometry").toByteArray());
-  dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->exec();
-
   settings.setValue("Cheatsheet.geometry", dialog->saveGeometry());
+  dialog->deleteLater();
 }
 
 void MainWindow::on_actionSupportPlotJuggler_triggered()
