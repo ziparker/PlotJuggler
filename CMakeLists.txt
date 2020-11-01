@@ -176,7 +176,10 @@ add_subdirectory( plugins/DataStreamSample )
 add_subdirectory( plugins/DataStreamWebsocket )
 add_subdirectory( plugins/DataStreamMQTT )
 add_subdirectory( plugins/DataStreamUDP )
-add_subdirectory( plugins/DataStreamZMQ )
+
+if( ZMQ_FOUND )
+  add_subdirectory( plugins/DataStreamZMQ )
+endif()
 
 
 if(COMPILING_WITH_AMENT)
