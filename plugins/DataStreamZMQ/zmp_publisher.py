@@ -1,14 +1,13 @@
 #!/usr/bin/python
 
-# https://pypi.org/project/websocket_client/
-
-import websocket
+import zmq
 import math
 import json
 from time import sleep
 
-ws = websocket.WebSocket()
-ws.connect("ws://localhost:9871")
+context = zmq.Context()
+socket = context.socket(zmq.PUB)
+socket.bind("tcp://*:9872")
 
 time = 0.0
 
@@ -23,4 +22,4 @@ while True:
             "sin": math.sin(time)
         }
     }
-    ws.send( json.dumps(data) )
+    socket.send_string( json.dumps(data) )

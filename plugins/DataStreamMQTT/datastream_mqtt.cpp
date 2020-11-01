@@ -15,16 +15,15 @@ public:
     ui->setupUi(this);
 
     static QString uuid =  QString::number(qrand());
-
     ui->lineEditClientID->setText(tr("Plotjuggler-") + uuid);
-
-    connect( ui->buttonBox, &QDialogButtonBox::accepted,
-             this, &QDialog::accept );
-    connect( ui->buttonBox, &QDialogButtonBox::rejected,
-             this, &QDialog::reject );
   }
 
   ~MQTT_Dialog() {
+    while( ui->layoutOptions->count() > 0)
+    {
+      auto item = ui->layoutOptions->takeAt(0);
+      item->widget()->setParent(nullptr);
+    }
     delete ui;
   }
 
@@ -214,6 +213,12 @@ bool DataStreamMQTT::start(QStringList *)
   for( const auto& it: *availableParsers())
   {
     dialog->ui->comboBoxProtocol->addItem( it.first );
+
+    if(auto widget = it.second->optionsWidget() )
+    {
+      widget->setVisible(false);
+      dialog->ui->layoutOptions->addWidget( widget );
+    }
   }
 
   std::shared_ptr<MessageParserCreator> parser_creator;
@@ -221,18 +226,14 @@ bool DataStreamMQTT::start(QStringList *)
   connect(dialog->ui->comboBoxProtocol, qOverload<const QString &>( &QComboBox::currentIndexChanged), this,
           [&](QString protocol)
   {
-    auto layout = dialog->ui->layoutOptions;
-
     if( parser_creator ){
       QWidget*  prev_widget = parser_creator->optionsWidget();
       prev_widget->setVisible(false);
-      layout->removeWidget(prev_widget);
     }
     parser_creator = availableParsers()->at( protocol );
 
-    if( parser_creator->optionsWidget() ){
-      parser_creator->optionsWidget()->setVisible(true);
-      layout->addWidget( parser_creator->optionsWidget() );
+    if(auto widget = parser_creator->optionsWidget() ){
+      widget->setVisible(true);
     }
   });
 

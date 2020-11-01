@@ -1,20 +1,19 @@
 
-include_directories( ./ ../
-    ../../include
-    ../../common)
+include_directories( ../ )
 
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 
 QT5_WRAP_UI ( UI_SRC  udp_server.ui  )
 
-SET( SRC udp_server.cpp
-    ../../include/PlotJuggler/datastreamer_base.h )
+SET( SRC udp_server.cpp )
 
 add_library(DataStreamUDP SHARED ${SRC} ${UI_SRC}  )
 
 target_link_libraries(DataStreamUDP
-    ${Qt5Widgets_LIBRARIES})
+    ${Qt5Widgets_LIBRARIES}
+    plotjuggler_plugin_base
+    )
 
 
 if(COMPILING_WITH_CATKIN)
@@ -26,7 +25,7 @@ elseif(COMPILING_WITH_AMENT)
     install(TARGETS DataStreamUDP
             DESTINATION  lib/${PROJECT_NAME} )
 else()
-    install(TARGETS DataLoadCSV DESTINATION bin  )
+    install(TARGETS DataStreamUDP DESTINATION bin  )
 endif()
 
 

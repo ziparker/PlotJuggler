@@ -2833,6 +2833,7 @@ void MainWindow::on_comboStreaming_currentIndexChanged(const QString &current_te
 
 void MainWindow::on_buttonStreamingStart_clicked()
 {
+  ui->buttonStreamingStart->setEnabled(false);
   if( ui->buttonStreamingStart->text() == "Start")
   {
     startStreamingPlugin( ui->comboStreaming->currentText() );
@@ -2840,6 +2841,7 @@ void MainWindow::on_buttonStreamingStart_clicked()
   else {
     stopStreamingPlugin();
   }
+  ui->buttonStreamingStart->setEnabled(true);
 }
 
 

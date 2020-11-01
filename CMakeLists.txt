@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0048 OLD)
 PROJECT(plotjuggler)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}  "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
 add_definitions(
     -DPJ_MAJOR_VERSION="2"
     -DPJ_MINOR_VERSION="8"
@@ -92,6 +94,7 @@ IF (NOT WIN32)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fPIC")
 ENDIF()
 
+find_package(ZMQ)
 
 include_directories(
     ${Qt5Core_INCLUDE_DIRS}
@@ -173,6 +176,8 @@ add_subdirectory( plugins/DataStreamSample )
 add_subdirectory( plugins/DataStreamWebsocket )
 add_subdirectory( plugins/DataStreamMQTT )
 add_subdirectory( plugins/DataStreamUDP )
+add_subdirectory( plugins/DataStreamZMQ )
+
 
 if(COMPILING_WITH_AMENT)
     ament_package()

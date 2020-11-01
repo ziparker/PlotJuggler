@@ -37,13 +37,14 @@ public:
   {
     ui->setupUi(this);
     ui->lineEditPort->setValidator( new QIntValidator() );
-    connect( ui->buttonBox, &QDialogButtonBox::accepted,
-             this, &QDialog::accept );
-    connect( ui->buttonBox, &QDialogButtonBox::rejected,
-             this, &QDialog::reject );
   }
   ~UdpServerDialog()
   {
+    while( ui->layoutOptions->count() > 0)
+    {
+      auto item = ui->layoutOptions->takeAt(0);
+      item->widget()->setParent(nullptr);
+    }
     delete ui;
   }
   Ui::UDPServerDialog* ui;
@@ -75,52 +76,53 @@ bool UDP_Server::start(QStringList*)
 
   bool ok = false;
 
-  UdpServerDialog* dialog = new UdpServerDialog();
+  UdpServerDialog dialog;
 
   for( const auto& it: *availableParsers())
   {
-    dialog->ui->comboBoxProtocol->addItem( it.first );
+    dialog.ui->comboBoxProtocol->addItem( it.first );
+
+    if(auto widget = it.second->optionsWidget() )
+    {
+      widget->setVisible(false);
+      dialog.ui->layoutOptions->addWidget( widget );
+    }
   }
 
   // load previous values
   QSettings settings;
   QString protocol = settings.value("UDP_Server::protocol", "JSON").toString();
-  int port = settings.value("UDP_Server::port", 9876).toInt();
+  int port = settings.value("UDP_Server::port", 9870).toInt();
 
-  dialog->ui->lineEditPort->setText( QString::number(port) );
+  dialog.ui->lineEditPort->setText( QString::number(port) );
 
   std::shared_ptr<MessageParserCreator> parser_creator;
 
-  connect(dialog->ui->comboBoxProtocol, qOverload<const QString &>( &QComboBox::currentIndexChanged), this,
+  connect(dialog.ui->comboBoxProtocol, qOverload<const QString &>( &QComboBox::currentIndexChanged), this,
           [&](QString protocol)
   {
-    auto layout = dialog->ui->layoutOptions;
-
     if( parser_creator ){
       QWidget*  prev_widget = parser_creator->optionsWidget();
       prev_widget->setVisible(false);
-      layout->removeWidget(prev_widget);
     }
     parser_creator = availableParsers()->at( protocol );
 
     if(auto widget = parser_creator->optionsWidget() ){
       widget->setVisible(true);
-      layout->addWidget( widget );
     }
   });
 
-  dialog->ui->comboBoxProtocol->setCurrentText(protocol);
+  dialog.ui->comboBoxProtocol->setCurrentText(protocol);
 
-  int res = dialog->exec();
+  int res = dialog.exec();
   if( res == QDialog::Rejected )
   {
     _running = false;
     return false;
   }
 
-  port = dialog->ui->lineEditPort->text().toUShort(&ok);
-  protocol = dialog->ui->comboBoxProtocol->currentText();
-  dialog->deleteLater();
+  port = dialog.ui->lineEditPort->text().toUShort(&ok);
+  protocol = dialog.ui->comboBoxProtocol->currentText();
 
   _parser = parser_creator->createInstance({}, dataMap());
 
@@ -165,7 +167,6 @@ void UDP_Server::processMessage()
 
     QNetworkDatagram datagram = _udp_socket->receiveDatagram();
 
-    std::lock_guard<std::mutex> lock(mutex());
 
     using namespace std::chrono;
     auto ts = high_resolution_clock::now().time_since_epoch();
@@ -174,6 +175,7 @@ void UDP_Server::processMessage()
     MessageRef msg ( reinterpret_cast<uint8_t*>(datagram.data().data()), datagram.data().size() );
 
     try {
+      std::lock_guard<std::mutex> lock(mutex());
       // important use the mutex to protect any access to the data
       _parser->parseMessage(msg, timestamp);
     } catch (std::exception& err)

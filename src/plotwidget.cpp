@@ -233,7 +233,7 @@ void PlotWidget::buildActions()
 {
   QIcon iconDeleteList;
 
-  _action_edit  = new QAction("&Edit curve style...", this);
+  _action_edit  = new QAction("&Edit curves...", this);
   connect(_action_edit, &QAction::triggered, this,
           [=]()
           {

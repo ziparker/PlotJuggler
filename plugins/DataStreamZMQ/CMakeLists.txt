@@ -1,26 +1,32 @@
 
-include_directories( ../ )
+include_directories(../)
 
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 
-SET( SRC datastream_sample.cpp)
+QT5_WRAP_UI ( UI_SRC  datastream_zmq.ui  )
 
-add_library(DataStreamSample SHARED ${SRC} ${UI_SRC}  )
+SET( SRC datastream_zmq.cpp )
 
-target_link_libraries(DataStreamSample
+add_library(DataStreamZMQ SHARED ${SRC} ${UI_SRC}  )
+
+target_link_libraries(DataStreamZMQ
     ${Qt5Widgets_LIBRARIES}
-    ${Qt5Xml_LIBRARIES}
-    plotjuggler_plugin_base)
+    plotjuggler_plugin_base
+    zmq
+    )
+
 
 if(COMPILING_WITH_CATKIN)
-    install(TARGETS DataStreamSample
+    install(TARGETS DataStreamZMQ
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION} )
 elseif(COMPILING_WITH_AMENT)
-    install(TARGETS DataStreamSample
+    install(TARGETS DataStreamZMQ
             DESTINATION  lib/${PROJECT_NAME} )
 else()
-    install(TARGETS DataStreamSample DESTINATION bin  )
+    install(TARGETS DataStreamZMQ DESTINATION bin  )
 endif()
+
+

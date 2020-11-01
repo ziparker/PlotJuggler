@@ -36,13 +36,14 @@ public:
   {
     ui->setupUi(this);
     ui->lineEditPort->setValidator( new QIntValidator() );
-    connect( ui->buttonBox, &QDialogButtonBox::accepted,
-             this, &QDialog::accept );
-    connect( ui->buttonBox, &QDialogButtonBox::rejected,
-             this, &QDialog::reject );
   }
   ~WebsocketDialog()
   {
+    while( ui->layoutOptions->count() > 0)
+    {
+      auto item = ui->layoutOptions->takeAt(0);
+      item->widget()->setParent(nullptr);
+    }
     delete ui;
   }
   Ui::WebSocketDialog* ui;
@@ -82,12 +83,18 @@ bool WebsocketServer::start(QStringList*)
   for( const auto& it: *availableParsers())
   {
     dialog->ui->comboBoxProtocol->addItem( it.first );
+
+    if(auto widget = it.second->optionsWidget() )
+    {
+      widget->setVisible(false);
+      dialog->ui->layoutOptions->addWidget( widget );
+    }
   }
 
   // load previous values
   QSettings settings;
   QString protocol = settings.value("WebsocketServer::protocol", "JSON").toString();
-  int port = settings.value("WebsocketServer::port", 9876).toInt();
+  int port = settings.value("WebsocketServer::port", 9871).toInt();
 
   dialog->ui->lineEditPort->setText( QString::number(port) );
 
@@ -96,18 +103,14 @@ bool WebsocketServer::start(QStringList*)
   connect(dialog->ui->comboBoxProtocol, qOverload<const QString &>( &QComboBox::currentIndexChanged), this,
           [&](QString protocol)
   {
-    auto layout = dialog->ui->layoutOptions;
-
     if( parser_creator ){
       QWidget*  prev_widget = parser_creator->optionsWidget();
       prev_widget->setVisible(false);
-      layout->removeWidget(prev_widget);
     }
     parser_creator = availableParsers()->at( protocol );
 
     if(auto widget = parser_creator->optionsWidget() ){
       widget->setVisible(true);
-      layout->addWidget( widget );
     }
   });
 

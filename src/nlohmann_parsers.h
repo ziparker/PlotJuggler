@@ -67,12 +67,22 @@ public:
 
 //------------------------------------------
 
+class QCheckBoxClose: public QCheckBox
+{
+public:
+  QCheckBoxClose(QString text): QCheckBox(text) {}
+  ~QCheckBoxClose() override
+  {
+    qDebug() << "Destroying QCheckBoxClose";
+  }
+};
+
 class NlohmannParserCreator: public MessageParserCreator
 {
 public:
   NlohmannParserCreator()
   {
-    _checkbox_use_timestamp = new QCheckBox("use field [timestamp] if available");
+    _checkbox_use_timestamp = new QCheckBoxClose("use field [timestamp] if available");
   }
 
   virtual QWidget* optionsWidget()
