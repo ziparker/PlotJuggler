@@ -762,7 +762,7 @@ QWidget#widgetLabelStreaming,
 QWidget#widgetLabelPublishers,
 QWidget#widgetLabelTimeseries
 {
-    background-color: #555555;
+    background-color: #3e4750;
     border: 1px solid black;
 }
 
