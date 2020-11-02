@@ -37,6 +37,12 @@ public:
   {
     ui->setupUi(this);
     ui->lineEditPort->setValidator( new QIntValidator() );
+    setWindowTitle("UDP Server");
+
+    connect( ui->buttonBox, &QDialogButtonBox::accepted,
+             this, &QDialog::accept );
+    connect( ui->buttonBox, &QDialogButtonBox::rejected,
+             this, &QDialog::reject );
   }
   ~UdpServerDialog()
   {

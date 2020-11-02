@@ -36,6 +36,12 @@ public:
   {
     ui->setupUi(this);
     ui->lineEditPort->setValidator( new QIntValidator() );
+    setWindowTitle("WebSocket Server");
+
+    connect( ui->buttonBox, &QDialogButtonBox::accepted,
+             this, &QDialog::accept );
+    connect( ui->buttonBox, &QDialogButtonBox::rejected,
+             this, &QDialog::reject );
   }
   ~WebsocketDialog()
   {
