@@ -6,9 +6,9 @@ PROJECT(plotjuggler)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}  "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 add_definitions(
-    -DPJ_MAJOR_VERSION="2"
-    -DPJ_MINOR_VERSION="8"
-    -DPJ_PATCH_VERSION="4" )
+    -DPJ_MAJOR_VERSION="3"
+    -DPJ_MINOR_VERSION="0"
+    -DPJ_PATCH_VERSION="0" )
 
 # http://answers.ros.org/question/230877/optionally-build-a-package-with-catkin/
 if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)

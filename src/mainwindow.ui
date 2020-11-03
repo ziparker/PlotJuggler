@@ -1388,8 +1388,8 @@
                     </property>
                     <property name="iconSize">
                      <size>
-                      <width>26</width>
-                      <height>26</height>
+                      <width>24</width>
+                      <height>24</height>
                      </size>
                     </property>
                     <property name="checkable">
@@ -1475,8 +1475,8 @@
                     </property>
                     <property name="iconSize">
                      <size>
-                      <width>22</width>
-                      <height>22</height>
+                      <width>24</width>
+                      <height>24</height>
                      </size>
                     </property>
                     <property name="checkable">
