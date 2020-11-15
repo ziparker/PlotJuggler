@@ -157,7 +157,7 @@ private:
 
 
   void initializeActions();
-  void initializePlugins(QString subdir_name);
+  QStringList initializePlugins(QString subdir_name);
 
   void forEachWidget(std::function<void(PlotWidget *, PlotDocker *, int)> op);
   void forEachWidget(std::function<void(PlotWidget*)> op);

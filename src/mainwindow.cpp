@@ -145,8 +145,29 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   connect(ui->mainSplitter, SIGNAL(splitterMoved(int, int)), SLOT(on_splitterMoved(int, int)));
 
   initializeActions();
-  initializePlugins(QCoreApplication::applicationDirPath());
-  initializePlugins( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler" );
+
+
+  auto loaded_A = initializePlugins(QCoreApplication::applicationDirPath());
+  auto loaded_B = initializePlugins( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler" );
+
+#ifdef COMPILED_FOR_ROS
+  auto loaded = loaded_A + loaded_B;
+  bool has_ros_plugin = false;
+  for (const auto& class_name: loaded)
+  {
+    if( class_name.contains("ROS") ){
+      has_ros_plugin = true;
+    }
+  }
+  if( !has_ros_plugin )
+  {
+    QMessageBox::warning(this, "Missing package",
+        tr("PlotJuggler was compiled for ROS, but iw wasn't able to load any ROS specific plugin.\n\n"
+           "If you just upgraded from PlotJuggler 2.x to 3.x , try installing this package:\n\n"
+           "sudo apt install ros-${ROS_DISTRO}-plotjuggler-ros"),
+        QMessageBox::Cancel, QMessageBox::Cancel);
+  }
+#endif
 
   _undo_timer.start();
 
@@ -402,9 +423,10 @@ void MainWindow::initializeActions()
   updateRecentLayoutMenu(settings.value("MainWindow.recentlyLoadedLayout").toStringList());
 }
 
-void MainWindow::initializePlugins(QString directory_name)
+QStringList MainWindow::initializePlugins(QString directory_name)
 {
   static std::set<QString> loaded_plugins;
+  QStringList loaded_out;
 
   qDebug() << "Loading compatible plugins from directory: " << directory_name;
   int loaded_count = 0;
@@ -426,9 +448,13 @@ void MainWindow::initializePlugins(QString directory_name)
 
     QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(filename), this);
 
+
     QObject* plugin = pluginLoader.instance();
     if (plugin)
     {
+      auto class_name = pluginLoader.metaData().value("className").toString();
+      loaded_out.push_back( class_name );
+
       DataLoader* loader = qobject_cast<DataLoader*>(plugin);
       StatePublisher* publisher = qobject_cast<StatePublisher*>(plugin);
       DataStreamer* streamer = qobject_cast<DataStreamer*>(plugin);
@@ -609,6 +635,7 @@ void MainWindow::initializePlugins(QString directory_name)
     ui->buttonStreamingOptions->setEnabled(contains_options);
   }
   qDebug() << "Number of plugins loaded: " << loaded_count << "\n";
+  return loaded_out;
 }
 
 void MainWindow::buildDummyData()

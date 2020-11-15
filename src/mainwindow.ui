@@ -535,7 +535,8 @@
                 </property>
                 <property name="font">
                  <font>
-                  <pointsize>11</pointsize>
+                  <family>Roboto</family>
+                  <pointsize>10</pointsize>
                  </font>
                 </property>
                 <property name="toolTip">
@@ -732,6 +733,11 @@
                  <width>16777215</width>
                  <height>30</height>
                 </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Roboto</family>
+                </font>
                </property>
                <property name="text">
                 <string>Buffer:</string>
