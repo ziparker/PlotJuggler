@@ -121,24 +121,25 @@ if(COMPILING_WITH_CATKIN)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} )
 
-    install(DIRECTORY include/
-          DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-          PATTERN ".svn" EXCLUDE
-        )
-	 add_definitions(-DCOMPILED_FOR_ROS)
+    add_definitions(-DCOMPILED_FOR_ROS)
 
 elseif(COMPILING_WITH_AMENT)
     find_package(ament_cmake REQUIRED)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-	 add_definitions(-DCOMPILED_FOR_ROS)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include )
+
+    add_definitions(-DCOMPILED_FOR_ROS)
 else()
     set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION  include)
 endif()
+
 
 #############################################################
 
@@ -164,11 +165,30 @@ target_link_libraries( plotjuggler_plugin_base PRIVATE
 
 add_subdirectory( 3rdparty/lua-5.3.4 )
 
-SET(PAHO_ENABLE_TESTING FALSE CACHE BOOL "Build tests and run" FORCE)
-SET(PAHO_ENABLE_CPACK FALSE CACHE BOOL "Enable CPack" FORCE)
-SET(PAHO_BUILD_STATIC TRUE CACHE BOOL "Build static library" FORCE)
-SET(PAHO_BUILD_SHARED FALSE CACHE BOOL "Build shared library" FORCE)
-add_subdirectory( 3rdparty/paho.mqtt.c )
+
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+# Update submodules as needed
+    option(GIT_SUBMODULE "Check submodules during build" ON)
+    if(GIT_SUBMODULE)
+        message(STATUS "Submodule update")
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message("git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
+    endif()
+endif()
+
+if(EXISTS "${PROJECT_SOURCE_DIR}/3rdparty/paho.mqtt.c/CMakeLists.txt")
+    SET(PAHO_ENABLE_TESTING FALSE CACHE BOOL "Build tests and run" FORCE)
+    SET(PAHO_ENABLE_CPACK FALSE CACHE BOOL "Enable CPack" FORCE)
+    SET(PAHO_BUILD_STATIC TRUE CACHE BOOL "Build static library" FORCE)
+    SET(PAHO_BUILD_SHARED FALSE CACHE BOOL "Build shared library" FORCE)
+    add_subdirectory( 3rdparty/paho.mqtt.c )
+endif()
+
 
 add_subdirectory( src )
 
@@ -185,6 +205,18 @@ endif()
 
 
 if(COMPILING_WITH_AMENT)
+
+    ament_export_targets(export_plotjuggler_plugin_base HAS_LIBRARY_TARGET)
+
+    install(
+        TARGETS plotjuggler_plugin_base
+        EXPORT export_plotjuggler_plugin_base
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include
+        )
+
     ament_package()
 endif()
 
