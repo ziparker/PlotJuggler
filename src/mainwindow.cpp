@@ -162,7 +162,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   if( !has_ros_plugin )
   {
     QMessageBox::warning(this, "Missing package",
-        tr("PlotJuggler was compiled for ROS, but iw wasn't able to load any ROS specific plugin.\n\n"
+        tr("PlotJuggler was compiled with ROS, but it wasn't able to load any ROS specific plugin.\n\n"
            "If you just upgraded from PlotJuggler 2.x to 3.x , try installing this package:\n\n"
            "sudo apt install ros-${ROS_DISTRO}-plotjuggler-ros"),
         QMessageBox::Cancel, QMessageBox::Cancel);
