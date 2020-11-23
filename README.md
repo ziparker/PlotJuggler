@@ -18,8 +18,6 @@ Noteworthy features:
 - Transform your data using a simple editor: derivative, moving average, integral, etc…
 - PlotJuggler can be easily extended using __plugins__.
 
-To see what PlotJuggler can do for you, take a look at [this 5 minutes video](https://vimeo.com/214389001) 
-
 ![PlotJuggler](docs/plotjuggler3.gif)
 
 
