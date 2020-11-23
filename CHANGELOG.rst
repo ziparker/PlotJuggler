@@ -2,8 +2,9 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.0.0 (2020-11-23)
-------------------
+Forthcoming
+-----------
+* Trying to fix issue `#346 <https://github.com/facontidavide/PlotJuggler/issues/346>`_
 * Massive refactoring
 * Contributors: Davide Faconti
 
