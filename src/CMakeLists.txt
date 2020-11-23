@@ -25,8 +25,6 @@ QT5_WRAP_UI ( UI_SRC
     transforms/outlier_removal.ui
     transforms/integral_transform.ui
 
-    plugins/selectlistdialog.ui
-
     cheatsheet/cheatsheet_dialog.ui
     )
 
