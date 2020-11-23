@@ -2,6 +2,11 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Massive refactoring
+* Contributors: Davide Faconti
+
 2.8.4 (2020-08-15)
 ------------------
 * readme updated
