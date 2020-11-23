@@ -116,6 +116,6 @@ elseif(COMPILING_WITH_AMENT)
     install(TARGETS plotjuggler
         DESTINATION lib/${PROJECT_NAME} )
 else()
-    install(TARGETS PlotJuggler
+    install(TARGETS plotjuggler
         DESTINATION bin  )
 endif()
