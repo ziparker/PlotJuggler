@@ -24,7 +24,7 @@
     <depend>libqt5-opengl-dev</depend>
     <depend>binutils</depend>
     <depend>boost</depend>
-    <depend>libzmqpp-dev</depend>
+    <depend>libzmq3-dev</depend>
 
 
     <!-- The export tag contains other, unspecified, tags -->
