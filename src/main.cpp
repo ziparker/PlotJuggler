@@ -34,6 +34,10 @@ static QString VERSION_STRING = QString("%1.%2.%3").arg(PJ_MAJOR_VERSION).arg(PJ
 inline int GetVersionNumber(QString str)
 {
   QStringList online_version = str.split('.');
+  if( online_version.size() != 3 )
+  {
+    return 0;
+  }
   int major = online_version[0].toInt();
   int minor = online_version[1].toInt();
   int patch = online_version[2].toInt();
@@ -195,7 +199,7 @@ int main(int argc, char* argv[])
   QObject::connect(&manager, &QNetworkAccessManager::finished, OpenNewReleaseDialog);
 
   QNetworkRequest request;
-  request.setUrl(QUrl("https://api.github.com/repos/facontidavide/plotjuggler/releases/latest"));
+  request.setUrl(QUrl("https://api.github.com/repos/PlotJuggler/PlotJuggler/releases/latest"));
   manager.get(request);
 
   /*
