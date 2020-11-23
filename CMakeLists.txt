@@ -14,19 +14,22 @@ add_definitions(
 if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
     set(COMPILING_WITH_CATKIN 1)
 
-    message(STATUS "---------------------------------------------------------------------")
-    message(STATUS "PlotJuggler is being built using CATKIN. ROS plugins will be compiled")
-    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "--------------------------------------------------")
+    message(STATUS "PlotJuggler is being built using CATKIN.")
+    message(STATUS "--------------------------------------------------")
 
-    find_package(catkin REQUIRED COMPONENTS ${ROS_DEPENDENCIES} )
+    find_package(catkin REQUIRED COMPONENTS roslib )
 
     catkin_package(
         INCLUDE_DIRS  include
         LIBRARIES  plotjuggler_plugin_base
+        CATKIN_DEPENDS roslib
     )
 
-    add_definitions(-DCOMPILED_WITH_CATKIN)
+message(${catkin_INCLUDE_DIRS})
 
+    include_directories(${catkin_INCLUDE_DIRS})
+    add_definitions(-DCOMPILED_WITH_CATKIN)
 
 elseif( DEFINED ENV{AMENT_PREFIX_PATH})
     set(COMPILING_WITH_AMENT 1)
@@ -34,16 +37,16 @@ elseif( DEFINED ENV{AMENT_PREFIX_PATH})
     find_package(ament_index_cpp REQUIRED)
     include_directories(${ament_index_cpp_INCLUDE_DIRS})
 
-    message(STATUS "---------------------------------------------------------------------")
-    message(STATUS "PlotJuggler is being built using AMENT. ROS2 plugins will be compiled")
-    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "--------------------------------------------------")
+    message(STATUS "PlotJuggler is being built using AMENT.")
+    message(STATUS "--------------------------------------------------")
 
     add_definitions(-DCOMPILED_WITH_AMENT)
 
 else()
-    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "--------------------------------------------------")
     message(STATUS "PlotJuggler is being WITHOUT any ROS support")
-    message(STATUS "---------------------------------------------------------------------")
+    message(STATUS "--------------------------------------------------")
 endif()
 
 cmake_policy (SET CMP0020 NEW)

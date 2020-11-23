@@ -21,6 +21,9 @@
 #include "nlohmann_parsers.h"
 #include "new_release_dialog.h"
 
+#ifdef COMPILED_WITH_CATKIN
+#include <ros/package.h>
+#endif
 #ifdef COMPILED_WITH_AMENT
 #include <ament_index_cpp/get_package_prefix.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -109,18 +112,20 @@ int main(int argc, char* argv[])
   QString extra_path;
 
   try {
+#ifdef COMPILED_WITH_CATKIN
+    extra_path = QString::fromStdString(ros::package::getPath("plotjuggler_ros"));
+    extra_path.replace("/share/", "/lib/");
+#endif
 #ifdef COMPILED_WITH_AMENT
     extra_path = QString::fromStdString(ament_index_cpp::get_package_prefix("plotjuggler_ros"));
     extra_path += "/lib/plotjuggler_ros";
-#else
-
 #endif
   } catch (...) {
 
-      QMessageBox::warning(nullptr, "Missing package [plotjuggler-ros]",
-             "If you just upgraded from PlotJuggler 2.x to 3.x , try installing this package:\n\n"
-             "sudo apt install ros-${ROS_DISTRO}-plotjuggler-ros",
-          QMessageBox::Cancel, QMessageBox::Cancel);
+    QMessageBox::warning(nullptr, "Missing package [plotjuggler-ros]",
+                         "If you just upgraded from PlotJuggler 2.x to 3.x , try installing this package:\n\n"
+                         "sudo apt install ros-${ROS_DISTRO}-plotjuggler-ros",
+                         QMessageBox::Cancel, QMessageBox::Cancel);
   }
 
   //---------------------------
