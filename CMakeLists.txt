@@ -115,41 +115,7 @@ include_directories(
     ./3rdparty/lua-5.3.4/src
 )
 
-#########################  INSTALL ####################################
-
-if(COMPILING_WITH_CATKIN)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} )
-
-    add_definitions(-DCOMPILED_FOR_ROS)
-
-elseif(COMPILING_WITH_AMENT)
-    find_package(ament_cmake REQUIRED)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include )
-
-    add_definitions(-DCOMPILED_FOR_ROS)
-else()
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION  include)
-endif()
-
-
-#############################################################
-
-if (NOT WIN32)
-  add_subdirectory( 3rdparty/backward-cpp )
-endif()
-
-add_subdirectory( 3rdparty/color_widgets )
-add_subdirectory( 3rdparty/Qt-Advanced-Docking )
-add_subdirectory( 3rdparty/qwt/src )
+#########################  LIBRARY  ####################################
 
 qt5_wrap_cpp(PLOTJUGGLER_BASE_MOCS
   include/PlotJuggler/dataloader_base.h
@@ -163,8 +129,67 @@ target_link_libraries( plotjuggler_plugin_base PRIVATE
     ${Qt5Widgets_LIBRARIES}
     ${catkin_LIBRARIES} )
 
-add_subdirectory( 3rdparty/lua-5.3.4 )
+#########################  INSTALL  ####################################
 
+if(COMPILING_WITH_CATKIN)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} )
+
+    add_definitions(-DCOMPILED_FOR_ROS)
+
+elseif(COMPILING_WITH_AMENT)
+    find_package(ament_cmake REQUIRED)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+    add_definitions(-DCOMPILED_FOR_ROS)
+
+    ament_export_targets(export_plotjuggler_plugin_base HAS_LIBRARY_TARGET)
+
+    ament_package()
+
+else()
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif()
+
+
+install(
+    TARGETS plotjuggler_plugin_base
+    EXPORT export_plotjuggler_plugin_base
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+    )
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    DESTINATION  include)
+
+
+set(DESKTOP_ICON_DIR "${CMAKE_INSTALL_PREFIX}/share/icons")
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop
+        DESTINATION  "${CMAKE_INSTALL_PREFIX}/share/applications"  )
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/plotjuggler.svg
+        DESTINATION ${DESKTOP_ICON_DIR}  )
+
+######################## Main App, Libraries amd Plugins ###################################
+
+if (NOT WIN32)
+  add_subdirectory( 3rdparty/backward-cpp )
+endif()
+
+add_subdirectory( 3rdparty/color_widgets )
+add_subdirectory( 3rdparty/Qt-Advanced-Docking )
+add_subdirectory( 3rdparty/qwt/src )
+
+add_subdirectory( 3rdparty/lua-5.3.4 )
 
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
@@ -189,7 +214,6 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/3rdparty/paho.mqtt.c/CMakeLists.txt")
     add_subdirectory( 3rdparty/paho.mqtt.c )
 endif()
 
-
 add_subdirectory( src )
 
 add_subdirectory( plugins/DataLoadCSV )
@@ -204,29 +228,4 @@ if( ZMQ_FOUND )
 endif()
 
 
-if(COMPILING_WITH_AMENT)
-
-    ament_export_targets(export_plotjuggler_plugin_base HAS_LIBRARY_TARGET)
-
-    install(
-        TARGETS plotjuggler_plugin_base
-        EXPORT export_plotjuggler_plugin_base
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include
-        )
-
-    ament_package()
-endif()
-
-#############################################################
-
-set(DESKTOP_ICON_DIR "${CMAKE_INSTALL_PREFIX}/share/icons")
-
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlotJuggler.desktop
-        DESTINATION  "${CMAKE_INSTALL_PREFIX}/share/applications"  )
-
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/plotjuggler.svg
-        DESTINATION ${DESKTOP_ICON_DIR}  )
 

@@ -86,30 +86,30 @@ SET( PLOTTER_SRC
     nlohmann_parsers.cpp
     )
 
-add_executable(plotjuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC} ${BACKWARD_ENABLE})
+add_executable(PlotJuggler ${PLOTTER_SRC} ${RES_SRC} ${UI_SRC} ${BACKWARD_ENABLE})
 
 if (NOT WIN32)
-    add_backward(plotjuggler)
+    add_backward(PlotJuggler)
 endif()
 
-target_link_libraries(plotjuggler PUBLIC
+target_link_libraries(PlotJuggler PUBLIC
     ${QT_LINK_LIBRARIES}
     colorwidgets
     qwt_static
     lua_static )
 
-target_link_libraries(plotjuggler PRIVATE qt_advanced_docking)
+target_link_libraries(PlotJuggler PRIVATE qt_advanced_docking)
 
 if(COMPILING_WITH_CATKIN)
-    install(TARGETS plotjuggler
+    install(TARGETS PlotJuggler
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 elseif(COMPILING_WITH_AMENT)
-    install(TARGETS plotjuggler
+    install(TARGETS PlotJuggler
         DESTINATION lib/${PROJECT_NAME} )
 else()
-    install(TARGETS plotjuggler
+    install(TARGETS PlotJuggler
         DESTINATION bin  )
 endif()
