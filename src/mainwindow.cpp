@@ -47,6 +47,7 @@
 #include "nlohmann_parsers.h"
 #include "cheatsheet/cheatsheet_dialog.h"
 
+
 MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* parent)
   : QMainWindow(parent)
   , ui(new Ui::MainWindow)
@@ -146,28 +147,16 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   initializeActions();
 
+  QStringList loaded;
+  loaded += initializePlugins(QCoreApplication::applicationDirPath());
+  loaded += initializePlugins( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler" );
 
-  auto loaded_A = initializePlugins(QCoreApplication::applicationDirPath());
-  auto loaded_B = initializePlugins( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler" );
+  auto extra_folders = commandline_parser.value("extra-plugin-folders").split(";", QString::SkipEmptyParts);
 
-#ifdef COMPILED_FOR_ROS
-  auto loaded = loaded_A + loaded_B;
-  bool has_ros_plugin = false;
-  for (const auto& class_name: loaded)
+  for(const auto& folder: extra_folders)
   {
-    if( class_name.contains("ROS") ){
-      has_ros_plugin = true;
-    }
+    loaded += initializePlugins(folder);
   }
-  if( !has_ros_plugin )
-  {
-    QMessageBox::warning(this, "Missing package",
-        tr("PlotJuggler was compiled with ROS, but it wasn't able to load any ROS specific plugin.\n\n"
-           "If you just upgraded from PlotJuggler 2.x to 3.x , try installing this package:\n\n"
-           "sudo apt install ros-${ROS_DISTRO}-plotjuggler-ros"),
-        QMessageBox::Cancel, QMessageBox::Cancel);
-  }
-#endif
 
   _undo_timer.start();
 

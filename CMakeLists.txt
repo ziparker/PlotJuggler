@@ -25,12 +25,21 @@ if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
         LIBRARIES  plotjuggler_plugin_base
     )
 
+    add_definitions(-DCOMPILED_WITH_CATKIN)
+
+
 elseif( DEFINED ENV{AMENT_PREFIX_PATH})
     set(COMPILING_WITH_AMENT 1)
     
+    find_package(ament_index_cpp REQUIRED)
+    include_directories(${ament_index_cpp_INCLUDE_DIRS})
+
     message(STATUS "---------------------------------------------------------------------")
     message(STATUS "PlotJuggler is being built using AMENT. ROS2 plugins will be compiled")
     message(STATUS "---------------------------------------------------------------------")
+
+    add_definitions(-DCOMPILED_WITH_AMENT)
+
 else()
     message(STATUS "---------------------------------------------------------------------")
     message(STATUS "PlotJuggler is being WITHOUT any ROS support")
@@ -137,17 +146,12 @@ if(COMPILING_WITH_CATKIN)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_BIN_DESTINATION})
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} )
 
-    add_definitions(-DCOMPILED_FOR_ROS)
-
 elseif(COMPILING_WITH_AMENT)
     find_package(ament_cmake REQUIRED)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-    add_definitions(-DCOMPILED_FOR_ROS)
-
     ament_export_targets(export_plotjuggler_plugin_base HAS_LIBRARY_TARGET)
-
     ament_package()
 
 else()
