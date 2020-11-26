@@ -22,7 +22,7 @@
 #include "new_release_dialog.h"
 
 #ifdef COMPILED_WITH_CATKIN
-#include <ros/package.h>
+
 #endif
 #ifdef COMPILED_WITH_AMENT
 #include <ament_index_cpp/get_package_prefix.hpp>
@@ -117,8 +117,7 @@ int main(int argc, char* argv[])
 
   try {
 #ifdef COMPILED_WITH_CATKIN
-    extra_path = QString::fromStdString(ros::package::getPath("plotjuggler_ros"));
-    extra_path.replace("/share/", "/lib/");
+    extra_path = QCoreApplication::applicationDirPath() + "_ros";
 #endif
 #ifdef COMPILED_WITH_AMENT
     extra_path = QString::fromStdString(ament_index_cpp::get_package_prefix("plotjuggler_ros"));
