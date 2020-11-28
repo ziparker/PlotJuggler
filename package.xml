@@ -22,6 +22,7 @@
     <depend>libqt5-svg-dev</depend>
     <depend>libqt5-websockets-dev</depend>
     <depend>libqt5-opengl-dev</depend>
+    <depend>libqt5x11extras5-dev</depend>
     <depend>binutils</depend>
     <depend>boost</depend>
     <depend>libzmq3-dev</depend>
