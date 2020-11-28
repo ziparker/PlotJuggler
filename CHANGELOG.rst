@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.2 (2020-11-28)
+------------------
 * fix icon color in dark mode
 * updated to latest Qads
 * temporary fix for `#349 <https://github.com/PlotJuggler/PlotJuggler/issues/349>`_
