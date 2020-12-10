@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 cmake_policy(SET CMP0048 OLD)
 PROJECT(plotjuggler)
@@ -9,6 +9,8 @@ add_definitions(
     -DPJ_MAJOR_VERSION="3"
     -DPJ_MINOR_VERSION="0"
     -DPJ_PATCH_VERSION="4" )
+
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
 # http://answers.ros.org/question/230877/optionally-build-a-package-with-catkin/
 if( CATKIN_DEVEL_PREFIX OR catkin_FOUND OR CATKIN_BUILD_BINARY_PACKAGE)
@@ -114,7 +116,6 @@ include_directories(
     ${Qt5WebSockets_INCLUDE_DIRS}
     ${Qt5Svg_INCLUDE_DIRS}
     ${Qt5OpenGL_INCLUDE_DIRS}
-    ./include
     ./3rdparty/
     ./3rdparty/color_widgets/include
     ./3rdparty/Qt-Advanced-Docking/include
