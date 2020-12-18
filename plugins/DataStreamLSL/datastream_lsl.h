@@ -4,8 +4,11 @@
 #include <QtPlugin>
 #include <QThread>
 #include <QMap>
+#include <QTimer>
 #include <QStringListModel>
 #include <QStandardItemModel>
+#include <QString>
+#include <set>
 #include "PlotJuggler/datastreamer_base.h"
 #include "PlotJuggler/messageparser_base.h"
 #include "ui_datastream_lsl.h"
@@ -22,12 +25,15 @@ public:
 
     QStringList getSelectedStreams();
 
-private:
+private slots:
     void resolveLSLStreams();
 
 private:
     Ui::DataStreamLSL *ui;
-    QStandardItemModel model;
+    QStandardItemModel _model;
+    QTimer* _timer;
+
+    std::set<std::string> prev_streams_;
 };
 
 
