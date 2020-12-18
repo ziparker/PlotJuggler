@@ -27,11 +27,10 @@ Noteworthy features:
 ## Data sources (file and streaming)
 
 - Load CSV files.
-- Load ULog (PX4).
-- Subscribe to many different streaming sources: MQTT, Websockets, ZeroMQ, UDP, **ROS**, etc.
-- Read streams of data 
+- Load [ULog](https://dev.px4.io/v1.9.0/en/log/ulog_file_format.html) (PX4).
+- Subscribe to many different streaming sources: MQTT, Websockets, ZeroMQ, UDP, etc.
 - Understands data formats such as JSON, CBOR, BSON, Message Pack, etc.
-- Open Rosbags and subscribe to ROS topics (both ROS1 and ROS2).
+- Well integrated with [ROS](https://www.ros.org/): open *rosbags* and/or subscribe to ROS *topics* (both ROS1 and ROS2).
 - Supports the [Lab Streaming Layer](https://labstreaminglayer.readthedocs.io/info/intro.html), that is used by [many devices](https://labstreaminglayer.readthedocs.io/info/supported_devices.html).
 - Easily add your custom data source and/or formats...
 
