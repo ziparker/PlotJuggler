@@ -11,9 +11,26 @@ StreamLSLDialog::StreamLSLDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->tableView->setModel(&model);
+    ui->tableView->setModel(&_model);
+
+    _model.setColumnCount(3);
+
+    _model.setHeaderData(0, Qt::Horizontal, tr("ID"));
+    _model.setHeaderData(1, Qt::Horizontal, tr("Name"));
+    _model.setHeaderData(2, Qt::Horizontal, tr("Type"));
+
+    ui->tableView->horizontalHeader()->setMinimumWidth(200);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 
     resolveLSLStreams();
+
+    _timer = new QTimer(this);
+    connect(_timer, &QTimer::timeout,
+            this, &StreamLSLDialog::resolveLSLStreams);
+
+    _timer->start(1000);
 }
 
 StreamLSLDialog::~StreamLSLDialog()
@@ -27,10 +44,9 @@ QStringList StreamLSLDialog::getSelectedStreams()
 
     QModelIndexList list =ui->tableView->selectionModel()->selectedRows(0);
 
-
-    foreach(const QModelIndex &index, list){
+    for(const QModelIndex &index: list)
+    {
         selected_streams.append(index.data(Qt::DisplayRole).toString());
-        qDebug() << "Selected Indexes : " << index.data(Qt::DisplayRole).toString();
     }
 
     return selected_streams;
@@ -38,32 +54,50 @@ QStringList StreamLSLDialog::getSelectedStreams()
 
 void StreamLSLDialog::resolveLSLStreams()
 {
-    std::vector<lsl::stream_info> streams = lsl::resolve_streams();
-    QStringList stream_list;
+    std::vector<lsl::stream_info> streams = lsl::resolve_streams(0.0);
 
-    ui->tableView->horizontalHeader()->setBackgroundRole(QPalette::NoRole);
-
-    const int NUM_COL = 3;
-
-    model.setRowCount(int(streams.size()));
-    model.setColumnCount(NUM_COL);
-
-    model.setHeaderData(0, Qt::Horizontal, tr("ID"));
-    model.setHeaderData(1, Qt::Horizontal, tr("Name"));
-    model.setHeaderData(2, Qt::Horizontal, tr("Type"));
-
-    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    for (int i = 0; i < streams.size(); ++i) {
-
-        lsl::stream_info info = streams.at(i);
-
-        stream_list.append(QString::fromStdString(info.name()));
-
-        model.setItem(i, 0, new QStandardItem(QString::fromStdString(info.source_id())));
-        model.setItem(i, 1, new QStandardItem(QString::fromStdString(info.name())));
-        model.setItem(i, 2, new QStandardItem(QString::fromStdString(info.type())));
+    std::set<std::string> streams_id;
+    for (const auto& stream: streams)
+    {
+       streams_id.insert(stream.uid());
     }
+    if( streams_id == prev_streams_)
+    {
+        return;
+    }
+    prev_streams_ = streams_id;
+
+    auto selectionModel = ui->tableView->selectionModel();
+
+    _model.setRowCount(int(streams.size()));
+
+    QStringList selected_ids;
+
+    QModelIndexList selected_rows = selectionModel->selectedRows();
+    for( const auto& row_index : selected_rows)
+    {
+        selected_ids.push_back( _model.item(row_index.row(), 0)->text() );
+    }
+
+    for (unsigned row = 0; row < streams.size(); ++row) {
+
+        lsl::stream_info info = streams.at(row);
+
+        auto source_id = QString::fromStdString(info.source_id());
+
+        _model.setItem(row, 0, new QStandardItem(source_id));
+        _model.setItem(row, 1, new QStandardItem(QString::fromStdString(info.name())));
+        _model.setItem(row, 2, new QStandardItem(QString::fromStdString(info.type())));
+
+        if( selected_ids.contains(source_id) )
+        {
+            ui->tableView->selectRow( row );
+        }
+    }
+
+    ui->tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 }
 
 DataStreamLSL::DataStreamLSL():
