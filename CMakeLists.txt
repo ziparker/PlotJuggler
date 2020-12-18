@@ -123,6 +123,8 @@ include_directories(
     ./3rdparty/qwt/src
     ./3rdparty/sol
     ./3rdparty/lua-5.4.1/src
+    ./3rdparty/liblsl/src
+    ./3rdparty/liblsl/include
 )
 
 #########################  LIBRARY  ####################################
@@ -225,6 +227,15 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/3rdparty/paho.mqtt.c/CMakeLists.txt")
     add_subdirectory( plugins/DataStreamMQTT )
 endif()
 
+if(EXISTS "${PROJECT_SOURCE_DIR}/3rdparty/liblsl/CMakeLists.txt")
+    SET(LSL_ENABLE_TESTING FALSE CACHE BOOL "Build tests and run" FORCE)
+    SET(LSL_ENABLE_CPACK FALSE CACHE BOOL "Enable CPack" FORCE)
+    SET(LSL_BUILD_STATIC TRUE CACHE BOOL "Build static library" FORCE)
+    SET(LSL_BUILD_SHARED FALSE CACHE BOOL "Build shared library" FORCE)
+    add_subdirectory( 3rdparty/liblsl )
+    add_subdirectory( plugins/DataStreamLSL )
+endif()
+
 add_subdirectory( src )
 
 add_subdirectory( plugins/DataLoadCSV )
@@ -236,6 +247,4 @@ add_subdirectory( plugins/DataStreamUDP )
 if( ZMQ_FOUND )
   add_subdirectory( plugins/DataStreamZMQ )
 endif()
-
-
 
