@@ -13,6 +13,7 @@ target_link_libraries(DataStreamLSL
     ${Qt5Widgets_LIBRARIES}
     plotjuggler_plugin_base
     lsl-static
+    lslboost
     )
 
 
