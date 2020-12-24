@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.6 (2020-12-24)
+------------------
 * fix issue  `#372 <https://github.com/PlotJuggler/PlotJuggler/issues/372>`_ (install didn't work)
 * Update rangeX during streaming
 * LabStreamlayer (LSL) plugin is developed. (`#355 <https://github.com/PlotJuggler/PlotJuggler/issues/355>`_)
