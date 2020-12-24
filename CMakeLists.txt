@@ -217,12 +217,7 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/3rdparty/paho.mqtt.c/CMakeLists.txt")
     SET(PAHO_BUILD_SHARED FALSE CACHE BOOL "Build shared library" FORCE)
     SET(CMAKE_INSTALL_INCLUDEDIR )
 
-    macro(install)
-    endmacro()
-         add_subdirectory( 3rdparty/paho.mqtt.c )
-    macro(install)
-        _install(${ARGN})
-    endmacro()
+    add_subdirectory( 3rdparty/paho.mqtt.c EXCLUDE_FROM_ALL)
 
     add_subdirectory( plugins/DataStreamMQTT )
 endif()
@@ -243,6 +238,7 @@ add_subdirectory( plugins/DataLoadULog )
 add_subdirectory( plugins/DataStreamSample )
 add_subdirectory( plugins/DataStreamWebsocket )
 add_subdirectory( plugins/DataStreamUDP )
+
 
 if( ZMQ_FOUND )
   add_subdirectory( plugins/DataStreamZMQ )
