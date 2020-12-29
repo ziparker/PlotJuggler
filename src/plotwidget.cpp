@@ -37,7 +37,7 @@
 #include "suggest_dialog.h"
 #include "transforms/custom_function.h"
 #include "transforms/custom_timeseries.h"
-#include "svg_util.h"
+#include "PlotJuggler/svg_util.h"
 #include "plotwidget_editor.h"
 #include "plotwidget_transforms.h"
 

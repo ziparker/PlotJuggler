@@ -38,7 +38,7 @@
 #include "qwt_plot_canvas.h"
 #include "transforms/function_editor.h"
 #include "utils.h"
-#include "svg_util.h"
+#include "PlotJuggler/svg_util.h"
 #include "stylesheet.h"
 
 #include "ui_aboutdialog.h"

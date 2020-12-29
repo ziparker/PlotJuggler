@@ -26,7 +26,7 @@
 #include <QSyntaxHighlighter>
 
 #include "lua_custom_function.h"
-#include "svg_util.h"
+#include "PlotJuggler/svg_util.h"
 
 //class Highlighter : public QSyntaxHighlighter
 //{
