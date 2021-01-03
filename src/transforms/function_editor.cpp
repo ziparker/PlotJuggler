@@ -468,6 +468,9 @@ void FunctionEditorWidget::on_buttonSaveFunctions_clicked()
 
   file.write(data);
   file.close();
+
+  directory_path = QFileInfo(fileName).absolutePath();
+  settings.setValue("AddCustomPlotDialog.loadDirectory", directory_path);
 }
 
 void FunctionEditorWidget::on_buttonSaveCurrent_clicked()
