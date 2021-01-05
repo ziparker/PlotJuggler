@@ -158,6 +158,47 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
     loaded += initializePlugins(folder);
   }
 
+  //------------ ROS specific folders -------------
+  try {
+#ifdef COMPILED_WITH_CATKIN
+
+    bool any_exist = false;
+    const char * env = std::getenv("CMAKE_PREFIX_PATH");
+    if (env) {
+      QString env_catkin_prefix_paths = QString::fromStdString( env );
+      env_catkin_prefix_paths.replace(";",":"); // for windows
+      auto catkin_prefix_paths = env_catkin_prefix_paths.split(":");
+
+      for(const auto& catkin_path: catkin_prefix_paths)
+      {
+        QDir ros_plugins_dir( catkin_path );
+        if( ros_plugins_dir.exists() && !ros_plugins_dir.isEmpty() )
+        {
+          any_exist = true;
+        }
+        QString full_path = catkin_path + "/lib/plotjuggler_ros";
+        loaded += initializePlugins(full_path );
+      }
+    }
+    if( !any_exist )
+    {
+      throw std::runtime_error("Missing ros plugins directory");
+    }
+#endif
+#ifdef COMPILED_WITH_AMENT
+    auto ros2_path = QString::fromStdString(ament_index_cpp::get_package_prefix("plotjuggler_ros"));
+    ros2_path += "/lib/plotjuggler_ros";
+    loaded += initializePlugins(ros2_path);
+#endif
+  } catch (...) {
+
+    QMessageBox::warning(nullptr, "Missing package [plotjuggler-ros]",
+                         "If you just upgraded from PlotJuggler 2.x to 3.x , try installing this package:\n\n"
+                         "sudo apt install ros-${ROS_DISTRO}-plotjuggler-ros",
+                         QMessageBox::Cancel, QMessageBox::Cancel);
+  }
+  //------------------------------------
+
   _undo_timer.start();
 
   // save initial state
@@ -471,10 +512,7 @@ QStringList MainWindow::initializePlugins(QString directory_name)
       }
       else
       {
-        QMessageBox::warning(this, tr("Warning"),
-                             tr("Trying to load twice a plugin with name [%1].\n"
-                                "Only the first will be loaded.")
-                             .arg(plugin_name));
+        qDebug() << tr("Trying to load twice a plugin with name [%1]. Skipping...").arg(plugin_name);
         continue;
       }
 
@@ -1499,7 +1537,7 @@ void MainWindow::loadStyleSheet(QString file_path)
     QString theme = SetApplicationStyleSheet( styleFile.readAll() );
 
     forEachWidget([&](PlotWidget* plot) {
-        plot->replot();
+      plot->replot();
     });
 
     emit stylesheetChanged(theme);
