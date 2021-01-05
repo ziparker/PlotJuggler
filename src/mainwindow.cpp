@@ -47,6 +47,13 @@
 #include "nlohmann_parsers.h"
 #include "cheatsheet/cheatsheet_dialog.h"
 
+#ifdef COMPILED_WITH_CATKIN
+
+#endif
+#ifdef COMPILED_WITH_AMENT
+#include <ament_index_cpp/get_package_prefix.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#endif
 
 MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* parent)
   : QMainWindow(parent)
