@@ -114,30 +114,6 @@ int main(int argc, char* argv[])
 
   app.setApplicationVersion(VERSION_STRING);
 
-  QString extra_path;
-
-  try {
-#ifdef COMPILED_WITH_CATKIN
-    //TODO: use pluginlib instead
-    QDir ros_plugins_dir( QCoreApplication::applicationDirPath() + "_ros" );
-    if( !ros_plugins_dir.exists() || ros_plugins_dir.isEmpty() )
-    {
-      throw std::runtime_error("Missing ros plugins directory");
-    }
-    extra_path = ros_plugins_dir.path();
-#endif
-#ifdef COMPILED_WITH_AMENT
-    extra_path = QString::fromStdString(ament_index_cpp::get_package_prefix("plotjuggler_ros"));
-    extra_path += "/lib/plotjuggler_ros";
-#endif
-  } catch (...) {
-
-    QMessageBox::warning(nullptr, "Missing package [plotjuggler-ros]",
-                         "If you just upgraded from PlotJuggler 2.x to 3.x , try installing this package:\n\n"
-                         "sudo apt install ros-${ROS_DISTRO}-plotjuggler-ros",
-                         QMessageBox::Cancel, QMessageBox::Cancel);
-  }
-
   //---------------------------
   TransformFactory::registerTransform<FirstDerivative>();
   TransformFactory::registerTransform<ScaleTransform>();
@@ -178,10 +154,6 @@ int main(int argc, char* argv[])
 
   QCommandLineOption folder_option(QStringList() << "extra-plugin-folders",
                                     "Add semicolon-separated list of folders where you should look for plugins.");
-  if(!extra_path.isEmpty())
-  {
-    folder_option.setDefaultValue( extra_path );
-  }
   parser.addOption(folder_option);
 
   QCommandLineOption buffersize_option(QStringList() << "buffer_size",
