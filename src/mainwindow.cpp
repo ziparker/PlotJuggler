@@ -74,6 +74,8 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   ui->setupUi(this);
 
+  QSettings settings;
+
   ui->playbackLoop->setText("");
   ui->pushButtonZoomOut->setText("");
   ui->pushButtonPlay->setText("");
@@ -147,21 +149,17 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   initializeActions();
 
+  //------------ Load plugins -------------
   QStringList loaded;
-  loaded += initializePlugins(QCoreApplication::applicationDirPath());
-  loaded += initializePlugins( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler" );
+  QStringList plugin_folders;
 
-  auto extra_folders = commandline_parser.value("extra-plugin-folders").split(";", QString::SkipEmptyParts);
+  plugin_folders += QCoreApplication::applicationDirPath();
+  plugin_folders += QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler";
+  plugin_folders += commandline_parser.value("plugin_folders").split(";", QString::SkipEmptyParts);
+  plugin_folders += settings.value("Preferences::plugin_folders", QStringList()).toStringList();
 
-  for(const auto& folder: extra_folders)
-  {
-    loaded += initializePlugins(folder);
-  }
-
-  //------------ ROS specific folders -------------
   try {
 #ifdef COMPILED_WITH_CATKIN
-
     bool any_exist = false;
     const char * env = std::getenv("CMAKE_PREFIX_PATH");
     if (env) {
@@ -176,13 +174,12 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
         {
           any_exist = true;
         }
-        QString full_path = catkin_path + "/lib/plotjuggler_ros";
-        loaded += initializePlugins(full_path );
+        plugin_folders += catkin_path + "/lib/plotjuggler_ros";
       }
     }
     if( !any_exist )
     {
-      throw std::runtime_error("Missing ros plugins directory");
+      throw std::runtime_error("Missing ROS plugins directory");
     }
 #endif
 #ifdef COMPILED_WITH_AMENT
@@ -197,6 +194,13 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
                          "sudo apt install ros-${ROS_DISTRO}-plotjuggler-ros",
                          QMessageBox::Cancel, QMessageBox::Cancel);
   }
+
+  plugin_folders.removeDuplicates();
+  for(const auto& folder: plugin_folders)
+  {
+    loaded += initializePlugins(folder);
+  }
+
   //------------------------------------
 
   _undo_timer.start();
@@ -233,7 +237,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
     loadLayoutFromFile(commandline_parser.value("layout"));
   }
 
-  QSettings settings;
+
   restoreGeometry(settings.value("MainWindow.geometry").toByteArray());
   restoreState(settings.value("MainWindow.state").toByteArray());
 
