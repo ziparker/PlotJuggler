@@ -213,8 +213,15 @@ endif()
 if(EXISTS "${PROJECT_SOURCE_DIR}/3rdparty/paho.mqtt.c/CMakeLists.txt")
     SET(PAHO_ENABLE_TESTING FALSE CACHE BOOL "Build tests and run" FORCE)
     SET(PAHO_ENABLE_CPACK FALSE CACHE BOOL "Enable CPack" FORCE)
-    SET(PAHO_BUILD_STATIC TRUE CACHE BOOL "Build static library" FORCE)
-    SET(PAHO_BUILD_SHARED FALSE CACHE BOOL "Build shared library" FORCE)
+
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        SET(PAHO_BUILD_STATIC FALSE CACHE BOOL "Build static library" FORCE)
+        SET(PAHO_BUILD_SHARED TRUE CACHE BOOL "Build shared library" FORCE)
+    else()
+        SET(PAHO_BUILD_STATIC TRUE CACHE BOOL "Build static library" FORCE)
+        SET(PAHO_BUILD_SHARED FALSE CACHE BOOL "Build shared library" FORCE)
+    endif()
+
     SET(CMAKE_INSTALL_INCLUDEDIR )
 
     add_subdirectory( 3rdparty/paho.mqtt.c EXCLUDE_FROM_ALL)
