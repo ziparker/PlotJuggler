@@ -139,12 +139,12 @@ int main(int argc, char* argv[])
 
   QCommandLineOption loadfile_option(QStringList() << "d"
                                                    << "datafile",
-                                     "Load a file containing data", "file");
+                                     "Load a file containing data", "file_path");
   parser.addOption(loadfile_option);
 
   QCommandLineOption layout_option(QStringList() << "l"
                                                  << "layout",
-                                   "Load a file containing the layout configuration", "file");
+                                   "Load a file containing the layout configuration", "file_path");
   parser.addOption(layout_option);
 
   QCommandLineOption publish_option(QStringList() << "p"
@@ -152,8 +152,9 @@ int main(int argc, char* argv[])
                                     "Automatically start publisher when loading the layout file");
   parser.addOption(publish_option);
 
-  QCommandLineOption folder_option(QStringList() << "extra-plugin-folders",
-                                    "Add semicolon-separated list of folders where you should look for plugins.");
+  QCommandLineOption folder_option(QStringList() << "plugin_folders",
+                                    "Add semicolon-separated list of folders where you should look for additional plugins.",
+                                   "directory_paths");
   parser.addOption(folder_option);
 
   QCommandLineOption buffersize_option(QStringList() << "buffer_size",
