@@ -167,27 +167,18 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
 
   try {
 #ifdef COMPILED_WITH_CATKIN
-    bool any_exist = false;
     const char * env = std::getenv("CMAKE_PREFIX_PATH");
     if (env) {
-      QString env_catkin_prefix_paths = QString::fromStdString( env );
-      env_catkin_prefix_paths.replace(";",":"); // for windows
-      auto catkin_prefix_paths = env_catkin_prefix_paths.split(":");
+      QString env_catkin_paths = QString::fromStdString( env );
+      env_catkin_paths.replace(";",":"); // for windows
+      auto catkin_paths = env_catkin_paths.split(":");
 
-      for(const auto& catkin_path: catkin_prefix_paths)
+      for(const auto& path: catkin_paths)
       {
-        QDir ros_plugins_dir( catkin_path );
-        if( ros_plugins_dir.exists() && !ros_plugins_dir.isEmpty() )
-        {
-          any_exist = true;
-        }
-        plugin_folders += catkin_path + "/lib/plotjuggler_ros";
+        plugin_folders += path + "/lib/plotjuggler_ros";
       }
     }
-    if( !any_exist )
-    {
-      throw std::runtime_error("Missing ROS plugins directory");
-    }
+    plugin_folders += QCoreApplication::applicationDirPath() + "_ros";
 #endif
 #ifdef COMPILED_WITH_AMENT
     auto ros2_path = QString::fromStdString(ament_index_cpp::get_package_prefix("plotjuggler_ros"));
