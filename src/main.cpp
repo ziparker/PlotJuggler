@@ -22,14 +22,6 @@
 #include "nlohmann_parsers.h"
 #include "new_release_dialog.h"
 
-#ifdef COMPILED_WITH_CATKIN
-
-#endif
-#ifdef COMPILED_WITH_AMENT
-#include <ament_index_cpp/get_package_prefix.hpp>
-#include <ament_index_cpp/get_package_share_directory.hpp>
-#endif
-
 static QString VERSION_STRING = QString("%1.%2.%3").arg(PJ_MAJOR_VERSION).arg(PJ_MINOR_VERSION).arg(PJ_PATCH_VERSION);
 
 inline int GetVersionNumber(QString str)
