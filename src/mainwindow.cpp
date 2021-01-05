@@ -160,9 +160,8 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   QStringList loaded;
   QStringList plugin_folders;
 
-  plugin_folders += QCoreApplication::applicationDirPath();
-  plugin_folders += QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler";
   plugin_folders += commandline_parser.value("plugin_folders").split(";", QString::SkipEmptyParts);
+  plugin_folders += QCoreApplication::applicationDirPath();
   plugin_folders += settings.value("Preferences::plugin_folders", QStringList()).toStringList();
 
   try {
@@ -193,7 +192,9 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
                          QMessageBox::Cancel, QMessageBox::Cancel);
   }
 
+  plugin_folders += QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation) + "/PlotJuggler";
   plugin_folders.removeDuplicates();
+
   for(const auto& folder: plugin_folders)
   {
     loaded += initializePlugins(folder);
