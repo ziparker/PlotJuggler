@@ -68,7 +68,7 @@ void PreferencesDialog::on_buttonBox_accepted()
 
 void PreferencesDialog::on_pushButtonAdd_clicked()
 {
-  QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
+  QString dir = QFileDialog::getExistingDirectory(this, tr("Select a Directory"),
                                                QDir::homePath(),
                                                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
   auto item = new QListWidgetItem(dir);
@@ -77,7 +77,12 @@ void PreferencesDialog::on_pushButtonAdd_clicked()
 
 void PreferencesDialog::on_pushButtonRemove_clicked()
 {
-  qDeleteAll(ui->listWidget->selectedItems());
+  auto selected = ui->listWidget->selectedItems();
+
+  for(QListWidgetItem* item: selected){
+      ui->listWidget->removeItemWidget(item);
+      delete item;
+  }
 }
 
 void PreferencesDialog::on_listWidget_itemSelectionChanged()
