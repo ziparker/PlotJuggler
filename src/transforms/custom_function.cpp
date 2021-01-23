@@ -100,8 +100,10 @@ void CustomFunction::calculate(const PlotDataMapRef& plotData, PlotData* dst_dat
     {
       points.clear();
       calculatePoints(src_data, channel_data, i, points);
-      for (PlotData::Point const &point : points)
+
+      for (PlotData::Point const &point : points) {
         dst_data->pushBack(point);
+      }
     }
   }
 }

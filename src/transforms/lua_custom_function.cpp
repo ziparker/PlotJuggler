@@ -109,7 +109,11 @@ void LuaCustomFunction::calculatePoints(const PlotData& src_data,
   }
   else if (result.return_count() == 1 && result.get_type(0) == sol::type::table)
   {
-    std::vector<std::array<double, 2>> multi_samples = result.get<std::vector<std::array<double, 2>>>(0);
+    static std::vector<std::array<double, 2>> multi_samples;
+    multi_samples.clear();
+
+    multi_samples = result.get<std::vector<std::array<double, 2>>>(0);
+
     for (std::array<double, 2> sample : multi_samples)
     {
       PlotData::Point point;
