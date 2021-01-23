@@ -697,10 +697,10 @@ void MainWindow::buildDummyData()
 
   for (const QString& name : words_list)
   {
-    double A = 6 * ((double)qrand() / (double)RAND_MAX) - 3;
-    double B = 3 * ((double)qrand() / (double)RAND_MAX);
-    double C = 3 * ((double)qrand() / (double)RAND_MAX);
-    double D = 20 * ((double)qrand() / (double)RAND_MAX);
+    double A = 6 * ((double)rand() / (double)RAND_MAX) - 3;
+    double B = 3 * ((double)rand() / (double)RAND_MAX);
+    double C = 3 * ((double)rand() / (double)RAND_MAX);
+    double D = 20 * ((double)rand() / (double)RAND_MAX);
 
     auto it = datamap.addNumeric(name.toStdString());
     PlotData& plot = it->second;
