@@ -1374,6 +1374,18 @@ bool MainWindow::loadDataFromFile(const FileLoadInfo& info)
                          tr("Cannot read files with extension %1.\n No plugin can handle that!\n").arg(info.filename));
   }
   _curvelist_widget->updateFilter();
+
+  // clean the custom plot. Function updateDataAndReplot will update them
+  for (auto& custom_it : _custom_plots)
+  {
+    auto dst_data_it = _mapped_plot_data.numeric.find( custom_it.first );
+    if (dst_data_it != _mapped_plot_data.numeric.end())
+    {
+      dst_data_it->second.clear();
+    }
+    custom_it.second->clear();
+  }
+
   updateDataAndReplot(true);
   ui->timeSlider->setRealValue(ui->timeSlider->getMinimum());
 
