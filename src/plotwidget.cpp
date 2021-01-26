@@ -1382,7 +1382,7 @@ void PlotWidget::updateCurves()
   for (auto& it : _curve_list)
   {
     auto series = dynamic_cast<QwtSeriesWrapper*>(it.curve->data());
-    bool res = series->updateCache(false);
+    series->updateCache(false);
     // TODO check res and do something if false.
   }
   updateMaximumZoomArea();
@@ -1832,11 +1832,11 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
         {
           int prev_size = _legend->font().pointSize();
           int new_size = prev_size;
-          if (mouse_event->delta() > 0)
+          if (mouse_event->angleDelta().y() > 0)
           {
             new_size = std::min(13, prev_size+1);
           }
-          if (mouse_event->delta() < 0)
+          if (mouse_event->angleDelta().y() < 0)
           {
             new_size = std::max(7, prev_size-1);
           }
@@ -1892,7 +1892,7 @@ bool PlotWidget::canvasEventFilter(QEvent* event)
         }
         return false;  // send to canvas()
       }
-      else if (mouse_event->buttons() == Qt::MidButton && mouse_event->modifiers() == Qt::NoModifier)
+      else if (mouse_event->buttons() == Qt::MiddleButton && mouse_event->modifiers() == Qt::NoModifier)
       {
         overrideCursonMove();
         return false;
@@ -2067,7 +2067,7 @@ void PlotWidget::replot()
     _zoomer->setZoomBase(false);
   }
 
-  static int replot_count = 0;
+ // static int replot_count = 0;
   QwtPlot::replot();
   //qDebug() << replot_count++;
 }
