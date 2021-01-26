@@ -14,7 +14,7 @@ public:
   {
     ui->setupUi(this);
 
-    static QString uuid =  QString::number(qrand());
+    static QString uuid =  QString::number(rand());
     ui->lineEditClientID->setText(tr("Plotjuggler-") + uuid);
   }
 
