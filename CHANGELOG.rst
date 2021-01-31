@@ -2,8 +2,8 @@
 Changelog for package plotjuggler
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.1.0 (2021-01-31)
+------------------
 * fix issue `#394 <https://github.com/facontidavide/PlotJuggler/issues/394>`_
 * Update udp_server.cpp (`#393 <https://github.com/facontidavide/PlotJuggler/issues/393>`_)
   Fixes random corruptions of UDP Json messages (garbage collector related?)
