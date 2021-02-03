@@ -80,7 +80,7 @@ bool DataStreamZMQ::start(QStringList*)
   std::shared_ptr<PJ::MessageParserCreator> parser_creator;
 
   connect(dialog->ui->comboBoxProtocol, qOverload<int>( &QComboBox::currentIndexChanged), this,
-          [&](QString protocol)
+          [&](int index)
   {
     if( parser_creator ){
       QWidget*  prev_widget = parser_creator->optionsWidget();
