@@ -91,7 +91,7 @@ To install PlotJuggler, just type:
        
 I added a fix that will be available in the next release.
 
-To launch PlotJuggler on ROS, ujse the command:
+To launch PlotJuggler on ROS, use the command:
 
       rosrun plotjuggler plotjuggler
 
