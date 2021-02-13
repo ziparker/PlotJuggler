@@ -82,7 +82,7 @@ protected:
   QString _alias;
   double _last_timestamp;
 
-  virtual nonstd::optional<PlotData::Point>
+  virtual std::optional<PlotData::Point>
   calculateNextPoint(size_t index) = 0;
 };
 
