@@ -228,7 +228,7 @@ bool DataLoadCSV::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_data
   if (interrupted)
   {
     progress_dialog.cancel();
-    plot_data.numeric.clear();
+    plot_data.clear();
   }
 
   if (monotonic_warning)
@@ -237,7 +237,7 @@ bool DataLoadCSV::readDataFromFile(FileLoadInfo* info, PlotDataMapRef& plot_data
                       "Since PlotJuggler makes the assumption that timeseries are strictly monotonic, you "
                       "might experience undefined behaviours.\n\n"
                       "You have been warned...";
-    QMessageBox::warning(0, tr("Warning"), message);
+    QMessageBox::warning(nullptr, tr("Warning"), message);
   }
 
   return true;
