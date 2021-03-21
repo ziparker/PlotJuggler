@@ -933,8 +933,8 @@ void MainWindow::checkAllCurvesFromLayout(const QDomElement& root)
     {
       for (auto& name : missing_curves)
       {
-        _curvelist_widget->addCurve(QString::fromStdString(name));
-        _mapped_plot_data.addNumeric(name);
+        auto plot_it = _mapped_plot_data.addNumeric(name);
+        _curvelist_widget->addCurve( name );
       }
       _curvelist_widget->refreshColumns();
     }
@@ -1207,7 +1207,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
     const std::string& name = it.first;
     if (it.second.size() > 0 && _mapped_plot_data.numeric.count(name) == 0)
     {
-      _curvelist_widget->addCurve(QString::fromStdString(name));
+      _curvelist_widget->addCurve( name );
       curvelist_modified = true;
     }
   }
@@ -1217,7 +1217,7 @@ void MainWindow::importPlotDataMap(PlotDataMapRef& new_data, bool remove_old)
     const std::string& name = it.first;
     if (it.second.size() > 0 && _mapped_plot_data.strings.count(name) == 0)
     {
-      _curvelist_widget->addCurve(QString::fromStdString(name));
+      _curvelist_widget->addCurve( name );
       curvelist_modified = true;
     }
   }
@@ -2030,7 +2030,7 @@ void MainWindow::updateDataAndReplot(bool replot_hidden_tabs)
 
   if (_active_streamer_plugin)
   {
-    std::vector<QString> curvelist_added;
+    std::vector<std::string> curvelist_added;
 
     {
       std::lock_guard<std::mutex> lock(_active_streamer_plugin->mutex());

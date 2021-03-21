@@ -2,6 +2,7 @@
 #include "curvelist_panel.h"
 #include <QFontDatabase>
 #include <QObject>
+#include <QDebug>
 
 class TreeWidgetItem : public QTreeWidgetItem
 {
@@ -56,9 +57,9 @@ CurveTreeView::CurveTreeView(CurveListPanel* parent) : QTreeWidget(parent), Curv
   });
 }
 
-void CurveTreeView::addItem(const QString& item_name)
+void CurveTreeView::addItem(const QString& tree_name, const QString& plot_name)
 {
-  auto parts = item_name.split('/', QString::SplitBehavior::SkipEmptyParts);
+  auto parts = tree_name.split('/', QString::SplitBehavior::SkipEmptyParts);
   if (parts.size() == 0)
   {
     return;
@@ -109,7 +110,7 @@ void CurveTreeView::addItem(const QString& item_name)
       if (is_leaf)
       {
         child_item->setFlags(current_flag | Qt::ItemIsSelectable);
-        child_item->setData(0, Qt::UserRole, item_name);
+        child_item->setData(0, Qt::UserRole, plot_name);
       }
       else
       {
