@@ -144,7 +144,7 @@ bool DataStreamLSL::start(QStringList*)
 
         streamer->moveToThread(thread);
         connect(thread, &QThread::started, streamer, &Streamer::stream);
-        connect(streamer, &Streamer::dataReceived, this, &DataStreamLSL::dataReceived, Qt::QueuedConnection);
+        connect(streamer, &Streamer::dataReceived, this, &DataStreamLSL::onDataReceived, Qt::QueuedConnection);
         connect(thread, &QThread::finished, streamer, &Streamer::deleteLater);
 
         thread->start();
@@ -167,7 +167,7 @@ void DataStreamLSL::shutdown()
     }
 }
 
-void DataStreamLSL::dataReceived(std::vector<std::vector<double> > *chunk, std::vector<double> *stamps)
+void DataStreamLSL::onDataReceived(std::vector<std::vector<double> > *chunk, std::vector<double> *stamps)
 {
     Streamer *streamer = qobject_cast<Streamer*>(sender());
 
@@ -185,5 +185,7 @@ void DataStreamLSL::dataReceived(std::vector<std::vector<double> > *chunk, std::
             }
         }
     }
+
+    emit this->dataReceived();
 }
 
